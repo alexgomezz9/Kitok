@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+.env
+logs/*.log
+state/state.json
+outputs/generated/*
+outputs/failed/*
+outputs/ready/*
+outputs/ready-phone/*
+!outputs/generated/.gitkeep
+!outputs/failed/.gitkeep
+!outputs/ready/.gitkeep
+!outputs/ready-phone/.gitkeep
+.env

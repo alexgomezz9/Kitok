@@ -1,0 +1,44 @@
+[
+  {
+    "id": "voz_grabada_001",
+    "subject": "Por qué tu voz grabada te suena tan rara",
+    "script": "¿Por qué tu propia voz grabada te parece tan rara si los demás llevan toda la vida oyéndola así? Cuando hablas, no solo escuchas tu voz por el aire. Parte del sonido llega al oído interno a través de los huesos de tu cráneo, reforzando las frecuencias más graves. Una grabación elimina esa conducción ósea. Por eso al escucharte grabado tu voz suele parecerte más fina y extraña.",
+    "keywords": [
+      "voice recording",
+      "microphone",
+      "smartphone recording",
+      "speaking person",
+      "headphones"
+    ],
+    "caption": "Tu voz no suena como crees 🤯 #curiosidades #ciencia",
+    "publish_at": "2026-09-16T13:00:00+02:00"
+  },
+  {
+    "id": "cosquillas_001",
+    "subject": "Por qué no puedes hacerte cosquillas a ti mismo",
+    "script": "¿Por qué otra persona puede hacerte cosquillas pero tú casi nunca puedes hacértelas a ti mismo? Porque tu cerebro sabe que el movimiento viene de ti. Antes incluso de tocarte, predice dónde y cuándo vas a sentir el contacto y reduce la intensidad de esa sensación. Cuando otra persona te toca, no puedes predecir exactamente lo que hará. Y esa incertidumbre hace que las cosquillas funcionen muchísimo mejor.",
+    "keywords": [
+      "tickling person",
+      "laughing people",
+      "human hands",
+      "laughing woman",
+      "friends laughing"
+    ],
+    "caption": "Tu cerebro se adelanta a tus propias cosquillas 🧠 #curiosidades",
+    "publish_at": "2026-09-16T19:00:00+02:00"
+  },
+  {
+    "id": "lluvia_001",
+    "subject": "De dónde viene el olor después de la lluvia",
+    "script": "¿Sabías que parte del olor a tierra mojada viene de microorganismos? Algunas bacterias del suelo producen una sustancia llamada geosmina. Cuando las gotas de lluvia golpean la tierra, pueden lanzar diminutas partículas al aire que transportan esa molécula. Nuestro olfato es extremadamente sensible a ella. Así que ese olor que reconoces al instante después de llover tiene, en parte, un origen microbiano.",
+    "keywords": [
+      "rain falling",
+      "wet soil",
+      "rainy street",
+      "forest rain",
+      "raindrops"
+    ],
+    "caption": "Ese olor después de la lluvia tiene una explicación inesperada 🌧️ #ciencia",
+    "publish_at": "2026-09-16T22:00:00+02:00"
+  }
+]
