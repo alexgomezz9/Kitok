@@ -1,5 +1,7 @@
 from __future__ import annotations
 import json, os, tempfile
+import fcntl
+from contextlib import contextmanager
 from copy import deepcopy
 from datetime import datetime, timezone
 from pathlib import Path
@@ -26,6 +28,13 @@ class StateStore:
     def all(self): return deepcopy(self._data["items"])
 
     def upsert(self, cid, **changes):
+        # Merge from disk while locked so generation and publishing preserve
+        # each other's fields, including when their StateStores predate a write.
+        with self._write_lock():
+            self._data = self._load()
+            return self._upsert(cid, **changes)
+
+    def _upsert(self, cid, **changes):
         now = utc_now_iso()
         row = self._data["items"].setdefault(cid,{
             "content_id":cid,"status":"pending","attempts":0,
@@ -35,6 +44,39 @@ class StateStore:
         row.update(changes); row["updated_at"] = now
         self._atomic_write()
         return deepcopy(row)
+
+    def update_publishing(self, cid, section, platform=None, **changes):
+        with self._write_lock():
+            self._data = self._load()
+            publishing = self.get(cid).get("publishing", {})
+            target = publishing.setdefault(section, {})
+            if platform is not None:
+                target = target.setdefault(platform, {})
+            target.update(changes)
+            return self._upsert(cid, publishing=publishing)
+
+    @contextmanager
+    def _write_lock(self):
+        with self.path.with_suffix(".lock").open("a") as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX)
+            try:
+                yield
+            finally:
+                fcntl.flock(lock, fcntl.LOCK_UN)
+
+    @contextmanager
+    def publishing_lock(self):
+        """Serialize maintenance runs, including remote uploads/mutations (WSL/Linux)."""
+        with self.path.with_suffix(".publishing.lock").open("a") as lock:
+            try:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                raise RuntimeError("Another Kitok publishing operation is running") from None
+            try:
+                self._data = self._load()
+                yield
+            finally:
+                fcntl.flock(lock, fcntl.LOCK_UN)
 
     def increment_attempts(self,cid):
         n = int(self.get(cid).get("attempts",0))+1

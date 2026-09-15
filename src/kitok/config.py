@@ -1,6 +1,6 @@
 from __future__ import annotations
 from pathlib import Path
-from pydantic import Field
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -30,6 +30,24 @@ class Settings(BaseSettings):
     min_vertical_width: int = 540
     min_vertical_height: int = 960
     copy_metadata_sidecars: bool = True
+
+    publish_enabled: bool = False
+    fixed_hashtags: str = "#curiosidades #datoscuriosos"
+    buffer_api_key: SecretStr = SecretStr("")
+    buffer_organization_id: str = ""
+    buffer_tiktok_channel_id: str = ""
+    buffer_instagram_channel_id: str = ""
+    buffer_youtube_channel_id: str = ""
+    buffer_max_scheduled_per_channel: int = Field(default=9, ge=1, le=9)
+    buffer_request_timeout_seconds: float = Field(default=30, gt=0)
+    cloudinary_cloud_name: str = ""
+    cloudinary_api_key: SecretStr = SecretStr("")
+    cloudinary_api_secret: SecretStr = SecretStr("")
+
+    @property
+    def buffer_channel_ids(self):
+        return {p: getattr(self, f"buffer_{p}_channel_id")
+                for p in ("tiktok", "instagram", "youtube")}
 
     @property
     def queue_path(self): return PROJECT_ROOT / "content_queue.json"

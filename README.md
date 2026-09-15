@@ -33,7 +33,7 @@ móvil
 - Sidecar JSON con caption/hora.
 - `publish_plan.txt` y `publish_plan.json`.
 - CLI y tests.
-- Sin publicación automática todavía.
+- Publicación opcional mediante Cloudinary + Buffer, desactivada por defecto.
 
 ## API MPT verificada contra el repo actual
 
@@ -348,4 +348,187 @@ pegar muchos guiones
 → aparecen solos en el móvil
 ```
 
-Cuando esto sea fiable, v2 añadirá primero YouTube Shorts automático y después Instagram/TikTok.
+La capa opcional siguiente añade programación mediante Buffer sin cambiar la generación.
+
+## 18. Publicación opcional: Cloudinary → Buffer
+
+La generación conserva el flujo anterior y nunca publica, aunque
+`PUBLISH_ENABLED=true`. La publicación se ejecuta únicamente con sus comandos
+específicos. No se utilizan APIs directas de las redes ni automatización de navegador.
+
+```text
+MP4 ready → Cloudinary (una subida) → URL HTTPS estable
+          → Buffer → TikTok / Instagram Reel / YouTube Short
+```
+
+Instala las dependencias actualizadas:
+
+```bash
+source .venv/bin/activate
+pip install -e ".[dev]"
+```
+
+Copia las nuevas variables de `.env.example` a tu `.env` sin sobrescribir la
+configuración de MPT/Drive. Nunca subas `.env` al repositorio:
+
+```dotenv
+PUBLISH_ENABLED=false
+FIXED_HASHTAGS="#curiosidades #datoscuriosos"
+BUFFER_API_KEY=
+BUFFER_ORGANIZATION_ID=
+BUFFER_TIKTOK_CHANNEL_ID=
+BUFFER_INSTAGRAM_CHANNEL_ID=
+BUFFER_YOUTUBE_CHANNEL_ID=
+BUFFER_MAX_SCHEDULED_PER_CHANNEL=9
+BUFFER_REQUEST_TIMEOUT_SECONDS=30
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+```
+
+### Comprobaciones y vista previa
+
+```bash
+python main.py --buffer-channels
+python main.py --buffer-check
+python main.py --publish-dry-run
+python main.py --publish-dry-run --id estomago_no_se_digiere_001
+```
+
+`--buffer-check` solo consulta organizaciones y canales, incluso con publicación
+activada. No carga MPT ni necesita una cola/preset válido. `--buffer-channels`
+muestra IDs para resolver canales ambiguos. Si hay varias organizaciones, configura
+`BUFFER_ORGANIZATION_ID`; si hay varios canales del mismo servicio, configura su
+ID explícito. Un ID debe pertenecer al servicio y organización seleccionados.
+Los canales ausentes, desconectados, bloqueados o pausados no se programan.
+
+`--publish-dry-run` muestra ID, plataforma, `dueAt` UTC, caption, título de YouTube,
+ruta del vídeo y campos de creación. No sube archivos, modifica estado ni crea
+posts. Con credenciales consulta la ocupación real; sin ellas muestra una
+**estimación offline** con el estado local y canales sin verificar (`channelId`
+será `null` si no está configurado). El resultado no garantiza disponibilidad futura.
+
+### Subtítulos antes de la primera prueba
+
+El preset actual tiene **`subtitle_enabled: false`**. El MP4 destinado a publicación
+automática debe llevar sus propios subtítulos incrustados. Comprueba visualmente
+el vídeo final y prepara sus subtítulos mediante tu flujo de generación/edición
+antes de subirlo. ffprobe valida propiedades técnicas, pero no puede demostrar
+que haya texto incrustado en los fotogramas. Esta capa no cambia el preset, no
+invoca subtítulos nativos de las plataformas y no recodifica vídeos.
+
+### Primera prueba real: UN vídeo, tras confirmación
+
+La implementación y los tests no publican nada. Tras configurar credenciales,
+verificar subtítulos y aprobar la vista previa, la prueba se limita a un ID:
+
+```bash
+# Solo después de confirmar la prueba real:
+PUBLISH_ENABLED=true python main.py --publish-ready --id estomago_no_se_digiere_001
+```
+
+Esto puede crear hasta **tres posts**, uno por plataforma indicada en el elemento,
+compartiendo una única subida del vídeo. Respeta el límite y mantiene la fecha de
+la cola; nunca transforma una fecha vencida en publicación inmediata. Si la fecha
+de ese ejemplo ha pasado, elige primero una fecha futura y vuelve a revisar la
+vista previa. No ejecutes el comando sin `--id` para esta primera prueba.
+
+### Mantenimiento de Buffer Free
+
+```bash
+python main.py --sync-buffer-status
+# Los siguientes requieren PUBLISH_ENABLED=true:
+python main.py --publish-ready
+python main.py --buffer-maintain
+```
+
+- `--sync-buffer-status`: consulta y guarda estados de posts conocidos y reconcilia
+  creaciones desconocidas; no crea nada y funciona con publicación desactivada.
+- `--publish-ready`: cuenta la cola remota y programa los vídeos `ready` futuros
+  más tempranos hasta el objetivo por canal.
+- `--buffer-maintain`: sincroniza, cuenta y rellena, con resumen de creaciones,
+  sincronizaciones, elementos aplazados y problemas que requieren atención.
+- `--id` limita selección para publicar o previsualizar; la sincronización revisa
+  todos los posts conocidos para mantener una visión coherente de la cuenta.
+
+El objetivo es **9 por canal**, configurable entre 1 y 9, dejando una plaza del
+límite Free de 10. Los posts existentes de otras herramientas/personas también
+cuentan. Los estados `sending` y los posts locales aún no visibles remotamente
+reservan capacidad por prudencia. La paginación recorre todos los resultados;
+una consulta incompleta nunca se interpreta como una cola vacía. Kitok serializa
+sus mantenimientos en WSL/Linux; otro programa o usuario de Buffer puede cambiar
+la cola después de leerla, por lo que conviene coordinar quién la rellena.
+
+No hay sondeo continuo ni cron instalado. Una ejecución manual o unas pocas al
+día bastan para esta cola. Buffer Free ofrece 3 canales, 1 API key y 3000 peticiones
+en 30 días; también aplica ventanas más cortas. Las consultas reintentan con
+espera exponencial acotada y respetan `Retry-After`. Una limitación durante creación
+termina el lote y guarda un plazo de reintento; **no reenvía la mutación**.
+Los detalles vigentes están en [límites de Buffer](https://developers.buffer.com/guides/api-limits.html)
+y [planes y acceso API](https://buffer.com/api).
+
+### Texto, validación y divulgación de IA
+
+Se usa exclusivamente `caption` y `subject` de la cola, sin generar texto nuevo.
+Los hashtags fijos se añaden centralmente, evitando repetir etiquetas existentes.
+TikTok exige que el resultado tenga ≤150 caracteres; un título de YouTube de más
+de 100 caracteres se rechaza sin truncarlo. Instagram valida también el límite
+final de 2200 caracteres. YouTube recibe la descripción en `text` y el título
+en `metadata.youtube.title`.
+
+Todas las creaciones llevan `aiAssisted: true` y `isAiGenerated: true` en los
+metadatos del servicio. Instagram usa `type: reel` y `shouldShareToFeed: true`.
+YouTube usa categoría `27`, `madeForKids: false`, `privacy: public` y
+`notifySubscribers: true`. La programación usa `automatic`, `customScheduled`,
+`needsApproval: false` y una fecha convertida a UTC: `19:00+02:00` → `17:00Z`.
+La cola rechaza fechas sin zona horaria.
+
+ffprobe comprueba MP4 vertical con audio y duración válida; para TikTok exige
+≥3 segundos, ≤1 GB, al menos 360×360 y 23–60 FPS; para Shorts exige 9:16 y ≤180
+segundos. Se usa `ready_path` o la copia de `outputs/ready`, sin usar archivos
+incompletos de generación. Los problemas no cambian el estado de generación.
+
+### Estado, recuperación y medios
+
+El formato existente mantiene `status: ready`, `mpt_task_id` y los demás campos.
+Se añade `publishing.cloudinary` con `public_id`, `url`/`secure_url`, hash y estado,
+y `publishing.buffer.<plataforma>` con `post_id`, `status`, `last_error`, canal,
+fecha y copia del request para reconciliación. Las escrituras siguen siendo
+atómicas, con bloqueo y mezcla de los campos persistidos.
+
+- Un `post_id` guardado prohíbe cualquier recreación automática, incluso si Buffer
+  devuelve `draft`, `error`, `needs_approval` o el post se elimina externamente.
+  Los otros estados remotos admitidos son `scheduled`, `sending` y `sent`.
+- Antes de `createPost` se guarda intención con estado local `unknown`. Un timeout,
+  desconexión, respuesta ambigua o cierre del proceso deja esa protección activa.
+- `--sync-buffer-status` busca alrededor de la fecha original (±5 minutos, todos
+  los estados), y exige una coincidencia única de canal, instante exacto y texto
+  original. Guarda su ID y nunca adopta el mismo ID para dos elementos.
+- Cero coincidencias o varias coincidencias mantienen `unknown` y bloquean el
+  relleno de ese canal. Comprueba Buffer manualmente; no borres este estado para
+  forzar un reintento sin demostrar primero que la creación no ocurrió.
+- Un `MutationError` explícito permite registrar fallo definitivo. También se
+  inspeccionan los `errors[]` GraphQL: HTTP 200 por sí solo no indica éxito.
+  Si llega un ID junto a errores, se conserva inmediatamente.
+- Cloudinary usa el SDK oficial, `resource_type="video"`, un ID determinista y
+  `overwrite=false`; guarda el resultado antes de crear posts. Reutiliza la URL
+  para todas las plataformas y ejecuciones posteriores. Tras una subida incierta
+  consulta el ID persistido; no vuelve a subir automáticamente si no logra resolverlo.
+- **No se elimina ningún medio de Cloudinary automáticamente**. Conserva el archivo
+  disponible hasta que Buffer haya terminado de publicarlo. No uses enlaces
+  compartidos de Google Drive como assets de Buffer.
+
+Referencia de operaciones y campos: [Buffer GraphQL](https://developers.buffer.com/reference.html).
+Subida de medios: [Cloudinary Upload](https://cloudinary.com/documentation/upload_images).
+
+### Tests sin servicios externos
+
+```bash
+pytest -q
+python main.py --dry-run
+python main.py --publish-dry-run
+```
+
+Los tests usan respuestas GraphQL/SDK simuladas y bloquean conexiones de red.
+Cubren límites de cola, fechas, texto, vídeo, descubrimiento, estado, bloqueos,
+reconciliación, respuestas parciales y ausencia de efectos externos en dry-run/check.
