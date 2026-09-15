@@ -393,6 +393,7 @@ python main.py --buffer-channels
 python main.py --buffer-check
 python main.py --publish-dry-run
 python main.py --publish-dry-run --id estomago_no_se_digiere_001
+python main.py --publish-id estomago_no_se_digiere_001 --publish-dry-run
 ```
 
 `--buffer-check` solo consulta organizaciones y canales, incluso con publicación
@@ -424,14 +425,16 @@ verificar subtítulos y aprobar la vista previa, la prueba se limita a un ID:
 
 ```bash
 # Solo después de confirmar la prueba real:
-PUBLISH_ENABLED=true python main.py --publish-ready --id estomago_no_se_digiere_001
+PUBLISH_ENABLED=true python main.py --publish-id estomago_no_se_digiere_001
 ```
 
-Esto puede crear hasta **tres posts**, uno por plataforma indicada en el elemento,
+`--publish-id` hace una prevalidación completa, imprime un resumen antes de escribir
+y opera exclusivamente sobre ese ID. Puede crear hasta **tres posts**, uno para
+TikTok, Instagram y YouTube,
 compartiendo una única subida del vídeo. Respeta el límite y mantiene la fecha de
 la cola; nunca transforma una fecha vencida en publicación inmediata. Si la fecha
 de ese ejemplo ha pasado, elige primero una fecha futura y vuelve a revisar la
-vista previa. No ejecutes el comando sin `--id` para esta primera prueba.
+vista previa. Su combinación con `--publish-dry-run` no sube ni programa nada.
 
 ### Mantenimiento de Buffer Free
 

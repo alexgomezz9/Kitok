@@ -90,7 +90,7 @@ class Publisher:
         posts = self.client.posts(org, [c["id"] for c in channels.values()], ["scheduled", "sending"]) if channels else []
         return org, channels, posts
 
-    def plan(self, ids=None, snapshot=None):
+    def plan(self, ids=None, snapshot=None, *, platforms=None, require_all=False):
         org, channels, remote = snapshot if snapshot is not None else self.snapshot()
         plan = PublishPlan(offline=remote is None)
         occupied = Counter()
@@ -122,7 +122,7 @@ class Publisher:
             record = self.state.get(item.id)
             if record.get("status") != "ready":
                 continue
-            for platform in dict.fromkeys(item.platforms):
+            for platform in dict.fromkeys(platforms or item.platforms):
                 post = record.get("publishing", {}).get("buffer", {}).get(platform, {})
                 if already_created(post):
                     continue
@@ -137,7 +137,11 @@ class Publisher:
                     if retry_at and datetime.fromisoformat(retry_at) > self.now():
                         raise ValueError(f"Buffer cooldown until {retry_at}")
                     if slots.get(platform, 0) <= 0:
-                        plan.deferred += 1
+                        if require_all:
+                            plan.issues.append({"id": item.id, "platform": platform,
+                                                "error": "No Buffer queue slot is available for this channel"})
+                        else:
+                            plan.deferred += 1
                         continue
                     path = self._video_path(item, record)
                     errors = self.validator(path, [platform], self.s.ffprobe_binary)
@@ -226,7 +230,8 @@ class Publisher:
         with self.state.publishing_lock():
             return self._sync(self.snapshot())
 
-    def publish(self, ids=None, *, maintain=False):
+    def publish(self, ids=None, *, maintain=False, platforms=None,
+                require_all=False, before_execute=None):
         if not self.s.publish_enabled:
             raise BufferError("Publishing disabled: set PUBLISH_ENABLED=true")
         if self.client is None:
@@ -234,8 +239,16 @@ class Publisher:
         with self.state.publishing_lock():
             snapshot = self.snapshot()
             summary = self._sync(snapshot) if maintain else {"synced": 0, "reconciled": 0, "attention": []}
-            plan = self.plan(ids, snapshot)
+            plan = self.plan(ids, snapshot, platforms=platforms, require_all=require_all)
             summary.update(created=0, deferred=plan.deferred, counts=plan.counts)
+            if before_execute is not None:
+                before_execute(plan)
+            if require_all and plan.issues:
+                summary["attention"].extend(
+                    f"{issue['id'] or 'channel'}/{issue['platform']}: {issue['error']}"
+                    for issue in plan.issues
+                )
+                return summary
             for issue in plan.issues:
                 summary["attention"].append(f"{issue['id'] or 'channel'}/{issue['platform']}: {issue['error']}")
                 if issue["id"]:
@@ -285,3 +298,22 @@ class Publisher:
                     if post.get("status") != "scheduled":
                         summary["attention"].append(f"{cid}/{platform}: Buffer status {post.get('status')}")
             return summary
+
+    def publish_one(self, content_id, *, before_execute=None):
+        self._require_ready_item(content_id)
+        return self.publish(
+            ids={content_id},
+            platforms=PLATFORMS,
+            require_all=True,
+            before_execute=before_execute,
+        )
+
+    def plan_one(self, content_id):
+        self._require_ready_item(content_id)
+        return self.plan(ids={content_id}, platforms=PLATFORMS, require_all=True)
+
+    def _require_ready_item(self, content_id):
+        if content_id not in self.q.by_id():
+            raise ValueError(f"Unknown content ID: {content_id}")
+        if self.state.get(content_id).get("status") != "ready":
+            raise ValueError(f"Content item {content_id} is not ready")

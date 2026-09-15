@@ -16,6 +16,7 @@ console=Console()
 def parser():
     p=argparse.ArgumentParser(description="Kitok -> MoneyPrinterTurbo pipeline")
     p.add_argument("--id",action="append",dest="ids")
+    p.add_argument("--publish-id",metavar="CONTENT_ID")
     mode=p.add_mutually_exclusive_group()
     mode.add_argument("--dry-run",action="store_true")
     p.add_argument("--retry-failed",action="store_true")
@@ -45,8 +46,13 @@ def show_status(q,st):
 
 def main(argv=None):
     a=parser().parse_args(argv)
-    if any(getattr(a, flag) for flag in ("buffer_check", "buffer_channels", "publish_ready",
-                                        "sync_buffer_status", "buffer_maintain", "publish_dry_run")):
+    publishing_modes = ("buffer_check", "buffer_channels", "publish_ready",
+                        "sync_buffer_status", "buffer_maintain", "publish_dry_run")
+    if a.publish_id and (a.ids or any(getattr(a, flag) for flag in publishing_modes
+                                     if flag != "publish_dry_run")):
+        console.print("Usage error: --publish-id may only be combined with --publish-dry-run.")
+        return 2
+    if a.publish_id or any(getattr(a, flag) for flag in publishing_modes):
         return publishing_main(a)
     try: s,q,st,preset=load_all()
     except Exception as e:
@@ -95,7 +101,8 @@ def publishing_main(args):
     client = None
     try:
         s = Settings()
-        if (args.publish_ready or args.buffer_maintain) and not s.publish_enabled:
+        if (args.publish_ready or args.buffer_maintain or
+                (args.publish_id and not args.publish_dry_run)) and not s.publish_enabled:
             raise BufferError("Publishing disabled: set PUBLISH_ENABLED=true")
         key = s.buffer_api_key.get_secret_value()
         if key:
@@ -118,19 +125,26 @@ def publishing_main(args):
             console.print("Buffer read-only check completed. No uploads or mutations.")
             return 0
         q = ContentQueue.load(s.queue_path)
-        ids = set(args.ids) if args.ids else None
+        ids = {args.publish_id} if args.publish_id else (set(args.ids) if args.ids else None)
         if ids and ids - set(q.by_id()):
             raise ValueError("Unknown ids: " + ", ".join(sorted(ids - set(q.by_id()))))
         state = StateStore(s.state_path)
         publisher = Publisher(s, q, state, client)
         if args.publish_dry_run:
-            plan = publisher.plan(ids)
+            plan = (publisher.plan_one(args.publish_id) if args.publish_id
+                    else publisher.plan(ids))
             console.print("Publishing dry-run: no uploads, mutations, or state changes.")
             if plan.offline:
                 console.print("OFFLINE ESTIMATE: capacity uses local state; connected channels and remote occupancy are unverified.")
-            console.print_json(data={"scheduled_counts": plan.counts, "would_schedule": plan.rows,
-                                     "needs_attention": plan.issues, "deferred": plan.deferred})
+            _print_publish_summary(plan, state, args.publish_id)
             return 1 if plan.issues else 0
+        if args.publish_id:
+            result = publisher.publish_one(
+                args.publish_id,
+                before_execute=lambda plan: _print_publish_summary(plan, state, args.publish_id),
+            )
+            console.print_json(data=result)
+            return 1 if result["attention"] else 0
         if args.sync_buffer_status:
             result = publisher.sync()
         else:
@@ -143,3 +157,16 @@ def publishing_main(args):
     finally:
         if client is not None:
             client.close()
+
+
+def _print_publish_summary(plan, state, content_id=None):
+    rows = [{key: row[key] for key in ("id", "platform", "dueAt", "caption", "title", "video_path")}
+            for row in plan.rows]
+    payload = {"selected_id": content_id, "scheduled_counts": plan.counts,
+               "cloudinary": None, "would_schedule": rows,
+               "needs_attention": plan.issues, "deferred": plan.deferred}
+    if content_id:
+        cloudinary = state.get(content_id).get("publishing", {}).get("cloudinary", {})
+        payload["cloudinary"] = "reuse existing URL" if cloudinary.get("url") else "upload once"
+    console.print("Pre-publish summary. No write has been performed yet.")
+    console.print_json(data=payload)

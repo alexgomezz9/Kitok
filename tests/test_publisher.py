@@ -334,3 +334,79 @@ def test_official_sdk_upload_arguments(setup, monkeypatch):
     monkeypatch.setattr(cloudinary.api, "resource", Mock())
     assert CloudinaryHost(publisher.s, state).ensure_video("one", video)["status"] == "uploaded"
     mocked.assert_called_once()
+
+
+def test_publish_one_can_only_handle_selected_id(setup):
+    publisher, client, host, state, video = setup
+    publisher.q = ContentQueue(items=[item("one"), item("two", caption="Other item")])
+    state.upsert("two", status="ready", ready_path=str(video))
+
+    result = publisher.publish_one("one")
+
+    assert result["created"] == 3
+    assert host.ensure_video.call_count == 3
+    assert {call.args[0] for call in host.ensure_video.call_args_list} == {"one"}
+    assert all(call.args[0]["text"].startswith("Caption")
+               for call in client.create_post.call_args_list)
+    assert not state.get("two").get("publishing")
+
+
+def test_publish_one_print_hook_runs_before_any_write(setup):
+    publisher, client, host, _, _ = setup
+
+    def inspect(plan):
+        assert len(plan.rows) == 3
+        client.create_post.assert_not_called()
+        host.ensure_video.assert_not_called()
+
+    assert publisher.publish_one("one", before_execute=inspect)["created"] == 3
+
+
+def test_publish_one_refuses_past_item_before_external_writes(setup):
+    publisher, client, host, _, _ = setup
+    publisher.q = ContentQueue(items=[item(publish_at=NOW - timedelta(seconds=1))])
+
+    result = publisher.publish_one("one")
+
+    assert result["created"] == 0
+    assert len(result["attention"]) == 3
+    client.create_post.assert_not_called()
+    host.ensure_video.assert_not_called()
+
+
+def test_publish_one_refuses_invalid_video_before_external_writes(setup):
+    publisher, client, host, _, _ = setup
+    publisher.validator = lambda *args: ["invalid video"]
+
+    result = publisher.publish_one("one")
+
+    assert result["created"] == 0
+    assert len(result["attention"]) == 3
+    client.create_post.assert_not_called()
+    host.ensure_video.assert_not_called()
+
+
+def test_publish_one_unknown_id_fails_without_external_writes(setup):
+    publisher, client, host, _, _ = setup
+    with pytest.raises(ValueError, match="Unknown content ID"):
+        publisher.publish_one("missing")
+    client.create_post.assert_not_called()
+    host.ensure_video.assert_not_called()
+
+
+def test_publish_one_disabled_prevents_external_writes(setup):
+    publisher, client, host, _, _ = setup
+    publisher.s.publish_enabled = False
+    with pytest.raises(BufferError, match="disabled"):
+        publisher.publish_one("one")
+    client.create_post.assert_not_called()
+    host.ensure_video.assert_not_called()
+
+
+def test_plan_one_requires_ready_state(setup):
+    publisher, client, host, state, _ = setup
+    state.upsert("one", status="generated")
+    with pytest.raises(ValueError, match="not ready"):
+        publisher.plan_one("one")
+    client.create_post.assert_not_called()
+    host.ensure_video.assert_not_called()
