@@ -15,3 +15,5 @@ outputs/ready-phone/*
 !outputs/ready/.gitkeep
 !outputs/ready-phone/.gitkeep
 .env
+state/services.json
+content_queue_before_test.json
