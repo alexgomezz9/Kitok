@@ -56,6 +56,17 @@ class StateStore:
             target.update(changes)
             return self._upsert(cid, publishing=publishing)
 
+    def clear_publishing(self, cid):
+        """Remove only one item's publishing subtree from the latest state."""
+        with self._write_lock():
+            self._data = self._load()
+            row = self._data["items"].get(cid)
+            if row is None or "publishing" not in row:
+                return None
+            removed = deepcopy(row.pop("publishing"))
+            self._atomic_write()
+            return removed
+
     @contextmanager
     def _write_lock(self):
         with self.path.with_suffix(".lock").open("a") as lock:

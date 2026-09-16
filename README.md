@@ -530,6 +530,17 @@ atómicas, con bloqueo y mezcla de los campos persistidos.
   disponible hasta que Buffer haya terminado de publicarlo. No uses enlaces
   compartidos de Google Drive como assets de Buffer.
 
+### Restablecer el estado de publicación de un elemento
+
+Solo para recuperación o pruebas después de eliminar manualmente las publicaciones de las plataformas:
+
+```bash
+python main.py --reset-publish-id CONTENT_ID
+python main.py --reset-publish-id CONTENT_ID --confirm
+```
+
+El primer comando muestra el estado de publicación que se borraría y no escribe nada. `--confirm` elimina únicamente el bloque `publishing` de ese ID, incluidas las referencias de Buffer y Cloudinary y los campos de intención o reconciliación. Conserva el estado de generación, las rutas de vídeo, los intentos y la cola. No consulta ni modifica servicios externos ni elimina el archivo remoto de Cloudinary.
+
 Referencia de operaciones y campos: [Buffer GraphQL](https://developers.buffer.com/reference.html).
 Subida de medios: [Cloudinary Upload](https://cloudinary.com/documentation/upload_images).
 

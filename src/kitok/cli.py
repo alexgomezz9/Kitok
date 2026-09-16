@@ -18,6 +18,8 @@ def parser():
     p=argparse.ArgumentParser(description="Kitok -> MoneyPrinterTurbo pipeline")
     p.add_argument("--id",action="append",dest="ids")
     p.add_argument("--publish-id",metavar="CONTENT_ID")
+    p.add_argument("--reset-publish-id",metavar="CONTENT_ID",action="append")
+    p.add_argument("--confirm",action="store_true")
     mode=p.add_mutually_exclusive_group()
     mode.add_argument("--dry-run",action="store_true")
     p.add_argument("--retry-failed",action="store_true")
@@ -51,6 +53,14 @@ def main(argv=None):
     a=parser().parse_args(argv)
     publishing_modes = ("buffer_check", "buffer_channels", "publish_ready",
                         "sync_buffer_status", "buffer_maintain", "publish_dry_run")
+    if a.reset_publish_id or a.confirm:
+        if (not a.reset_publish_id or len(a.reset_publish_id) != 1
+                or a.ids or a.publish_id or a.regenerate_all_ready
+                or a.retry_failed or a.dry_run or a.status or a.check_mpt or a.plan
+                or any(getattr(a, flag) for flag in publishing_modes)):
+            console.print("Usage error: --reset-publish-id may only be combined with --confirm.")
+            return 2
+        return reset_publishing_main(a)
     if a.regenerate_all_ready:
         if (a.ids or a.retry_failed or a.publish_id or a.status or a.check_mpt or a.plan
                 or any(getattr(a, flag) for flag in publishing_modes)):
@@ -128,6 +138,41 @@ def regeneration_main(args):
     finally:
         if client is not None:
             client.close()
+
+
+def reset_publishing_main(args):
+    try:
+        settings = Settings()
+        queue = ContentQueue.load(settings.queue_path)
+        content_id = args.reset_publish_id[0]
+        if content_id not in queue.by_id():
+            console.print(f"Unknown content ID: {content_id}", markup=False)
+            return 2
+        state = StateStore(settings.state_path, create_parent=False)
+        if not args.confirm:
+            console.print(f"Publishing state for {content_id} to clear:", markup=False)
+            console.print_json(data=state.get(content_id).get("publishing") or {})
+            console.print("No changes made. Add --confirm to reset this item's publishing state.")
+            return 0
+        if "publishing" not in state.get(content_id):
+            console.print(f"Publishing state for {content_id} to clear:", markup=False)
+            console.print_json(data={})
+            console.print("No publishing state to clear.")
+            return 0
+        with state.publishing_lock():
+            record = state.get(content_id)
+            publishing = record.get("publishing") or {}
+            console.print(f"Publishing state for {content_id} to clear:", markup=False)
+            console.print_json(data=publishing)
+            if "publishing" not in record:
+                console.print("No publishing state to clear.")
+                return 0
+            state.clear_publishing(content_id)
+        console.print(f"Publishing state cleared for {content_id}.", markup=False)
+        return 0
+    except (OSError, ValueError, RuntimeError) as error:
+        console.print(f"Publishing reset error: {error}", markup=False)
+        return 3
 
 
 def publishing_main(args):

@@ -1,422 +1,422 @@
 [
-{
-"id": "estomago_no_se_digiere_001",
-"subject": "Por qué tu estómago no se digiere a sí mismo",
-"script": "Tu estómago contiene un ácido capaz de dañar tejido. Entonces, ¿por qué no se digiere a sí mismo? Porque su pared está cubierta por una barrera de moco y bicarbonato que mantiene el ácido lejos de las células. Además, ese revestimiento se renueva constantemente. Cuando esta protección falla, el ácido puede alcanzar el tejido y aparecen lesiones como las úlceras. Tu estómago sobrevive a su propio contenido gracias a una defensa química continua.",
-"keywords": [
-"human stomach",
-"digestive system",
-"person eating",
-"healthy food",
-"human body"
-],
-"caption": "Tu estómago tiene que protegerse de sí mismo 🤯",
-"publish_at": "2026-09-16T13:00:00+02:00"
-},
-{
-"id": "pajaro_cable_electrico_001",
-"subject": "Por qué un pájaro puede posarse en un cable eléctrico sin electrocutarse",
-"script": "Un pájaro puede estar encima de un cable con miles de voltios y no electrocutarse. La clave no es el voltaje del cable, sino la diferencia de voltaje entre dos puntos de su cuerpo. Si sus dos patas están sobre el mismo cable, casi no hay diferencia entre ellas y apenas circula corriente por el pájaro. El peligro aparece si toca simultáneamente otro cable o algo conectado a tierra.",
-"keywords": [
-"bird on wire",
-"power lines",
-"electricity poles",
-"birds flying",
-"electric cables"
-],
-"caption": "Miles de voltios debajo de sus patas y no pasa nada ⚡",
-"publish_at": "2026-09-16T19:00:00+02:00"
-},
-{
-"id": "ruedas_tren_001",
-"subject": "Por qué un tren no necesita volante para seguir las vías",
-"script": "Los trenes no siguen la vía solo porque las pestañas de las ruedas los sujeten. Sus ruedas tienen una forma ligeramente cónica y están unidas por un mismo eje. Si el tren se desplaza hacia un lado, una rueda empieza a rodar sobre una zona de mayor diámetro y la otra sobre una menor. Esa diferencia hace que el eje tienda a volver hacia el centro. La propia geometría corrige gran parte del movimiento.",
-"keywords": [
-"train tracks",
-"train wheels",
-"moving train",
-"railway",
-"train station"
-],
-"caption": "Las ruedas del tren se corrigen solas 🚆",
-"publish_at": "2026-09-16T22:00:00+02:00"
-},
-{
-"id": "luna_horizonte_001",
-"subject": "Por qué la Luna parece gigantesca cerca del horizonte",
-"script": "La Luna no se hace más grande cuando está cerca del horizonte. De hecho, su tamaño angular cambia muy poco. Lo que cambia es cómo la interpreta tu cerebro. Cerca del suelo puedes compararla con edificios, árboles o montañas y parece enorme. Cuando está sola en medio del cielo, pierde esas referencias. Es la llamada ilusión lunar: tus ojos reciben casi la misma imagen, pero tu cerebro la percibe completamente distinta.",
-"keywords": [
-"full moon",
-"moon horizon",
-"city moon",
-"night sky",
-"moon landscape"
-],
-"caption": "La Luna gigante del horizonte es una ilusión 🌕",
-"publish_at": "2026-09-17T13:00:00+02:00"
-},
-{
-"id": "bolsa_patatas_nitrogeno_001",
-"subject": "Por qué las bolsas de patatas parecen medio vacías",
-"script": "Ese espacio enorme dentro de una bolsa de patatas no está ahí para engañarte con aire. Normalmente se llena con nitrógeno. Este gas desplaza parte del oxígeno, ayudando a que las grasas de las patatas se oxiden más lentamente y mantengan mejor el sabor. Además, el gas crea una especie de cojín que protege las patatas para que no lleguen completamente trituradas después del transporte.",
-"keywords": [
-"potato chips",
-"chips bag",
-"snacks",
-"supermarket snacks",
-"eating chips"
-],
-"caption": "La bolsa no está llena de aire por casualidad 👀",
-"publish_at": "2026-09-17T19:00:00+02:00"
-},
-{
-"id": "nudillos_crujen_001",
-"subject": "Por qué crujen tus nudillos",
-"script": "Tus nudillos no crujen porque los huesos estén chocando entre sí. Cuando tiras de una articulación, aumenta rápidamente el espacio entre sus superficies y baja la presión dentro del líquido sinovial. Eso provoca la formación rápida de una cavidad de gas, asociada al famoso chasquido. Por eso tampoco puedes hacer crujir exactamente el mismo nudillo una y otra vez sin esperar un rato.",
-"keywords": [
-"hands closeup",
-"finger joints",
-"stretching hands",
-"human hands",
-"fingers"
-],
-"caption": "No son tus huesos chocando 😳",
-"publish_at": "2026-09-17T22:00:00+02:00"
-},
-{
-"id": "pantalla_dedo_001",
-"subject": "Por qué la pantalla del móvil sabe dónde estás tocando",
-"script": "Tu pantalla no detecta el dedo porque la estés presionando. La mayoría de móviles utilizan pantallas capacitivas: mantienen un campo eléctrico sobre una capa conductora y tu cuerpo también conduce electricidad. Cuando acercas el dedo, alteras ligeramente ese campo y el teléfono calcula dónde ocurrió el cambio. Por eso muchos guantes normales no funcionan: aíslan tu dedo e impiden que la pantalla detecte esa alteración eléctrica.",
-"keywords": [
-"smartphone screen",
-"using phone",
-"touch screen",
-"hands smartphone",
-"mobile phone"
-],
-"caption": "Tu móvil no detecta presión: detecta electricidad 📱",
-"publish_at": "2026-09-18T13:00:00+02:00"
-},
-{
-"id": "arcoiris_circular_001",
-"subject": "Por qué un arcoíris completo es realmente un círculo",
-"script": "Un arcoíris no tiene forma de arco. En realidad es un círculo completo. Cada gota de agua desvía la luz en un ángulo determinado respecto al Sol y tu posición, formando una circunferencia alrededor del punto opuesto al Sol. Desde el suelo, el horizonte tapa normalmente la mitad inferior y solo vemos el arco. Desde un avión o una posición elevada sí puede llegar a verse prácticamente el círculo entero.",
-"keywords": [
-"rainbow",
-"rainy sky",
-"rain clouds",
-"sunlight rain",
-"aerial landscape"
-],
-"caption": "Nunca estás viendo el arcoíris completo 🌈",
-"publish_at": "2026-09-18T19:00:00+02:00"
-},
-{
-"id": "juntas_puentes_001",
-"subject": "Por qué los puentes tienen huecos y juntas",
-"script": "Esos huecos que ves en muchos puentes están ahí porque el puente cambia de tamaño. El metal y el hormigón se expanden cuando aumenta la temperatura y se contraen cuando enfrían. En una estructura de cientos de metros, unos pocos milímetros por tramo pueden convertirse en un movimiento considerable. Las juntas de dilatación permiten que el puente respire sin acumular tensiones capaces de deformarlo o agrietarlo.",
-"keywords": [
-"bridge",
-"highway bridge",
-"road traffic",
-"city bridge",
-"bridge construction"
-],
-"caption": "Los puentes se mueven más de lo que parece 🌉",
-"publish_at": "2026-09-18T22:00:00+02:00"
-},
-{
-"id": "mosquito_te_encuentra_001",
-"subject": "Cómo puede encontrarte un mosquito aunque esté oscuro",
-"script": "Apagar la luz no te esconde de un mosquito. Puede localizarte utilizando señales que no tienen nada que ver con verte. Detecta el dióxido de carbono que expulsas al respirar, además del calor corporal y distintas sustancias de tu olor. Cuando se acerca, combina varias de estas pistas para encontrar una zona donde alimentarse. Para un mosquito, cada respiración que haces es prácticamente una señal diciendo dónde estás.",
-"keywords": [
-"mosquito",
-"person sleeping",
-"summer night",
-"human skin",
-"bedroom"
-],
-"caption": "Cada vez que respiras le estás dando una pista 🦟",
-"publish_at": "2026-09-19T13:00:00+02:00"
-},
-{
-"id": "alas_avion_flexibles_001",
-"subject": "Por qué las alas de un avión pueden doblarse tanto",
-"script": "Si ves un ala de avión doblándose durante una turbulencia, eso no significa que esté a punto de romperse. Está diseñada precisamente para flexionarse. Un ala completamente rígida transmitiría cargas enormes directamente a la estructura del avión. Al poder deformarse dentro de unos límites calculados, parte de esas fuerzas se distribuyen mejor. En las pruebas estructurales, las alas llegan a flexionarse muchísimo más de lo que verás en un vuelo normal.",
-"keywords": [
-"airplane wing",
-"airplane flying",
-"plane window",
-"aircraft",
-"clouds airplane"
-],
-"caption": "Que el ala se doble es exactamente lo que quieres ✈️",
-"publish_at": "2026-09-19T19:00:00+02:00"
-},
-{
-"id": "cebolla_llorar_001",
-"subject": "Por qué cortar una cebolla te hace llorar",
-"script": "La cebolla no te hace llorar simplemente por tener un olor fuerte. Al cortarla rompes sus células y activas una serie de reacciones químicas que producen un compuesto volátil irritante. Ese compuesto llega hasta tus ojos y reacciona con la humedad de su superficie. Tus glándulas lagrimales responden produciendo lágrimas para diluirlo y eliminarlo. Básicamente, cortar una cebolla activa un pequeño sistema químico de defensa de la planta.",
-"keywords": [
-"cutting onion",
-"onion kitchen",
-"cooking vegetables",
-"person cooking",
-"kitchen"
-],
-"caption": "La cebolla se defiende cuando la cortas 🧅",
-"publish_at": "2026-09-19T22:00:00+02:00"
-},
-{
-"id": "mando_infrarrojo_movil_001",
-"subject": "Por qué la cámara del móvil puede ver una luz invisible",
-"script": "Tu mando a distancia está lanzando luz cada vez que pulsas un botón, aunque tú no puedas verla. Utiliza luz infrarroja, cuya longitud de onda queda fuera de lo que detectan nuestros ojos. Sin embargo, algunas cámaras de móvil todavía son sensibles a parte de ese infrarrojo. Por eso, si apuntas el mando hacia una cámara y pulsas un botón, puedes ver el LED parpadear en la pantalla aunque a simple vista parezca apagado.",
-"keywords": [
-"remote control",
-"smartphone camera",
-"television remote",
-"using phone camera",
-"living room tv"
-],
-"caption": "Tu móvil puede ver una luz que tú no puedes 👁️",
-"publish_at": "2026-09-20T13:00:00+02:00"
-},
-{
-"id": "oceano_azul_001",
-"subject": "Por qué el océano es azul de verdad",
-"script": "El océano no es azul simplemente porque refleje el cielo. El agua absorbe unas longitudes de onda de la luz visible mejor que otras. Los colores rojizos se absorben con mayor facilidad a medida que la luz atraviesa el agua, mientras que el azul consigue propagarse y regresar hacia nuestros ojos con más eficacia. El reflejo del cielo puede influir en su aspecto, pero incluso bajo otras condiciones una gran masa de agua sigue teniendo un tono azulado.",
-"keywords": [
-"blue ocean",
-"sea water",
-"underwater",
-"ocean waves",
-"aerial ocean"
-],
-"caption": "El mar no es azul solo por reflejar el cielo 🌊",
-"publish_at": "2026-09-20T19:00:00+02:00"
-},
-{
-"id": "luces_avion_aterrizaje_001",
-"subject": "Por qué apagan parte de las luces del avión antes de aterrizar",
-"script": "Cuando la tripulación baja las luces de la cabina durante un aterrizaje nocturno, no es para crear ambiente. Hay una razón de seguridad. Tus ojos necesitan tiempo para adaptarse a la oscuridad. Si ocurriera una emergencia y tuvieras que salir del avión rápidamente, ya estarías parcialmente adaptado a la iluminación exterior. Además, una cabina más oscura permite ver mejor lo que ocurre fuera a través de las ventanas.",
-"keywords": [
-"airplane cabin",
-"plane passengers",
-"airplane window",
-"night flight",
-"airplane landing"
-],
-"caption": "Las luces se apagan pensando en una posible emergencia ✈️",
-"publish_at": "2026-09-20T22:00:00+02:00"
-},
-{
-"id": "libros_viejos_olor_001",
-"subject": "Por qué los libros viejos tienen ese olor tan característico",
-"script": "Ese olor de un libro antiguo es literalmente parte del papel descomponiéndose lentamente. Con los años, componentes como la celulosa y la lignina se degradan y liberan pequeñas moléculas volátiles al aire. Algunas tienen aromas dulces, amaderados o parecidos a la vainilla. Por eso una biblioteca vieja puede tener un olor tan reconocible: estás detectando una mezcla química producida durante décadas de envejecimiento del papel.",
-"keywords": [
-"old books",
-"library",
-"reading book",
-"bookshelf",
-"vintage books"
-],
-"caption": "Ese olor es el papel envejeciendo delante de ti 📚",
-"publish_at": "2026-09-21T13:00:00+02:00"
-},
-{
-"id": "ojos_rojos_fotos_001",
-"subject": "Por qué tus ojos salen rojos en algunas fotos",
-"script": "Ese color rojo de tus ojos en una foto con flash no viene de la pupila. En lugares oscuros, la pupila está más abierta. Si el flash está cerca del objetivo de la cámara, su luz puede entrar casi de frente en el ojo y reflejarse desde el interior, donde hay tejidos muy irrigados con sangre. Parte de esa luz vuelve hacia la cámara y aparece ese característico brillo rojizo.",
-"keywords": [
-"camera flash",
-"taking photos",
-"portrait photography",
-"human eyes",
-"camera"
-],
-"caption": "Ese rojo que ves en las fotos viene del interior de tu ojo 📸",
-"publish_at": "2026-09-21T19:00:00+02:00"
-},
-{
-"id": "corte_papel_001",
-"subject": "Por qué un pequeño corte de papel puede doler tantísimo",
-"script": "Un corte de papel diminuto puede doler de una forma ridícula. Una razón es dónde suele ocurrir: los dedos tienen una enorme cantidad de terminaciones nerviosas porque necesitan una sensibilidad muy alta. Además, el corte suele ser superficial, justo en una zona muy sensible, y puede abrirse una y otra vez cada vez que utilizas la mano. Es pequeño, pero está hecho prácticamente en uno de los peores sitios posibles.",
-"keywords": [
-"paper hands",
-"office paper",
-"human fingers",
-"hands closeup",
-"working desk"
-],
-"caption": "Un corte minúsculo en uno de los lugares más sensibles 😖",
-"publish_at": "2026-09-21T22:00:00+02:00"
-},
-{
-"id": "induccion_sarten_001",
-"subject": "Por qué una placa de inducción no funciona con cualquier sartén",
-"script": "Una placa de inducción puede estar encendida y seguir fría si colocas encima la sartén equivocada. Debajo del cristal hay una bobina que genera un campo magnético cambiante. Ese campo induce corrientes eléctricas directamente en el recipiente y son esas corrientes las que producen calor. Por eso necesitas un material adecuado, normalmente ferromagnético. La placa no calienta primero el cristal para después calentar la sartén: calienta directamente el recipiente.",
-"keywords": [
-"induction stove",
-"cooking pan",
-"modern kitchen",
-"cooking food",
-"stove"
-],
-"caption": "La placa realmente está calentando la sartén desde dentro 🍳",
-"publish_at": "2026-09-22T13:00:00+02:00"
-},
-{
-"id": "chocolate_blanco_001",
-"subject": "Por qué el chocolate a veces se vuelve blanco",
-"script": "Ese chocolate con una capa blanca no necesariamente está estropeado. Muchas veces estás viendo lo que se llama bloom. Puede ocurrir cuando parte de la grasa cambia de estructura y migra hacia la superficie, o cuando la humedad disuelve azúcar y después este vuelve a cristalizar. El aspecto y la textura empeoran, pero ese color blanco por sí solo no significa que haya aparecido moho. Es un cambio físico en el chocolate.",
-"keywords": [
-"chocolate",
-"chocolate bar",
-"eating chocolate",
-"dessert",
-"chocolate closeup"
-],
-"caption": "Ese chocolate blanco puede no estar malo 🍫",
-"publish_at": "2026-09-22T19:00:00+02:00"
-},
-{
-"id": "dejas_de_oler_perfume_001",
-"subject": "Por qué dejas de notar tu propio perfume",
-"script": "Tu perfume no desaparece cinco minutos después de ponértelo. El que deja de prestarle atención es tu cerebro. Cuando un olor permanece constante, el sistema olfativo reduce progresivamente su respuesta a ese estímulo. Así puede concentrarse mejor en olores nuevos que podrían ser más importantes. Por eso alguien que acaba de entrar en una habitación puede notar un aroma inmediatamente mientras tú, después de llevar allí media hora, prácticamente ni lo percibes.",
-"keywords": [
-"perfume",
-"smelling perfume",
-"person perfume",
-"home interior",
-"fragrance"
-],
-"caption": "El perfume sigue ahí. Tu cerebro simplemente lo ignora 🧠",
-"publish_at": "2026-09-22T22:00:00+02:00"
-},
-{
-"id": "alcantarillas_redondas_001",
-"subject": "Por qué muchas tapas de alcantarilla son redondas",
-"script": "Hay una ventaja brutal en hacer redonda una tapa de alcantarilla: no puede caerse por su propio agujero. En una tapa cuadrada, la diagonal es más larga que uno de sus lados y, con cierta orientación, podría atravesar una abertura compatible. En un círculo, cualquier diámetro mide exactamente lo mismo. Además, una tapa redonda pesada puede desplazarse rodándola. Una forma aparentemente simple elimina varios problemas a la vez.",
-"keywords": [
-"manhole cover",
-"city street",
-"urban road",
-"street pavement",
-"city walking"
-],
-"caption": "Una tapa redonda tiene una ventaja que una cuadrada no puede copiar",
-"publish_at": "2026-09-23T13:00:00+02:00"
-},
-{
-"id": "vater_avion_001",
-"subject": "Por qué el váter de un avión hace un ruido tan bestia",
-"script": "El váter de un avión no vacía la taza usando una enorme cantidad de agua como el de tu casa. Utiliza un sistema de vacío. Al pulsar el botón, una válvula se abre y la diferencia de presión hace que los residuos sean aspirados rápidamente hacia un depósito. Esa corriente de aire moviéndose a gran velocidad es una de las razones de ese sonido tan agresivo. Es más eficiente y necesita mucha menos agua.",
-"keywords": [
-"airplane cabin",
-"airplane bathroom",
-"plane interior",
-"airplane passengers",
-"aircraft"
-],
-"caption": "Ese ruido del váter del avión es literalmente una aspiración brutal ✈️",
-"publish_at": "2026-09-23T19:00:00+02:00"
-},
-{
-"id": "huevo_crudo_cocido_001",
-"subject": "Cómo saber si un huevo está cocido sin abrirlo",
-"script": "Puedes distinguir un huevo crudo de uno cocido sin romperlo. Hazlo girar. En un huevo cocido, el interior es sólido y todo gira prácticamente como una sola pieza, así que rota con facilidad. En uno crudo, el líquido del interior no empieza a girar exactamente al mismo tiempo que la cáscara y frena el movimiento. Dos huevos idénticos por fuera se comportan de forma completamente distinta solo por lo que ocurre dentro.",
-"keywords": [
-"eggs",
-"boiled eggs",
-"cooking eggs",
-"kitchen table",
-"egg closeup"
-],
-"caption": "Dos huevos iguales. Uno gira completamente distinto 🥚",
-"publish_at": "2026-09-23T22:00:00+02:00"
-},
-{
-"id": "electricidad_estatica_invierno_001",
-"subject": "Por qué recibes más calambrazos de electricidad estática en invierno",
-"script": "Si en invierno parece que todo te da calambre, no es casualidad. El aire frío suele contener menos humedad y, cuando además calentamos los interiores, el ambiente puede quedar muy seco. Con poca humedad, las cargas eléctricas acumuladas sobre tu cuerpo se descargan peor hacia el entorno. Puedes ir acumulándolas al caminar sobre una alfombra o quitarte ropa y liberarlas de golpe cuando tocas metal.",
-"keywords": [
-"winter indoors",
-"touching metal",
-"walking carpet",
-"winter clothes",
-"human hands"
-],
-"caption": "El aire seco te convierte en una pequeña batería ⚡",
-"publish_at": "2026-09-24T13:00:00+02:00"
-},
-{
-"id": "menta_frio_001",
-"subject": "Por qué la menta parece estar fría aunque no lo esté",
-"script": "La menta puede hacerte sentir frío sin bajar realmente la temperatura de tu boca. El mentol activa unos receptores llamados TRPM8, que normalmente responden a temperaturas frías. Tu cerebro recibe una señal parecida a la que recibiría si la zona se hubiera enfriado. Por eso un chicle de menta puede hacer que incluso respirar aire normal parezca mucho más frío. La temperatura apenas cambia: lo que cambia es la señal nerviosa.",
-"keywords": [
-"mint leaves",
-"chewing gum",
-"fresh mint",
-"person eating",
-"cold breath"
-],
-"caption": "La menta no enfría tu boca: engaña a tus sensores ❄️",
-"publish_at": "2026-09-24T19:00:00+02:00"
-},
-{
-"id": "sol_blanco_001",
-"subject": "Por qué el Sol no es realmente amarillo",
-"script": "El Sol no es realmente una bola amarilla. Si pudieras observar su luz sin el efecto de nuestra atmósfera, la percibirías esencialmente blanca porque emite una mezcla muy amplia de colores visibles. Desde la superficie terrestre, la atmósfera dispersa parte de la luz, especialmente las longitudes de onda más cortas. Dependiendo de su posición en el cielo, eso puede hacer que el Sol parezca amarillo, naranja o incluso rojo.",
-"keywords": [
-"sun sky",
-"sunset",
-"blue sky",
-"sunrise",
-"clouds sun"
-],
-"caption": "El color real del Sol probablemente no es el que dibujabas ☀️",
-"publish_at": "2026-09-24T22:00:00+02:00"
-},
-{
-"id": "ballena_durmiendo_001",
-"subject": "Cómo puede dormir una ballena sin ahogarse",
-"script": "Una ballena no puede respirar automáticamente de la misma forma que tú mientras duermes profundamente. Tiene que subir conscientemente a la superficie para respirar. Por eso los cetáceos pueden descansar manteniendo una parte del cerebro más activa mientras la otra reduce su actividad. Así conservan suficiente control para seguir nadando, vigilar el entorno y salir a respirar. Dormir en el océano exige un sistema completamente distinto al nuestro.",
-"keywords": [
-"whale",
-"whale ocean",
-"underwater whale",
-"ocean wildlife",
-"sea surface"
-],
-"caption": "Dormirse por completo sería un problema si tienes que recordar respirar 🐋",
-"publish_at": "2026-09-25T13:00:00+02:00"
-},
-{
-"id": "pajita_doblada_001",
-"subject": "Por qué una pajita parece doblarse dentro del agua",
-"script": "La pajita no se dobla al entrar en el agua. Lo que cambia de dirección es la luz. Cuando pasa del agua al aire, su velocidad cambia y los rayos se desvían. Tus ojos reciben esa luz desviada, pero tu cerebro tiende a interpretarla como si hubiera viajado en línea recta. Resultado: la parte sumergida parece estar desplazada respecto a la parte que está fuera. Es la refracción ocurriendo delante de tus ojos.",
-"keywords": [
-"glass water",
-"drinking straw",
-"water closeup",
-"drinking water",
-"glass table"
-],
-"caption": "La pajita está recta. Lo que se está doblando es la luz 💧",
-"publish_at": "2026-09-25T19:00:00+02:00"
-},
-{
-"id": "microondas_plato_gira_001",
-"subject": "Por qué gira el plato del microondas",
-"script": "El plato del microondas no gira simplemente para que la comida quede bonita. Dentro del horno, las microondas pueden formar patrones con zonas donde la energía es mayor y otras donde es menor. Si la comida permaneciera quieta, algunas partes recibirían mucha más energía que otras. Al hacerla girar, distintos puntos atraviesan esas zonas y el calentamiento se reparte mejor. Aun así, por eso algunas partes pueden seguir quedando mucho más calientes.",
-"keywords": [
-"microwave",
-"food microwave",
-"kitchen appliances",
-"heating food",
-"modern kitchen"
-],
-"caption": "Tu microondas tiene zonas que calientan más que otras 👀",
-"publish_at": "2026-09-25T22:00:00+02:00"
-}
+  {
+    "id": "estomago_no_se_digiere_001",
+    "subject": "Por qué tu estómago no se digiere a sí mismo",
+    "script": "Tu estómago contiene un ácido capaz de dañar tejido. Entonces, ¿por qué no se digiere a sí mismo? Porque su pared está cubierta por una barrera de moco y bicarbonato que mantiene el ácido lejos de las células. Además, ese revestimiento se renueva constantemente. Cuando esta protección falla, el ácido puede alcanzar el tejido y aparecen lesiones como las úlceras. Tu estómago sobrevive a su propio contenido gracias a una defensa química continua.",
+    "keywords": [
+      "human stomach",
+      "digestive system",
+      "person eating",
+      "healthy food",
+      "human body"
+    ],
+    "caption": "Tu estómago tiene que protegerse de sí mismo 🤯",
+    "publish_at": "2026-09-16T11:45:00+02:00"
+  },
+  {
+    "id": "pajaro_cable_electrico_001",
+    "subject": "Por qué un pájaro puede posarse en un cable eléctrico sin electrocutarse",
+    "script": "Un pájaro puede estar encima de un cable con miles de voltios y no electrocutarse. La clave no es el voltaje del cable, sino la diferencia de voltaje entre dos puntos de su cuerpo. Si sus dos patas están sobre el mismo cable, casi no hay diferencia entre ellas y apenas circula corriente por el pájaro. El peligro aparece si toca simultáneamente otro cable o algo conectado a tierra.",
+    "keywords": [
+      "bird on wire",
+      "power lines",
+      "electricity poles",
+      "birds flying",
+      "electric cables"
+    ],
+    "caption": "Miles de voltios debajo de sus patas y no pasa nada ⚡",
+    "publish_at": "2026-09-16T19:00:00+02:00"
+  },
+  {
+    "id": "ruedas_tren_001",
+    "subject": "Por qué un tren no necesita volante para seguir las vías",
+    "script": "Los trenes no siguen la vía solo porque las pestañas de las ruedas los sujeten. Sus ruedas tienen una forma ligeramente cónica y están unidas por un mismo eje. Si el tren se desplaza hacia un lado, una rueda empieza a rodar sobre una zona de mayor diámetro y la otra sobre una menor. Esa diferencia hace que el eje tienda a volver hacia el centro. La propia geometría corrige gran parte del movimiento.",
+    "keywords": [
+      "train tracks",
+      "train wheels",
+      "moving train",
+      "railway",
+      "train station"
+    ],
+    "caption": "Las ruedas del tren se corrigen solas 🚆",
+    "publish_at": "2026-09-16T22:00:00+02:00"
+  },
+  {
+    "id": "luna_horizonte_001",
+    "subject": "Por qué la Luna parece gigantesca cerca del horizonte",
+    "script": "La Luna no se hace más grande cuando está cerca del horizonte. De hecho, su tamaño angular cambia muy poco. Lo que cambia es cómo la interpreta tu cerebro. Cerca del suelo puedes compararla con edificios, árboles o montañas y parece enorme. Cuando está sola en medio del cielo, pierde esas referencias. Es la llamada ilusión lunar: tus ojos reciben casi la misma imagen, pero tu cerebro la percibe completamente distinta.",
+    "keywords": [
+      "full moon",
+      "moon horizon",
+      "city moon",
+      "night sky",
+      "moon landscape"
+    ],
+    "caption": "La Luna gigante del horizonte es una ilusión 🌕",
+    "publish_at": "2026-09-17T13:00:00+02:00"
+  },
+  {
+    "id": "bolsa_patatas_nitrogeno_001",
+    "subject": "Por qué las bolsas de patatas parecen medio vacías",
+    "script": "Ese espacio enorme dentro de una bolsa de patatas no está ahí para engañarte con aire. Normalmente se llena con nitrógeno. Este gas desplaza parte del oxígeno, ayudando a que las grasas de las patatas se oxiden más lentamente y mantengan mejor el sabor. Además, el gas crea una especie de cojín que protege las patatas para que no lleguen completamente trituradas después del transporte.",
+    "keywords": [
+      "potato chips",
+      "chips bag",
+      "snacks",
+      "supermarket snacks",
+      "eating chips"
+    ],
+    "caption": "La bolsa no está llena de aire por casualidad 👀",
+    "publish_at": "2026-09-17T19:00:00+02:00"
+  },
+  {
+    "id": "nudillos_crujen_001",
+    "subject": "Por qué crujen tus nudillos",
+    "script": "Tus nudillos no crujen porque los huesos estén chocando entre sí. Cuando tiras de una articulación, aumenta rápidamente el espacio entre sus superficies y baja la presión dentro del líquido sinovial. Eso provoca la formación rápida de una cavidad de gas, asociada al famoso chasquido. Por eso tampoco puedes hacer crujir exactamente el mismo nudillo una y otra vez sin esperar un rato.",
+    "keywords": [
+      "hands closeup",
+      "finger joints",
+      "stretching hands",
+      "human hands",
+      "fingers"
+    ],
+    "caption": "No son tus huesos chocando 😳",
+    "publish_at": "2026-09-17T22:00:00+02:00"
+  },
+  {
+    "id": "pantalla_dedo_001",
+    "subject": "Por qué la pantalla del móvil sabe dónde estás tocando",
+    "script": "Tu pantalla no detecta el dedo porque la estés presionando. La mayoría de móviles utilizan pantallas capacitivas: mantienen un campo eléctrico sobre una capa conductora y tu cuerpo también conduce electricidad. Cuando acercas el dedo, alteras ligeramente ese campo y el teléfono calcula dónde ocurrió el cambio. Por eso muchos guantes normales no funcionan: aíslan tu dedo e impiden que la pantalla detecte esa alteración eléctrica.",
+    "keywords": [
+      "smartphone screen",
+      "using phone",
+      "touch screen",
+      "hands smartphone",
+      "mobile phone"
+    ],
+    "caption": "Tu móvil no detecta presión: detecta electricidad 📱",
+    "publish_at": "2026-09-18T13:00:00+02:00"
+  },
+  {
+    "id": "arcoiris_circular_001",
+    "subject": "Por qué un arcoíris completo es realmente un círculo",
+    "script": "Un arcoíris no tiene forma de arco. En realidad es un círculo completo. Cada gota de agua desvía la luz en un ángulo determinado respecto al Sol y tu posición, formando una circunferencia alrededor del punto opuesto al Sol. Desde el suelo, el horizonte tapa normalmente la mitad inferior y solo vemos el arco. Desde un avión o una posición elevada sí puede llegar a verse prácticamente el círculo entero.",
+    "keywords": [
+      "rainbow",
+      "rainy sky",
+      "rain clouds",
+      "sunlight rain",
+      "aerial landscape"
+    ],
+    "caption": "Nunca estás viendo el arcoíris completo 🌈",
+    "publish_at": "2026-09-18T19:00:00+02:00"
+  },
+  {
+    "id": "juntas_puentes_001",
+    "subject": "Por qué los puentes tienen huecos y juntas",
+    "script": "Esos huecos que ves en muchos puentes están ahí porque el puente cambia de tamaño. El metal y el hormigón se expanden cuando aumenta la temperatura y se contraen cuando enfrían. En una estructura de cientos de metros, unos pocos milímetros por tramo pueden convertirse en un movimiento considerable. Las juntas de dilatación permiten que el puente respire sin acumular tensiones capaces de deformarlo o agrietarlo.",
+    "keywords": [
+      "bridge",
+      "highway bridge",
+      "road traffic",
+      "city bridge",
+      "bridge construction"
+    ],
+    "caption": "Los puentes se mueven más de lo que parece 🌉",
+    "publish_at": "2026-09-18T22:00:00+02:00"
+  },
+  {
+    "id": "mosquito_te_encuentra_001",
+    "subject": "Cómo puede encontrarte un mosquito aunque esté oscuro",
+    "script": "Apagar la luz no te esconde de un mosquito. Puede localizarte utilizando señales que no tienen nada que ver con verte. Detecta el dióxido de carbono que expulsas al respirar, además del calor corporal y distintas sustancias de tu olor. Cuando se acerca, combina varias de estas pistas para encontrar una zona donde alimentarse. Para un mosquito, cada respiración que haces es prácticamente una señal diciendo dónde estás.",
+    "keywords": [
+      "mosquito",
+      "person sleeping",
+      "summer night",
+      "human skin",
+      "bedroom"
+    ],
+    "caption": "Cada vez que respiras le estás dando una pista 🦟",
+    "publish_at": "2026-09-19T13:00:00+02:00"
+  },
+  {
+    "id": "alas_avion_flexibles_001",
+    "subject": "Por qué las alas de un avión pueden doblarse tanto",
+    "script": "Si ves un ala de avión doblándose durante una turbulencia, eso no significa que esté a punto de romperse. Está diseñada precisamente para flexionarse. Un ala completamente rígida transmitiría cargas enormes directamente a la estructura del avión. Al poder deformarse dentro de unos límites calculados, parte de esas fuerzas se distribuyen mejor. En las pruebas estructurales, las alas llegan a flexionarse muchísimo más de lo que verás en un vuelo normal.",
+    "keywords": [
+      "airplane wing",
+      "airplane flying",
+      "plane window",
+      "aircraft",
+      "clouds airplane"
+    ],
+    "caption": "Que el ala se doble es exactamente lo que quieres ✈️",
+    "publish_at": "2026-09-19T19:00:00+02:00"
+  },
+  {
+    "id": "cebolla_llorar_001",
+    "subject": "Por qué cortar una cebolla te hace llorar",
+    "script": "La cebolla no te hace llorar simplemente por tener un olor fuerte. Al cortarla rompes sus células y activas una serie de reacciones químicas que producen un compuesto volátil irritante. Ese compuesto llega hasta tus ojos y reacciona con la humedad de su superficie. Tus glándulas lagrimales responden produciendo lágrimas para diluirlo y eliminarlo. Básicamente, cortar una cebolla activa un pequeño sistema químico de defensa de la planta.",
+    "keywords": [
+      "cutting onion",
+      "onion kitchen",
+      "cooking vegetables",
+      "person cooking",
+      "kitchen"
+    ],
+    "caption": "La cebolla se defiende cuando la cortas 🧅",
+    "publish_at": "2026-09-19T22:00:00+02:00"
+  },
+  {
+    "id": "mando_infrarrojo_movil_001",
+    "subject": "Por qué la cámara del móvil puede ver una luz invisible",
+    "script": "Tu mando a distancia está lanzando luz cada vez que pulsas un botón, aunque tú no puedas verla. Utiliza luz infrarroja, cuya longitud de onda queda fuera de lo que detectan nuestros ojos. Sin embargo, algunas cámaras de móvil todavía son sensibles a parte de ese infrarrojo. Por eso, si apuntas el mando hacia una cámara y pulsas un botón, puedes ver el LED parpadear en la pantalla aunque a simple vista parezca apagado.",
+    "keywords": [
+      "remote control",
+      "smartphone camera",
+      "television remote",
+      "using phone camera",
+      "living room tv"
+    ],
+    "caption": "Tu móvil puede ver una luz que tú no puedes 👁️",
+    "publish_at": "2026-09-20T13:00:00+02:00"
+  },
+  {
+    "id": "oceano_azul_001",
+    "subject": "Por qué el océano es azul de verdad",
+    "script": "El océano no es azul simplemente porque refleje el cielo. El agua absorbe unas longitudes de onda de la luz visible mejor que otras. Los colores rojizos se absorben con mayor facilidad a medida que la luz atraviesa el agua, mientras que el azul consigue propagarse y regresar hacia nuestros ojos con más eficacia. El reflejo del cielo puede influir en su aspecto, pero incluso bajo otras condiciones una gran masa de agua sigue teniendo un tono azulado.",
+    "keywords": [
+      "blue ocean",
+      "sea water",
+      "underwater",
+      "ocean waves",
+      "aerial ocean"
+    ],
+    "caption": "El mar no es azul solo por reflejar el cielo 🌊",
+    "publish_at": "2026-09-20T19:00:00+02:00"
+  },
+  {
+    "id": "luces_avion_aterrizaje_001",
+    "subject": "Por qué apagan parte de las luces del avión antes de aterrizar",
+    "script": "Cuando la tripulación baja las luces de la cabina durante un aterrizaje nocturno, no es para crear ambiente. Hay una razón de seguridad. Tus ojos necesitan tiempo para adaptarse a la oscuridad. Si ocurriera una emergencia y tuvieras que salir del avión rápidamente, ya estarías parcialmente adaptado a la iluminación exterior. Además, una cabina más oscura permite ver mejor lo que ocurre fuera a través de las ventanas.",
+    "keywords": [
+      "airplane cabin",
+      "plane passengers",
+      "airplane window",
+      "night flight",
+      "airplane landing"
+    ],
+    "caption": "Las luces se apagan pensando en una posible emergencia ✈️",
+    "publish_at": "2026-09-20T22:00:00+02:00"
+  },
+  {
+    "id": "libros_viejos_olor_001",
+    "subject": "Por qué los libros viejos tienen ese olor tan característico",
+    "script": "Ese olor de un libro antiguo es literalmente parte del papel descomponiéndose lentamente. Con los años, componentes como la celulosa y la lignina se degradan y liberan pequeñas moléculas volátiles al aire. Algunas tienen aromas dulces, amaderados o parecidos a la vainilla. Por eso una biblioteca vieja puede tener un olor tan reconocible: estás detectando una mezcla química producida durante décadas de envejecimiento del papel.",
+    "keywords": [
+      "old books",
+      "library",
+      "reading book",
+      "bookshelf",
+      "vintage books"
+    ],
+    "caption": "Ese olor es el papel envejeciendo delante de ti 📚",
+    "publish_at": "2026-09-21T13:00:00+02:00"
+  },
+  {
+    "id": "ojos_rojos_fotos_001",
+    "subject": "Por qué tus ojos salen rojos en algunas fotos",
+    "script": "Ese color rojo de tus ojos en una foto con flash no viene de la pupila. En lugares oscuros, la pupila está más abierta. Si el flash está cerca del objetivo de la cámara, su luz puede entrar casi de frente en el ojo y reflejarse desde el interior, donde hay tejidos muy irrigados con sangre. Parte de esa luz vuelve hacia la cámara y aparece ese característico brillo rojizo.",
+    "keywords": [
+      "camera flash",
+      "taking photos",
+      "portrait photography",
+      "human eyes",
+      "camera"
+    ],
+    "caption": "Ese rojo que ves en las fotos viene del interior de tu ojo 📸",
+    "publish_at": "2026-09-21T19:00:00+02:00"
+  },
+  {
+    "id": "corte_papel_001",
+    "subject": "Por qué un pequeño corte de papel puede doler tantísimo",
+    "script": "Un corte de papel diminuto puede doler de una forma ridícula. Una razón es dónde suele ocurrir: los dedos tienen una enorme cantidad de terminaciones nerviosas porque necesitan una sensibilidad muy alta. Además, el corte suele ser superficial, justo en una zona muy sensible, y puede abrirse una y otra vez cada vez que utilizas la mano. Es pequeño, pero está hecho prácticamente en uno de los peores sitios posibles.",
+    "keywords": [
+      "paper hands",
+      "office paper",
+      "human fingers",
+      "hands closeup",
+      "working desk"
+    ],
+    "caption": "Un corte minúsculo en uno de los lugares más sensibles 😖",
+    "publish_at": "2026-09-21T22:00:00+02:00"
+  },
+  {
+    "id": "induccion_sarten_001",
+    "subject": "Por qué una placa de inducción no funciona con cualquier sartén",
+    "script": "Una placa de inducción puede estar encendida y seguir fría si colocas encima la sartén equivocada. Debajo del cristal hay una bobina que genera un campo magnético cambiante. Ese campo induce corrientes eléctricas directamente en el recipiente y son esas corrientes las que producen calor. Por eso necesitas un material adecuado, normalmente ferromagnético. La placa no calienta primero el cristal para después calentar la sartén: calienta directamente el recipiente.",
+    "keywords": [
+      "induction stove",
+      "cooking pan",
+      "modern kitchen",
+      "cooking food",
+      "stove"
+    ],
+    "caption": "La placa realmente está calentando la sartén desde dentro 🍳",
+    "publish_at": "2026-09-22T13:00:00+02:00"
+  },
+  {
+    "id": "chocolate_blanco_001",
+    "subject": "Por qué el chocolate a veces se vuelve blanco",
+    "script": "Ese chocolate con una capa blanca no necesariamente está estropeado. Muchas veces estás viendo lo que se llama bloom. Puede ocurrir cuando parte de la grasa cambia de estructura y migra hacia la superficie, o cuando la humedad disuelve azúcar y después este vuelve a cristalizar. El aspecto y la textura empeoran, pero ese color blanco por sí solo no significa que haya aparecido moho. Es un cambio físico en el chocolate.",
+    "keywords": [
+      "chocolate",
+      "chocolate bar",
+      "eating chocolate",
+      "dessert",
+      "chocolate closeup"
+    ],
+    "caption": "Ese chocolate blanco puede no estar malo 🍫",
+    "publish_at": "2026-09-22T19:00:00+02:00"
+  },
+  {
+    "id": "dejas_de_oler_perfume_001",
+    "subject": "Por qué dejas de notar tu propio perfume",
+    "script": "Tu perfume no desaparece cinco minutos después de ponértelo. El que deja de prestarle atención es tu cerebro. Cuando un olor permanece constante, el sistema olfativo reduce progresivamente su respuesta a ese estímulo. Así puede concentrarse mejor en olores nuevos que podrían ser más importantes. Por eso alguien que acaba de entrar en una habitación puede notar un aroma inmediatamente mientras tú, después de llevar allí media hora, prácticamente ni lo percibes.",
+    "keywords": [
+      "perfume",
+      "smelling perfume",
+      "person perfume",
+      "home interior",
+      "fragrance"
+    ],
+    "caption": "El perfume sigue ahí. Tu cerebro simplemente lo ignora 🧠",
+    "publish_at": "2026-09-22T22:00:00+02:00"
+  },
+  {
+    "id": "alcantarillas_redondas_001",
+    "subject": "Por qué muchas tapas de alcantarilla son redondas",
+    "script": "Hay una ventaja brutal en hacer redonda una tapa de alcantarilla: no puede caerse por su propio agujero. En una tapa cuadrada, la diagonal es más larga que uno de sus lados y, con cierta orientación, podría atravesar una abertura compatible. En un círculo, cualquier diámetro mide exactamente lo mismo. Además, una tapa redonda pesada puede desplazarse rodándola. Una forma aparentemente simple elimina varios problemas a la vez.",
+    "keywords": [
+      "manhole cover",
+      "city street",
+      "urban road",
+      "street pavement",
+      "city walking"
+    ],
+    "caption": "Una tapa redonda tiene una ventaja que una cuadrada no puede copiar",
+    "publish_at": "2026-09-23T13:00:00+02:00"
+  },
+  {
+    "id": "vater_avion_001",
+    "subject": "Por qué el váter de un avión hace un ruido tan bestia",
+    "script": "El váter de un avión no vacía la taza usando una enorme cantidad de agua como el de tu casa. Utiliza un sistema de vacío. Al pulsar el botón, una válvula se abre y la diferencia de presión hace que los residuos sean aspirados rápidamente hacia un depósito. Esa corriente de aire moviéndose a gran velocidad es una de las razones de ese sonido tan agresivo. Es más eficiente y necesita mucha menos agua.",
+    "keywords": [
+      "airplane cabin",
+      "airplane bathroom",
+      "plane interior",
+      "airplane passengers",
+      "aircraft"
+    ],
+    "caption": "Ese ruido del váter del avión es literalmente una aspiración brutal ✈️",
+    "publish_at": "2026-09-23T19:00:00+02:00"
+  },
+  {
+    "id": "huevo_crudo_cocido_001",
+    "subject": "Cómo saber si un huevo está cocido sin abrirlo",
+    "script": "Puedes distinguir un huevo crudo de uno cocido sin romperlo. Hazlo girar. En un huevo cocido, el interior es sólido y todo gira prácticamente como una sola pieza, así que rota con facilidad. En uno crudo, el líquido del interior no empieza a girar exactamente al mismo tiempo que la cáscara y frena el movimiento. Dos huevos idénticos por fuera se comportan de forma completamente distinta solo por lo que ocurre dentro.",
+    "keywords": [
+      "eggs",
+      "boiled eggs",
+      "cooking eggs",
+      "kitchen table",
+      "egg closeup"
+    ],
+    "caption": "Dos huevos iguales. Uno gira completamente distinto 🥚",
+    "publish_at": "2026-09-23T22:00:00+02:00"
+  },
+  {
+    "id": "electricidad_estatica_invierno_001",
+    "subject": "Por qué recibes más calambrazos de electricidad estática en invierno",
+    "script": "Si en invierno parece que todo te da calambre, no es casualidad. El aire frío suele contener menos humedad y, cuando además calentamos los interiores, el ambiente puede quedar muy seco. Con poca humedad, las cargas eléctricas acumuladas sobre tu cuerpo se descargan peor hacia el entorno. Puedes ir acumulándolas al caminar sobre una alfombra o quitarte ropa y liberarlas de golpe cuando tocas metal.",
+    "keywords": [
+      "winter indoors",
+      "touching metal",
+      "walking carpet",
+      "winter clothes",
+      "human hands"
+    ],
+    "caption": "El aire seco te convierte en una pequeña batería ⚡",
+    "publish_at": "2026-09-24T13:00:00+02:00"
+  },
+  {
+    "id": "menta_frio_001",
+    "subject": "Por qué la menta parece estar fría aunque no lo esté",
+    "script": "La menta puede hacerte sentir frío sin bajar realmente la temperatura de tu boca. El mentol activa unos receptores llamados TRPM8, que normalmente responden a temperaturas frías. Tu cerebro recibe una señal parecida a la que recibiría si la zona se hubiera enfriado. Por eso un chicle de menta puede hacer que incluso respirar aire normal parezca mucho más frío. La temperatura apenas cambia: lo que cambia es la señal nerviosa.",
+    "keywords": [
+      "mint leaves",
+      "chewing gum",
+      "fresh mint",
+      "person eating",
+      "cold breath"
+    ],
+    "caption": "La menta no enfría tu boca: engaña a tus sensores ❄️",
+    "publish_at": "2026-09-24T19:00:00+02:00"
+  },
+  {
+    "id": "sol_blanco_001",
+    "subject": "Por qué el Sol no es realmente amarillo",
+    "script": "El Sol no es realmente una bola amarilla. Si pudieras observar su luz sin el efecto de nuestra atmósfera, la percibirías esencialmente blanca porque emite una mezcla muy amplia de colores visibles. Desde la superficie terrestre, la atmósfera dispersa parte de la luz, especialmente las longitudes de onda más cortas. Dependiendo de su posición en el cielo, eso puede hacer que el Sol parezca amarillo, naranja o incluso rojo.",
+    "keywords": [
+      "sun sky",
+      "sunset",
+      "blue sky",
+      "sunrise",
+      "clouds sun"
+    ],
+    "caption": "El color real del Sol probablemente no es el que dibujabas ☀️",
+    "publish_at": "2026-09-24T22:00:00+02:00"
+  },
+  {
+    "id": "ballena_durmiendo_001",
+    "subject": "Cómo puede dormir una ballena sin ahogarse",
+    "script": "Una ballena no puede respirar automáticamente de la misma forma que tú mientras duermes profundamente. Tiene que subir conscientemente a la superficie para respirar. Por eso los cetáceos pueden descansar manteniendo una parte del cerebro más activa mientras la otra reduce su actividad. Así conservan suficiente control para seguir nadando, vigilar el entorno y salir a respirar. Dormir en el océano exige un sistema completamente distinto al nuestro.",
+    "keywords": [
+      "whale",
+      "whale ocean",
+      "underwater whale",
+      "ocean wildlife",
+      "sea surface"
+    ],
+    "caption": "Dormirse por completo sería un problema si tienes que recordar respirar 🐋",
+    "publish_at": "2026-09-25T13:00:00+02:00"
+  },
+  {
+    "id": "pajita_doblada_001",
+    "subject": "Por qué una pajita parece doblarse dentro del agua",
+    "script": "La pajita no se dobla al entrar en el agua. Lo que cambia de dirección es la luz. Cuando pasa del agua al aire, su velocidad cambia y los rayos se desvían. Tus ojos reciben esa luz desviada, pero tu cerebro tiende a interpretarla como si hubiera viajado en línea recta. Resultado: la parte sumergida parece estar desplazada respecto a la parte que está fuera. Es la refracción ocurriendo delante de tus ojos.",
+    "keywords": [
+      "glass water",
+      "drinking straw",
+      "water closeup",
+      "drinking water",
+      "glass table"
+    ],
+    "caption": "La pajita está recta. Lo que se está doblando es la luz 💧",
+    "publish_at": "2026-09-25T19:00:00+02:00"
+  },
+  {
+    "id": "microondas_plato_gira_001",
+    "subject": "Por qué gira el plato del microondas",
+    "script": "El plato del microondas no gira simplemente para que la comida quede bonita. Dentro del horno, las microondas pueden formar patrones con zonas donde la energía es mayor y otras donde es menor. Si la comida permaneciera quieta, algunas partes recibirían mucha más energía que otras. Al hacerla girar, distintos puntos atraviesan esas zonas y el calentamiento se reparte mejor. Aun así, por eso algunas partes pueden seguir quedando mucho más calientes.",
+    "keywords": [
+      "microwave",
+      "food microwave",
+      "kitchen appliances",
+      "heating food",
+      "modern kitchen"
+    ],
+    "caption": "Tu microondas tiene zonas que calientan más que otras 👀",
+    "publish_at": "2026-09-25T22:00:00+02:00"
+  }
 ]
