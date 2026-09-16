@@ -10,9 +10,10 @@ from typing import Any
 def utc_now_iso(): return datetime.now(timezone.utc).isoformat()
 
 class StateStore:
-    def __init__(self, path: Path):
+    def __init__(self, path: Path, *, create_parent: bool = True):
         self.path = path
-        self.path.parent.mkdir(parents=True, exist_ok=True)
+        if create_parent:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
         self._data = self._load()
 
     def _load(self):

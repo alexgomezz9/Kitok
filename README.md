@@ -227,6 +227,15 @@ o solo uno:
 python main.py --id mi_id --retry-failed
 ```
 
+### Regenerar todos los vídeos listos
+
+```bash
+python main.py --regenerate-all-ready --dry-run
+python main.py --regenerate-all-ready
+```
+
+El dry-run enumera los elementos que se regenerarían sin crear tareas MPT ni escribir archivos o estado. La ejecución usa el preset MPT actual, crea tareas nuevas de forma secuencial y valida cada descarga antes de sustituir los MP4 en `outputs/generated`, `outputs/ready` y `READY_DIR`. Omite los elementos que no estén en `ready` y los que tengan metadatos de Cloudinary o Buffer; muestra el motivo de cada omisión y un resumen de regenerados, fallidos y omitidos. Un fallo no detiene los demás elementos. No sube archivos a Cloudinary ni crea publicaciones en Buffer.
+
 ## 11. Preset
 
 `presets/mpt_default.json` viene preparado para:

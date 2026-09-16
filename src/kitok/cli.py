@@ -8,6 +8,7 @@ from .models import ContentQueue
 from .mpt_client import MPTClient, MPTError
 from .pipeline import Pipeline, load_preset
 from .publish_plan import generate_publish_plan
+from .regeneration import ReadyRegenerator
 from .state import StateStore
 from .video_validator import VideoValidator
 
@@ -20,6 +21,7 @@ def parser():
     mode=p.add_mutually_exclusive_group()
     mode.add_argument("--dry-run",action="store_true")
     p.add_argument("--retry-failed",action="store_true")
+    p.add_argument("--regenerate-all-ready",action="store_true")
     mode.add_argument("--status",action="store_true")
     mode.add_argument("--check-mpt",action="store_true")
     mode.add_argument("--plan",action="store_true")
@@ -29,9 +31,10 @@ def parser():
     p.add_argument("-v","--verbose",action="store_true")
     return p
 
-def load_all():
-    s=Settings(); s.ensure_directories()
-    q=ContentQueue.load(s.queue_path); st=StateStore(s.state_path)
+def load_all(*, read_only=False):
+    s=Settings()
+    if not read_only: s.ensure_directories()
+    q=ContentQueue.load(s.queue_path); st=StateStore(s.state_path,create_parent=not read_only)
     pp=s.mpt_preset_path if s.mpt_preset_path.is_absolute() else (PROJECT_ROOT/s.mpt_preset_path).resolve()
     return s,q,st,load_preset(pp)
 
@@ -48,6 +51,12 @@ def main(argv=None):
     a=parser().parse_args(argv)
     publishing_modes = ("buffer_check", "buffer_channels", "publish_ready",
                         "sync_buffer_status", "buffer_maintain", "publish_dry_run")
+    if a.regenerate_all_ready:
+        if (a.ids or a.retry_failed or a.publish_id or a.status or a.check_mpt or a.plan
+                or any(getattr(a, flag) for flag in publishing_modes)):
+            console.print("Usage error: --regenerate-all-ready may only be combined with --dry-run.")
+            return 2
+        return regeneration_main(a)
     if a.publish_id and (a.ids or any(getattr(a, flag) for flag in publishing_modes
                                      if flag != "publish_dry_run")):
         console.print("Usage error: --publish-id may only be combined with --publish-dry-run.")
@@ -92,6 +101,33 @@ def main(argv=None):
         console.print(f"[red]MPT error:[/red] {e}"); return 3
     finally:
         client.close()
+
+
+def regeneration_main(args):
+    try:
+        s, q, state, preset = load_all(read_only=args.dry_run)
+    except Exception as error:
+        console.print(f"[red]Startup error:[/red] {error}")
+        return 2
+    client = None
+    try:
+        if not args.dry_run:
+            configure_logging(s.logs_dir, args.verbose)
+            client = MPTClient(s.mpt_base_url, s.mpt_api_key, s.mpt_request_timeout_seconds,
+                               s.http_retry_attempts, s.http_retry_base_seconds)
+        run = ReadyRegenerator(s, q, state, client, preset, print_line=console.print)
+        summary = run.run(dry_run=args.dry_run)
+        label = "Dry-run" if args.dry_run else "Regeneration"
+        console.print(f"{label} summary: regenerated={summary.regenerated} "
+                      f"failed={summary.failed} skipped={summary.skipped}"
+                      + (f" would_regenerate={summary.would_regenerate}" if args.dry_run else ""))
+        return 1 if summary.failed else 0
+    except (OSError, RuntimeError, ValueError) as error:
+        console.print(f"[red]Regeneration error:[/red] {error}")
+        return 3
+    finally:
+        if client is not None:
+            client.close()
 
 
 def publishing_main(args):

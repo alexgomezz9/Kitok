@@ -31,6 +31,9 @@ class VideoValidator:
         except json.JSONDecodeError as e:
             return ValidationResult(ok=False,errors=[f"invalid ffprobe JSON: {e}"])
 
+        if "mp4" not in info.get("format", {}).get("format_name", "").split(","):
+            errors.append("file is not an MP4 container")
+
         streams=info.get("streams",[])
         vs=[s for s in streams if s.get("codec_type")=="video"]
         aus=[s for s in streams if s.get("codec_type")=="audio"]

@@ -15,7 +15,7 @@
   "bgm_type": "",
   "bgm_file": "",
   "bgm_volume": 0.0,
-  "subtitle_enabled": false,
+  "subtitle_enabled": true,
   "subtitle_position": "custom",
   "subtitle_display_mode": "word_by_word",
   "subtitle_animation": "pop_spring",
