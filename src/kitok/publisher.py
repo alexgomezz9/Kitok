@@ -43,7 +43,8 @@ def post_content(item, platform: str, fixed_hashtags: str, *, ai_assisted: bool 
         raise ValueError(f"TikTok caption is {len(text)} characters; maximum is 150")
     if platform == "instagram" and len(text) > 2200:
         raise ValueError("Instagram caption plus hashtags exceeds 2200 characters")
-    if platform == "youtube" and len(item.subject) > 100:
+    youtube_title = item.youtube_title or item.subject
+    if platform == "youtube" and len(youtube_title) > 100:
         raise ValueError("YouTube title exceeds 100 characters")
     metadata = {}
     if platform == "tiktok":
@@ -51,7 +52,7 @@ def post_content(item, platform: str, fixed_hashtags: str, *, ai_assisted: bool 
     if platform == "instagram":
         metadata.update(type="reel", shouldShareToFeed=True, isAiGenerated=instagram_ai_generated)
     elif platform == "youtube":
-        metadata.update(title=item.subject, categoryId="27", madeForKids=False,
+        metadata.update(title=youtube_title, categoryId="27", madeForKids=False,
                         privacy="public", notifySubscribers=True, isAiGenerated=youtube_ai_generated)
     return {"text": text, "metadata": {platform: metadata}, "aiAssisted": ai_assisted,
             "schedulingType": "automatic", "mode": "customScheduled", "needsApproval": False}
@@ -156,6 +157,8 @@ class Publisher:
         for item in sorted(self.q.items, key=lambda i: (i.publish_at, i.id)):
             if ids is not None and item.id not in ids:
                 continue
+            if item.editorial_status != "active":
+                continue
             record = self.state.get(item.id)
             if record.get("status") != "ready":
                 continue
@@ -198,7 +201,7 @@ class Publisher:
                                                  **{k: v for k, v in content["metadata"][platform].items()
                                                     if k == "isAiGenerated"}},
                                   "caption": content["text"],
-                                  "title": item.subject if platform == "youtube" else None,
+                                  "title": (item.youtube_title or item.subject) if platform == "youtube" else None,
                                   "video_path": str(path), "organization_id": org,
                                   "input": {**content, "dueAt": due_at,
                                             "channelId": (self.s.buffer_channel_ids[platform] or None)

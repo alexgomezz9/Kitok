@@ -39,6 +39,8 @@ schedules a separate post for each social channel.
 | PUBLISHED | Buffer reports `sent` for this platform. |
 | FAILED | Generation or a platform operation failed; inspect the error. |
 | ATTENTION | A missing file, past date, ambiguous outcome or other issue needs review. |
+| SKIPPED | Editorially excluded from future publishing; its queue entry and file remain. |
+| ARCHIVED | Hidden from daily views; its history and remote posts remain. |
 
 Generation and publishing statuses are separate. A video can stay **READY** while
 TikTok is **SCHEDULED**, Instagram needs **ATTENTION**, and YouTube is **PUBLISHED**.
@@ -59,25 +61,37 @@ python main.py --dashboard
 The local dashboard binds to `127.0.0.1:8501`. Telemetry is disabled in the project
 Streamlit configuration. It is a local tool, not a public multi-user service.
 
-Its six pages are **Overview**, **Upcoming Content**, **Content Detail**,
-**Buffer**, **Attention**, and **Settings**. The overview shows ready videos,
-scheduled/published posts, attention, channel occupancy, API usage and disclosure
-settings. Content Detail includes the script, media preview, paths, validation,
-attempts, MPT task, Cloudinary and platform records. Settings are read-only and
-come from `.env`/environment variables; credentials are never displayed.
+Its six pages are **Dashboard**, **Calendar / Queue**, **Content**,
+**Publishing**, **Attention**, and **Settings**. Dashboard shows ready videos,
+scheduled/published posts, attention, channel occupancy and the next content.
+Calendar / Queue groups items by local date and provides Add Content, Edit,
+Move earlier/later, Skip and Archive. Moving swaps the two items' `publish_at`
+values; it never reschedules an existing Buffer post. Content shows media,
+compatibility and platform statuses. Technical IDs and raw records are tucked
+inside Advanced / Debug. Settings are read-only and come from `.env`/environment
+variables; credentials are never displayed.
 
 Rendering and navigation use local data only. **Refresh status** reloads local
 files. **Refresh Buffer** reads current channels/occupancy. **Sync state** reads
 Buffer and reconciles local saved IDs; it does not recreate missing posts.
-**Preview publishing plan** is offline. **Fill Buffer**, **Publish selected**,
-and **Regenerate selected** require a review and a separate Confirm click.
+**Preview Publish Plan** is offline and shows the proposed platform matrix, up to
+how many uploads are needed, estimated Buffer requests and resulting occupancy.
+**Fill Buffer**, **Publish Selected**, **Generate** and **Regenerate** require a
+review and a separate Confirm click.
 Confirmed actions recheck state and cannot silently add posts outside the preview.
 Publishing controls are disabled when `PUBLISH_ENABLED=false`.
 
-Title/caption/time edits and publishing-state reset also show a confirmation.
-Edits are local, atomic, and blocked when publishing metadata exists. Existing
-video paths remain usable; no remote post is edited. Reset is only for manual
-recovery after deleting the social posts yourself.
+Title, YouTube title, caption, terms, script and time edits, plus publishing-state
+reset, also show a confirmation. Queue edits are local and atomic. Changes to an
+item's content or schedule, swapping times and Skip are blocked when publishing
+metadata exists. Script and video terms can change only before generation starts;
+this keeps an existing ready video aligned with its script. Archive only hides the
+local item; it leaves remote posts alone. Skipped and archived entries are also
+excluded from generated local handoff plans.
+Delete from queue requires typing the content ID and is available only when no
+publishing metadata exists. It preserves local media and state history, and that
+ID cannot be reused. New content starts as Pending; adding it never generates a
+video. Reset is only for manual recovery after deleting social posts yourself.
 
 CLI equivalents:
 

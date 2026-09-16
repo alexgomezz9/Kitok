@@ -17,11 +17,11 @@ from zoneinfo import ZoneInfo
 from .buffer_client import BufferClient, PLATFORMS
 from .cloudinary_usage import CloudinaryUsage
 from .config import Settings, PROJECT_ROOT
-from .models import ContentQueue
+from .models import ContentItem, ContentQueue
 from .mpt_client import MPTClient
-from .pipeline import load_preset
+from .pipeline import Pipeline, load_preset
 from .publisher import Publisher, PublishPlan
-from .queue_editor import edit_item, queue_digest
+from .queue_editor import add_item, delete_item, edit_item, queue_digest, reorder_item, set_editorial_status
 from .regeneration import ReadyRegenerator, skip_reason
 from .service_cache import buffer_cache, cloudinary_cache
 from .state import StateStore
@@ -111,7 +111,7 @@ class ControlPanel:
                 "Cloudinary usage guard": self.s.cloudinary_usage_guard,
                 "Cloudinary safety threshold": self.s.cloudinary_usage_threshold}
 
-    def view(self) -> dict:
+    def view(self, *, include_archived: bool = False) -> dict:
         """Assemble overview, upcoming rows and attention from local data only."""
         queue, state = self.load()
         rows, issues = [], []
@@ -119,14 +119,17 @@ class ControlPanel:
         local_posts = {}
         now = datetime.now(timezone.utc)
         for item in sorted(queue.items, key=lambda value: value.publish_at):
+            if item.editorial_status == "archived" and not include_archived:
+                continue
             record = state.get(item.id)
             publishing = record.get("publishing") or {}
             buffer = publishing.get("buffer", {})
             local = item.publish_at.astimezone(ZoneInfo(self.s.timezone))
             status = record.get("status", "pending")
-            counters["ready"] += status == "ready"
+            counters["ready"] += status == "ready" and item.editorial_status == "active"
             row = {"ID": item.id, "Content": item.subject, "Date": local.strftime("%Y-%m-%d"),
                    "Time": local.strftime("%H:%M"), "Generation": status,
+                   "Editorial": item.editorial_status,
                    "Cloudinary": publishing.get("cloudinary", {}).get("status", "not uploaded")}
             item_issues = []
             if record.get("last_error"):
@@ -140,7 +143,8 @@ class ControlPanel:
                     item_issues.append(("media", "Invalid MP4: " + "; ".join(record["validation"].get("errors", []))))
             for platform in PLATFORMS:
                 post = buffer.get(platform, {})
-                value = post.get("status", "ready" if status == "ready" else "pending")
+                value = post.get("status", "skipped" if item.editorial_status == "skipped" else
+                                 ("ready" if status == "ready" else "pending"))
                 row[platform.title()] = value
                 counters["scheduled"] += value in {"scheduled", "sending"}
                 counters["published"] += value == "sent"
@@ -150,7 +154,8 @@ class ControlPanel:
                                                   "channelId": post.get("channel_id") or self.s.buffer_channel_ids[platform]}
                 if post.get("last_error") or value in {"unknown", "creating", "error", "needs_attention", "needs_approval"}:
                     item_issues.append((platform, post.get("last_error") or f"Publishing status: {value}"))
-                if item.publish_at <= now and not post.get("post_id") and platform in item.platforms:
+                if (item.editorial_status == "active" and item.publish_at <= now
+                        and not post.get("post_id") and platform in item.platforms):
                     item_issues.append((platform, "publish_at is in the past"))
             cloud = publishing.get("cloudinary", {})
             if cloud.get("last_error") or cloud.get("status") in {"unknown", "uploading"}:
@@ -204,7 +209,8 @@ class ControlPanel:
     def prepare_action(self, kind: str, content_id: str | None = None, *, changes=None) -> PendingAction:
         """Prepare a reviewable action; never performs remote requests or writes."""
         queue, state = self.load()
-        if content_id is not None and content_id not in queue.by_id():
+        changes = changes or {}
+        if kind != "add" and content_id is not None and content_id not in queue.by_id():
             raise ValueError(f"Unknown content ID: {content_id}")
         rows = []
         summary = {"Action": kind, "Content ID": content_id}
@@ -218,25 +224,78 @@ class ControlPanel:
             summary.update(videos=len(ids), posts=len(rows), uploads=uploads,
                            platforms=dict(Counter(row["platform"] for row in rows)),
                            disclosure=disclosure(self.s), occupancy=plan.occupancy_source,
+                           estimated_requests=plan.estimated_requests,
+                           after_estimated={platform: plan.counts.get(platform, 0) +
+                                            sum(row["platform"] == platform for row in rows)
+                                            for platform in PLATFORMS},
                            issues=plan.issues, note="Up to these counts; live occupancy will be checked on confirmation.")
         elif kind == "regenerate":
             reason = skip_reason(state.get(content_id))
             if reason:
                 raise ValueError(reason)
             summary["MPT tasks"] = 1
+        elif kind == "generate":
+            if queue.by_id()[content_id].editorial_status != "active":
+                raise ValueError("Restore this item before generation")
+            status = state.get(content_id).get("status", "pending")
+            if status not in {"pending", "failed", "submitted", "generating"}:
+                raise ValueError(f"Cannot generate an item in {status} state")
+            summary["MPT tasks"] = "Resume saved task or submit one new task"
         elif kind == "reset":
             summary["publishing state to clear"] = state.get(content_id).get("publishing", {})
             summary["Reminder"] = "Use only after manually deleting the social posts."
         elif kind == "edit":
             if state.get(content_id).get("publishing"):
                 raise ValueError("Publishing metadata exists; cannot edit safely")
+            current = queue.by_id()[content_id]
+            generation = state.get(content_id)
+            if any(key in changes and changes[key] != getattr(current, key) for key in ("script", "keywords")):
+                if generation.get("status", "pending") != "pending" or generation.get("attempts", 0) or generation.get("mpt_task_id"):
+                    raise ValueError("Script and video terms can only change before generation starts")
             summary["changes"] = changes
+            ContentItem.model_validate({**queue.by_id()[content_id].model_dump(mode="json"), **changes})
+        elif kind == "add":
+            item = ContentItem.model_validate(changes)
+            if not item.caption:
+                raise ValueError("A caption is required for new content")
+            if item.id in queue.by_id():
+                raise ValueError(f"Content ID already exists: {item.id}")
+            if state.get(item.id):
+                raise ValueError("This content ID has saved history and cannot be reused")
+            if any(existing.publish_at == item.publish_at for existing in queue.items):
+                raise ValueError("Another item already uses that publish time")
+            summary.update({"Content ID": item.id, "Topic": item.subject,
+                            "Publish time": item.publish_at.isoformat(), "Generation": "Pending; no video is generated"})
+        elif kind in {"move_earlier", "move_later"}:
+            active = sorted((item for item in queue.items if item.editorial_status == "active"),
+                            key=lambda item: item.publish_at)
+            index = next((index for index, item in enumerate(active) if item.id == content_id), None)
+            target = (index - 1 if kind == "move_earlier" else index + 1) if index is not None else -1
+            if not 0 <= target < len(active):
+                raise ValueError("No item in that direction")
+            neighbor = active[target]
+            if state.get(content_id).get("publishing") or state.get(neighbor.id).get("publishing"):
+                raise ValueError("Publishing metadata exists; remote rescheduling requires a separate action")
+            summary.update({"Swap with": neighbor.subject, "Current time": queue.by_id()[content_id].publish_at.isoformat(),
+                            "New time": neighbor.publish_at.isoformat(),
+                            "Note": "Only the two local publish times will be exchanged."})
+        elif kind in {"skip", "archive", "restore"}:
+            if kind == "skip" and state.get(content_id).get("publishing"):
+                raise ValueError("Publishing metadata exists; scheduled posts need a separate remote action")
+            summary["Note"] = ("Hide this item from active views; preserve its history and remote posts."
+                               if kind == "archive" else
+                               "Exclude it from future publishing; preserve its media and queue entry."
+                               if kind == "skip" else "Return this item to active views and publishing plans.")
+        elif kind == "delete":
+            if state.get(content_id).get("publishing"):
+                raise ValueError("Publishing metadata exists; this item cannot be deleted")
+            summary["Note"] = "Remove only this queue entry. Existing local media and state history stay on disk."
         else:
             raise ValueError("Unknown action")
-        if kind != "fill" and content_id is None:
+        if kind not in {"fill", "add"} and content_id is None:
             raise ValueError("Select exactly one content item")
         return PendingAction(kind, content_id, self._revision(), queue_digest(self.s.queue_path),
-                             summary, rows, changes or {})
+                             summary, rows, changes)
 
     def execute(self, action: PendingAction, *, confirmed: bool = False) -> dict:
         """Execute one explicitly confirmed action through existing services."""
@@ -256,6 +315,22 @@ class ControlPanel:
             edited = edit_item(self.s.queue_path, state, action.content_id, action.changes,
                                expected_revision=action.queue_revision)
             return {"edited": edited.id}
+        if action.kind == "add":
+            item = add_item(self.s.queue_path, state, action.changes, expected_revision=action.queue_revision)
+            return {"added": item.id}
+        if action.kind in {"move_earlier", "move_later"}:
+            first, second = reorder_item(self.s.queue_path, state, action.content_id,
+                                         -1 if action.kind == "move_earlier" else 1,
+                                         expected_revision=action.queue_revision)
+            return {"moved": first.id, "swapped_with": second.id}
+        if action.kind in {"skip", "archive", "restore"}:
+            status = {"skip": "skipped", "archive": "archived", "restore": "active"}[action.kind]
+            item = set_editorial_status(self.s.queue_path, state, action.content_id, status,
+                                        expected_revision=action.queue_revision)
+            return {"editorial_status": item.editorial_status, "id": item.id}
+        if action.kind == "delete":
+            delete_item(self.s.queue_path, state, action.content_id, expected_revision=action.queue_revision)
+            return {"deleted_from_queue": action.content_id}
         if action.kind == "regenerate":
             self.s.ensure_directories()
             path = self.s.mpt_preset_path
@@ -265,6 +340,20 @@ class ControlPanel:
             try:
                 result = ReadyRegenerator(self.s, queue, state, client, preset).run(ids={action.content_id})
                 return vars(result)
+            finally:
+                client.close()
+        if action.kind == "generate":
+            self.s.ensure_directories()
+            path = self.s.mpt_preset_path
+            preset = load_preset(path if path.is_absolute() else PROJECT_ROOT / path)
+            client = MPTClient(self.s.mpt_base_url, self.s.mpt_api_key, self.s.mpt_request_timeout_seconds,
+                               self.s.http_retry_attempts, self.s.http_retry_base_seconds)
+            try:
+                Pipeline(self.s, queue, state, client, preset).process(
+                    ids={action.content_id}, retry_failed=True)
+                result = state.get(action.content_id)
+                return {"id": action.content_id, "generation_status": result.get("status", "pending"),
+                        "last_error": result.get("last_error")}
             finally:
                 client.close()
         if action.kind not in {"fill", "publish"}:

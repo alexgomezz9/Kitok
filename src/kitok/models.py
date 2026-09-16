@@ -13,8 +13,17 @@ class ContentItem(BaseModel):
     script: str = Field(min_length=20, max_length=12000)
     keywords: list[str] = Field(min_length=1, max_length=20)
     caption: str = Field(default="", max_length=2200)
+    youtube_title: str | None = Field(default=None, max_length=100)
+    editorial_status: str = "active"
     publish_at: datetime
     platforms: list[str] = Field(default_factory=lambda: ["tiktok","instagram","youtube"])
+
+    @field_validator("editorial_status")
+    @classmethod
+    def validate_editorial_status(cls, value):
+        if value not in {"active", "skipped", "archived"}:
+            raise ValueError("editorial_status must be active, skipped or archived")
+        return value
 
     @field_validator("id")
     @classmethod

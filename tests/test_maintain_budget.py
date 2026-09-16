@@ -66,3 +66,21 @@ def test_low_budget_aborts_before_any_upload_or_mutation(local_kitok):
     assert not any("mutation" in query for query in calls)
     host.ensure_video.assert_not_called()
     assert state.path.read_bytes() == before
+
+
+def test_same_client_reuses_discovery_if_persisted_cache_disappears(local_kitok):
+    settings, queue, state, _ = local_kitok
+    client, calls = client_for(settings, 80)
+    host = Mock()
+    host.ensure_video.return_value = {"url": "https://example.test/video.mp4"}
+    publisher = Publisher(settings, queue, state, client, host, cache=buffer_cache(settings))
+    try:
+        assert publisher.publish(maintain=True)["created"] == 6
+        assert len(calls) == 8
+        settings.cache_path.unlink()
+        assert publisher.publish(maintain=True)["created"] == 0
+        assert len(calls) == 9
+        assert "KitokPosts" in calls[-1]
+        assert sum("KitokChannels" in query for query in calls) == 1
+    finally:
+        client.close()

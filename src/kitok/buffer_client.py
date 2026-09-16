@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import time
 import logging
+from copy import deepcopy
 from datetime import datetime, timezone, timedelta
 from email.utils import parsedate_to_datetime
 
@@ -95,6 +96,7 @@ class BufferClient:
         self.cache, self.discovery_ttl = cache, discovery_ttl
         self.usage = cache.get("usage") if cache else {}
         self.request_count = 0
+        self._recent_discovery = None
         self.client = httpx.Client(headers={"Authorization": f"Bearer {api_key}"},
                                    timeout=timeout, transport=transport)
 
@@ -232,12 +234,21 @@ class BufferClient:
 
     def discover(self, organization_id: str = "", explicit: dict | None = None, *, refresh: bool = False) -> tuple:
         """Read channel identity/health, reusing a recent account-scoped cache."""
-        cached = self.cache.get("discovery") if self.cache else {}
         configuration = [organization_id, explicit or {}]
+        # Repeated maintenance with this client must not rediscover channels
+        # because a persisted cache read is unavailable or wall time shifts.
+        recent = self._recent_discovery
+        if (not refresh and recent is not None and recent["configuration"] == configuration
+                and 0 <= time.monotonic() - recent["at"] < self.discovery_ttl):
+            return deepcopy(recent["result"])
+        cached = self.cache.get("discovery") if self.cache else {}
         if cached.get("configuration") == configuration and not refresh:
             age = (datetime.now(timezone.utc) - datetime.fromisoformat(cached["refreshed_at"])).total_seconds()
             if 0 <= age < self.discovery_ttl:
-                return cached["organization_id"], cached["channels"], cached["selected"]
+                result = cached["organization_id"], cached["channels"], cached["selected"]
+                self._recent_discovery = {"configuration": deepcopy(configuration),
+                                          "result": deepcopy(result), "at": time.monotonic()}
+                return result
         org_hint = organization_id or cached.get("organization_id")
         organizations = [{"id": org_hint}] if org_hint else self.organizations()
         org_id, _ = select_channels(organizations, [], organization_id)
@@ -247,7 +258,10 @@ class BufferClient:
             self.cache.put("discovery", {"configuration": configuration, "organization_id": org_id,
                            "channels": channels, "selected": selected,
                            "refreshed_at": datetime.now(timezone.utc).isoformat()})
-        return org_id, channels, selected
+        result = org_id, channels, selected
+        self._recent_discovery = {"configuration": deepcopy(configuration),
+                                  "result": deepcopy(result), "at": time.monotonic()}
+        return result
 
     def posts(self, organization_id: str, channel_ids: list[str], statuses: list[str] | None = None,
               due_at: dict | None = None) -> list[dict]:

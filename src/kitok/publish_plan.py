@@ -1,5 +1,6 @@
 from __future__ import annotations
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 from .models import ContentQueue
 
@@ -7,6 +8,7 @@ def generate_publish_plan(queue:ContentQueue,states:dict,target_dir:Path):
     target_dir.mkdir(parents=True,exist_ok=True)
     rows=[]
     for item in queue.items:
+        if item.editorial_status != "active": continue
         st=states.get(item.id,{})
         if st.get("status")!="ready": continue
         rows.append({
@@ -15,7 +17,7 @@ def generate_publish_plan(queue:ContentQueue,states:dict,target_dir:Path):
             "video":Path(st.get("ready_path") or "").name,
             "platforms":item.platforms
         })
-    rows.sort(key=lambda x:x["publish_at"])
+    rows.sort(key=lambda x:datetime.fromisoformat(x["publish_at"]).astimezone(timezone.utc))
     jp=target_dir/"publish_plan.json"
     jp.write_text(json.dumps(rows,ensure_ascii=False,indent=2),encoding="utf-8")
     lines=[]; current=None
