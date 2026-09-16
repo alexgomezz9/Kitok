@@ -1,4 +1,169 @@
-# Kitok v1
+# Kitok — local video control panel
+
+# How Kitok Works
+
+```text
+content_queue.json (script, caption, publish_at)
+       |
+       v
+MoneyPrinterTurbo (generation)
+       |
+       v
+validation / audio normalization (ffprobe + ffmpeg)
+       |
+       v
+READY (local MP4 in outputs/ready and READY_DIR)
+       |
+       v
+Cloudinary (one reusable public video URL)
+       |
+       v
+Buffer (scheduled posts)
+  +----+----+
+  |    |    |
+TikTok IG YouTube
+```
+
+The **queue** describes what you want to create and when to publish it. **State**
+(`state/state.json`) records generation attempts, files, remote IDs, publishing
+intent and reconciliation results. **READY_DIR** is a local/synced folder for
+finished videos. **Cloudinary** hosts the video so Buffer can fetch it. **Buffer**
+schedules a separate post for each social channel.
+
+| Display state | Meaning |
+| --- | --- |
+| PENDING | Generation has not started. |
+| GENERATING | MPT accepted a task; Kitok is waiting or validating its output. |
+| READY | A valid local video exists. It may not have been scheduled anywhere. |
+| SCHEDULED | Buffer accepted a scheduled post for this platform. |
+| PUBLISHED | Buffer reports `sent` for this platform. |
+| FAILED | Generation or a platform operation failed; inspect the error. |
+| ATTENTION | A missing file, past date, ambiguous outcome or other issue needs review. |
+
+Generation and publishing statuses are separate. A video can stay **READY** while
+TikTok is **SCHEDULED**, Instagram needs **ATTENTION**, and YouTube is **PUBLISHED**.
+Kitok preserves saved remote IDs even when a remote post fails or disappears.
+
+# Everyday Usage
+
+Activate the environment and install the updated dependencies:
+
+```bash
+source .venv/bin/activate
+pip install -e ".[dev]"
+streamlit run dashboard.py
+# Equivalent launcher:
+python main.py --dashboard
+```
+
+The local dashboard binds to `127.0.0.1:8501`. Telemetry is disabled in the project
+Streamlit configuration. It is a local tool, not a public multi-user service.
+
+Its six pages are **Overview**, **Upcoming Content**, **Content Detail**,
+**Buffer**, **Attention**, and **Settings**. The overview shows ready videos,
+scheduled/published posts, attention, channel occupancy, API usage and disclosure
+settings. Content Detail includes the script, media preview, paths, validation,
+attempts, MPT task, Cloudinary and platform records. Settings are read-only and
+come from `.env`/environment variables; credentials are never displayed.
+
+Rendering and navigation use local data only. **Refresh status** reloads local
+files. **Refresh Buffer** reads current channels/occupancy. **Sync state** reads
+Buffer and reconciles local saved IDs; it does not recreate missing posts.
+**Preview publishing plan** is offline. **Fill Buffer**, **Publish selected**,
+and **Regenerate selected** require a review and a separate Confirm click.
+Confirmed actions recheck state and cannot silently add posts outside the preview.
+Publishing controls are disabled when `PUBLISH_ENABLED=false`.
+
+Title/caption/time edits and publishing-state reset also show a confirmation.
+Edits are local, atomic, and blocked when publishing metadata exists. Existing
+video paths remain usable; no remote post is edited. Reset is only for manual
+recovery after deleting the social posts yourself.
+
+CLI equivalents:
+
+```bash
+python main.py --status
+python main.py --publish-dry-run
+python main.py --publish-dry-run --live
+python main.py --buffer-usage
+python main.py --buffer-usage --refresh
+python main.py --cloudinary-usage
+python main.py --cloudinary-usage --refresh
+# The next command can upload and schedule; requires PUBLISH_ENABLED=true:
+python main.py --buffer-maintain
+python main.py --sync-buffer-status
+```
+
+`--publish-dry-run` is **truly offline**, even with API credentials. It prints
+local time, UTC `dueAt`, caption/title, media path, disclosure flags, occupancy
+source and snapshot time. `--live` allows Buffer reads but does not write local
+state/cache, upload, or schedule. Neither preview guarantees future availability.
+
+`--buffer-usage` reads only cached headers. `--refresh` sends one lightweight
+`account { id }` query with no retry. Other Buffer operations save headers from
+responses they already need. The account-scoped cache is `state/services.json`.
+Buffer documents structured `RateLimit` (`r` remaining, `t` reset seconds) and
+`RateLimit-Policy` (`q` quota, `w` window seconds) headers. Kitok matches the
+900/86400/2592000-second windows by `w`, not by plan-specific names. Missing values
+stay unknown. A cached counter is an observation, not a quota reservation.
+
+Maintenance reuses recently checked organization/channels for up to
+`BUFFER_DISCOVERY_TTL_SECONDS` (300 by default); an explicit dashboard refresh
+always refreshes channel health. Configured organization IDs avoid account
+rediscovery. All target channels share one paginated occupancy query (`first: 100`).
+Known posts missing from that snapshot and ambiguous intents still require safe
+reconciliation reads. There are no readbacks of newly created posts and no
+occupancy refetch after each create. The run prints BEFORE / CREATED / AFTER
+(estimated), its approximate request count, and known remaining quotas. A budget
+check runs before uploads/creates and reserves `BUFFER_REQUEST_RESERVE` requests.
+An unknown or expired short-window budget also blocks the publishing batch until
+a response supplies current usage headers.
+Read retries are bounded; long 429 cooldowns stop immediately and are cached.
+Creation is never automatically retried after an ambiguous response.
+
+AI disclosure is explicit: `CONTENT_AI_ASSISTED`, `TIKTOK_AI_GENERATED`, and
+`YOUTUBE_AI_GENERATED` default to `true`. False values are sent as false. The
+current schema also supports Instagram `isAiGenerated`, so
+`INSTAGRAM_AI_GENERATED=true` preserves the existing disclosure by default and
+makes it configurable. Only documented Instagram metadata is sent. Kitok does not
+classify whether a disclosure is legally required.
+
+Every new generation/regeneration is inspected for container, codecs, dimensions,
+fps, pixel format, bitrate, duration and size. Kitok uses a conservative H.264,
+yuv420p, AAC-LC profile. Excessive AAC bitrate/sample rate is repaired with
+`-c:v copy -c:a aac -profile:a aac_low -b:a 120k -ar 48000 -movflags +faststart`,
+then inspected again before READY. Compliant files are not re-encoded. Other
+video defects are reported for review rather than silently changing video quality.
+Existing files are not normalized merely by opening the dashboard or previewing.
+
+Cloudinary's Admin `usage` API is available through explicit refresh. The display
+uses returned storage/bandwidth/transformation/credit values only. Its numbers are
+updated periodically. `CLOUDINARY_USAGE_GUARD=true` blocks **new uploads** when the
+report is absent, older than `CLOUDINARY_USAGE_MAX_AGE_SECONDS`, lacks a usable
+limit, or reaches `CLOUDINARY_USAGE_THRESHOLD` (90% by default). Reusing an existing
+asset and reconciling an uncertain upload remain possible. Refresh usage before
+the first new upload. Local byte reservations include earlier uploads in the
+storage check until the next explicit usage refresh. Failed/uncertain uploads
+keep their reservation conservatively. The application never upgrades or buys a plan. This guard
+cannot guarantee future bandwidth charges, because Cloudinary reports lag and
+external traffic is outside Kitok's control.
+
+Implementation map: `dashboard.py` is the entrypoint; `kitok.dashboard` renders
+pages; `control_panel` coordinates existing services. `Publisher` owns planning,
+idempotency and scheduling; `BufferClient` owns HTTP; `CloudinaryHost` owns media
+hosting. `VideoValidator.prepare` owns audio normalization. `StateStore` provides
+all atomic JSON writes and publishing locks; service caches use those same helpers.
+
+API references checked during this change:
+
+- [Buffer rate-limit headers](https://developers.buffer.com/guides/api-limits.html)
+- [Buffer pagination and combined channel filters](https://developers.buffer.com/guides/pagination.html)
+- [Buffer CreatePostInput](https://developers.buffer.com/types/CreatePostInput.html), [YouTube AI field](https://developers.buffer.com/types/YoutubePostMetadataInput.html), [Instagram AI field](https://developers.buffer.com/types/InstagramPostMetadataInput.html)
+- [Instagram requirements](https://support.buffer.com/en-us/articles/using-instagram-with-buffer-YSjg2dXFV8): 128 kbps audio, 25 Mbps video, 300 MB. Buffer's media pages differ on a 3/5-second minimum; Kitok uses the stricter 5-second automatic-Reel requirement.
+- [Cloudinary Admin usage API](https://cloudinary.com/documentation/admin_api#usage)
+
+The sections below retain the detailed WSL/MPT setup and CLI recovery guide.
+
 
 Pipeline local para:
 
@@ -414,18 +579,18 @@ Los canales ausentes, desconectados, bloqueados o pausados no se programan.
 
 `--publish-dry-run` muestra ID, plataforma, `dueAt` UTC, caption, título de YouTube,
 ruta del vídeo y campos de creación. No sube archivos, modifica estado ni crea
-posts. Con credenciales consulta la ocupación real; sin ellas muestra una
-**estimación offline** con el estado local y canales sin verificar (`channelId`
-será `null` si no está configurado). El resultado no garantiza disponibilidad futura.
+posts. Por defecto usa el estado y caché locales incluso con credenciales.
+`--publish-dry-run --live` consulta la ocupación actual sin escrituras locales ni
+remotas. El resultado no garantiza disponibilidad futura.
 
 ### Subtítulos antes de la primera prueba
 
-El preset actual tiene **`subtitle_enabled: false`**. El MP4 destinado a publicación
+Comprueba `subtitle_enabled` en el preset actual. El MP4 destinado a publicación
 automática debe llevar sus propios subtítulos incrustados. Comprueba visualmente
 el vídeo final y prepara sus subtítulos mediante tu flujo de generación/edición
 antes de subirlo. ffprobe valida propiedades técnicas, pero no puede demostrar
 que haya texto incrustado en los fotogramas. Esta capa no cambia el preset, no
-invoca subtítulos nativos de las plataformas y no recodifica vídeos.
+invoca subtítulos nativos de las plataformas. La normalización de audio copia el vídeo sin recodificarlo.
 
 ### Primera prueba real: UN vídeo, tras confirmación
 
@@ -488,8 +653,9 @@ de 100 caracteres se rechaza sin truncarlo. Instagram valida también el límite
 final de 2200 caracteres. YouTube recibe la descripción en `text` y el título
 en `metadata.youtube.title`.
 
-Todas las creaciones llevan `aiAssisted: true` y `isAiGenerated: true` en los
-metadatos del servicio. Instagram usa `type: reel` y `shouldShareToFeed: true`.
+Las creaciones siguen `CONTENT_AI_ASSISTED`, `TIKTOK_AI_GENERATED` y
+`YOUTUBE_AI_GENERATED` (true por defecto). El esquema actual admite también
+`INSTAGRAM_AI_GENERATED`, que conserva el valor true por defecto. Instagram usa `type: reel` y `shouldShareToFeed: true`.
 YouTube usa categoría `27`, `madeForKids: false`, `privacy: public` y
 `notifySubscribers: true`. La programación usa `automatic`, `customScheduled`,
 `needsApproval: false` y una fecha convertida a UTC: `19:00+02:00` → `17:00Z`.

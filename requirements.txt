@@ -3,4 +3,5 @@ pydantic>=2.8,<3
 pydantic-settings>=2.4,<3
 rich>=13.7,<14
 cloudinary>=1.44,<2
+streamlit>=1.40,<2
 pytest>=8,<9

@@ -20,6 +20,8 @@ def parser():
     p.add_argument("--publish-id",metavar="CONTENT_ID")
     p.add_argument("--reset-publish-id",metavar="CONTENT_ID",action="append")
     p.add_argument("--confirm",action="store_true")
+    p.add_argument("--live",action="store_true")
+    p.add_argument("--refresh",action="store_true")
     mode=p.add_mutually_exclusive_group()
     mode.add_argument("--dry-run",action="store_true")
     p.add_argument("--retry-failed",action="store_true")
@@ -27,6 +29,8 @@ def parser():
     mode.add_argument("--status",action="store_true")
     mode.add_argument("--check-mpt",action="store_true")
     mode.add_argument("--plan",action="store_true")
+    for flag in ("buffer-usage", "cloudinary-usage", "dashboard"):
+        mode.add_argument(f"--{flag}",action="store_true")
     for flag in ("buffer-check", "buffer-channels", "publish-ready", "sync-buffer-status",
                  "buffer-maintain", "publish-dry-run"):
         mode.add_argument(f"--{flag}",action="store_true")
@@ -53,6 +57,21 @@ def main(argv=None):
     a=parser().parse_args(argv)
     publishing_modes = ("buffer_check", "buffer_channels", "publish_ready",
                         "sync_buffer_status", "buffer_maintain", "publish_dry_run")
+    if ((a.live and not a.publish_dry_run)
+            or (a.refresh and not (a.buffer_usage or a.cloudinary_usage))):
+        console.print("Usage error: --live requires --publish-dry-run; --refresh requires a usage command.")
+        return 2
+    if a.buffer_usage or a.cloudinary_usage or a.dashboard:
+        if a.ids or a.publish_id or a.reset_publish_id or a.confirm or a.regenerate_all_ready or a.retry_failed:
+            console.print("Usage error: dashboard/usage commands cannot be combined with content actions.")
+            return 2
+        if a.dashboard:
+            import sys
+            from streamlit.web import cli as streamlit_cli
+            sys.argv = ["streamlit", "run", str(PROJECT_ROOT / "dashboard.py"),
+                        "--server.address=127.0.0.1", "--browser.gatherUsageStats=false"]
+            return streamlit_cli.main()
+        return usage_main(a)
     if a.reset_publish_id or a.confirm:
         if (not a.reset_publish_id or len(a.reset_publish_id) != 1
                 or a.ids or a.publish_id or a.regenerate_all_ready
@@ -178,6 +197,7 @@ def reset_publishing_main(args):
 def publishing_main(args):
     from .buffer_client import BufferClient, BufferError, select_channels
     from .publisher import Publisher
+    from .service_cache import buffer_cache
 
     client = None
     try:
@@ -186,9 +206,13 @@ def publishing_main(args):
                 (args.publish_id and not args.publish_dry_run)) and not s.publish_enabled:
             raise BufferError("Publishing disabled: set PUBLISH_ENABLED=true")
         key = s.buffer_api_key.get_secret_value()
-        if key:
-            client = BufferClient(key, publish_enabled=s.publish_enabled,
-                                  timeout=s.buffer_request_timeout_seconds)
+        cache = buffer_cache(s, persist=not args.publish_dry_run)
+        if args.live and not key:
+            raise BufferError("BUFFER_API_KEY is required for --live")
+        if key and (not args.publish_dry_run or args.live):
+            client = BufferClient(key, publish_enabled=s.publish_enabled and not args.publish_dry_run,
+                                  timeout=s.buffer_request_timeout_seconds, cache=cache,
+                                  discovery_ttl=s.buffer_discovery_ttl_seconds)
         if args.buffer_check or args.buffer_channels:
             if client is None:
                 raise BufferError("BUFFER_API_KEY is not configured")
@@ -200,6 +224,10 @@ def publishing_main(args):
             if args.buffer_channels:
                 return 0
             _, selected = select_channels(organizations, channels, org, s.buffer_channel_ids)
+            from .state import utc_now_iso
+            cache.put("discovery", {"configuration": [s.buffer_organization_id, s.buffer_channel_ids],
+                                   "organization_id": org, "channels": channels, "selected": selected,
+                                   "refreshed_at": utc_now_iso()})
             console.print_json(data={"selected": {p: c["id"] for p, c in selected.items()},
                                      "publish_enabled": s.publish_enabled,
                                      "missing_services": sorted(set(s.buffer_channel_ids) - set(selected))})
@@ -209,14 +237,16 @@ def publishing_main(args):
         ids = {args.publish_id} if args.publish_id else (set(args.ids) if args.ids else None)
         if ids and ids - set(q.by_id()):
             raise ValueError("Unknown ids: " + ", ".join(sorted(ids - set(q.by_id()))))
-        state = StateStore(s.state_path)
-        publisher = Publisher(s, q, state, client)
+        state = StateStore(s.state_path, create_parent=not args.publish_dry_run)
+        publisher = Publisher(s, q, state, client, cache=cache)
         if args.publish_dry_run:
             plan = (publisher.plan_one(args.publish_id) if args.publish_id
                     else publisher.plan(ids))
             console.print("Publishing dry-run: no uploads, mutations, or state changes.")
             if plan.offline:
-                console.print("OFFLINE ESTIMATE: capacity uses local state; connected channels and remote occupancy are unverified.")
+                console.print("OFFLINE DRY-RUN — remote Buffer occupancy is not refreshed")
+            else:
+                console.print("LIVE DRY-RUN — remote occupancy refreshed; no local or remote writes")
             _print_publish_summary(plan, state, args.publish_id)
             return 1 if plan.issues else 0
         if args.publish_id:
@@ -229,8 +259,19 @@ def publishing_main(args):
         if args.sync_buffer_status:
             result = publisher.sync()
         else:
-            result = publisher.publish(ids, maintain=args.buffer_maintain)
+            result = publisher.publish(ids, maintain=args.buffer_maintain,
+                                       before_execute=lambda plan: console.print(
+                                           f"Estimated Buffer requests this run: {plan.estimated_requests} "
+                                           f"+ {s.buffer_request_reserve} reserve"))
         console.print_json(data=result)
+        if args.buffer_maintain:
+            for label, key in (("BEFORE", "before"), ("CREATED", "created_by_platform"),
+                               ("AFTER (estimated)", "after_estimated")):
+                console.print(label)
+                for platform, count in result.get(key, {}).items():
+                    console.print(f"{platform.title():12} " + (f"+{count}" if key == "created_by_platform"
+                                                            else f"{count} / {s.buffer_max_scheduled_per_channel}"))
+            print_buffer_usage(client.usage)
         return 1 if result["attention"] else 0
     except (BufferError, ValueError, OSError, RuntimeError) as error:
         console.print("Publishing error: " + str(error), markup=False)
@@ -241,9 +282,10 @@ def publishing_main(args):
 
 
 def _print_publish_summary(plan, state, content_id=None):
-    rows = [{key: row[key] for key in ("id", "platform", "dueAt", "caption", "title", "video_path")}
+    rows = [{key: row.get(key) for key in ("id", "platform", "local_publish_at", "dueAt", "caption", "title", "video_path", "disclosure")}
             for row in plan.rows]
     payload = {"selected_id": content_id, "scheduled_counts": plan.counts,
+               "occupancy_source": plan.occupancy_source, "occupancy_refreshed_at": plan.refreshed_at,
                "cloudinary": None, "would_schedule": rows,
                "needs_attention": plan.issues, "deferred": plan.deferred}
     if content_id:
@@ -251,3 +293,46 @@ def _print_publish_summary(plan, state, content_id=None):
         payload["cloudinary"] = "reuse existing URL" if cloudinary.get("url") else "upload once"
     console.print("Pre-publish summary. No write has been performed yet.")
     console.print_json(data=payload)
+
+
+def print_buffer_usage(usage: dict) -> None:
+    """Display cached/header-derived usage without fetching anything."""
+    from .buffer_usage import usage_rows
+    console.print("Buffer API usage")
+    rows = usage_rows(usage)
+    for row in rows:
+        console.print(f"{row['Window']}: {row['Remaining']} / {row['Quota']} remaining; reset {row['Reset']}")
+    if not rows:
+        console.print("No cached rate-limit headers. Use --buffer-usage --refresh.")
+    console.print(f"Updated: {usage.get('refreshed_at', 'never')}")
+    if usage.get("retry_at"):
+        console.print(f"Cooldown until: {usage['retry_at']}")
+
+
+def usage_main(args) -> int:
+    """Read local usage by default; explicit refresh performs service reads only."""
+    from .buffer_client import BufferClient
+    from .cloudinary_usage import CloudinaryUsage
+    from .service_cache import buffer_cache
+    try:
+        settings = Settings()
+        if args.cloudinary_usage:
+            service = CloudinaryUsage(settings)
+            report = service.refresh() if args.refresh else service.cached()
+            console.print("Cloudinary usage — " + ("refreshed" if args.refresh else "cached"))
+            console.print_json(data=report or {"status": "unknown; use --refresh"})
+        else:
+            cache = buffer_cache(settings)
+            report = cache.get("usage")
+            if args.refresh:
+                client = BufferClient(settings.buffer_api_key.get_secret_value(), cache=cache,
+                                      timeout=settings.buffer_request_timeout_seconds)
+                try:
+                    report = client.refresh_usage()
+                finally:
+                    client.close()
+            print_buffer_usage(report)
+        return 0
+    except (ValueError, OSError, RuntimeError) as error:
+        console.print(f"Usage error: {error}", markup=False)
+        return 3

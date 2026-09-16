@@ -1,0 +1,346 @@
+{
+  "version": 1,
+  "items": {},
+  "cache": {
+    "buffer-e70ad5f7a91e25b0c5615b9a:usage": {
+      "windows": {
+        "250-in-1day": {
+          "policy": "250-in-1day",
+          "quota": 250,
+          "window_seconds": 86400,
+          "remaining": 162,
+          "observed_at": "2026-09-16T14:35:24.450355+00:00",
+          "reset_at": "2026-09-17T09:07:58.450355+00:00"
+        },
+        "3000-in-30days": {
+          "policy": "3000-in-30days",
+          "quota": 3000,
+          "window_seconds": 2592000,
+          "remaining": 2912,
+          "observed_at": "2026-09-16T14:35:24.450355+00:00",
+          "reset_at": "2026-10-16T09:07:58.450355+00:00"
+        },
+        "100-in-15min": {
+          "policy": "100-in-15min",
+          "quota": 100,
+          "window_seconds": 900,
+          "remaining": 92,
+          "observed_at": "2026-09-16T14:35:24.450355+00:00",
+          "reset_at": "2026-09-16T14:46:33.450355+00:00"
+        }
+      },
+      "refreshed_at": "2026-09-16T14:35:24.450355+00:00"
+    },
+    "buffer-e70ad5f7a91e25b0c5615b9a:discovery": {
+      "configuration": [
+        "",
+        {
+          "tiktok": "",
+          "instagram": "",
+          "youtube": ""
+        }
+      ],
+      "organization_id": "6aa96e0486e42fb62823d206",
+      "channels": [
+        {
+          "id": "6aa9768eea19ca0bde4b936b",
+          "name": "pasaporalgo3",
+          "service": "tiktok",
+          "isDisconnected": false,
+          "isLocked": false,
+          "isQueuePaused": false
+        },
+        {
+          "id": "6aa975d2ea19ca0bde4b8e71",
+          "name": "Pasa Por Algo",
+          "service": "youtube",
+          "isDisconnected": false,
+          "isLocked": false,
+          "isQueuePaused": false
+        },
+        {
+          "id": "6aa975a8ea19ca0bde4b8d4f",
+          "name": "pasaporalgo._",
+          "service": "instagram",
+          "isDisconnected": false,
+          "isLocked": false,
+          "isQueuePaused": false
+        }
+      ],
+      "selected": {
+        "tiktok": {
+          "id": "6aa9768eea19ca0bde4b936b",
+          "name": "pasaporalgo3",
+          "service": "tiktok",
+          "isDisconnected": false,
+          "isLocked": false,
+          "isQueuePaused": false
+        },
+        "instagram": {
+          "id": "6aa975a8ea19ca0bde4b8d4f",
+          "name": "pasaporalgo._",
+          "service": "instagram",
+          "isDisconnected": false,
+          "isLocked": false,
+          "isQueuePaused": false
+        },
+        "youtube": {
+          "id": "6aa975d2ea19ca0bde4b8e71",
+          "name": "Pasa Por Algo",
+          "service": "youtube",
+          "isDisconnected": false,
+          "isLocked": false,
+          "isQueuePaused": false
+        }
+      },
+      "refreshed_at": "2026-09-16T14:32:34.834965+00:00"
+    },
+    "buffer-e70ad5f7a91e25b0c5615b9a:snapshot": {
+      "organization_id": "6aa96e0486e42fb62823d206",
+      "channels": {
+        "tiktok": {
+          "id": "6aa9768eea19ca0bde4b936b",
+          "name": "pasaporalgo3",
+          "service": "tiktok",
+          "isDisconnected": false,
+          "isLocked": false,
+          "isQueuePaused": false
+        },
+        "instagram": {
+          "id": "6aa975a8ea19ca0bde4b8d4f",
+          "name": "pasaporalgo._",
+          "service": "instagram",
+          "isDisconnected": false,
+          "isLocked": false,
+          "isQueuePaused": false
+        },
+        "youtube": {
+          "id": "6aa975d2ea19ca0bde4b8e71",
+          "name": "Pasa Por Algo",
+          "service": "youtube",
+          "isDisconnected": false,
+          "isLocked": false,
+          "isQueuePaused": false
+        }
+      },
+      "posts": [
+        {
+          "id": "6aaa983a744d337fdb0d7642",
+          "channelId": "6aa975d2ea19ca0bde4b8e71",
+          "text": "Miles de voltios debajo de sus patas y no pasa nada ⚡ #curiosidades #datoscuriosos",
+          "dueAt": "2026-09-16T17:00:00.000Z",
+          "status": "scheduled"
+        },
+        {
+          "id": "6aaa98395036fad439104bf3",
+          "channelId": "6aa975a8ea19ca0bde4b8d4f",
+          "text": "Miles de voltios debajo de sus patas y no pasa nada ⚡ #curiosidades #datoscuriosos",
+          "dueAt": "2026-09-16T17:00:00.000Z",
+          "status": "scheduled"
+        },
+        {
+          "id": "6aaa9838744d337fdb0d75f9",
+          "channelId": "6aa9768eea19ca0bde4b936b",
+          "text": "Miles de voltios debajo de sus patas y no pasa nada ⚡ #curiosidades #datoscuriosos",
+          "dueAt": "2026-09-16T17:00:00.000Z",
+          "status": "scheduled"
+        },
+        {
+          "id": "6aaa983f3c2bc671dfd708d5",
+          "channelId": "6aa975d2ea19ca0bde4b8e71",
+          "text": "Las ruedas del tren se corrigen solas 🚆 #curiosidades #datoscuriosos",
+          "dueAt": "2026-09-16T20:00:00.000Z",
+          "status": "scheduled"
+        },
+        {
+          "id": "6aaa983e744d337fdb0d76c5",
+          "channelId": "6aa975a8ea19ca0bde4b8d4f",
+          "text": "Las ruedas del tren se corrigen solas 🚆 #curiosidades #datoscuriosos",
+          "dueAt": "2026-09-16T20:00:00.000Z",
+          "status": "scheduled"
+        },
+        {
+          "id": "6aaa983e42f9bb7e449e6137",
+          "channelId": "6aa9768eea19ca0bde4b936b",
+          "text": "Las ruedas del tren se corrigen solas 🚆 #curiosidades #datoscuriosos",
+          "dueAt": "2026-09-16T20:00:00.000Z",
+          "status": "scheduled"
+        },
+        {
+          "id": "6aaa984427390bd894e9b5a8",
+          "channelId": "6aa975a8ea19ca0bde4b8d4f",
+          "text": "La Luna gigante del horizonte es una ilusión 🌕 #curiosidades #datoscuriosos",
+          "dueAt": "2026-09-17T11:00:00.000Z",
+          "status": "scheduled"
+        },
+        {
+          "id": "6aaa984417321015fefcd2ba",
+          "channelId": "6aa975d2ea19ca0bde4b8e71",
+          "text": "La Luna gigante del horizonte es una ilusión 🌕 #curiosidades #datoscuriosos",
+          "dueAt": "2026-09-17T11:00:00.000Z",
+          "status": "scheduled"
+        },
+        {
+          "id": "6aaa984327390bd894e9b55e",
+          "channelId": "6aa9768eea19ca0bde4b936b",
+          "text": "La Luna gigante del horizonte es una ilusión 🌕 #curiosidades #datoscuriosos",
+          "dueAt": "2026-09-17T11:00:00.000Z",
+          "status": "scheduled"
+        },
+        {
+          "id": "6aaa98495036fad439104dc1",
+          "channelId": "6aa975d2ea19ca0bde4b8e71",
+          "text": "La bolsa no está llena de aire por casualidad 👀 #curiosidades #datoscuriosos",
+          "dueAt": "2026-09-17T17:00:00.000Z",
+          "status": "scheduled"
+        },
+        {
+          "id": "6aaa984827390bd894e9b630",
+          "channelId": "6aa975a8ea19ca0bde4b8d4f",
+          "text": "La bolsa no está llena de aire por casualidad 👀 #curiosidades #datoscuriosos",
+          "dueAt": "2026-09-17T17:00:00.000Z",
+          "status": "scheduled"
+        },
+        {
+          "id": "6aaa98473c2bc671dfd709e9",
+          "channelId": "6aa9768eea19ca0bde4b936b",
+          "text": "La bolsa no está llena de aire por casualidad 👀 #curiosidades #datoscuriosos",
+          "dueAt": "2026-09-17T17:00:00.000Z",
+          "status": "scheduled"
+        },
+        {
+          "id": "6aaa984f42f9bb7e449e630c",
+          "channelId": "6aa975d2ea19ca0bde4b8e71",
+          "text": "No son tus huesos chocando 😳 #curiosidades #datoscuriosos",
+          "dueAt": "2026-09-17T20:00:00.000Z",
+          "status": "scheduled"
+        },
+        {
+          "id": "6aaa984e5036fad439104e69",
+          "channelId": "6aa975a8ea19ca0bde4b8d4f",
+          "text": "No son tus huesos chocando 😳 #curiosidades #datoscuriosos",
+          "dueAt": "2026-09-17T20:00:00.000Z",
+          "status": "scheduled"
+        },
+        {
+          "id": "6aaa984d27390bd894e9b6d6",
+          "channelId": "6aa9768eea19ca0bde4b936b",
+          "text": "No son tus huesos chocando 😳 #curiosidades #datoscuriosos",
+          "dueAt": "2026-09-17T20:00:00.000Z",
+          "status": "scheduled"
+        },
+        {
+          "id": "6aaa985342f9bb7e449e638b",
+          "channelId": "6aa975d2ea19ca0bde4b8e71",
+          "text": "Tu móvil no detecta presión: detecta electricidad 📱 #curiosidades #datoscuriosos",
+          "dueAt": "2026-09-18T11:00:00.000Z",
+          "status": "scheduled"
+        },
+        {
+          "id": "6aaa985327390bd894e9b757",
+          "channelId": "6aa975a8ea19ca0bde4b8d4f",
+          "text": "Tu móvil no detecta presión: detecta electricidad 📱 #curiosidades #datoscuriosos",
+          "dueAt": "2026-09-18T11:00:00.000Z",
+          "status": "scheduled"
+        },
+        {
+          "id": "6aaa985242f9bb7e449e6361",
+          "channelId": "6aa9768eea19ca0bde4b936b",
+          "text": "Tu móvil no detecta presión: detecta electricidad 📱 #curiosidades #datoscuriosos",
+          "dueAt": "2026-09-18T11:00:00.000Z",
+          "status": "scheduled"
+        },
+        {
+          "id": "6aaa985927390bd894e9b7fb",
+          "channelId": "6aa975d2ea19ca0bde4b8e71",
+          "text": "Nunca estás viendo el arcoíris completo 🌈 #curiosidades #datoscuriosos",
+          "dueAt": "2026-09-18T17:00:00.000Z",
+          "status": "scheduled"
+        },
+        {
+          "id": "6aaa98583c2bc671dfd70b56",
+          "channelId": "6aa975a8ea19ca0bde4b8d4f",
+          "text": "Nunca estás viendo el arcoíris completo 🌈 #curiosidades #datoscuriosos",
+          "dueAt": "2026-09-18T17:00:00.000Z",
+          "status": "scheduled"
+        },
+        {
+          "id": "6aaa98573c2bc671dfd70b2d",
+          "channelId": "6aa9768eea19ca0bde4b936b",
+          "text": "Nunca estás viendo el arcoíris completo 🌈 #curiosidades #datoscuriosos",
+          "dueAt": "2026-09-18T17:00:00.000Z",
+          "status": "scheduled"
+        },
+        {
+          "id": "6aaa985e5036fad439104fa2",
+          "channelId": "6aa975d2ea19ca0bde4b8e71",
+          "text": "Los puentes se mueven más de lo que parece 🌉 #curiosidades #datoscuriosos",
+          "dueAt": "2026-09-18T20:00:00.000Z",
+          "status": "scheduled"
+        },
+        {
+          "id": "6aaa985d42f9bb7e449e6425",
+          "channelId": "6aa9768eea19ca0bde4b936b",
+          "text": "Los puentes se mueven más de lo que parece 🌉 #curiosidades #datoscuriosos",
+          "dueAt": "2026-09-18T20:00:00.000Z",
+          "status": "scheduled"
+        },
+        {
+          "id": "6aaa985d27390bd894e9b88e",
+          "channelId": "6aa975a8ea19ca0bde4b8d4f",
+          "text": "Los puentes se mueven más de lo que parece 🌉 #curiosidades #datoscuriosos",
+          "dueAt": "2026-09-18T20:00:00.000Z",
+          "status": "scheduled"
+        },
+        {
+          "id": "6aaa986342f9bb7e449e64e0",
+          "channelId": "6aa975d2ea19ca0bde4b8e71",
+          "text": "Cada vez que respiras le estás dando una pista 🦟 #curiosidades #datoscuriosos",
+          "dueAt": "2026-09-19T11:00:00.000Z",
+          "status": "scheduled"
+        },
+        {
+          "id": "6aaa9862744d337fdb0d79bc",
+          "channelId": "6aa9768eea19ca0bde4b936b",
+          "text": "Cada vez que respiras le estás dando una pista 🦟 #curiosidades #datoscuriosos",
+          "dueAt": "2026-09-19T11:00:00.000Z",
+          "status": "scheduled"
+        },
+        {
+          "id": "6aaa98625036fad439105016",
+          "channelId": "6aa975a8ea19ca0bde4b8d4f",
+          "text": "Cada vez que respiras le estás dando una pista 🦟 #curiosidades #datoscuriosos",
+          "dueAt": "2026-09-19T11:00:00.000Z",
+          "status": "scheduled"
+        }
+      ],
+      "refreshed_at": "2026-09-16T14:32:35.142333Z"
+    },
+    "cloudinary-f08b9e2cf00d49fd98678cee:usage": {
+      "data": {
+        "plan": "Free",
+        "last_updated": "2026-09-15",
+        "credits": {
+          "usage": 0.44,
+          "limit": 25.0,
+          "used_percent": 1.76
+        },
+        "storage": {
+          "usage": 301271957,
+          "credits_usage": 0.28
+        },
+        "bandwidth": {
+          "usage": 149971835,
+          "credits_usage": 0.14
+        },
+        "transformations": {
+          "usage": 22,
+          "credits_usage": 0.02
+        },
+        "requests": 54,
+        "resources": 75
+      },
+      "refreshed_at": "2026-09-16T14:33:55.981444+00:00"
+    }
+  }
+}

@@ -42,11 +42,15 @@ class ReadyRegenerator:
             settings.min_vertical_height,
         )
 
-    def run(self, *, dry_run=False) -> RegenerationSummary:
+    def run(self, *, dry_run=False, ids: set[str] | None = None) -> RegenerationSummary:
+        """Render fresh MPT tasks sequentially; dry-run never writes or contacts MPT."""
         summary = RegenerationSummary()
-        total = len(self.q.items)
+        items = [item for item in self.q.items if ids is None or item.id in ids]
+        if ids and ids - set(self.q.by_id()):
+            raise ValueError("Unknown regeneration content ID")
+        total = len(items)
         if dry_run:
-            for index, item in enumerate(self.q.items, 1):
+            for index, item in enumerate(items, 1):
                 reason = skip_reason(self.state.get(item.id))
                 if reason:
                     summary.skipped += 1
@@ -58,7 +62,7 @@ class ReadyRegenerator:
 
         # Publishing operations use this same lock. Recheck each record under it.
         with self.state.publishing_lock():
-            for index, item in enumerate(self.q.items, 1):
+            for index, item in enumerate(items, 1):
                 reason = skip_reason(self.state.get(item.id))
                 if reason:
                     summary.skipped += 1
@@ -108,7 +112,7 @@ class ReadyRegenerator:
         with tempfile.TemporaryDirectory(prefix=".regenerate-", dir=self.s.generated_dir) as temp:
             staged = Path(temp) / name
             self.client.download_artifact(task.videos[0], staged)
-            validation = self.validator.validate(staged)
+            validation = self.validator.prepare(staged,item.platforms,self.s.ffmpeg_binary)
             if not validation.ok:
                 raise RuntimeError("Invalid MP4: " + "; ".join(validation.errors))
             for target in dict.fromkeys((generated, local, external)):

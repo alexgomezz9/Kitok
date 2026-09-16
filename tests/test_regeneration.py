@@ -80,7 +80,11 @@ def validator(monkeypatch):
 
     def validate(self, path):
         seen.append(path.read_bytes())
-        return ValidationResult(ok=True, duration=12, width=1080, height=1920)
+        return ValidationResult(ok=True, duration=12, width=1080, height=1920,
+                                video_codec="h264", pixel_format="yuv420p", fps=30,
+                                video_bitrate=4000000, audio_codec="aac", audio_profile="LC",
+                                audio_bitrate=120000, audio_sample_rate=48000, audio_channels=2,
+                                file_size=path.stat().st_size)
 
     monkeypatch.setattr("kitok.regeneration.VideoValidator.validate", validate)
     return seen
@@ -223,7 +227,11 @@ def test_invalid_download_does_not_replace_existing_files(setup, monkeypatch):
     def validate(self, path):
         if path.read_bytes() == b"fresh-bad":
             return ValidationResult(ok=False, errors=["invalid video stream"])
-        return ValidationResult(ok=True)
+        return ValidationResult(ok=True, duration=12, width=1080, height=1920,
+                                video_codec="h264", pixel_format="yuv420p", fps=30,
+                                video_bitrate=4000000, audio_codec="aac", audio_profile="LC",
+                                audio_bitrate=120000, audio_sample_rate=48000, audio_channels=2,
+                                file_size=path.stat().st_size)
 
     monkeypatch.setattr("kitok.regeneration.VideoValidator.validate", validate)
     summary = ReadyRegenerator(settings, queue, state, fake, {}, print_line=lambda _: None).run()

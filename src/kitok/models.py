@@ -76,6 +76,15 @@ class ValidationResult(BaseModel):
     height: int|None = None
     video_codec: str|None = None
     audio_codec: str|None = None
+    fps: float|None = None
+    pixel_format: str|None = None
+    video_bitrate: int|None = None
+    audio_bitrate: int|None = None
+    audio_sample_rate: int|None = None
+    audio_profile: str|None = None
+    audio_channels: int|None = None
+    file_size: int|None = None
+    normalized: bool = False
 
 class MPTTask(BaseModel):
     task_id: str

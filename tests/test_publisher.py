@@ -24,7 +24,8 @@ def item(cid="one", **changes):
 
 @pytest.fixture
 def setup(tmp_path):
-    settings = Settings(_env_file=None, publish_enabled=True)
+    # These tests isolate upload/idempotency; usage guard has dedicated tests.
+    settings = Settings(_env_file=None, publish_enabled=True, cloudinary_usage_guard=False)
     state = StateStore(tmp_path / "state.json")
     video = tmp_path / "video.mp4"
     video.write_bytes(b"mock-video")

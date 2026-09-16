@@ -1,3 +1,7 @@
+"""Submit/recover MPT tasks, normalize media, then atomically copy READY files.
+
+Generation writes MPT tasks and local state. It never uploads or schedules posts.
+"""
 from __future__ import annotations
 import json, logging, time
 from pathlib import Path
@@ -12,6 +16,7 @@ from .video_validator import VideoValidator
 log=logging.getLogger("kitok.pipeline")
 
 def load_preset(path:Path)->dict:
+    """Read current MPT defaults; does not change the preset or contact MPT."""
     raw=json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(raw,dict): raise ValueError("preset must be a JSON object")
     forbidden={"video_subject","video_script","video_terms"}
@@ -25,7 +30,8 @@ class Pipeline:
                                       settings.max_video_seconds,settings.min_vertical_width,
                                       settings.min_vertical_height)
 
-    def process(self,ids:set[str]|None=None,retry_failed=False):
+    def process(self,ids:set[str]|None=None,retry_failed:bool=False) -> None:
+        """Submit/recover selected MPT tasks; writes generation state and local files."""
         for item in self.q.items:
             if ids is not None and item.id not in ids: continue
             cur=self.state.get(item.id); status=cur.get("status","pending")
@@ -68,7 +74,7 @@ class Pipeline:
         name=output_filename(item)
         generated=self.s.generated_dir/name
         self.client.download_artifact(task.videos[0],generated)
-        result=self.validator.validate(generated)
+        result=self.validator.prepare(generated,item.platforms,self.s.ffmpeg_binary)
         if not result.ok:
             copy_atomic(generated,self.s.failed_dir/name)
             self.state.upsert(item.id,status="failed",output_path=str(generated),
@@ -100,7 +106,8 @@ class Pipeline:
             log.info("WAIT %s state=%s progress=%s",item.id,task.state,task.progress)
             time.sleep(self.s.poll_interval_seconds)
 
-    def refresh_plans(self):
+    def refresh_plans(self) -> None:
+        """Write local handoff plans; never schedules remote posts."""
         states=self.state.all()
         generate_publish_plan(self.q,states,self.s.local_ready_dir)
         if self.s.ready_dir.expanduser().resolve()!=self.s.local_ready_dir.resolve():
