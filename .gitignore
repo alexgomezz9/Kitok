@@ -17,3 +17,4 @@ outputs/ready-phone/*
 .env
 state/services.json
 content_queue_before_test.json
+state/thumbnails/

@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from .models import ContentItem, ContentQueue
+from .batch_import import validate_batch
 from .state import StateStore, write_json_atomic
 
 
@@ -84,6 +85,21 @@ def add_item(path: Path, state: StateStore, values: dict, *, expected_revision: 
         raw.sort(key=lambda row: datetime.fromisoformat(row["publish_at"]).astimezone(timezone.utc))
         write_json_atomic(path, raw)
         return item
+
+
+def add_batch(path: Path, state: StateStore, values: list[dict], *, expected_revision: str) -> list[ContentItem]:
+    """Commit a fully valid batch with one locked atomic queue replacement."""
+    with state.publishing_lock():
+        raw = _load_for_change(path, expected_revision)
+        queue = ContentQueue(items=[ContentItem.model_validate(row) for row in raw])
+        items, errors = validate_batch(values, queue, state)
+        if errors:
+            raise ValueError("Batch import rejected: " + "; ".join(errors))
+        raw.extend(item.model_dump(mode="json") for item in items)
+        ContentQueue(items=[ContentItem.model_validate(row) for row in raw])
+        raw.sort(key=lambda row: datetime.fromisoformat(row["publish_at"]).astimezone(timezone.utc))
+        write_json_atomic(path, raw)
+        return items
 
 
 def reorder_item(path: Path, state: StateStore, content_id: str, direction: int,

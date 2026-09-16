@@ -61,23 +61,42 @@ python main.py --dashboard
 The local dashboard binds to `127.0.0.1:8501`. Telemetry is disabled in the project
 Streamlit configuration. It is a local tool, not a public multi-user service.
 
-Its six pages are **Dashboard**, **Calendar / Queue**, **Content**,
-**Publishing**, **Attention**, and **Settings**. Dashboard shows ready videos,
-scheduled/published posts, attention, channel occupancy and the next content.
-Calendar / Queue groups items by local date and provides Add Content, Edit,
-Move earlier/later, Skip and Archive. Moving swaps the two items' `publish_at`
-values; it never reschedules an existing Buffer post. Content shows media,
-compatibility and platform statuses. Technical IDs and raw records are tucked
-inside Advanced / Debug. Settings are read-only and come from `.env`/environment
-variables; credentials are never displayed.
+The main navigation is **Home**, **Content**, **Calendar**, and **Attention**.
+Home shows one recommended next step, today's timeline and the known schedule
+coverage. Content is a searchable library with per-item video previews and a
+short edit form. Calendar groups items by local date; its item menu includes
+Move earlier/later, Skip and Archive. Moving swaps two local `publish_at`
+values; it never reschedules an existing Buffer post. Attention groups issues
+into an inbox. **Settings** and **Advanced / System** sit in the secondary sidebar
+section, along with a short **How Kitok works** guide. Settings are read-only
+and credentials are never displayed.
 
-Rendering and navigation use local data only. **Refresh status** reloads local
-files. **Refresh Buffer** reads current channels/occupancy. **Sync state** reads
-Buffer and reconciles local saved IDs; it does not recreate missing posts.
-**Preview Publish Plan** is offline and shows the proposed platform matrix, up to
-how many uploads are needed, estimated Buffer requests and resulting occupancy.
-**Fill Buffer**, **Publish Selected**, **Generate** and **Regenerate** require a
-review and a separate Confirm click.
+Rendering and navigation make no remote requests. Content lazily extracts a
+small JPG from each local ready MP4 using FFmpeg, around 1.5 seconds in. The
+disposable cache lives in `state/thumbnails/`; extraction failure leaves the
+video untouched and simply shows the normal placeholder. Calendar rows omit
+thumbnails to keep the schedule compact. **Refresh publishing status**
+explicitly reads Buffer; **Reconcile saved posts** reads Buffer and reconciles
+local saved IDs without recreating missing posts. **Preview schedule** is
+offline and shows the proposed platform matrix, uploads, estimated Buffer
+requests and resulting occupancy. **Fill schedule**, **Schedule this video**,
+**Generate video** and **Regenerate video** require a review and a separate
+confirmation click. Technical IDs and raw records are under Advanced details.
+
+**Import batch** is inside Content → Add content. Paste a JSON array or upload a
+UTF-8 `.json` file (up to 2 MB), then validate and review the times before the
+separate Import confirmation. Each object needs `id`, `subject` (or `topic`),
+`script`, `caption`, `keywords` (or `video_terms`) and `publish_at` with a timezone
+offset. Optional queue fields are `youtube_title` and `platforms`; imported
+items must be active. For example:
+
+```json
+[{"id":"moon_1","topic":"Why the Moon glows","script":"A narration of at least twenty characters.","caption":"Moon facts","video_terms":["moon","night"],"publish_at":"2026-09-18T13:00:00+02:00"}]
+```
+
+IDs and times must be unique across both the batch and saved queue, and an ID
+with saved state history cannot be reused. Import commits the whole batch in
+one local queue write; it does not generate videos or contact a service.
 Confirmed actions recheck state and cannot silently add posts outside the preview.
 Publishing controls are disabled when `PUBLISH_ENABLED=false`.
 

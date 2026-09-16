@@ -161,7 +161,7 @@ def test_dashboard_calendar_render_is_read_only(local_kitok, monkeypatch):
     monkeypatch.setattr(ControlPanel, "refresh_buffer", refresh)
     before = settings.queue_path.read_bytes(), state.path.read_bytes()
     app = AppTest.from_file(Path(__file__).resolve().parents[1] / "dashboard.py", default_timeout=20).run()
-    app.sidebar.radio[0].set_value("Calendar / Queue").run()
+    app.sidebar.radio[0].set_value("Calendar").run()
     assert not app.exception
     assert (settings.queue_path.read_bytes(), state.path.read_bytes()) == before
     refresh.assert_not_called()
@@ -172,11 +172,11 @@ def test_calendar_edit_opens_selected_content_without_writing(local_kitok, monke
     monkeypatch.setattr("kitok.control_panel.Settings", lambda: settings)
     before = settings.queue_path.read_bytes(), state.path.read_bytes()
     app = AppTest.from_file(Path(__file__).resolve().parents[1] / "dashboard.py", default_timeout=20).run()
-    app.sidebar.radio[0].set_value("Calendar / Queue").run()
+    app.sidebar.radio[0].set_value("Calendar").run()
     app.button(key="edit-two").click().run()
     assert not app.exception
     assert app.sidebar.radio[0].value == "Content"
-    assert app.selectbox[0].value == "two"
+    assert app.session_state["selected_content"] == "two"
     assert (settings.queue_path.read_bytes(), state.path.read_bytes()) == before
 
 
@@ -185,7 +185,8 @@ def test_editorial_confirmation_consumed_once(local_kitok, monkeypatch):
     monkeypatch.setattr("kitok.control_panel.Settings", lambda: settings)
     app = AppTest.from_file(Path(__file__).resolve().parents[1] / "dashboard.py", default_timeout=20).run()
     app.sidebar.radio[0].set_value("Content").run()
-    next(button for button in app.button if button.label == "Skip").click().run()
+    app.button(key="content-menu-one").click().run()
+    app.button(key="library-skip-one").click().run()
     assert not app.exception
     assert app.button(key="confirm-action")
     app.button(key="confirm-action").click().run()
@@ -201,7 +202,7 @@ def test_add_form_waits_for_confirmation_and_never_generates(local_kitok, monkey
     mpt = Mock(side_effect=AssertionError("MPT must not run when adding content"))
     monkeypatch.setattr("kitok.control_panel.MPTClient", mpt)
     app = AppTest.from_file(Path(__file__).resolve().parents[1] / "dashboard.py", default_timeout=20).run()
-    app.sidebar.radio[0].set_value("Calendar / Queue").run()
+    app.sidebar.radio[0].set_value("Content").run()
     next(widget for widget in app.text_input if widget.label == "Topic / title *").set_value("Why does the Moon glow?")
     next(widget for widget in app.text_input if widget.label == "Pexels / video terms *").set_value("moon, night")
     next(widget for widget in app.text_area if widget.label == "Script *").set_value("A sufficiently long narration about the Moon.")
@@ -222,6 +223,7 @@ def test_delete_requires_typed_id_and_does_not_repeat(local_kitok, monkeypatch):
     monkeypatch.setattr("kitok.control_panel.Settings", lambda: settings)
     app = AppTest.from_file(Path(__file__).resolve().parents[1] / "dashboard.py", default_timeout=20).run()
     app.sidebar.radio[0].set_value("Content").run()
+    app.button(key="open-one").click().run()
     next(button for button in app.button if button.label == "Delete from queue").click().run()
     assert app.button(key="confirm-action").disabled
     app.text_input(key="delete-proof").set_value("one").run()
