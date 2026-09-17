@@ -16,6 +16,11 @@ class Settings(BaseSettings):
 
     mpt_base_url: str = "http://localhost:8080"
     mpt_api_key: str = ""
+    fish_api_key: SecretStr = SecretStr("")
+    fish_model: str = "s2.1-pro-free"
+    dialogue_gap_ms: int = Field(default=140, ge=0, le=1000)
+    background_root: Path = PROJECT_ROOT / "assets" / "backgrounds"
+    character_root: Path = PROJECT_ROOT / "assets" / "characters"
     ready_dir: Path = PROJECT_ROOT / "outputs" / "ready-phone"
     mpt_preset_path: Path = PROJECT_ROOT / "presets" / "mpt_default.json"
 

@@ -249,9 +249,10 @@ class ControlPanel:
                 raise ValueError("Publishing metadata exists; cannot edit safely")
             current = queue.by_id()[content_id]
             generation = state.get(content_id)
-            if any(key in changes and changes[key] != getattr(current, key) for key in ("script", "keywords")):
+            from .queue_editor import GENERATION_FIELDS
+            if any(key in changes and changes[key] != getattr(current, key) for key in GENERATION_FIELDS):
                 if generation.get("status", "pending") != "pending" or generation.get("attempts", 0) or generation.get("mpt_task_id"):
-                    raise ValueError("Script and video terms can only change before generation starts")
+                    raise ValueError("Generation settings can only change before generation starts")
             summary["changes"] = changes
             ContentItem.model_validate({**queue.by_id()[content_id].model_dump(mode="json"), **changes})
         elif kind == "add":

@@ -9,6 +9,7 @@ from pathlib import Path
 from .file_manager import copy_atomic, output_filename
 from .mpt_client import TASK_STATE_COMPLETE, TASK_STATE_FAILED
 from .video_validator import VideoValidator
+from .generation import GenerationService
 
 
 def skip_reason(record: dict) -> str | None:
@@ -41,6 +42,7 @@ class ReadyRegenerator:
             settings.max_video_seconds, settings.min_vertical_width,
             settings.min_vertical_height,
         )
+        self.generator = GenerationService(settings,preset)
 
     def run(self, *, dry_run=False, ids: set[str] | None = None) -> RegenerationSummary:
         """Render fresh MPT tasks sequentially; dry-run never writes or contacts MPT."""
@@ -89,17 +91,6 @@ class ReadyRegenerator:
         self.state.upsert(item.id, attempts=attempts, mpt_task_id=None,
                           mpt_progress=None, regeneration_status="in_progress",
                           last_error=None)
-        task_id = self.client.submit_video(item, self.preset)
-        self.state.upsert(item.id, mpt_task_id=task_id)
-        task = self._wait(item, task_id)
-        if task.state == TASK_STATE_FAILED:
-            detail = task.error or "MoneyPrinterTurbo task failed"
-            if task.failed_stage:
-                detail += f" (stage: {task.failed_stage})"
-            raise RuntimeError(detail)
-        if not task.videos:
-            raise RuntimeError("MPT completed without video artifacts")
-
         name = output_filename(item)
         generated = self.s.generated_dir / name
         local = self.s.local_ready_dir / name
@@ -110,8 +101,24 @@ class ReadyRegenerator:
         # from all published output paths. copy_atomic replaces each file only
         # after validation, using the existing .part + rename mechanism.
         with tempfile.TemporaryDirectory(prefix=".regenerate-", dir=self.s.generated_dir) as temp:
+            workspace = Path(temp)
+            plan = self.generator.plan(item, workspace)
+            source = None
+            if plan.local_background is None:
+                task_id = self.client.submit_video(item, plan.preset)
+                self.state.upsert(item.id, mpt_task_id=task_id)
+                task = self._wait(item, task_id)
+                if task.state == TASK_STATE_FAILED:
+                    detail = task.error or "MoneyPrinterTurbo task failed"
+                    if task.failed_stage:
+                        detail += f" (stage: {task.failed_stage})"
+                    raise RuntimeError(detail)
+                if not task.videos:
+                    raise RuntimeError("MPT completed without video artifacts")
+                source = workspace / "mpt_visual.mp4" if item.content_format == "dialogue" else workspace / name
+                self.client.download_artifact(task.videos[0], source)
             staged = Path(temp) / name
-            self.client.download_artifact(task.videos[0], staged)
+            self.generator.finish(item, plan, source, staged, workspace)
             validation = self.validator.prepare(staged,item.platforms,self.s.ffmpeg_binary)
             if not validation.ok:
                 raise RuntimeError("Invalid MP4: " + "; ".join(validation.errors))
@@ -120,7 +127,9 @@ class ReadyRegenerator:
 
         self.state.upsert(item.id, status="ready", output_path=str(generated),
                           ready_path=str(external), validation=validation.model_dump(),
-                          regeneration_status="succeeded", last_error=None)
+                          regeneration_status="succeeded", last_error=None,
+                          **({"generation_warnings": self.generator.last_warnings}
+                             if item.content_format == "dialogue" else {}))
 
     def _wait(self, item, task_id):
         started = time.monotonic()

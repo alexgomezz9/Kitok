@@ -53,7 +53,7 @@ class MPTClient:
 
     def submit_video(self,item:ContentItem,preset:dict[str,Any])->str:
         payload=dict(preset)
-        payload.update(video_subject=item.subject,video_script=item.script,video_terms=item.keywords)
+        payload.update(video_subject=item.subject,video_script=item.effective_script,video_terms=item.keywords)
         # Deliberately no automatic POST retry: a timeout could otherwise duplicate a render.
         try: r=self.client.post("/api/v1/videos",json=payload)
         except httpx.HTTPError as e:

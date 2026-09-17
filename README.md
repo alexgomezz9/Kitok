@@ -233,6 +233,44 @@ móvil
 - CLI y tests.
 - Publicación opcional mediante Cloudinary + Buffer, desactivada por defecto.
 
+## Vídeos con voces y diálogo
+
+Las entradas antiguas de `content_queue.json` siguen siendo vídeos explicativos con Álvaro y Pexels. En **Content → Add content** puedes escoger formato, voz y, para diálogo, estilo visual y poses. El importador JSON acepta esos mismos campos. La cola guarda las opciones elegidas y la regeneración las reutiliza.
+
+Para diálogo, coloca archivos `.mp4` propios en `assets/backgrounds/minecraft/` o en otra piscina configurada (`random/`, `satisfying/`, `subway/`). Kitok elige un archivo y segmento de forma reproducible según el ID. Si la carpeta está vacía, la generación falla con un mensaje claro. No se descargan clips automáticamente.
+
+Si quieres personajes, coloca PNG transparentes en `assets/characters/rick/` y `assets/characters/morty/` y selecciona **Rick + Morty poses**. Las poses aparecen durante los turnos medidos de cada voz. Si faltan PNG, el vídeo se genera sin esa pose y se registra una advertencia. Los MP4, PNG y audios generados no se versionan.
+
+Añade a `.env`:
+
+```dotenv
+FISH_API_KEY=
+FISH_MODEL=s2.1-pro-free
+```
+
+Para narradores Fish de un solo hablante, configura también MoneyPrinterTurbo `config.toml` con `[fish_audio] api_key = "..."` (o su variable `FISH_API_KEY`) y `model = "s2.1-pro-free"`. Para diálogo, Kitok lee su propia clave y llama a Fish directamente. Usa una versión de MPT que admita `voice_name = "no-voice"` y voces `fish_audio:<reference_id>:<display_name>`; Kitok desactiva los subtítulos de MPT y compone los suyos con FFmpeg. `ffmpeg` y `ffprobe` deben estar disponibles. Toda salida final pasa por `VideoValidator.prepare()` antes de READY.
+
+Ejemplo de diálogo con Pexels:
+
+```json
+{
+  "id": "pulpo_dialogue_001",
+  "content_format": "dialogue",
+  "dialogue_preset": "rick_morty_es",
+  "subject": "Por qué los pulpos tienen tres corazones",
+  "dialogue": [
+    {"speaker": "rick_es", "text": "Morty, los pulpos tienen tres corazones."},
+    {"speaker": "morty_es", "text": "¿Tres corazones?"}
+  ],
+  "caption": "Un dato marino sorprendente",
+  "keywords": ["octopus", "ocean"],
+  "visual_profile": "pexels",
+  "publish_at": "2026-09-20T13:00:00+02:00"
+}
+```
+
+Para gameplay, cambia `visual_profile` a `minecraft` y añade `character_profile: "rick_morty_es"` si quieres poses. Los explicativos pueden elegir `voice_profile: "alvaro"`, `"rick_es"` o `"morty_es"`; conservan el flujo original de MPT y Pexels.
+
 ## API MPT verificada contra el repo actual
 
 Endpoints:

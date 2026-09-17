@@ -12,6 +12,9 @@ from .models import ContentItem, ContentQueue
 from .batch_import import validate_batch
 from .state import StateStore, write_json_atomic
 
+GENERATION_FIELDS = {"script", "keywords", "content_format", "voice_profile", "dialogue",
+                     "dialogue_preset", "visual_profile", "character_profile"}
+
 
 def queue_digest(path: Path) -> str:
     """Identify a queue revision without editing it."""
@@ -21,7 +24,7 @@ def queue_digest(path: Path) -> str:
 def edit_item(path: Path, state: StateStore, content_id: str, changes: dict,
               *, expected_revision: str) -> ContentItem:
     """Edit unpublished editorial fields atomically; never touches remote state."""
-    if not changes or set(changes) - {"publish_at", "subject", "caption", "youtube_title", "script", "keywords"}:
+    if not changes or set(changes) - ({"publish_at", "subject", "caption", "youtube_title"} | GENERATION_FIELDS):
         raise ValueError("Only editorial fields can be edited here")
     with state.publishing_lock():
         if queue_digest(path) != expected_revision:
@@ -33,9 +36,10 @@ def edit_item(path: Path, state: StateStore, content_id: str, changes: dict,
         if index is None:
             raise ValueError(f"Unknown content ID: {content_id}")
         generation = state.get(content_id)
-        if any(key in changes and changes[key] != raw[index].get(key) for key in ("script", "keywords")):
+        current = ContentItem.model_validate(raw[index])
+        if any(key in changes and changes[key] != getattr(current, key) for key in GENERATION_FIELDS):
             if generation.get("status", "pending") != "pending" or generation.get("attempts", 0) or generation.get("mpt_task_id"):
-                raise ValueError("Script and video terms can only change before generation starts")
+                raise ValueError("Generation settings can only change before generation starts")
         candidate = ContentItem.model_validate({**raw[index], **changes})
         if "publish_at" in changes and any(
                 row["id"] != content_id and

@@ -18,6 +18,7 @@ from .batch_import import parse_batch, validate_batch
 from .queue_editor import add_batch, queue_digest, suggested_id
 from .regeneration import skip_reason
 from .thumbnails import ThumbnailService
+from .profiles import VOICES, VISUAL_PROFILES
 
 PAGES = ["Home", "Content", "Calendar", "Attention"]
 ICONS = {"tiktok": "♪", "instagram": "◎", "youtube": "▶"}
@@ -332,6 +333,53 @@ def _open_content(content_id: str) -> None:
     _navigate("Content", content_id)
 
 
+def _dialogue_lines(value: str) -> list[dict]:
+    names = {"rick": "rick_es", "morty": "morty_es", "rick es": "rick_es", "morty es": "morty_es"}
+    turns = []
+    for line in value.splitlines():
+        if not line.strip():
+            continue
+        label, separator, text = line.partition(":")
+        speaker = names.get(label.strip().casefold())
+        if not separator or not speaker or not text.strip():
+            raise ValueError("Write each dialogue turn as Rick: text or Morty: text, one per line")
+        turns.append({"speaker": speaker, "text": text.strip()})
+    return turns
+
+
+def _generation_controls(content_format, settings, *, prefix, item=None):
+    if content_format == "explainer":
+        selected = item.voice_profile if item and item.content_format == "explainer" else "alvaro"
+        voice_name = st.selectbox("Voice", list(VOICES), index=list(VOICES).index(selected),
+                                  format_func=lambda key: VOICES[key].display_name,
+                                  key=f"{prefix}-voice", help="Choose the narrator for this video.")
+        script = st.text_area("Script *", item.script if item and item.content_format == "explainer" else "",
+                              height=150, key=f"{prefix}-script")
+        return {"content_format": "explainer", "voice_profile": voice_name, "script": script,
+                "dialogue": None, "dialogue_preset": None, "visual_profile": "pexels", "character_profile": None}
+    st.selectbox("Dialogue preset", ["rick_morty_es"], format_func=lambda _: "Rick + Morty ES",
+                 key=f"{prefix}-preset", help="Assigns the Rick and Morty Spanish voices to the dialogue lines.")
+    current = "\n".join(("Rick" if turn.speaker == "rick_es" else "Morty") + ": " + turn.text
+                        for turn in (item.dialogue or [])) if item and item.content_format == "dialogue" else ""
+    lines = st.text_area("Dialogue turns *", current, height=190, key=f"{prefix}-dialogue",
+                         help="One turn per line: Rick: ... or Morty: ...")
+    styles = ["pexels", "minecraft"] + [key for key, folder in VISUAL_PROFILES.items()
+                                          if key not in {"pexels", "minecraft"} and
+                                          (settings.background_root / folder).is_dir()]
+    selected_style = item.visual_profile if item and item.content_format == "dialogue" else "pexels"
+    visual = st.selectbox("Visual style", styles, index=styles.index(selected_style) if selected_style in styles else 0,
+                          format_func=lambda key: "Minecraft gameplay" if key == "minecraft" else key.title(),
+                          key=f"{prefix}-visual", help="Local gameplay clips must be placed in the matching background folder.")
+    selected_character = item.character_profile if item and item.content_format == "dialogue" else None
+    character = st.selectbox("Character overlay", [None, "rick_morty_es"],
+                             index=1 if selected_character else 0,
+                             format_func=lambda key: "Rick + Morty poses" if key else "None",
+                             key=f"{prefix}-character", help="Optional transparent PNG poses appear while each character speaks.")
+    return {"content_format": "dialogue", "dialogue_preset": "rick_morty_es",
+            "dialogue": lines, "script": "", "visual_profile": visual,
+            "character_profile": character, "voice_profile": "alvaro"}
+
+
 def _add_form(panel: ControlPanel) -> None:
     queue, _ = panel.load()
     slot = _next_slot(panel.s.timezone, {item.publish_at for item in queue.items})
@@ -341,10 +389,13 @@ def _add_form(panel: ControlPanel) -> None:
         st.divider()
         st.markdown("**Or add one item**")
         st.caption("A new item starts as Draft. Video generation begins only when you choose it.")
+        content_format = st.selectbox("Format", ["explainer", "dialogue"],
+                                      format_func=lambda value: {"explainer": "Explainer", "dialogue": "Dialogue"}[value],
+                                      key="add-format")
         with st.form("add-content", clear_on_submit=True):
             topic = st.text_input("Topic / title *")
             cid = st.text_input("Content ID (optional)", help="Leave blank to generate a safe ID from the topic. You can enter your own unique ID.")
-            script = st.text_area("Script *", height=150)
+            generation = _generation_controls(content_format, panel.s, prefix="add")
             caption = st.text_area("Caption *", height=90)
             youtube = st.text_input("YouTube title (optional)")
             terms = st.text_input("Pexels / video terms *", help="Separate terms with commas")
@@ -354,8 +405,10 @@ def _add_form(panel: ControlPanel) -> None:
             if st.form_submit_button("Review new content", type="primary"):
                 try:
                     _, state = panel.load()
+                    if content_format == "dialogue":
+                        generation["dialogue"] = _dialogue_lines(generation["dialogue"])
                     values = {"id": cid.strip() or suggested_id(topic, set(queue.by_id()) | set(state.all())),
-                              "subject": topic, "script": script, "caption": caption,
+                              "subject": topic, "caption": caption, **generation,
                               "youtube_title": youtube.strip() or None,
                               "keywords": [term.strip() for term in terms.split(",") if term.strip()],
                               "publish_at": _due(day, hour, panel.s.timezone)}
@@ -365,7 +418,7 @@ def _add_form(panel: ControlPanel) -> None:
 
 
 def _batch_import(panel: ControlPanel) -> None:
-    st.caption("Paste a JSON array or upload a .json file. Required: id, subject (or topic), script, "
+    st.caption("Paste a JSON array or upload a .json file. Required: id, subject (or topic), script for explainers or dialogue turns, "
                "caption, keywords (or video_terms), and publish_at with a timezone offset.")
     source = st.radio("Import source", ["Paste JSON", "Upload .json"], horizontal=True)
     if source == "Paste JSON":
@@ -495,17 +548,27 @@ def _edit_form(panel: ControlPanel, item, record: dict, *, expanded=False) -> No
                 except ValueError as error:
                     st.error(str(error))
     with st.expander("Advanced edit"):
-        st.caption("Script and video search terms can change before generation starts. The ID is locked to preserve history.")
+        st.caption("Video settings can change before generation starts. The ID is locked to preserve history.")
         st.caption("Content ID: " + item.id)
+        content_format = st.selectbox("Format", ["explainer", "dialogue"],
+                                      index=0 if item.content_format == "explainer" else 1,
+                                      format_func=lambda value: value.title(),
+                                      disabled=not can_change_script, key=f"edit-format-{item.id}")
         with st.form(f"advanced-edit-{item.id}"):
             title = st.text_input("Topic / title", item.subject)
             terms = st.text_input("Video search terms", ", ".join(item.keywords), disabled=not can_change_script)
-            script = st.text_area("Script", item.script, height=170, disabled=not can_change_script)
+            if can_change_script:
+                generation = _generation_controls(content_format, panel.s, prefix=f"edit-{item.id}", item=item)
             if st.form_submit_button("Review advanced changes"):
-                changes = {"subject": title}
-                if can_change_script:
-                    changes.update(script=script, keywords=[part.strip() for part in terms.split(",") if part.strip()])
-                _queue_action(panel, "edit", item.id, changes=changes)
+                try:
+                    changes = {"subject": title}
+                    if can_change_script:
+                        if content_format == "dialogue":
+                            generation["dialogue"] = _dialogue_lines(generation["dialogue"])
+                        changes.update(generation, keywords=[part.strip() for part in terms.split(",") if part.strip()])
+                    _queue_action(panel, "edit", item.id, changes=changes)
+                except ValueError as error:
+                    st.error(str(error))
 
 
 def _content_detail(panel: ControlPanel) -> None:

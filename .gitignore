@@ -18,3 +18,7 @@ outputs/ready-phone/*
 state/services.json
 content_queue_before_test.json
 state/thumbnails/
+assets/backgrounds/**/*.mp4
+assets/characters/**/*.png
+outputs/generated/**/*.mp3
+outputs/generated/**/*.m4a

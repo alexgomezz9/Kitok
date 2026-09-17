@@ -2,21 +2,78 @@ from __future__ import annotations
 import json, re
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 from pydantic import BaseModel, Field, field_validator, model_validator
+from .profiles import VOICES, VISUAL_PROFILES, CHARACTER_PROFILES, DIALOGUE_PRESETS
 
 ID_RE = re.compile(r"^[A-Za-z0-9_-]+$")
+
+class DialogueTurn(BaseModel):
+    speaker: str
+    text: str = Field(min_length=1)
+
+    @field_validator("speaker", "text")
+    @classmethod
+    def clean(cls, value):
+        value = value.strip()
+        if not value:
+            raise ValueError("must not be blank")
+        return value
+
+    @field_validator("speaker")
+    @classmethod
+    def known_speaker(cls, value):
+        if value not in VOICES or VOICES[value].provider != "fish":
+            raise ValueError(f"Dialogue speaker requires a Fish voice profile: {value}")
+        return value
+
 
 class ContentItem(BaseModel):
     id: str
     subject: str = Field(min_length=1, max_length=500)
-    script: str = Field(min_length=20, max_length=12000)
+    script: str = Field(default="", max_length=12000)
     keywords: list[str] = Field(min_length=1, max_length=20)
     caption: str = Field(default="", max_length=2200)
     youtube_title: str | None = Field(default=None, max_length=100)
     editorial_status: str = "active"
     publish_at: datetime
     platforms: list[str] = Field(default_factory=lambda: ["tiktok","instagram","youtube"])
+    content_format: Literal["explainer", "dialogue"] = "explainer"
+    voice_profile: str = "alvaro"
+    dialogue: list[DialogueTurn] | None = None
+    dialogue_preset: str | None = None
+    visual_profile: str = "pexels"
+    character_profile: str | None = None
+
+    @model_validator(mode="after")
+    def validate_generation(self):
+        if self.voice_profile not in VOICES:
+            raise ValueError(f"Unknown voice profile: {self.voice_profile}")
+        if self.visual_profile not in VISUAL_PROFILES:
+            raise ValueError(f"Unknown visual profile: {self.visual_profile}")
+        if self.character_profile is not None and self.character_profile not in CHARACTER_PROFILES:
+            raise ValueError(f"Unknown character profile: {self.character_profile}")
+        if self.dialogue_preset is not None and self.dialogue_preset not in DIALOGUE_PRESETS:
+            raise ValueError(f"Unknown dialogue preset: {self.dialogue_preset}")
+        if self.content_format == "dialogue":
+            if self.voice_profile != "alvaro":
+                raise ValueError("Dialogue uses each turn's speaker; leave voice_profile at its default")
+            if not self.dialogue or len(self.dialogue) < 2:
+                raise ValueError("Dialogue requires at least two valid turns")
+            if self.script:
+                raise ValueError("Dialogue script is derived from turns; leave script empty")
+            if self.dialogue_preset and any(t.speaker not in DIALOGUE_PRESETS[self.dialogue_preset] for t in self.dialogue):
+                raise ValueError("Dialogue speaker is not in the selected preset")
+        elif len(self.script) < 20:
+            raise ValueError("Explainer script must contain at least 20 characters")
+        elif (self.visual_profile != "pexels" or self.character_profile is not None or
+              self.dialogue or self.dialogue_preset is not None):
+            raise ValueError("Explainers currently use Pexels without dialogue or character overlays")
+        return self
+
+    @property
+    def effective_script(self) -> str:
+        return "\n".join(turn.text for turn in self.dialogue or []) if self.content_format == "dialogue" else self.script
 
     @field_validator("editorial_status")
     @classmethod
