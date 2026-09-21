@@ -3,7 +3,7 @@
 # How Kitok Works
 
 ```text
-content_queue.json (script, caption, publish_at)
+content_queue.json (script, caption, optional publish_at)
        |
        v
 MoneyPrinterTurbo (generation)
@@ -24,7 +24,7 @@ Buffer (scheduled posts)
 TikTok IG YouTube
 ```
 
-The **queue** describes what you want to create and when to publish it. **State**
+The **queue** describes what you want to create and, when supplied, when to publish it. **State**
 (`state/state.json`) records generation attempts, files, remote IDs, publishing
 intent and reconciliation results. **READY_DIR** is a local/synced folder for
 finished videos. **Cloudinary** hosts the video so Buffer can fetch it. **Buffer**
@@ -84,18 +84,18 @@ requests and resulting occupancy. **Fill schedule**, **Schedule this video**,
 confirmation click. Technical IDs and raw records are under Advanced details.
 
 **Import batch** is inside Content → Add content. Paste a JSON array or upload a
-UTF-8 `.json` file (up to 2 MB), then validate and review the times before the
-separate Import confirmation. Each object needs `id`, `subject` (or `topic`),
-`script`, `caption`, `keywords` (or `video_terms`) and `publish_at` with a timezone
-offset. Optional queue fields are `youtube_title` and `platforms`; imported
-items must be active. For example:
+UTF-8 `.json` file (up to 2 MB), then validate before the separate Import
+confirmation. Each object needs `id`, `subject` (or `topic`), `script`, `caption`
+and `keywords` (or `video_terms`). `publish_at` is optional; omitting it creates
+an unscheduled item. Optional fields include `youtube_title` and `platforms`.
 
 ```json
-[{"id":"moon_1","topic":"Why the Moon glows","script":"A narration of at least twenty characters.","caption":"Moon facts","video_terms":["moon","night"],"publish_at":"2026-09-18T13:00:00+02:00"}]
+[{"id":"moon_1","topic":"Why the Moon glows","script":"A narration of at least twenty characters.","caption":"Moon facts","video_terms":["moon","night"]}]
 ```
 
-IDs and times must be unique across both the batch and saved queue, and an ID
-with saved state history cannot be reused. Import commits the whole batch in
+IDs must be unique and an ID with saved state history cannot be reused. Explicit
+date conflicts are shown in the calendar instead of rejecting the whole batch.
+Import commits the whole batch in
 one local queue write; it does not generate videos or contact a service.
 Confirmed actions recheck state and cannot silently add posts outside the preview.
 Publishing controls are disabled when `PUBLISH_ENABLED=false`.
@@ -113,6 +113,55 @@ ID cannot be reused. New content starts as Pending; adding it never generates a
 video. Reset is only for manual recovery after deleting social posts yourself.
 
 CLI equivalents:
+
+## Queue and scheduling
+
+Generation and scheduling use separate state. `READY + UNSCHEDULED` means the
+MP4 exists but has no date. `READY + QUEUED` waits in the local FIFO queue.
+`READY + SCHEDULED` has a local `publish_at`. Buffer submission remains a
+separate, explicit publishing action; a local date does not mean a Buffer post
+exists.
+
+The queue uses `queue_position`. New READY items go to the bottom, and the
+automatic scheduler assigns the oldest queued item to the next free configured
+slot. In Calendar, **Antes** and **Después** exchange two local scheduled times;
+they remain disabled for items already sent to Buffer. Use the other Calendar
+buttons or these commands:
+
+```bash
+python main.py --queue
+python main.py --queue-add CONTENT_ID
+python main.py --queue-up CONTENT_ID
+python main.py --queue-down CONTENT_ID
+python main.py --queue-top CONTENT_ID
+python main.py --queue-bottom CONTENT_ID
+python main.py --queue-remove CONTENT_ID
+python main.py --unschedule-id CONTENT_ID
+```
+
+Bulk operations always support a read-only preview followed by an explicit
+confirmation:
+
+```bash
+python main.py --unschedule-future --dry-run
+python main.py --unschedule-future --confirm
+python main.py --import-batch rick_morty_30.json --dry-run
+python main.py --import-batch rick_morty_30.json --confirm
+python main.py --queue-ready-all --dry-run
+python main.py --queue-ready-all --confirm
+python main.py --schedule-fill --dry-run
+python main.py --schedule-fill --confirm
+python main.py --queue
+```
+
+`--unschedule-future` only clears future local dates and preserves queue rows,
+READY state and MP4 files. Add `--queue-after` to its confirmed invocation to
+put affected READY videos at the bottom of the queue. Items with Buffer history
+are reported under `attention` and remain unchanged. Published items cannot be
+unscheduled. An explicit timezone-aware `publish_at` still overrides automatic
+scheduling. Daily slots and timezone are configured once through
+`DEFAULT_POSTING_SLOTS` and `TIMEZONE` (defaults: 13:00, 19:00 and 22:00 in
+Europe/Madrid).
 
 ```bash
 python main.py --status
@@ -237,18 +286,33 @@ móvil
 
 Las entradas antiguas de `content_queue.json` siguen siendo vídeos explicativos con Álvaro y Pexels. En **Content → Add content** puedes escoger formato, voz y, para diálogo, estilo visual y poses. El importador JSON acepta esos mismos campos. La cola guarda las opciones elegidas y la regeneración las reutiliza.
 
-Para diálogo, coloca archivos `.mp4` propios en `assets/backgrounds/minecraft/` o en otra piscina configurada (`random/`, `satisfying/`, `subway/`). Kitok elige un archivo y segmento de forma reproducible según el ID. Si la carpeta está vacía, la generación falla con un mensaje claro. No se descargan clips automáticamente.
+Para diálogo, `visual_profile: "pexels"` conserva MPT/Pexels. `visual_profile: "gameplay"` usa vídeos locales de `assets/backgrounds/gameplay/` sin pedir un fondo a MPT. El archivo Minecraft existente se descubre automáticamente. También se conservan las piscinas locales antiguas (`minecraft/`, `random/`, `satisfying/`, `subway/`). Se aceptan `.mp4`, `.mov`, `.mkv` y `.webm`; basta con añadir un archivo a la carpeta. La ruta gameplay mide el audio final de Fish, selecciona un archivo y un intervalo reproducibles a partir del ID, y busca el segmento con FFmpeg antes de decodificar. `background_seed` es opcional para cambiar el intervalo sin cambiar el contenido.
 
-Si quieres personajes, coloca PNG transparentes en `assets/characters/rick/` y `assets/characters/morty/` y selecciona **Rick + Morty poses**. Las poses aparecen durante los turnos medidos de cada voz. Si faltan PNG, el vídeo se genera sin esa pose y se registra una advertencia. Los MP4, PNG y audios generados no se versionan.
+Si quieres personajes, coloca PNG transparentes en `assets/characters/rick/` y `assets/characters/morty/` y selecciona **Rick + Morty poses**. Se descubren todas las poses por nombre de archivo, se valida su transparencia y se recorta el borde transparente antes de escalarlas. Un PNG inválido se omite con advertencia. Las poses cambian según el turno y solo se muestra el hablante activo. Los MP4, PNG y audios generados no se versionan.
+
+Las opciones para futuras voces, parejas de personajes, mapeo hablante→carpeta y tipos de fondo viven en `presets/generation_profiles.json`. Para añadir una pose, solo añade el PNG; para añadir un personaje o una voz, añade su carpeta y entrada al catálogo. El compositor no necesita cambios. Los subtítulos de diálogo son locales, de 2 a 4 palabras cuando el texto lo permite, con `DIALOGUE_SUBTITLE_MAX_CHARS` configurable. Los explicativos conservan sus subtítulos MPT.
 
 Añade a `.env`:
 
 ```dotenv
 FISH_API_KEY=
 FISH_MODEL=s2.1-pro-free
+FISH_TTS_TIMEOUT_SECONDS=180
+MPT_PROGRESS_STALL_MINUTES=12
 ```
 
 Para narradores Fish de un solo hablante, configura también MoneyPrinterTurbo `config.toml` con `[fish_audio] api_key = "..."` (o su variable `FISH_API_KEY`) y `model = "s2.1-pro-free"`. Para diálogo, Kitok lee su propia clave y llama a Fish directamente. Usa una versión de MPT que admita `voice_name = "no-voice"` y voces `fish_audio:<reference_id>:<display_name>`; Kitok desactiva los subtítulos de MPT y compone los suyos con FFmpeg. `ffmpeg` y `ffprobe` deben estar disponibles. Toda salida final pasa por `VideoValidator.prepare()` antes de READY.
+
+El vídeo visual de diálogo con Pexels usa una frase corta derivada del primer término de búsqueda. MPT calcula la duración de `no-voice` a partir de `video_script`; enviarle todo el diálogo creaba una unión innecesariamente larga de clips. Kitok ajusta el visual a la duración real del audio Fish después de descargarlo.
+
+Para comprobar la integración real sin tocar la cola, el estado ni los vídeos READY de producción, ejecuta deliberadamente:
+
+```bash
+python main.py --smoke-test dialogue-pexels
+python main.py --smoke-test dialogue-gameplay
+```
+
+La prueba Pexels usa Fish, el MPT local y FFmpeg; la de gameplay usa Fish, Minecraft local, PNG y FFmpeg. Ambas aíslan estado y archivos de trabajo. La prueba gameplay deja una vista previa inspeccionable en `outputs/smoke/dialogue_gameplay_preview.mp4`, fuera de READY y de la cola. MPT conserva su tarea de prueba Pexels en su propio historial. Si una tarea de MPT desaparece o deja de avanzar, Kitok conserva el ID y marca el intento como fallido; revisa el historial de MPT antes de usar `--retry-failed`.
 
 Ejemplo de diálogo con Pexels:
 
@@ -269,7 +333,7 @@ Ejemplo de diálogo con Pexels:
 }
 ```
 
-Para gameplay, cambia `visual_profile` a `minecraft` y añade `character_profile: "rick_morty_es"` si quieres poses. Los explicativos pueden elegir `voice_profile: "alvaro"`, `"rick_es"` o `"morty_es"`; conservan el flujo original de MPT y Pexels.
+Para gameplay, cambia `visual_profile` a `gameplay` y añade `character_profile: "rick_morty_es"` si quieres poses. Puedes añadir `background_seed: "otra-toma"` para elegir otro segmento y `visual_seed: "otra-presentacion"` para repetir o cambiar poses y pequeñas variaciones de posición. Solo aparece el hablante activo; la configuración de reacciones se conserva para un posible uso futuro, pero el compositor actual no la utiliza. Tamaño, ancho máximo, anclajes, variación, entradas y salidas se ajustan con las variables `CHARACTER_*` documentadas en `.env.example`. Los explicativos pueden elegir `voice_profile: "alvaro"`, `"rick_es"` o `"morty_es"`; conservan el flujo original de MPT y Pexels.
 
 ## API MPT verificada contra el repo actual
 
@@ -512,7 +576,8 @@ Ejemplo:
 ]
 ```
 
-`publish_at` exige zona horaria.
+Cuando se incluye, `publish_at` exige zona horaria. Si se omite, el contenido se
+importa sin programar y puede añadirse después a la cola FIFO.
 
 ## 13. Nombres finales
 

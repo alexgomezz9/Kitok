@@ -2,8 +2,6 @@
 from __future__ import annotations
 
 import json
-from datetime import timezone
-
 from pydantic import ValidationError
 
 from .models import ContentItem, ContentQueue
@@ -28,7 +26,6 @@ def validate_batch(rows: list[dict], queue: ContentQueue, state) -> tuple[list[C
     errors: list[str] = []
     items: list[ContentItem] = []
     ids = set(queue.by_id())
-    slots = {item.publish_at.astimezone(timezone.utc) for item in queue.items}
     for index, row in enumerate(rows, start=1):
         if not isinstance(row, dict):
             errors.append(f"Item {index}: expected a JSON object")
@@ -56,10 +53,8 @@ def validate_batch(rows: list[dict], queue: ContentQueue, state) -> tuple[list[C
             errors.append(f"Item {index}: duplicate ID {item.id}")
         if state.get(item.id):
             errors.append(f"Item {index}: ID {item.id} has saved history")
-        slot = item.publish_at.astimezone(timezone.utc)
-        if slot in slots:
-            errors.append(f"Item {index}: occupied scheduling slot {item.publish_at.isoformat()}")
+        # Explicit collisions remain visible in the schedule conflict view, but
+        # do not reject an otherwise valid batch import.
         ids.add(item.id)
-        slots.add(slot)
         items.append(item)
     return items, errors

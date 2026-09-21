@@ -16,9 +16,11 @@ def _looks_like_mp3(data: bytes) -> bool:
 
 class FishVoiceClient:
     def __init__(self, api_key: str, model: str = "s2.1-pro-free", *,
-                 timeout: float = 45, attempts: int = 3, client: httpx.Client | None = None):
+                 timeout: float = 180, attempts: int = 3, client: httpx.Client | None = None):
         self.api_key, self.model, self.attempts = api_key, model, attempts
-        self.client = client or httpx.Client(timeout=timeout)
+        self.client = client or httpx.Client(
+            timeout=httpx.Timeout(connect=10.0, read=timeout, write=30.0, pool=10.0)
+        )
         self._owns_client = client is None
 
     def close(self):

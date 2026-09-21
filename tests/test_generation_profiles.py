@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock
+from PIL import Image
 
 import httpx
 import pytest
@@ -162,13 +163,16 @@ def test_empty_local_pool_fails_before_fish(local_kitok, tmp_path, monkeypatch):
 def test_pexels_dialogue_plan_requests_silent_mpt_visual(local_kitok, tmp_path, monkeypatch):
     settings = local_kitok[0]
     fish = Mock()
-    monkeypatch.setattr("kitok.generation.FishVoiceClient", Mock(return_value=fish))
+    fish_factory = Mock(return_value=fish)
+    monkeypatch.setattr("kitok.generation.FishVoiceClient", fish_factory)
     monkeypatch.setattr("kitok.generation.DialogueAudioService.generate", lambda *args: SimpleNamespace())
     preset = {"voice_name": "es-ES-AlvaroNeural", "subtitle_enabled": True, "font_size": 100}
     plan = GenerationService(settings, preset).plan(ContentItem.model_validate(dialogue_row()), tmp_path)
-    assert plan.preset == {"voice_name": "no-voice", "subtitle_enabled": False, "font_size": 100}
+    assert plan.preset == {"voice_name": "no-voice", "subtitle_enabled": False,
+                           "font_size": 100, "video_script": "octopus"}
     assert preset["voice_name"] == "es-ES-AlvaroNeural"
     fish.close.assert_called_once()
+    assert fish_factory.call_args.kwargs["timeout"] == settings.fish_tts_timeout_seconds
 
 
 def test_compositor_uses_timeline_for_poses_and_exact_duration(tmp_path, monkeypatch, caplog):
@@ -183,10 +187,13 @@ def test_compositor_uses_timeline_for_poses_and_exact_duration(tmp_path, monkeyp
     for folder in ("rick", "morty"):
         directory = settings.character_root / folder
         directory.mkdir(parents=True)
-        (directory / "pose_01.png").write_bytes(b"png")
+        Image.new("RGBA", (40, 60), (255, 0, 0, 180)).save(directory / "pose_01.png")
+    compositor = DialogueCompositor(settings)
     poses = compositor._poses(item, timeline)
-    assert [(p.name, side, start, end) for p, side, start, end in poses] == [
-        ("pose_01.png", "left", 0, 1), ("pose_01.png", "right", 1.15, 2.15)]
+    assert [(layer.asset.path.name, layer.side, layer.active) for layer in poses] == [
+        ("pose_01.png", "left", True), ("pose_01.png", "right", True)]
+    assert poses[0].start == 0 and poses[0].initial
+    assert poses[1].entry_seconds > 0 and poses[0].exit_seconds > 0
     monkeypatch.setattr("kitok.dialogue_video.media_duration", lambda *args: 1.0)
     commands = []
     def run(command, **kwargs):
@@ -200,6 +207,9 @@ def test_compositor_uses_timeline_for_poses_and_exact_duration(tmp_path, monkeyp
     assert command[command.index("-t") + 1] == "2.150"
     assert command[command.index("-stream_loop") + 1] == "-1"
     filters = command[command.index("-filter_complex") + 1]
-    assert "between(t,0.000,1.000)" in filters
-    assert "between(t,1.150,2.150)" in filters
+    assert "gte(t,0.000)" in filters
+    assert "format=rgba,scale=" in filters
+    assert "overlay=x='if(" in filters
+    assert "MarginV=48" in filters
+    assert "gte(t,1.150)" in filters
     assert destination.read_bytes() == b"video"

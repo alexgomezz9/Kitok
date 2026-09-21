@@ -11,6 +11,7 @@ TASK_STATE_COMPLETE=1
 TASK_STATE_PROCESSING=4
 
 class MPTError(RuntimeError): pass
+class MPTTaskNotFound(MPTError): pass
 
 class MPTClient:
     def __init__(self, base_url, api_key="", timeout_seconds=30, retry_attempts=4, retry_base_seconds=1.5):
@@ -51,9 +52,15 @@ class MPTClient:
     def check(self):
         return self._unwrap(self._get_retry("/api/v1/tasks?page=1&page_size=1"))
 
-    def submit_video(self,item:ContentItem,preset:dict[str,Any])->str:
+    @staticmethod
+    def build_payload(item:ContentItem,preset:dict[str,Any])->dict[str,Any]:
         payload=dict(preset)
-        payload.update(video_subject=item.subject,video_script=item.effective_script,video_terms=item.keywords)
+        payload.update(video_subject=item.subject,video_terms=item.keywords)
+        payload.setdefault("video_script",item.effective_script)
+        return payload
+
+    def submit_video(self,item:ContentItem,preset:dict[str,Any])->str:
+        payload=self.build_payload(item,preset)
         # Deliberately no automatic POST retry: a timeout could otherwise duplicate a render.
         try: r=self.client.post("/api/v1/videos",json=payload)
         except httpx.HTTPError as e:
@@ -64,7 +71,10 @@ class MPTClient:
         return str(tid)
 
     def get_task(self,task_id):
-        data=self._unwrap(self._get_retry(f"/api/v1/tasks/{task_id}"))
+        response=self._get_retry(f"/api/v1/tasks/{task_id}")
+        if response.status_code == 404:
+            raise MPTTaskNotFound(f"MPT task no longer exists: {task_id}")
+        data=self._unwrap(response)
         return MPTTask(
             task_id=str(data.get("task_id") or task_id),
             state=data.get("state"), progress=data.get("progress"),

@@ -3,16 +3,18 @@
 Generation writes MPT tasks and local state. It never uploads or schedules posts.
 """
 from __future__ import annotations
-import json, logging, tempfile, time
+import json, logging, tempfile
 from pathlib import Path
 from .config import Settings
 from .file_manager import copy_atomic, output_filename, write_metadata_sidecar
 from .models import ContentQueue
-from .mpt_client import MPTClient, TASK_STATE_COMPLETE, TASK_STATE_FAILED
+from .mpt_client import MPTClient, MPTTaskNotFound, TASK_STATE_FAILED
+from .mpt_watch import MPTTaskStalled, MPTTaskTimedOut, wait_for_mpt_task
 from .publish_plan import generate_publish_plan
 from .state import StateStore
 from .video_validator import VideoValidator
 from .generation import GenerationService
+from .locks import generation_lock, GenerationBusy
 
 log=logging.getLogger("kitok.pipeline")
 
@@ -45,7 +47,13 @@ class Pipeline:
                 self.state.reset_failed(item.id)
             try:
                 self._process_item(item)
+            except GenerationBusy as error:
+                log.warning("SKIP %s: %s", item.id, error)
+                continue
             except KeyboardInterrupt: raise
+            except (MPTTaskNotFound, MPTTaskStalled, MPTTaskTimedOut) as e:
+                self.state.upsert(item.id,status="failed",last_error=str(e))
+                log.error("FAILED %s: %s",item.id,e)
             except Exception as e:
                 latest=self.state.get(item.id)
                 if latest.get("mpt_task_id") and latest.get("status") in {"submitted","generating"}:
@@ -56,13 +64,15 @@ class Pipeline:
             self.refresh_plans()
 
     def _process_item(self,item):
-        with tempfile.TemporaryDirectory(prefix=".generate-", dir=self.s.generated_dir) as temp:
+        with generation_lock(self.s, item.id), tempfile.TemporaryDirectory(prefix=".generate-", dir=self.s.generated_dir) as temp:
             self._generate_and_prepare(item,Path(temp))
 
     def _generate_and_prepare(self,item,workspace):
         cur=self.state.get(item.id); task_id=cur.get("mpt_task_id")
         if not task_id:
             self.state.increment_attempts(item.id)
+        self.generator.on_stage = lambda label, event, elapsed=None: self.state.upsert(item.id, generation_stage=label) if event == "start" else None
+        self.state.upsert(item.id, generation_stage="Preparing audio")
         plan=self.generator.plan(item,workspace)
         source=None
         if plan.local_background is None:
@@ -88,6 +98,7 @@ class Pipeline:
         self.generator.finish(item,plan,source,generated,workspace)
         if plan.local_background is not None:
             self.state.upsert(item.id,status="generated",last_error=None)
+        self.state.upsert(item.id, generation_stage="Validating")
         result=self.validator.prepare(generated,item.platforms,self.s.ffmpeg_binary)
         if not result.ok:
             copy_atomic(generated,self.s.failed_dir/name)
@@ -105,22 +116,21 @@ class Pipeline:
 
         self.state.upsert(item.id,status="ready",output_path=str(generated),ready_path=str(external),
                           last_error=None,validation=result.model_dump(),
-                          **({"generation_warnings": self.generator.last_warnings}
+                          **({"generation_warnings": self.generator.last_warnings,
+                              "generation_debug": self.generator.last_metadata}
                              if item.content_format == "dialogue" else {}))
         log.info("READY %s -> %s",item.id,external)
 
     def _wait(self,item,task_id):
-        started=time.monotonic(); timeout=self.s.task_timeout_minutes*60
-        while True:
-            task=self.client.get_task(task_id)
-            if task.state==TASK_STATE_COMPLETE:
-                self.state.upsert(item.id,status="generated",last_error=None); return task
-            if task.state==TASK_STATE_FAILED: return task
+        def update(task):
             self.state.upsert(item.id,status="generating",mpt_progress=task.progress,last_error=None)
-            if time.monotonic()-started>timeout:
-                raise TimeoutError(f"Timed out waiting for {task_id}; task id retained for recovery")
             log.info("WAIT %s state=%s progress=%s",item.id,task.state,task.progress)
-            time.sleep(self.s.poll_interval_seconds)
+        task=wait_for_mpt_task(self.client,task_id,poll_seconds=self.s.poll_interval_seconds,
+                               timeout_seconds=self.s.task_timeout_minutes*60,
+                               stall_seconds=self.s.mpt_progress_stall_minutes*60,on_update=update)
+        if task.state != TASK_STATE_FAILED:
+            self.state.upsert(item.id,status="generated",last_error=None)
+        return task
 
     def refresh_plans(self) -> None:
         """Write local handoff plans; never schedules remote posts."""

@@ -2,14 +2,15 @@
 from __future__ import annotations
 
 import tempfile
-import time
 from dataclasses import dataclass
 from pathlib import Path
 
 from .file_manager import copy_atomic, output_filename
-from .mpt_client import TASK_STATE_COMPLETE, TASK_STATE_FAILED
+from .mpt_client import TASK_STATE_FAILED
+from .mpt_watch import wait_for_mpt_task
 from .video_validator import VideoValidator
 from .generation import GenerationService
+from .locks import generation_lock, GenerationBusy
 
 
 def skip_reason(record: dict) -> str | None:
@@ -73,6 +74,10 @@ class ReadyRegenerator:
                 self.print_line(f"[{index}/{total}] REGENERATING {item.id}")
                 try:
                     self._regenerate_one(item)
+                except GenerationBusy as error:
+                    summary.skipped += 1
+                    self.print_line(f"SKIP {item.id}: {error}")
+                    continue
                 except KeyboardInterrupt:
                     raise
                 except Exception as error:
@@ -86,6 +91,10 @@ class ReadyRegenerator:
         return summary
 
     def _regenerate_one(self, item):
+        with generation_lock(self.s, item.id):
+            self._regenerate_locked(item)
+
+    def _regenerate_locked(self, item):
         # Never recover a prior task for this command; every attempt is fresh.
         attempts = int(self.state.get(item.id).get("attempts", 0)) + 1
         self.state.upsert(item.id, attempts=attempts, mpt_task_id=None,
@@ -128,17 +137,14 @@ class ReadyRegenerator:
         self.state.upsert(item.id, status="ready", output_path=str(generated),
                           ready_path=str(external), validation=validation.model_dump(),
                           regeneration_status="succeeded", last_error=None,
-                          **({"generation_warnings": self.generator.last_warnings}
+                          **({"generation_warnings": self.generator.last_warnings,
+                              "generation_debug": self.generator.last_metadata}
                              if item.content_format == "dialogue" else {}))
 
     def _wait(self, item, task_id):
-        started = time.monotonic()
-        timeout = self.s.task_timeout_minutes * 60
-        while True:
-            task = self.client.get_task(task_id)
-            if task.state in (TASK_STATE_COMPLETE, TASK_STATE_FAILED):
-                return task
-            self.state.upsert(item.id, mpt_progress=task.progress)
-            if time.monotonic() - started > timeout:
-                raise TimeoutError(f"Timed out waiting for MPT task {task_id}")
-            time.sleep(self.s.poll_interval_seconds)
+        return wait_for_mpt_task(
+            self.client, task_id, poll_seconds=self.s.poll_interval_seconds,
+            timeout_seconds=self.s.task_timeout_minutes * 60,
+            stall_seconds=self.s.mpt_progress_stall_minutes * 60,
+            on_update=lambda task: self.state.upsert(item.id, mpt_progress=task.progress),
+        )

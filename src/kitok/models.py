@@ -36,17 +36,23 @@ class ContentItem(BaseModel):
     caption: str = Field(default="", max_length=2200)
     youtube_title: str | None = Field(default=None, max_length=100)
     editorial_status: str = "active"
-    publish_at: datetime
+    publish_at: datetime | None = None
     platforms: list[str] = Field(default_factory=lambda: ["tiktok","instagram","youtube"])
     content_format: Literal["explainer", "dialogue"] = "explainer"
     voice_profile: str = "alvaro"
     dialogue: list[DialogueTurn] | None = None
     dialogue_preset: str | None = None
     visual_profile: str = "pexels"
+    background_seed: str | None = Field(default=None, max_length=100)
+    visual_seed: str | None = Field(default=None, max_length=100)
+    background_file: str | None = None
+    schedule_enabled: bool = True
     character_profile: str | None = None
 
     @model_validator(mode="after")
     def validate_generation(self):
+        if self.schedule_enabled and self.publish_at is None:
+            raise ValueError("Scheduled content requires publish_at")
         if self.voice_profile not in VOICES:
             raise ValueError(f"Unknown voice profile: {self.voice_profile}")
         if self.visual_profile not in VISUAL_PROFILES:
@@ -66,10 +72,28 @@ class ContentItem(BaseModel):
                 raise ValueError("Dialogue speaker is not in the selected preset")
         elif len(self.script) < 20:
             raise ValueError("Explainer script must contain at least 20 characters")
-        elif (self.visual_profile != "pexels" or self.character_profile is not None or
-              self.dialogue or self.dialogue_preset is not None):
-            raise ValueError("Explainers currently use Pexels without dialogue or character overlays")
+        elif self.dialogue or self.dialogue_preset is not None or self.character_profile is not None:
+            raise ValueError("Explainers use their script and do not accept dialogue configuration")
+        elif self.visual_profile == "pexels":
+            if self.background_seed is not None or self.visual_seed is not None or self.background_file is not None:
+                raise ValueError("Pexels explainers do not accept local background configuration")
+        elif self.visual_profile != "random" or self.voice_profile != "rick_es":
+            raise ValueError("Local explainers currently require voice_profile='rick_es' and visual_profile='random'")
         return self
+
+    @field_validator("background_file")
+    @classmethod
+    def valid_background_file(cls, value):
+        if value is not None and (Path(value).name != value or value in {".", ".."}):
+            raise ValueError("Background must be a filename within its pool")
+        return value
+
+    @field_validator("platforms")
+    @classmethod
+    def valid_platforms(cls, value):
+        if not value or set(value) - {"tiktok", "instagram", "youtube"}:
+            raise ValueError("Choose valid platforms")
+        return list(dict.fromkeys(value))
 
     @property
     def effective_script(self) -> str:
@@ -106,9 +130,19 @@ class ContentItem(BaseModel):
             raise ValueError("at least one keyword is required")
         return out
 
+    @model_validator(mode="before")
+    @classmethod
+    def default_schedule_from_publish_at(cls, values):
+        if isinstance(values, dict) and "schedule_enabled" not in values:
+            values = dict(values)
+            values["schedule_enabled"] = values.get("publish_at") is not None
+        return values
+
     @field_validator("publish_at")
     @classmethod
     def require_timezone(cls, v):
+        if v is None:
+            return v
         if v.tzinfo is None or v.utcoffset() is None:
             raise ValueError("publish_at must include timezone offset, e.g. +02:00")
         return v

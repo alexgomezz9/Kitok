@@ -25,7 +25,8 @@ def dialogue(cid="one", visual="minecraft"):
     })
 
 
-@pytest.mark.parametrize("visual,expect_mpt", [("pexels", True), ("minecraft", False)])
+@pytest.mark.parametrize("visual,expect_mpt", [("pexels", True), ("minecraft", False),
+                                                ("gameplay", False)])
 def test_pipeline_dialogue_uses_shared_generation_then_validator(local_kitok, monkeypatch, tmp_path,
                                                                   visual, expect_mpt):
     settings, _, state, _ = local_kitok
@@ -58,7 +59,8 @@ def test_pipeline_dialogue_uses_shared_generation_then_validator(local_kitok, mo
         client.download_artifact.assert_not_called()
 
 
-@pytest.mark.parametrize("visual,expect_mpt", [("minecraft", False), ("pexels", True)])
+@pytest.mark.parametrize("visual,expect_mpt", [("minecraft", False), ("gameplay", False),
+                                                ("pexels", True)])
 def test_regenerator_dialogue_uses_shared_generation_and_validation(local_kitok, tmp_path,
                                                                     visual, expect_mpt):
     settings, _, state, _ = local_kitok

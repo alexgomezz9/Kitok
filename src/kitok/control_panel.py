@@ -118,17 +118,18 @@ class ControlPanel:
         counters = Counter()
         local_posts = {}
         now = datetime.now(timezone.utc)
-        for item in sorted(queue.items, key=lambda value: value.publish_at):
+        for item in sorted(queue.items, key=lambda value: (value.publish_at is None,
+                                                           value.publish_at or datetime.max.replace(tzinfo=timezone.utc))):
             if item.editorial_status == "archived" and not include_archived:
                 continue
             record = state.get(item.id)
             publishing = record.get("publishing") or {}
             buffer = publishing.get("buffer", {})
-            local = item.publish_at.astimezone(ZoneInfo(self.s.timezone))
+            local = item.publish_at.astimezone(ZoneInfo(self.s.timezone)) if item.publish_at else None
             status = record.get("status", "pending")
             counters["ready"] += status == "ready" and item.editorial_status == "active"
-            row = {"ID": item.id, "Content": item.subject, "Date": local.strftime("%Y-%m-%d"),
-                   "Time": local.strftime("%H:%M"), "Generation": status,
+            row = {"ID": item.id, "Content": item.subject, "Date": local.strftime("%Y-%m-%d") if item.schedule_enabled and local else "—",
+                   "Time": local.strftime("%H:%M") if item.schedule_enabled and local else "—", "Generation": status,
                    "Editorial": item.editorial_status,
                    "Cloudinary": publishing.get("cloudinary", {}).get("status", "not uploaded")}
             item_issues = []
@@ -154,7 +155,7 @@ class ControlPanel:
                                                   "channelId": post.get("channel_id") or self.s.buffer_channel_ids[platform]}
                 if post.get("last_error") or value in {"unknown", "creating", "error", "needs_attention", "needs_approval"}:
                     item_issues.append((platform, post.get("last_error") or f"Publishing status: {value}"))
-                if (item.editorial_status == "active" and item.publish_at <= now
+                if (item.editorial_status == "active" and item.schedule_enabled and item.publish_at and item.publish_at <= now
                         and not post.get("post_id") and platform in item.platforms):
                     item_issues.append((platform, "publish_at is in the past"))
             cloud = publishing.get("cloudinary", {})
@@ -263,12 +264,15 @@ class ControlPanel:
                 raise ValueError(f"Content ID already exists: {item.id}")
             if state.get(item.id):
                 raise ValueError("This content ID has saved history and cannot be reused")
-            if any(existing.publish_at == item.publish_at for existing in queue.items):
+            if item.schedule_enabled and item.publish_at and any(
+                    existing.schedule_enabled and existing.publish_at == item.publish_at for existing in queue.items):
                 raise ValueError("Another item already uses that publish time")
             summary.update({"Content ID": item.id, "Topic": item.subject,
-                            "Publish time": item.publish_at.isoformat(), "Generation": "Pending; no video is generated"})
+                            "Publish time": item.publish_at.isoformat() if item.publish_at else "Unscheduled",
+                            "Generation": "Pending; no video is generated"})
         elif kind in {"move_earlier", "move_later"}:
-            active = sorted((item for item in queue.items if item.editorial_status == "active"),
+            active = sorted((item for item in queue.items if item.editorial_status == "active"
+                             and item.schedule_enabled and item.publish_at),
                             key=lambda item: item.publish_at)
             index = next((index for index, item in enumerate(active) if item.id == content_id), None)
             target = (index - 1 if kind == "move_earlier" else index + 1) if index is not None else -1

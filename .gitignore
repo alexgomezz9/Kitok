@@ -22,3 +22,17 @@ assets/backgrounds/**/*.mp4
 assets/characters/**/*.png
 outputs/generated/**/*.mp3
 outputs/generated/**/*.m4a
+outputs/smoke/*
+
+.tools/
+frontend/node_modules/
+frontend/dist/
+frontend/test-results/
+frontend/playwright-report/
+state/jobs/
+state/app_config.json
+assets/backgrounds/**/*.mov
+assets/backgrounds/**/*.mkv
+assets/backgrounds/**/*.webm
+frontend/*.tsbuildinfo
+frontend/*.tsbuildinfo

@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import json
+import math
 import subprocess
+import time
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -15,7 +17,7 @@ def media_duration(path: Path, ffprobe: str = "ffprobe") -> float:
                                  "-of", "json", str(path)], capture_output=True, text=True,
                                 check=True, timeout=30)
         duration = float(json.loads(result.stdout)["format"]["duration"])
-        if duration <= 0:
+        if not math.isfinite(duration) or duration <= 0:
             raise ValueError("non-positive duration")
         return duration
     except (OSError, subprocess.SubprocessError, ValueError, KeyError) as error:
@@ -38,8 +40,13 @@ class DialogueAudio:
 
 
 class DialogueAudioService:
-    def __init__(self, fish, *, ffmpeg="ffmpeg", ffprobe="ffprobe", gap_ms=140):
+    def __init__(self, fish, *, ffmpeg="ffmpeg", ffprobe="ffprobe", gap_ms=140, on_stage=None):
         self.fish, self.ffmpeg, self.ffprobe, self.gap_ms = fish, ffmpeg, ffprobe, gap_ms
+        self.on_stage = on_stage
+
+    def _stage(self, label, event, elapsed=None):
+        if self.on_stage is not None:
+            self.on_stage(label, event, elapsed)
 
     def generate(self, item, workspace: Path) -> DialogueAudio:
         paths, timeline = [], []
@@ -50,8 +57,12 @@ class DialogueAudioService:
             if profile.provider != "fish":
                 raise ValueError(f"Dialogue speaker {turn.speaker} is not a Fish voice")
             path = workspace / f"turn_{index:03d}_{turn.speaker}.mp3"
+            label = f"Fish {profile.display_name}"
+            self._stage(label, "start")
+            started = time.monotonic()
             self.fish.synthesize(turn.text, profile.value, path)
             duration = media_duration(path, self.ffprobe)
+            self._stage(label, "ok", time.monotonic() - started)
             timeline.append(TimedTurn(turn.speaker, cursor, cursor + duration, turn.text))
             paths.append(path)
             cursor += duration + (gap if index < len(item.dialogue) else 0)
@@ -72,8 +83,29 @@ class DialogueAudioService:
             command += ["-i", str(path)]
         command += ["-filter_complex", ";".join(filters), "-map", "[out]", "-c:a", "aac",
                     "-b:a", "120k", str(target)]
+        self._stage("Dialogue audio", "start")
+        started = time.monotonic()
         try:
             subprocess.run(command, capture_output=True, text=True, check=True, timeout=300)
         except (OSError, subprocess.SubprocessError) as error:
             raise RuntimeError("FFmpeg could not concatenate dialogue audio") from error
+        self._stage("Dialogue audio", "ok", time.monotonic() - started)
         return DialogueAudio(target, timeline, timeline[-1].end)
+
+    def generate_single(self, item, workspace: Path) -> DialogueAudio:
+        """Generate one measured Fish narration without an unnecessary concat pass."""
+        profile = voice(item.voice_profile)
+        if profile.provider != "fish":
+            raise ValueError(f"Single-speaker local narration requires a Fish voice: {item.voice_profile}")
+        target = workspace / f"narration_{item.voice_profile}.mp3"
+        label = f"Fish {profile.display_name.removesuffix(' ES')}"
+        self._stage(label, "start")
+        started = time.monotonic()
+        self.fish.synthesize(item.script, profile.value, target)
+        duration = media_duration(target, self.ffprobe)
+        self._stage(label, "ok", time.monotonic() - started)
+        return DialogueAudio(
+            target,
+            [TimedTurn(item.voice_profile, 0.0, duration, item.script)],
+            duration,
+        )

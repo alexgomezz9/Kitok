@@ -48,13 +48,17 @@ def _due(day, hour, zone: str) -> str:
     return due.isoformat()
 
 
-def _next_slot(zone: str, occupied: set[datetime] | None = None) -> datetime:
+def _next_slot(zone: str, occupied: set[datetime] | None = None,
+               slots: list[str] | None = None) -> datetime:
     now = datetime.now(ZoneInfo(zone))
     occupied_utc = {value.astimezone(timezone.utc) for value in (occupied or set())}
+    if slots is None:
+        from .config import Settings
+        slots = Settings().default_posting_slots
     for offset in range(366):
         day = now.date() + timedelta(days=offset)
-        for hour in (13, 19, 22):
-            due = datetime.combine(day, datetime.min.time().replace(hour=hour), tzinfo=ZoneInfo(zone))
+        for value in sorted(slots):
+            due = datetime.combine(day, datetime.strptime(value, "%H:%M").time(), tzinfo=ZoneInfo(zone))
             if due > now and due.astimezone(timezone.utc) not in occupied_utc:
                 return due
     raise ValueError("No open normal publishing slot is available in the next year")
@@ -382,7 +386,8 @@ def _generation_controls(content_format, settings, *, prefix, item=None):
 
 def _add_form(panel: ControlPanel) -> None:
     queue, _ = panel.load()
-    slot = _next_slot(panel.s.timezone, {item.publish_at for item in queue.items})
+    slot = _next_slot(panel.s.timezone, {item.publish_at for item in queue.items if item.publish_at},
+                      panel.s.default_posting_slots)
     with st.expander("＋ Add content", expanded=bool(st.session_state.pop("open_add", False))):
         st.markdown("**Import a JSON batch**")
         _batch_import(panel)
@@ -419,7 +424,7 @@ def _add_form(panel: ControlPanel) -> None:
 
 def _batch_import(panel: ControlPanel) -> None:
     st.caption("Paste a JSON array or upload a .json file. Required: id, subject (or topic), script for explainers or dialogue turns, "
-               "caption, keywords (or video_terms), and publish_at with a timezone offset.")
+               "caption and keywords (or video_terms). publish_at is optional.")
     source = st.radio("Import source", ["Paste JSON", "Upload .json"], horizontal=True)
     if source == "Paste JSON":
         text = st.text_area("Batch JSON", height=170, placeholder='[{"id":"idea_1","topic":"...",...}]')
@@ -458,8 +463,9 @@ def _batch_import(panel: ControlPanel) -> None:
         st.error(error)
     if preview["errors"]:
         return
-    st.success("All items valid · Unique IDs · Free scheduling slots · Required fields present")
-    st.dataframe([{"Time": _local(item.publish_at, panel.s.timezone).strftime("%d %b %H:%M"),
+    st.success("All items valid · Unique IDs · Required fields present")
+    st.dataframe([{"Time": (_local(item.publish_at, panel.s.timezone).strftime("%d %b %H:%M")
+                             if item.publish_at else "Unscheduled"),
                    "Topic": item.subject} for item in preview["items"]], hide_index=True, width="stretch")
     if st.button(f"Import {len(preview['items'])} contents", type="primary",
                  help="Add this complete batch to the local queue in one atomic write. No videos are generated."):
@@ -479,6 +485,7 @@ def _calendar(panel: ControlPanel, data: dict) -> None:
     queue, state = panel.load()
     show_archived = st.toggle("Show archived", value=False)
     rows = panel.view(include_archived=show_archived)["rows"] if show_archived else data["rows"]
+    rows = [row for row in rows if row["Date"] != "—"]
     if not rows:
         st.info("The editorial queue is empty. Add a content item above.")
         return
@@ -527,11 +534,14 @@ def _edit_form(panel: ControlPanel, item, record: dict, *, expanded=False) -> No
     can_change_script = (record.get("status", "pending") == "pending" and
                          not record.get("attempts") and not record.get("mpt_task_id"))
     with st.expander("Quick edit", expanded=expanded):
-        local = _local(item.publish_at, panel.s.timezone)
-        normal = {"13:00", "19:00", "22:00"}
+        local = (_local(item.publish_at, panel.s.timezone) if item.publish_at else
+                 _next_slot(panel.s.timezone, {entry.publish_at for entry in panel.load()[0].items
+                                               if entry.publish_at}, panel.s.default_posting_slots))
+        normal = set(panel.s.default_posting_slots)
         current = local.strftime("%H:%M")
-        slot = st.selectbox("Publishing time", ["13:00", "19:00", "22:00", "Custom time"],
-                            index=["13:00", "19:00", "22:00", "Custom time"].index(
+        slot_options = [*panel.s.default_posting_slots, "Custom time"]
+        slot = st.selectbox("Publishing time", slot_options,
+                            index=slot_options.index(
                                 current if current in normal else "Custom time"),
                             help="Use a regular slot or choose a custom local time.")
         with st.form(f"edit-content-{item.id}"):
@@ -585,7 +595,9 @@ def _content_detail(panel: ControlPanel) -> None:
     st.subheader(item.subject)
     row = next((row for row in panel.view(include_archived=True)["rows"] if row["ID"] == cid), None)
     overall = content_status(item, record, row)
-    st.caption(f"{_local(item.publish_at, panel.s.timezone):%d %B %Y · %H:%M %Z} · "
+    schedule_label = (f"{_local(item.publish_at, panel.s.timezone):%d %B %Y · %H:%M %Z}"
+                      if item.publish_at else "Unscheduled")
+    st.caption(f"{schedule_label} · "
                f"{STATUS_ICON[overall]} {overall}")
     left, right = st.columns([1.6, 1], gap="large")
     with left, st.container(border=True):
@@ -606,7 +618,7 @@ def _content_detail(panel: ControlPanel) -> None:
     with right, st.container(border=True):
         st.markdown('<div class="kitok-kicker">Editorial details</div>', unsafe_allow_html=True)
         st.write(f"**Topic**  {item.subject}")
-        st.write(f"**Publish time**  {_local(item.publish_at, panel.s.timezone):%d %b %Y · %H:%M %Z}")
+        st.write(f"**Publish time**  {schedule_label}")
         st.write(f"**Video**  {_label(record.get('status', 'pending'))}")
         st.write(f"**Duration**  {record.get('validation', {}).get('duration') or 'Not measured'} seconds")
         st.write(f"**File size**  {f'{video.stat().st_size / 1024 / 1024:.1f} MB' if video else 'No local file'}")
@@ -681,7 +693,8 @@ def _content(panel: ControlPanel) -> None:
     term = search.text_input("Search content", placeholder="Search by topic", help="Filters this local list only.").casefold().strip()
     scope = visibility.selectbox("Show", ["Active", "Archived", "All"], help="Archived items remain saved.")
     rows = {row["ID"]: row for row in panel.view(include_archived=True)["rows"]}
-    items = sorted(queue.items, key=lambda item: item.publish_at)
+    items = sorted(queue.items, key=lambda item: (item.publish_at is None,
+                                                  item.publish_at or datetime.max.replace(tzinfo=timezone.utc)))
     items = [item for item in items if (scope == "All" or
              (item.editorial_status == "archived") == (scope == "Archived")) and term in item.subject.casefold()]
     if not items:
@@ -691,7 +704,7 @@ def _content(panel: ControlPanel) -> None:
     for item in items:
         row = rows[item.id]
         overall = content_status(item, state.get(item.id), row)
-        when = _local(item.publish_at, panel.s.timezone)
+        when = _local(item.publish_at, panel.s.timezone) if item.publish_at else None
         icon, title, status, open_col, more = st.columns(
             [.6, 3.4, 2, 1, .6], vertical_alignment="center", wrap=True)
         thumbnail = None
@@ -707,7 +720,7 @@ def _content(panel: ControlPanel) -> None:
         else:
             icon.write("▶" if state.get(item.id).get("status") == "ready" else "○")
         title.markdown(f"**{item.subject}**")
-        title.caption(f"{when:%a %d %b · %H:%M} · " + " · ".join(
+        title.caption((f"{when:%a %d %b · %H:%M}" if when else "Unscheduled") + " · " + " · ".join(
             f"{PLATFORM_NAMES[p]} {STATUS_ICON[status_label(row[p.title()])]}" for p in item.platforms))
         status.caption(f"{STATUS_ICON[overall]} {overall}")
         if open_col.button("Open", key=f"open-{item.id}", help="View video, details and the next safe action."):
@@ -813,7 +826,9 @@ def _attention(panel: ControlPanel, data: dict) -> None:
                      f"{issue.get('Platform', 'Kitok').title()} needs attention")
             st.write(f"**{title}**")
             if item:
-                st.caption(item.subject + " · " + _local(item.publish_at, panel.s.timezone).strftime("%d %b, %H:%M"))
+                when = (_local(item.publish_at, panel.s.timezone).strftime("%d %b, %H:%M")
+                        if item.publish_at else "Unscheduled")
+                st.caption(item.subject + " · " + when)
             st.write(_friendly(issue["What happened"]))
             st.caption(issue["Recommended action"])
             with st.expander("Technical details"):

@@ -1,0 +1,98 @@
+{
+  "voices": {
+    "alvaro": {
+      "display_name": "Álvaro",
+      "provider": "edge",
+      "value": "es-ES-AlvaroNeural"
+    },
+    "rick_es": {
+      "display_name": "Rick ES",
+      "provider": "fish",
+      "value": "f75ae6efbe9945c19be01e233e045d0e"
+    },
+    "morty_es": {
+      "display_name": "Morty ES",
+      "provider": "fish",
+      "value": "5d4a03fbc6d94f9897d5f3969fd9a765"
+    }
+  },
+
+  "visual_profiles": {
+    "pexels": null,
+    "gameplay": "gameplay",
+    "minecraft": "minecraft",
+    "random": "random",
+    "satisfying": "satisfying",
+    "subway": "subway"
+  },
+
+  "dialogue_presets": {
+    "rick_morty_es": [
+      "rick_es",
+      "morty_es"
+    ]
+  },
+
+  "character_profiles": {
+    "rick_morty_es": {
+      "rick_es": {
+        "character": "rick",
+        "side": "left"
+      },
+      "morty_es": {
+        "character": "morty",
+        "side": "right"
+      }
+    }
+  },
+
+  "characters": {
+    "rick": {
+      "display_name": "Rick",
+      "side": "left",
+      "scale": 1.0,
+      "active_poses": [
+        "rick_face_crazy",
+        "rick_angry",
+        "rick_pointing",
+        "rick_pointing_full",
+        "rick_finger_guns",
+        "rick_shrug_new",
+        "rick_portal_gun",
+        "rick_portal_gun_up"
+      ],
+      "reaction_poses": [
+        "rick_jump",
+        "rick_drinking",
+        "rick_arms_up",
+        "rick_robot_arms"
+      ],
+      "disabled_poses": [
+        "rick_shrug",
+        "rick_talking_hands"
+      ]
+    },
+
+    "morty": {
+      "display_name": "Morty",
+      "side": "right",
+      "scale": 1.0,
+      "active_poses": [
+        "morty_neutral",
+        "morty_scared",
+        "morty_face_scream",
+        "morty_scared_new",
+        "morty_neutral_new"
+      ],
+      "reaction_poses": [
+        "morty_jump",
+        "morty_angry_closeup",
+        "morty_running"
+      ],
+      "disabled_poses": [
+        "morty_eyepatch",
+        "morty_neutral_small"
+      ]
+    }
+  }
+}

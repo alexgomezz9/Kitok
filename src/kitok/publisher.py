@@ -154,10 +154,11 @@ class Publisher:
                 slots[platform] = 0
                 plan.issues.append({"id": None, "platform": platform,
                                     "error": "Channel unavailable or has an unresolved creation; reconcile before filling"})
-        for item in sorted(self.q.items, key=lambda i: (i.publish_at, i.id)):
+        scheduled_items = (item for item in self.q.items if item.schedule_enabled and item.publish_at)
+        for item in sorted(scheduled_items, key=lambda i: (i.publish_at, i.id)):
             if ids is not None and item.id not in ids:
                 continue
-            if item.editorial_status != "active":
+            if item.editorial_status != "active" or not item.schedule_enabled:
                 continue
             record = self.state.get(item.id)
             if record.get("status") != "ready":

@@ -72,7 +72,7 @@ def test_valid_batch_import_is_single_queue_change(local_kitok):
     assert not state.get("new_1") and not state.get("new_2")
 
 
-def test_batch_rejects_bad_json_duplicate_ids_and_collisions(local_kitok):
+def test_batch_rejects_bad_json_and_duplicate_ids_but_reports_schedule_conflicts_later(local_kitok):
     settings, queue, state, _ = local_kitok
     with pytest.raises(ValueError, match="Malformed JSON"):
         parse_batch("[{oops")
@@ -81,7 +81,7 @@ def test_batch_rejects_bad_json_duplicate_ids_and_collisions(local_kitok):
     assert any("duplicate ID" in problem for problem in validate_batch(rows, queue, state)[1])
     rows = _rows(queue)
     rows[1]["publish_at"] = queue.items[0].publish_at.isoformat()
-    assert any("occupied scheduling slot" in problem for problem in validate_batch(rows, queue, state)[1])
+    assert not validate_batch(rows, queue, state)[1]
     rows[1]["caption"] = ""
     before = settings.queue_path.read_bytes()
     with pytest.raises(ValueError, match="Batch import rejected"):

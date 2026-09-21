@@ -7,6 +7,8 @@ from .logging_setup import configure_logging
 from .models import ContentQueue
 from .mpt_client import MPTClient, MPTError
 from .pipeline import Pipeline, load_preset
+from .application import run_generation
+from .app_settings import configured
 from .publish_plan import generate_publish_plan
 from .regeneration import ReadyRegenerator
 from .state import StateStore
@@ -22,6 +24,19 @@ def parser():
     p.add_argument("--confirm",action="store_true")
     p.add_argument("--live",action="store_true")
     p.add_argument("--refresh",action="store_true")
+    p.add_argument("--queue",action="store_true",help="show local publishing queue and schedule")
+    p.add_argument("--queue-add",metavar="CONTENT_ID")
+    p.add_argument("--queue-remove",metavar="CONTENT_ID")
+    p.add_argument("--queue-up",metavar="CONTENT_ID")
+    p.add_argument("--queue-down",metavar="CONTENT_ID")
+    p.add_argument("--queue-top",metavar="CONTENT_ID")
+    p.add_argument("--queue-bottom",metavar="CONTENT_ID")
+    p.add_argument("--queue-ready-all",action="store_true")
+    p.add_argument("--schedule-fill",action="store_true")
+    p.add_argument("--unschedule-id",metavar="CONTENT_ID")
+    p.add_argument("--unschedule-future",action="store_true")
+    p.add_argument("--queue-after",action="store_true",help="queue READY items after bulk unscheduling")
+    p.add_argument("--import-batch",metavar="JSON_FILE")
     mode=p.add_mutually_exclusive_group()
     mode.add_argument("--dry-run",action="store_true")
     p.add_argument("--retry-failed",action="store_true")
@@ -29,6 +44,7 @@ def parser():
     mode.add_argument("--status",action="store_true")
     mode.add_argument("--check-mpt",action="store_true")
     mode.add_argument("--plan",action="store_true")
+    mode.add_argument("--smoke-test",choices=["dialogue-pexels", "dialogue-gameplay", "rick-random"])
     for flag in ("buffer-usage", "cloudinary-usage", "dashboard"):
         mode.add_argument(f"--{flag}",action="store_true")
     for flag in ("buffer-check", "buffer-channels", "publish-ready", "sync-buffer-status",
@@ -38,7 +54,7 @@ def parser():
     return p
 
 def load_all(*, read_only=False):
-    s=Settings()
+    s=configured(Settings())
     if not read_only: s.ensure_directories()
     q=ContentQueue.load(s.queue_path); st=StateStore(s.state_path,create_parent=not read_only)
     pp=s.mpt_preset_path if s.mpt_preset_path.is_absolute() else (PROJECT_ROOT/s.mpt_preset_path).resolve()
@@ -47,14 +63,33 @@ def load_all(*, read_only=False):
 def show_status(q,st):
     t=Table(title="Kitok status")
     for c in ["ID","Publish","Status","Attempts","MPT %","Last error"]: t.add_column(c)
-    for item in sorted(q.items,key=lambda x:x.publish_at):
+    for item in sorted(q.items,key=lambda x:(x.publish_at is None, x.publish_at or "", x.id)):
         r=st.get(item.id)
-        t.add_row(item.id,item.publish_at.strftime("%Y-%m-%d %H:%M"),r.get("status","pending"),
+        t.add_row(item.id,item.publish_at.strftime("%Y-%m-%d %H:%M") if item.schedule_enabled and item.publish_at else "Unscheduled",r.get("status","pending"),
                   str(r.get("attempts",0)),str(r.get("mpt_progress","")),str(r.get("last_error") or ""))
     console.print(t)
 
 def main(argv=None):
     a=parser().parse_args(argv)
+    scheduling = (a.queue, a.queue_add, a.queue_remove, a.queue_up, a.queue_down,
+                  a.queue_top, a.queue_bottom, a.queue_ready_all, a.schedule_fill,
+                  a.unschedule_id, a.unschedule_future, a.import_batch)
+    if a.smoke_test:
+        if (a.ids or a.publish_id or a.reset_publish_id or a.confirm or a.live or a.refresh
+                or a.retry_failed or a.regenerate_all_ready or any(getattr(a, flag) for flag in
+                ("buffer_check", "buffer_channels", "publish_ready", "sync_buffer_status",
+                 "buffer_maintain", "publish_dry_run", "buffer_usage", "cloudinary_usage", "dashboard"))
+                or any(scheduling)):
+            console.print("Usage error: --smoke-test cannot be combined with other actions.")
+            return 2
+        from .smoke_test import (run_dialogue_gameplay_smoke, run_dialogue_pexels_smoke,
+                                 run_rick_random_smoke)
+        smoke = ({"dialogue-gameplay": run_dialogue_gameplay_smoke,
+                  "dialogue-pexels": run_dialogue_pexels_smoke,
+                  "rick-random": run_rick_random_smoke}[a.smoke_test])
+        return smoke(output=lambda line: console.print(line, soft_wrap=True, markup=False))
+    if any(scheduling):
+        return scheduling_main(a)
     publishing_modes = ("buffer_check", "buffer_channels", "publish_ready",
                         "sync_buffer_status", "buffer_maintain", "publish_dry_run")
     if ((a.live and not a.publish_dry_run)
@@ -124,12 +159,107 @@ def main(argv=None):
             missing=ids-set(q.by_id())
             if missing:
                 console.print(f"[red]Unknown ids:[/red] {', '.join(sorted(missing))}"); return 2
-        Pipeline(s,q,st,client,preset).process(ids=ids,retry_failed=a.retry_failed)
+        run_generation(s,q,st,client,preset,ids=ids,retry_failed=a.retry_failed)
         show_status(q,st); return 0
     except MPTError as e:
         console.print(f"[red]MPT error:[/red] {e}"); return 3
     finally:
         client.close()
+
+
+def scheduling_main(args):
+    """Local queue/calendar commands. Never contacts Buffer or generation services."""
+    actions = [name for name, value in (
+        ("queue", args.queue), ("queue-add", args.queue_add),
+        ("queue-remove", args.queue_remove), ("queue-up", args.queue_up),
+        ("queue-down", args.queue_down), ("queue-top", args.queue_top),
+        ("queue-bottom", args.queue_bottom), ("queue-ready-all", args.queue_ready_all),
+        ("schedule-fill", args.schedule_fill), ("unschedule-id", args.unschedule_id),
+        ("unschedule-future", args.unschedule_future), ("import-batch", args.import_batch),
+    ) if value]
+    if len(actions) != 1:
+        console.print("Choose exactly one queue or scheduling action.")
+        return 2
+    bulk = args.queue_ready_all or args.schedule_fill or args.unschedule_future or args.import_batch
+    if bulk and args.confirm == args.dry_run:
+        console.print("Bulk actions require exactly one of --dry-run or --confirm.")
+        return 2
+    if not bulk and (args.confirm or args.dry_run or args.queue_after):
+        console.print("--confirm, --dry-run and --queue-after are only for bulk actions.")
+        return 2
+    if args.queue_after and not args.unschedule_future:
+        console.print("--queue-after may only be used with --unschedule-future.")
+        return 2
+    from .application import Application
+    from .scheduling import ScheduleService
+    app = None
+    try:
+        settings = configured(Settings())
+        app = Application(settings)
+        service = ScheduleService(app)
+        if args.queue:
+            _print_schedule(service.view())
+        elif args.queue_add:
+            service.queue_add(args.queue_add)
+            _print_schedule(service.view())
+        elif args.queue_remove:
+            service.queue_remove(args.queue_remove)
+            _print_schedule(service.view())
+        elif args.queue_up or args.queue_down or args.queue_top or args.queue_bottom:
+            cid, direction = next((value, name) for name, value in (
+                ("up", args.queue_up), ("down", args.queue_down),
+                ("top", args.queue_top), ("bottom", args.queue_bottom)) if value)
+            _print_schedule(service.queue_move(cid, direction))
+        elif args.unschedule_id:
+            service.change(args.unschedule_id, None)
+            _print_schedule(service.view())
+        elif args.queue_ready_all:
+            console.print_json(data=service.queue_all_ready(confirm=args.confirm))
+        elif args.schedule_fill:
+            console.print_json(data=service.fill(confirm=args.confirm))
+        elif args.unschedule_future:
+            console.print_json(data=service.unschedule_future(
+                confirm=args.confirm, queue_after=args.queue_after))
+        elif args.import_batch:
+            from pathlib import Path
+            from .batch_import import parse_batch, validate_batch
+            from .queue_editor import add_batch, queue_digest
+            rows = parse_batch(Path(args.import_batch).read_text(encoding="utf-8"))
+            queue, state = app.load()
+            items, errors = validate_batch(rows, queue, state)
+            if errors:
+                raise ValueError("Batch import rejected: " + "; ".join(errors))
+            if args.confirm:
+                items = add_batch(settings.queue_path, state, rows,
+                                  expected_revision=queue_digest(settings.queue_path))
+            console.print_json(data={"count": len(items), "ids": [item.id for item in items],
+                                     "confirmed": args.confirm})
+        return 0
+    except (OSError, ValueError, RuntimeError) as error:
+        console.print(f"Scheduling error: {error}", markup=False)
+        return 3
+    finally:
+        if app is not None:
+            app.close()
+
+
+def _print_schedule(data):
+    queued = Table(title="UPCOMING QUEUE")
+    queued.add_column("#")
+    queued.add_column("ID")
+    queued.add_column("Subject")
+    for row in data["queued"]:
+        queued.add_row(str(row["queue_position"]), row["item"]["id"], row["item"]["subject"])
+    console.print(queued)
+    scheduled = Table(title=f"LOCAL SCHEDULE · {data['timezone']}")
+    scheduled.add_column("When")
+    scheduled.add_column("ID")
+    scheduled.add_column("State")
+    for row in data["items"]:
+        scheduled.add_row(row["scheduled_at"] or "Buffer only", row["item"]["id"], row["schedule_status"])
+    console.print(scheduled)
+    if data["conflicts"]:
+        console.print_json(data={"conflicts": data["conflicts"]})
 
 
 def regeneration_main(args):

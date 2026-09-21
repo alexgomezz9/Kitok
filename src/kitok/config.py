@@ -1,6 +1,6 @@
 from __future__ import annotations
 from pathlib import Path
-from pydantic import Field, SecretStr, field_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from zoneinfo import ZoneInfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -18,14 +18,44 @@ class Settings(BaseSettings):
     mpt_api_key: str = ""
     fish_api_key: SecretStr = SecretStr("")
     fish_model: str = "s2.1-pro-free"
+    fish_tts_timeout_seconds: float = Field(default=180.0, gt=0)
     dialogue_gap_ms: int = Field(default=140, ge=0, le=1000)
+    dialogue_subtitle_max_chars: int = Field(default=26, ge=4, le=80)
+    # libass uses a 288 px script canvas when an SRT has no PlayResY.
+    # 48 therefore renders about 150 output pixels above the previous value 25.
+    dialogue_subtitle_bottom_margin: int = Field(default=48, ge=0, le=600)
+    explainer_subtitle_max_chars: int = Field(default=24, ge=4, le=80)
+    explainer_subtitle_min_words: int = Field(default=2, ge=1, le=10)
+    explainer_subtitle_max_words: int = Field(default=4, ge=1, le=10)
+    # SRT/libass uses a 288 px script canvas; 64 places centered explainer
+    # captions safely above the bottom character area in a 1920 px render.
+    explainer_subtitle_bottom_margin: int = Field(default=64, ge=0, le=600)
     background_root: Path = PROJECT_ROOT / "assets" / "backgrounds"
     character_root: Path = PROJECT_ROOT / "assets" / "characters"
+    data_root: Path | None = None
+    character_active_height: int = Field(default=740, ge=100, le=1000)
+    character_max_width: int = Field(default=660, ge=100, le=900)
+    character_scale_variation: float = Field(default=0.04, ge=0, le=0.15)
+    character_position_variation: int = Field(default=16, ge=0, le=80)
+    character_bottom_margin: int = Field(default=350, ge=200, le=700)
+    character_entry_seconds: float = Field(default=0.28, ge=0, le=1)
+    character_exit_seconds: float = Field(default=0.22, ge=0, le=1)
+    character_entry_horizontal_pixels: int = Field(default=48, ge=0, le=200)
+    character_reaction_probability: float = Field(default=0.0, ge=0, le=1)
+    character_reaction_min_seconds: float = Field(default=0.5, ge=0.1, le=2)
+    character_reaction_max_seconds: float = Field(default=1.0, ge=0.1, le=3)
+    single_speaker_pose_min_seconds: float = Field(default=3.0, ge=1, le=15)
+    single_speaker_pose_max_seconds: float = Field(default=6.0, ge=1, le=20)
+    default_visual_profile: str = "gameplay"
+    default_posting_slots: list[str] = ["13:00", "19:00", "22:00"]
+    character_left_anchor: int = Field(default=40, ge=0, le=300)
+    character_right_anchor: int = Field(default=40, ge=0, le=300)
     ready_dir: Path = PROJECT_ROOT / "outputs" / "ready-phone"
     mpt_preset_path: Path = PROJECT_ROOT / "presets" / "mpt_default.json"
 
     poll_interval_seconds: float = Field(default=5.0, gt=0)
     task_timeout_minutes: float = Field(default=30.0, gt=0)
+    mpt_progress_stall_minutes: float = Field(default=12.0, gt=0)
     mpt_request_timeout_seconds: float = Field(default=30.0, gt=0)
     http_retry_attempts: int = Field(default=4, ge=1, le=10)
     http_retry_base_seconds: float = Field(default=1.5, gt=0)
@@ -67,23 +97,41 @@ class Settings(BaseSettings):
         ZoneInfo(value)
         return value
 
+    @field_validator("default_posting_slots")
+    @classmethod
+    def valid_posting_slots(cls, values):
+        from datetime import time
+        if not values or len(values) != len(set(values)):
+            raise ValueError("Publishing slots must be non-empty and unique")
+        for value in values:
+            time.fromisoformat(value)
+        return values
+
+    @model_validator(mode="after")
+    def valid_local_render_intervals(self):
+        if self.single_speaker_pose_min_seconds > self.single_speaker_pose_max_seconds:
+            raise ValueError("Single-speaker pose minimum must not exceed its maximum")
+        if self.explainer_subtitle_min_words > self.explainer_subtitle_max_words:
+            raise ValueError("Explainer subtitle minimum words must not exceed its maximum")
+        return self
+
     @property
     def buffer_channel_ids(self):
         return {p: getattr(self, f"buffer_{p}_channel_id")
                 for p in ("tiktok", "instagram", "youtube")}
 
     @property
-    def queue_path(self): return PROJECT_ROOT / "content_queue.json"
+    def queue_path(self): return (self.data_root or PROJECT_ROOT) / "content_queue.json"
     @property
-    def state_path(self): return PROJECT_ROOT / "state" / "state.json"
+    def state_path(self): return (self.data_root or PROJECT_ROOT) / "state" / "state.json"
     @property
-    def generated_dir(self): return PROJECT_ROOT / "outputs" / "generated"
+    def generated_dir(self): return (self.data_root or PROJECT_ROOT) / "outputs" / "generated"
     @property
-    def failed_dir(self): return PROJECT_ROOT / "outputs" / "failed"
+    def failed_dir(self): return (self.data_root or PROJECT_ROOT) / "outputs" / "failed"
     @property
-    def local_ready_dir(self): return PROJECT_ROOT / "outputs" / "ready"
+    def local_ready_dir(self): return (self.data_root or PROJECT_ROOT) / "outputs" / "ready"
     @property
-    def logs_dir(self): return PROJECT_ROOT / "logs"
+    def logs_dir(self): return (self.data_root or PROJECT_ROOT) / "logs"
     @property
     def cache_path(self): return self.state_path.with_name("services.json")
 

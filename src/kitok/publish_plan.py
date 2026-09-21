@@ -8,7 +8,7 @@ def generate_publish_plan(queue:ContentQueue,states:dict,target_dir:Path):
     target_dir.mkdir(parents=True,exist_ok=True)
     rows=[]
     for item in queue.items:
-        if item.editorial_status != "active": continue
+        if item.editorial_status != "active" or not item.schedule_enabled: continue
         st=states.get(item.id,{})
         if st.get("status")!="ready": continue
         rows.append({
