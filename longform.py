@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
+import subprocess
 import sys
 import time
 from dataclasses import dataclass
@@ -12,12 +14,22 @@ from typing import Any, Callable
 from pydantic import ValidationError
 
 from kitok.config import PROJECT_ROOT, Settings
+from kitok.dialogue_audio import media_duration
 from kitok.models import ContentItem, MPTTask
 from kitok.mpt_client import MPTClient, TASK_STATE_COMPLETE, TASK_STATE_FAILED
 
 
 POLL_INTERVAL_SECONDS = 5
 MAX_WAIT_SECONDS = 90 * 60
+DEFAULT_NARRATOR_VOICE = (
+    "fish_audio:e686ae649ee44f219a108aacba206c1a:Loose Thread Narrator"
+)
+DEFAULT_VOICE_RATE = 0.98
+DEFAULT_BACKGROUND_MUSIC_FILE = Path("assets/music/loose_thread/level.mp3")
+DEFAULT_BACKGROUND_MUSIC_VOLUME = 0.07
+DEFAULT_AUDIO_LOUDNESS_TARGET = -16.0
+DEFAULT_AUDIO_LRA_TARGET = 7.0
+DEFAULT_AUDIO_TRUE_PEAK_TARGET = -1.5
 
 
 class LongformError(RuntimeError):
@@ -30,6 +42,13 @@ class LongformDefinition:
     voice_name: str
     voice_rate: float
     video_clip_duration: float
+    background_music_file: Path
+    background_music_volume: float
+    audio_loudness_target: float
+    audio_lra_target: float
+    audio_true_peak_target: float
+    music_enabled: bool
+    preserve_debug_audio: bool
 
 
 def _read_json_object(path: Path, label: str) -> dict[str, Any]:
@@ -60,6 +79,31 @@ def _positive_number(raw: dict[str, Any], field: str, default: float) -> float:
     if isinstance(value, bool) or not isinstance(value, (int, float)) or value <= 0:
         raise LongformError(f"Long-form config field '{field}' must be a positive number")
     return float(value)
+
+
+def _number(raw: dict[str, Any], field: str, default: float, *, minimum: float | None = None) -> float:
+    value = raw.get(field, default)
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise LongformError(f"Long-form config field '{field}' must be a number")
+    result = float(value)
+    if not math.isfinite(result) or (minimum is not None and result < minimum):
+        qualifier = f" at least {minimum:g}" if minimum is not None else " finite"
+        raise LongformError(f"Long-form config field '{field}' must be{qualifier}")
+    return result
+
+
+def _boolean(raw: dict[str, Any], field: str, default: bool) -> bool:
+    value = raw.get(field, default)
+    if not isinstance(value, bool):
+        raise LongformError(f"Long-form config field '{field}' must be true or false")
+    return value
+
+
+def _optional_text(raw: dict[str, Any], field: str, default: str) -> str:
+    value = raw.get(field, default)
+    if not isinstance(value, str) or not value.strip():
+        raise LongformError(f"Long-form config field '{field}' must not be blank")
+    return value.strip()
 
 
 def load_longform_config(
@@ -93,9 +137,33 @@ def load_longform_config(
     if any(not isinstance(keyword, str) for keyword in keywords):
         raise LongformError("Every value in long-form config field 'keywords' must be a string")
 
-    voice_name = _required_text(raw, "voice_name")
-    voice_rate = _positive_number(raw, "voice_rate", 1.0)
+    # narrator_voice is the descriptive key for new Loose Thread configs.
+    # voice_name remains supported so existing configs (including Daniel) keep working.
+    voice_name = _optional_text(
+        raw, "narrator_voice", raw.get("voice_name", DEFAULT_NARRATOR_VOICE)
+    )
+    voice_rate = _positive_number(raw, "voice_rate", DEFAULT_VOICE_RATE)
     video_clip_duration = _positive_number(raw, "video_clip_duration", 5.0)
+    music_value = _optional_text(
+        raw, "background_music_file", str(DEFAULT_BACKGROUND_MUSIC_FILE)
+    )
+    background_music_file = Path(music_value).expanduser()
+    if not background_music_file.is_absolute():
+        background_music_file = project_root / background_music_file
+    background_music_volume = _number(
+        raw, "background_music_volume", DEFAULT_BACKGROUND_MUSIC_VOLUME, minimum=0
+    )
+    audio_loudness_target = _number(
+        raw, "audio_loudness_target", DEFAULT_AUDIO_LOUDNESS_TARGET
+    )
+    audio_lra_target = _number(
+        raw, "audio_lra_target", DEFAULT_AUDIO_LRA_TARGET, minimum=0
+    )
+    audio_true_peak_target = _number(
+        raw, "audio_true_peak_target", DEFAULT_AUDIO_TRUE_PEAK_TARGET
+    )
+    music_enabled = _boolean(raw, "music_enabled", True)
+    preserve_debug_audio = _boolean(raw, "preserve_debug_audio", False)
 
     try:
         item = ContentItem(
@@ -122,6 +190,13 @@ def load_longform_config(
         voice_name=voice_name,
         voice_rate=voice_rate,
         video_clip_duration=video_clip_duration,
+        background_music_file=background_music_file,
+        background_music_volume=background_music_volume,
+        audio_loudness_target=audio_loudness_target,
+        audio_lra_target=audio_lra_target,
+        audio_true_peak_target=audio_true_peak_target,
+        music_enabled=music_enabled,
+        preserve_debug_audio=preserve_debug_audio,
     )
 
 
@@ -161,6 +236,186 @@ def longform_output_path(content_id: str, *, project_root: Path = PROJECT_ROOT) 
 
 def longform_task_path(content_id: str, *, project_root: Path = PROJECT_ROOT) -> Path:
     return project_root / "outputs" / "longform" / "tasks" / f"{content_id}.json"
+
+
+def _require_longform_music(definition: LongformDefinition) -> None:
+    if definition.music_enabled and not definition.background_music_file.is_file():
+        raise LongformError(
+            "Loose Thread background music is enabled but the file does not exist: "
+            f"{definition.background_music_file}"
+        )
+
+
+def _debug_audio_paths(source: Path, content_id: str) -> tuple[Path, Path, Path]:
+    debug_dir = source.parent / "debug"
+    return (
+        debug_dir / f"{content_id}_01_raw.mp3",
+        debug_dir / f"{content_id}_02_normalized.mp3",
+        debug_dir / f"{content_id}_03_final_mix.mp3",
+    )
+
+
+def _export_debug_audio(
+    source: Path,
+    destination: Path,
+    *,
+    settings: Settings,
+    stage: str,
+    audio_filter: str | None = None,
+) -> Path:
+    """Atomically export one opt-in Loose Thread debug audio stage."""
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    temporary = destination.with_name(f".{destination.name}.tmp{destination.suffix}")
+    temporary.unlink(missing_ok=True)
+    command = [
+        settings.ffmpeg_binary, "-nostdin", "-v", "error", "-y", "-i", str(source),
+        "-map", "0:a:0", "-vn",
+    ]
+    if audio_filter:
+        command += ["-af", audio_filter]
+    command += ["-c:a", "libmp3lame", "-b:a", "192k", str(temporary)]
+    try:
+        subprocess.run(
+            command, capture_output=True, text=True, check=True, timeout=1800
+        )
+    except subprocess.CalledProcessError as exc:
+        temporary.unlink(missing_ok=True)
+        detail = (exc.stderr or "").strip()[-500:]
+        suffix = f": {detail}" if detail else ""
+        raise LongformError(
+            f"Loose Thread debug audio export failed during {stage}{suffix}"
+        ) from exc
+    except (OSError, subprocess.SubprocessError) as exc:
+        temporary.unlink(missing_ok=True)
+        raise LongformError(
+            f"Loose Thread debug audio export failed during {stage}"
+        ) from exc
+    if not temporary.is_file() or temporary.stat().st_size == 0:
+        temporary.unlink(missing_ok=True)
+        raise LongformError(
+            f"Loose Thread debug audio export failed during {stage}: no output"
+        )
+    temporary.replace(destination)
+    return destination
+
+
+def postprocess_longform_audio(
+    source: Path,
+    definition: LongformDefinition,
+    *,
+    settings: Settings,
+) -> Path:
+    """Normalize Loose Thread narration and optionally mix its local music."""
+    _require_longform_music(definition)
+    if not source.is_file():
+        raise LongformError(f"Downloaded MPT video does not exist: {source}")
+
+    temporary = source.with_name(f".{source.name}.postprocess.tmp{source.suffix}")
+    temporary.unlink(missing_ok=True)
+    loudnorm = (
+        f"loudnorm=I={definition.audio_loudness_target:g}:"
+        f"LRA={definition.audio_lra_target:g}:"
+        f"TP={definition.audio_true_peak_target:g}"
+    )
+    debug_paths = _debug_audio_paths(source, definition.item.id)
+    if definition.preserve_debug_audio:
+        _export_debug_audio(
+            source, debug_paths[0], settings=settings, stage="raw MPT narration"
+        )
+        _export_debug_audio(
+            source,
+            debug_paths[1],
+            settings=settings,
+            stage="normalized narration",
+            audio_filter=loudnorm,
+        )
+    command = [
+        settings.ffmpeg_binary, "-nostdin", "-v", "error", "-y", "-i", str(source)
+    ]
+
+    try:
+        video_duration = media_duration(source, settings.ffprobe_binary)
+    except RuntimeError as exc:
+        raise LongformError(
+            f"Loose Thread audio post-processing failed during duration probe: {exc}"
+        ) from exc
+    duration_text = f"{video_duration:g}"
+    # Padding after loudness normalization keeps silence out of loudnorm's
+    # analysis while making the first amix input last exactly as long as video.
+    voice_filter = (
+        f"[0:a:0]{loudnorm},apad=whole_dur={duration_text},"
+        f"atrim=duration={duration_text}[voice]"
+    )
+
+    if definition.music_enabled:
+        fade_out_duration = min(1.5, video_duration)
+        fade_out_start = max(0.0, video_duration - fade_out_duration)
+        command += ["-stream_loop", "-1", "-i", str(definition.background_music_file)]
+        filters = (
+            f"{voice_filter};"
+            f"[1:a:0]volume={definition.background_music_volume:g},"
+            f"afade=t=in:st=0:d=1,"
+            f"afade=t=out:st={fade_out_start:g}:d={fade_out_duration:g},"
+            f"atrim=duration={duration_text}[music];"
+            "[voice][music]amix=inputs=2:duration=first:"
+            "dropout_transition=2:normalize=0,"
+            f"atrim=duration={duration_text}[audio]"
+        )
+    else:
+        filters = voice_filter.replace("[voice]", "[audio]")
+
+    command += [
+        "-filter_complex", filters,
+        "-map", "0:v:0", "-map", "[audio]",
+        "-map_metadata", "0",
+        "-c:v", "copy",
+        "-c:a", "aac", "-b:a", "192k",
+        "-t", f"{video_duration:.6f}",
+        "-movflags", "+faststart",
+        str(temporary),
+    ]
+    try:
+        subprocess.run(
+            command, capture_output=True, text=True, check=True, timeout=1800
+        )
+    except subprocess.CalledProcessError as exc:
+        temporary.unlink(missing_ok=True)
+        detail = (exc.stderr or "").strip()[-500:]
+        suffix = f": {detail}" if detail else ""
+        raise LongformError(
+            f"Loose Thread audio post-processing failed during FFmpeg mix{suffix}"
+        ) from exc
+    except (OSError, subprocess.SubprocessError) as exc:
+        temporary.unlink(missing_ok=True)
+        raise LongformError(
+            "Loose Thread audio post-processing failed while starting or waiting for FFmpeg"
+        ) from exc
+
+    if not temporary.is_file() or temporary.stat().st_size == 0:
+        temporary.unlink(missing_ok=True)
+        raise LongformError(
+            "Loose Thread audio post-processing failed: FFmpeg produced no output"
+        )
+    if definition.preserve_debug_audio:
+        try:
+            _export_debug_audio(
+                temporary,
+                debug_paths[2],
+                settings=settings,
+                stage="final narration and music mix",
+            )
+        except LongformError:
+            temporary.unlink(missing_ok=True)
+            raise
+    try:
+        temporary.replace(source)
+    except OSError as exc:
+        temporary.unlink(missing_ok=True)
+        raise LongformError(
+            "Loose Thread audio post-processing failed during atomic replacement; "
+            "the downloaded MPT video was preserved"
+        ) from exc
+    return source
 
 
 def _save_task(task_path: Path, task_id: str, content_id: str) -> None:
@@ -245,12 +500,14 @@ def run_longform(
     resume_task_id: str | None = None,
     start_over: bool = False,
     client_factory: Callable[..., MPTClient] = MPTClient,
+    audio_processor: Callable[..., Path] = postprocess_longform_audio,
     sleep: Callable[[float], None] = time.sleep,
     monotonic: Callable[[], float] = time.monotonic,
 ) -> Path:
     content_id = definition.item.id
     destination = longform_output_path(content_id, project_root=project_root)
     task_path = longform_task_path(content_id, project_root=project_root)
+    _require_longform_music(definition)
 
     if resume_task_id is None:
         saved_task_id = _saved_task_id(task_path)
@@ -294,6 +551,8 @@ def run_longform(
             sleep=sleep,
             monotonic=monotonic,
         )
+        print("Normalizing narration and mixing Loose Thread music...")
+        result = audio_processor(result, definition, settings=settings)
         if _saved_task_id(task_path) == active_task_id:
             task_path.unlink(missing_ok=True)
         print(f"DONE: {result.resolve()}")

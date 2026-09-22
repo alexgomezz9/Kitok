@@ -37,3 +37,4 @@ assets/backgrounds/**/*.mkv
 assets/backgrounds/**/*.webm
 frontend/*.tsbuildinfo
 frontend/*.tsbuildinfo
+*.mp3
