@@ -377,8 +377,14 @@ class DialogueCompositor:
             self.s, "explainer_subtitle_max_chars" if single else "dialogue_subtitle_max_chars",
             24 if single else 26,
         )
-        min_words = getattr(self.s, "explainer_subtitle_min_words", 2) if single else 2
-        max_words = getattr(self.s, "explainer_subtitle_max_words", 4) if single else 5
+        min_words = getattr(
+            self.s, "explainer_subtitle_min_words" if single else "dialogue_subtitle_min_words",
+            2,
+        )
+        max_words = getattr(
+            self.s, "explainer_subtitle_max_words" if single else "dialogue_subtitle_max_words",
+            4 if single else 5,
+        )
         subtitle = write_subtitles(
             dialogue.timeline, workspace / "dialogue.srt", max_chars=max_chars,
             min_words=min_words, max_words=max_words,
@@ -425,8 +431,16 @@ class DialogueCompositor:
         )
         self.metadata["dialogue_subtitle_bottom_margin"] = subtitle_margin
         self.metadata["subtitle_bottom_margin"] = subtitle_margin
+        if single:
+            subtitle_style = f"FontSize=13,Alignment=2,MarginV={subtitle_margin},Outline=1"
+        else:
+            font_size = getattr(self.s, "dialogue_subtitle_font_size", 13)
+            outline = getattr(self.s, "dialogue_subtitle_outline", 1.0)
+            bold = ",Bold=1" if getattr(self.s, "dialogue_subtitle_bold", False) else ""
+            subtitle_style = (f"FontSize={font_size}{bold},Alignment=2,"
+                              f"MarginV={subtitle_margin},Outline={outline:g}")
         filters.append(f"[{current}]subtitles='dialogue.srt':"
-                       f"force_style='FontSize=13,Alignment=2,MarginV={subtitle_margin},Outline=1'[video]")
+                       f"force_style='{subtitle_style}'[video]")
         command += ["-filter_complex", ";".join(filters), "-map", "[video]", "-map", "1:a:0",
                     "-t", f"{duration:.3f}", "-c:v", "libx264", "-preset", "medium", "-crf", "22",
                     "-pix_fmt", "yuv420p", "-r", "30", "-c:a", "aac", "-profile:a", "aac_low",

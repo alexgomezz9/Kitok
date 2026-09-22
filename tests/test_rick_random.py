@@ -148,6 +148,9 @@ def test_local_composition_removes_background_audio_and_bounds_short_subtitles(t
         single_speaker_pose_min_seconds=3.0, single_speaker_pose_max_seconds=6.0,
         explainer_subtitle_max_chars=24, explainer_subtitle_min_words=2,
         explainer_subtitle_max_words=4, explainer_subtitle_bottom_margin=64,
+        dialogue_subtitle_font_size=99, dialogue_subtitle_outline=9,
+        dialogue_subtitle_bold=True, dialogue_subtitle_min_words=1,
+        dialogue_subtitle_max_words=1,
     )
     command = []
 
@@ -166,6 +169,8 @@ def test_local_composition_removes_background_audio_and_bounds_short_subtitles(t
     filters = command[command.index("-filter_complex") + 1]
     assert "scale=1080:1920" in filters and "crop=1080:1920" in filters
     assert "Alignment=2,MarginV=64" in filters
+    assert "FontSize=13,Alignment=2,MarginV=64,Outline=1" in filters
+    assert "FontSize=99" not in filters and "Bold=1" not in filters
     cues = compositor.metadata["subtitle_cues"]
     assert cues[0]["start"] == 0 and cues[-1]["end"] == duration
     assert all(cue["end"] <= duration for cue in cues)

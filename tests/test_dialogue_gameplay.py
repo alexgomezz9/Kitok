@@ -6,6 +6,7 @@ from unittest.mock import Mock
 import pytest
 from PIL import Image
 
+from kitok.config import Settings
 from kitok.dialogue_audio import TimedTurn
 from kitok.dialogue_subtitles import WEAK_ENDINGS, _word, dialogue_cues
 from kitok.dialogue_video import BackgroundPool, BackgroundSelection, CharacterAssetRegistry, DialogueCompositor
@@ -199,6 +200,72 @@ def test_gameplay_compose_seeks_before_input_and_maps_only_dialogue_audio(tmp_pa
     assert command[command.index("-t") + 1] == "9.370"
     maps = [command[i + 1] for i, value in enumerate(command) if value == "-map"]
     assert maps == ["[video]", "1:a:0"]
+
+
+def test_dialogue_subtitle_environment_settings_control_chunks_and_style(tmp_path, monkeypatch):
+    values = {
+        "CHARACTER_BOTTOM_MARGIN": "270",
+        "DIALOGUE_SUBTITLE_BOTTOM_MARGIN": "180",
+        "DIALOGUE_SUBTITLE_FONT_SIZE": "15",
+        "DIALOGUE_SUBTITLE_OUTLINE": "2",
+        "DIALOGUE_SUBTITLE_BOLD": "true",
+        "DIALOGUE_SUBTITLE_MIN_WORDS": "2",
+        "DIALOGUE_SUBTITLE_MAX_WORDS": "3",
+    }
+    for name in values:
+        monkeypatch.delenv(name, raising=False)
+    defaults = Settings(_env_file=None)
+    assert defaults.dialogue_subtitle_font_size == 13
+    assert defaults.dialogue_subtitle_outline == 1.0
+    assert defaults.dialogue_subtitle_bold is False
+    assert defaults.dialogue_subtitle_min_words == 2
+    assert defaults.dialogue_subtitle_max_words == 5
+    with pytest.raises(ValueError, match="Dialogue subtitle minimum words"):
+        Settings(_env_file=None, dialogue_subtitle_min_words=4,
+                 dialogue_subtitle_max_words=3)
+
+    for name, value in values.items():
+        monkeypatch.setenv(name, value)
+    settings = Settings(
+        _env_file=None,
+        character_root=tmp_path / "characters",
+        ffmpeg_binary="ffmpeg",
+        ffprobe_binary="ffprobe",
+    )
+    assert settings.character_bottom_margin == 270
+    assert settings.dialogue_subtitle_bottom_margin == 180
+    assert settings.dialogue_subtitle_font_size == 15
+    assert settings.dialogue_subtitle_outline == 2.0
+    assert settings.dialogue_subtitle_bold is True
+    assert settings.dialogue_subtitle_min_words == 2
+    assert settings.dialogue_subtitle_max_words == 3
+
+    source = tmp_path / "source.mp4"
+    source.write_bytes(b"video")
+    audio = tmp_path / "audio.m4a"
+    audio.write_bytes(b"audio")
+    dialogue = SimpleNamespace(
+        path=audio,
+        duration=6.0,
+        timeline=[TimedTurn("rick_es", 0, 6, "Uno dos tres cuatro cinco seis")],
+    )
+    command = []
+
+    def run(args, **kwargs):
+        command.extend(args)
+        Path(args[-1]).write_bytes(b"video")
+
+    monkeypatch.setattr("kitok.dialogue_video.subprocess.run", run)
+    compositor = DialogueCompositor(settings)
+    compositor.compose(
+        item(character_profile=None), source, dialogue, tmp_path / "final.mp4", tmp_path,
+        selection=BackgroundSelection(source, 10.0, 0.0, 6.0),
+    )
+    filters = command[command.index("-filter_complex") + 1]
+    assert ("force_style='FontSize=15,Bold=1,Alignment=2,MarginV=180,Outline=2'"
+            in filters)
+    assert all(2 <= len(cue["text"].split()) <= 3
+               for cue in compositor.metadata["subtitle_cues"])
 
 
 def test_chunked_subtitles_are_short_punctuation_aware_and_bounded():

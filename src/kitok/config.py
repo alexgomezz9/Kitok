@@ -21,6 +21,11 @@ class Settings(BaseSettings):
     fish_tts_timeout_seconds: float = Field(default=180.0, gt=0)
     dialogue_gap_ms: int = Field(default=140, ge=0, le=1000)
     dialogue_subtitle_max_chars: int = Field(default=26, ge=4, le=80)
+    dialogue_subtitle_font_size: int = Field(default=13, ge=1, le=200)
+    dialogue_subtitle_outline: float = Field(default=1.0, ge=0, le=20)
+    dialogue_subtitle_bold: bool = False
+    dialogue_subtitle_min_words: int = Field(default=2, ge=1, le=10)
+    dialogue_subtitle_max_words: int = Field(default=5, ge=1, le=10)
     # libass uses a 288 px script canvas when an SRT has no PlayResY.
     # 48 therefore renders about 150 output pixels above the previous value 25.
     dialogue_subtitle_bottom_margin: int = Field(default=48, ge=0, le=600)
@@ -113,6 +118,8 @@ class Settings(BaseSettings):
             raise ValueError("Single-speaker pose minimum must not exceed its maximum")
         if self.explainer_subtitle_min_words > self.explainer_subtitle_max_words:
             raise ValueError("Explainer subtitle minimum words must not exceed its maximum")
+        if self.dialogue_subtitle_min_words > self.dialogue_subtitle_max_words:
+            raise ValueError("Dialogue subtitle minimum words must not exceed its maximum")
         return self
 
     @property
