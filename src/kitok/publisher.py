@@ -32,9 +32,9 @@ def build_caption(caption: str, fixed_hashtags: str) -> str:
     return text
 
 
-def post_content(item, platform: str, fixed_hashtags: str, *, ai_assisted: bool = True,
-                 tiktok_ai_generated: bool = True, youtube_ai_generated: bool = True,
-                 instagram_ai_generated: bool = True) -> dict:
+def post_content(item, platform: str, fixed_hashtags: str, *, ai_assisted: bool = False,
+                 tiktok_ai_generated: bool = False, youtube_ai_generated: bool = False,
+                 instagram_ai_generated: bool = False) -> dict:
     """Build supported platform payloads; pure function, no requests or writes."""
     if platform not in PLATFORMS:
         raise ValueError(f"Unsupported platform: {platform}")

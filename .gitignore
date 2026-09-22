@@ -10,6 +10,7 @@ outputs/generated/*
 outputs/failed/*
 outputs/ready/*
 outputs/ready-phone/*
+outputs/longform/*
 !outputs/generated/.gitkeep
 !outputs/failed/.gitkeep
 !outputs/ready/.gitkeep

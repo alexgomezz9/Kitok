@@ -69,10 +69,10 @@ class Settings(BaseSettings):
     copy_metadata_sidecars: bool = True
 
     publish_enabled: bool = False
-    content_ai_assisted: bool = True
-    tiktok_ai_generated: bool = True
-    instagram_ai_generated: bool = True
-    youtube_ai_generated: bool = True
+    content_ai_assisted: bool = False
+    tiktok_ai_generated: bool = False
+    instagram_ai_generated: bool = False
+    youtube_ai_generated: bool = False
     timezone: str = "Europe/Madrid"
     fixed_hashtags: str = "#curiosidades #datoscuriosos"
     buffer_api_key: SecretStr = SecretStr("")
