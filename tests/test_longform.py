@@ -47,7 +47,8 @@ def test_load_longform_config_reads_script_and_builds_content_item(tmp_path):
         "fish_audio:e686ae649ee44f219a108aacba206c1a:Loose Thread Narrator"
     )
     assert definition.voice_rate == 0.98
-    assert definition.video_clip_duration == 7
+    assert definition.video_clip_duration_min == 5.5
+    assert definition.video_clip_duration_max == 8.5
     assert definition.background_music_file == (
         tmp_path / "assets/music/loose_thread/level.mp3"
     )
@@ -104,7 +105,9 @@ def test_longform_preset_overrides_base_without_modifying_file(tmp_path):
     result = longform.build_longform_preset(definition, preset_path=preset_path)
 
     assert result["video_aspect"] == "16:9"
-    assert result["video_clip_duration"] == 7
+    assert result["video_clip_duration"] == 8.5
+    assert result["video_clip_duration_min"] == 5.5
+    assert result["video_clip_duration_max"] == 8.5
     assert result["voice_rate"] == 1.1
     assert result["subtitle_enabled"] is False
     assert result["kept"] == "yes"
@@ -129,6 +132,47 @@ def test_inline_fish_directions_are_preserved_in_mpt_payload(tmp_path):
 
     assert definition.item.script == script
     assert payload["video_script"] == script
+
+
+def test_tts_script_validation_accepts_complete_normalized_text():
+    assert longform.validate_tts_script("  A complete final sentence.\n") == (
+        "A complete final sentence."
+    )
+
+
+def test_tts_script_validation_rejects_truncated_text_with_diagnostic_tail():
+    truncated = (
+        "Because one year later, attackers would help bring a casino empire down "
+        "after a pho"
+    )
+
+    with pytest.raises(longform.LongformError, match="appears truncated") as error:
+        longform.validate_tts_script(truncated)
+
+    assert truncated in str(error.value)
+
+
+def test_truncated_script_stops_before_mpt_client_or_fish(tmp_path):
+    definition = longform.load_longform_config(
+        write_definition(
+            tmp_path,
+            script_text=(
+                "Because one year later, attackers would help bring a casino empire "
+                "down after a pho"
+            ),
+            music_enabled=False,
+        ),
+        project_root=tmp_path,
+    )
+
+    with pytest.raises(longform.LongformError, match="appears truncated"):
+        longform.run_longform(
+            definition,
+            {},
+            settings=Settings(_env_file=None),
+            project_root=tmp_path,
+            client_factory=lambda *args, **kwargs: pytest.fail("MPT client was created"),
+        )
 
 
 def test_longform_changes_do_not_mutate_short_form_defaults(tmp_path):
@@ -258,13 +302,17 @@ def test_audio_postprocess_normalizes_narration_and_mixes_music(tmp_path, monkey
     command = commands[0]
     filters = command[command.index("-filter_complex") + 1]
     assert "loudnorm=I=-16:LRA=7:TP=-1.5" in filters
-    assert "apad=whole_dur=20" in filters
-    assert "atrim=duration=20" in filters
+    assert "fade=t=in:st=0:d=0.6" in filters
+    assert "tpad=stop_mode=clone:stop_duration=1.25" in filters
+    assert "fade=t=out:st=20:d=1.25[video]" in filters
+    assert "apad=whole_dur=21.25" in filters
+    assert "atrim=duration=21.25" in filters
     assert "volume=0.07" in filters
     assert "amix=inputs=2:duration=first:dropout_transition=2:normalize=0" in filters
-    assert command[command.index("-c:v") + 1] == "copy"
+    assert command[command.index("-c:v") + 1] == "libx264"
     assert command[command.index("-b:a") + 1] == "192k"
     assert command[command.index("-stream_loop") + 1] == "-1"
+    assert float(command[command.index("-t") + 1]) == pytest.approx(21.25)
 
 
 def test_audio_extends_music_through_video_end_after_shorter_narration(
@@ -296,11 +344,11 @@ def test_audio_extends_music_through_video_end_after_shorter_narration(
     filters = command[command.index("-filter_complex") + 1]
     output_duration = float(command[command.index("-t") + 1])
     assert narration_duration < video_duration
-    assert "apad=whole_dur=20.7,atrim=duration=20.7[voice]" in filters
-    assert "afade=t=out:st=19.2:d=1.5,atrim=duration=20.7[music]" in filters
-    assert "normalize=0,atrim=duration=20.7[audio]" in filters
-    assert output_duration == pytest.approx(video_duration)
-    assert command[command.index("-c:v") + 1] == "copy"
+    assert "apad=whole_dur=21.95,atrim=duration=21.95[voice]" in filters
+    assert "afade=t=out:st=20.7:d=1.25,atrim=duration=21.95[music]" in filters
+    assert "normalize=0,atrim=duration=21.95[audio]" in filters
+    assert output_duration == pytest.approx(video_duration + 1.25)
+    assert command[command.index("-c:v") + 1] == "libx264"
 
 
 def test_debug_mode_preserves_raw_normalized_and_final_mix_audio(

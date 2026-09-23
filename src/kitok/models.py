@@ -31,7 +31,7 @@ class DialogueTurn(BaseModel):
 class ContentItem(BaseModel):
     id: str
     subject: str = Field(min_length=1, max_length=500)
-    script: str = Field(default="", max_length=12000)
+    script: str = Field(default="", max_length=24000)
     keywords: list[str] = Field(min_length=1, max_length=20)
     caption: str = Field(default="", max_length=2200)
     youtube_title: str | None = Field(default=None, max_length=100)

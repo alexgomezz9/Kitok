@@ -1,8 +1,10 @@
 """Direct Fish TTS for dialogue turns; never exposes credentials in errors."""
 from __future__ import annotations
 
+import math
 import time
 from pathlib import Path
+
 import httpx
 
 
@@ -27,7 +29,17 @@ class FishVoiceClient:
         if self._owns_client:
             self.client.close()
 
-    def synthesize(self, text: str, reference_id: str, destination: Path) -> Path:
+    def synthesize(
+        self,
+        text: str,
+        reference_id: str,
+        destination: Path,
+        *,
+        speed: float | None = None,
+        temperature: float | None = None,
+        top_p: float | None = None,
+        normalize_loudness: bool | None = None,
+    ) -> Path:
         if not self.api_key:
             raise FishVoiceError("FISH_API_KEY is required for dialogue audio")
         if not text.strip() or not reference_id:
@@ -37,6 +49,19 @@ class FishVoiceClient:
         headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json",
                    "model": self.model}
         body = {"text": text, "reference_id": reference_id, "format": "mp3"}
+        if temperature is not None:
+            body["temperature"] = _bounded_number(temperature, "temperature", 0.0, 1.0)
+        if top_p is not None:
+            body["top_p"] = _bounded_number(top_p, "top_p", 0.0, 1.0)
+        if speed is not None or normalize_loudness is not None:
+            prosody = {}
+            if speed is not None:
+                prosody["speed"] = _bounded_number(speed, "speed", 0.5, 2.0)
+            if normalize_loudness is not None:
+                if not isinstance(normalize_loudness, bool):
+                    raise FishVoiceError("Fish normalize_loudness must be true or false")
+                prosody["normalize_loudness"] = normalize_loudness
+            body["prosody"] = prosody
         try:
             for attempt in range(self.attempts):
                 try:
@@ -58,3 +83,13 @@ class FishVoiceClient:
             raise FishVoiceError("Fish TTS request failed")
         finally:
             temporary.unlink(missing_ok=True)
+
+
+def _bounded_number(value: float, label: str, minimum: float, maximum: float) -> float:
+    try:
+        number = float(value)
+    except (TypeError, ValueError) as exc:
+        raise FishVoiceError(f"Fish {label} must be a number") from exc
+    if not math.isfinite(number) or not minimum <= number <= maximum:
+        raise FishVoiceError(f"Fish {label} must be between {minimum:g} and {maximum:g}")
+    return number

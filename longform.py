@@ -30,6 +30,11 @@ DEFAULT_BACKGROUND_MUSIC_VOLUME = 0.07
 DEFAULT_AUDIO_LOUDNESS_TARGET = -16.0
 DEFAULT_AUDIO_LRA_TARGET = 7.0
 DEFAULT_AUDIO_TRUE_PEAK_TARGET = -1.5
+STOCK_CLIP_DURATION_MIN = 5.5
+STOCK_CLIP_DURATION_MAX = 8.5
+VISUAL_FADE_IN_SECONDS = 0.6
+VISUAL_FADE_OUT_SECONDS = 1.25
+VALID_TTS_ENDINGS = (".", "!", "?", '"', "'", "]", ")")
 
 
 class LongformError(RuntimeError):
@@ -41,7 +46,8 @@ class LongformDefinition:
     item: ContentItem
     voice_name: str
     voice_rate: float
-    video_clip_duration: float
+    video_clip_duration_min: float
+    video_clip_duration_max: float
     background_music_file: Path
     background_music_volume: float
     audio_loudness_target: float
@@ -106,6 +112,27 @@ def _optional_text(raw: dict[str, Any], field: str, default: str) -> str:
     return value.strip()
 
 
+def validate_tts_script(script: str) -> str:
+    """Normalize and reject narration that appears truncated before MPT reaches Fish."""
+    text = script.strip()
+    if not text:
+        raise LongformError("TTS script is empty")
+    if not text.endswith(VALID_TTS_ENDINGS):
+        raise LongformError(
+            "TTS script appears truncated. "
+            f"Last characters: {text[-150:]}"
+        )
+    return text
+
+
+def log_tts_script_validation(script: str) -> None:
+    ending = json.dumps(script[-150:], ensure_ascii=False)
+    print("TTS SCRIPT VALIDATION")
+    print(f"characters={len(script)}")
+    print(f"words={len(script.split())}")
+    print(f"ending={ending}")
+
+
 def load_longform_config(
     config_path: str | Path, *, project_root: Path = PROJECT_ROOT
 ) -> LongformDefinition:
@@ -143,7 +170,6 @@ def load_longform_config(
         raw, "narrator_voice", raw.get("voice_name", DEFAULT_NARRATOR_VOICE)
     )
     voice_rate = _positive_number(raw, "voice_rate", DEFAULT_VOICE_RATE)
-    video_clip_duration = _positive_number(raw, "video_clip_duration", 5.0)
     music_value = _optional_text(
         raw, "background_music_file", str(DEFAULT_BACKGROUND_MUSIC_FILE)
     )
@@ -189,7 +215,8 @@ def load_longform_config(
         item=item,
         voice_name=voice_name,
         voice_rate=voice_rate,
-        video_clip_duration=video_clip_duration,
+        video_clip_duration_min=STOCK_CLIP_DURATION_MIN,
+        video_clip_duration_max=STOCK_CLIP_DURATION_MAX,
         background_music_file=background_music_file,
         background_music_volume=background_music_volume,
         audio_loudness_target=audio_loudness_target,
@@ -212,7 +239,11 @@ def build_longform_preset(
             "video_fit_mode": "cover",
             "video_concat_mode": "sequential",
             "video_transition_mode": None,
-            "video_clip_duration": definition.video_clip_duration,
+            # MPT still uses video_clip_duration as its maximum when downloading
+            # candidates. The explicit range controls each final stock cut.
+            "video_clip_duration": definition.video_clip_duration_max,
+            "video_clip_duration_min": definition.video_clip_duration_min,
+            "video_clip_duration_max": definition.video_clip_duration_max,
             "video_clip_speed": 1.0,
             "match_materials_to_script": True,
             "video_count": 1,
@@ -334,43 +365,50 @@ def postprocess_longform_audio(
     ]
 
     try:
-        video_duration = media_duration(source, settings.ffprobe_binary)
+        source_duration = media_duration(source, settings.ffprobe_binary)
     except RuntimeError as exc:
         raise LongformError(
             f"Loose Thread audio post-processing failed during duration probe: {exc}"
         ) from exc
-    duration_text = f"{video_duration:g}"
+    output_duration = source_duration + VISUAL_FADE_OUT_SECONDS
+    source_duration_text = f"{source_duration:g}"
+    output_duration_text = f"{output_duration:g}"
+    video_filter = (
+        f"[0:v:0]fade=t=in:st=0:d={VISUAL_FADE_IN_SECONDS:g},"
+        f"tpad=stop_mode=clone:stop_duration={VISUAL_FADE_OUT_SECONDS:g},"
+        f"fade=t=out:st={source_duration_text}:d={VISUAL_FADE_OUT_SECONDS:g}[video]"
+    )
     # Padding after loudness normalization keeps silence out of loudnorm's
-    # analysis while making the first amix input last exactly as long as video.
+    # analysis. It also leaves the narration untouched while the final held
+    # frame fades to black after the original video/audio has ended.
     voice_filter = (
-        f"[0:a:0]{loudnorm},apad=whole_dur={duration_text},"
-        f"atrim=duration={duration_text}[voice]"
+        f"[0:a:0]{loudnorm},apad=whole_dur={output_duration_text},"
+        f"atrim=duration={output_duration_text}[voice]"
     )
 
     if definition.music_enabled:
-        fade_out_duration = min(1.5, video_duration)
-        fade_out_start = max(0.0, video_duration - fade_out_duration)
         command += ["-stream_loop", "-1", "-i", str(definition.background_music_file)]
         filters = (
-            f"{voice_filter};"
+            f"{video_filter};{voice_filter};"
             f"[1:a:0]volume={definition.background_music_volume:g},"
             f"afade=t=in:st=0:d=1,"
-            f"afade=t=out:st={fade_out_start:g}:d={fade_out_duration:g},"
-            f"atrim=duration={duration_text}[music];"
+            f"afade=t=out:st={source_duration_text}:d={VISUAL_FADE_OUT_SECONDS:g},"
+            f"atrim=duration={output_duration_text}[music];"
             "[voice][music]amix=inputs=2:duration=first:"
             "dropout_transition=2:normalize=0,"
-            f"atrim=duration={duration_text}[audio]"
+            f"atrim=duration={output_duration_text}[audio]"
         )
     else:
-        filters = voice_filter.replace("[voice]", "[audio]")
+        filters = f"{video_filter};{voice_filter.replace('[voice]', '[audio]')}"
 
     command += [
         "-filter_complex", filters,
-        "-map", "0:v:0", "-map", "[audio]",
+        "-map", "[video]", "-map", "[audio]",
         "-map_metadata", "0",
-        "-c:v", "copy",
+        "-c:v", "libx264", "-preset", "medium", "-crf", "18",
+        "-pix_fmt", "yuv420p",
         "-c:a", "aac", "-b:a", "192k",
-        "-t", f"{video_duration:.6f}",
+        "-t", f"{output_duration:.6f}",
         "-movflags", "+faststart",
         str(temporary),
     ]
@@ -510,6 +548,8 @@ def run_longform(
     _require_longform_music(definition)
 
     if resume_task_id is None:
+        validated_script = validate_tts_script(definition.item.script)
+        log_tts_script_validation(validated_script)
         saved_task_id = _saved_task_id(task_path)
         if task_path.exists() and not start_over:
             task_label = saved_task_id or "an unreadable saved task"

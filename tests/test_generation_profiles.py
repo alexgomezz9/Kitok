@@ -101,6 +101,31 @@ def test_fish_request_model_reference_atomic_output_and_retries(tmp_path, monkey
     assert seen[0].headers["authorization"] == "Bearer private-token"
 
 
+def test_fish_request_accepts_explicit_voice_comparison_parameters(tmp_path):
+    seen = []
+
+    def handler(request):
+        seen.append(request)
+        return httpx.Response(200, content=b"ID3audio", headers={"content-type": "audio/mpeg"})
+
+    with httpx.Client(transport=httpx.MockTransport(handler)) as http:
+        target = tmp_path / "comparison.mp3"
+        FishVoiceClient("private-token", client=http).synthesize(
+            "A complete sentence.",
+            "new-reference-id",
+            target,
+            speed=0.95,
+            temperature=0.8,
+            top_p=0.7,
+            normalize_loudness=True,
+        )
+
+    payload = json.loads(seen[0].content)
+    assert payload["temperature"] == 0.8
+    assert payload["top_p"] == 0.7
+    assert payload["prosody"] == {"speed": 0.95, "normalize_loudness": True}
+
+
 def test_fish_errors_never_include_key_or_corrupt_destination(tmp_path):
     with httpx.Client(transport=httpx.MockTransport(lambda request: httpx.Response(401, text="private-token"))) as http:
         target = tmp_path / "turn.mp3"

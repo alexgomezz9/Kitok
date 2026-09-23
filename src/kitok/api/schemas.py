@@ -12,7 +12,7 @@ class Request(BaseModel):
 class CreateContent(Request):
     id: str | None = None
     subject: str = Field(min_length=1, max_length=500)
-    script: str = Field(default='', max_length=12000)
+    script: str = Field(default='', max_length=24000)
     keywords: list[str] = Field(default_factory=lambda: ['nature'], min_length=1, max_length=20)
     caption: str = ''
     content_format: Literal['explainer', 'dialogue'] = 'explainer'
