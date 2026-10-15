@@ -7,8 +7,7 @@ dry-run:
 	. .venv/bin/activate && python main.py --dry-run
 status:
 	. .venv/bin/activate && python main.py --status
-check:
-	. .venv/bin/activate && python main.py --check-mpt
+check: studio-check
 run:
 	. .venv/bin/activate && python main.py
 plan:

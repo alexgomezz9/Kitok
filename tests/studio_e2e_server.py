@@ -38,6 +38,37 @@ def main():
                             background_root=root / 'assets/backgrounds', character_root=root / 'characters',
                             native_cache_dir=root / 'cache', fish_api_key='browser-test', pexels_api_key='browser-test')
         app = create_app(settings)
+        # A real local editorial render complements the simulated paid jobs.
+        # All media/state live in this disposable workspace, never the queue.
+        from kitok.editing.storyboard import EditorialPlan
+        from kitok.editing.quality import inspect_video
+        import kitok.editorial_studio
+        comparison = root / 'outputs/evaluation/browser_ab'
+        comparison.mkdir(parents=True)
+        for name in ('A_current.mp4', 'B_improved.mp4'):
+            shutil.copyfile(horizontal, comparison / name)
+        EditorialPlan.model_validate({
+            'episode_id': 'browser_ab', 'title': 'Comparación local de prueba',
+            'audio_source': 'outputs/evaluation/browser_ab/A_current.mp4',
+            'duration': 5, 'width': 640, 'height': 480, 'fps': 25,
+            'assets': {'stock': {'path': 'horizontal.mp4', 'description': 'Synthetic fixture'}},
+            'scenes': [dict(id='identity', start=0, end=2, intention='Identify fixture',
+                           spoken_claim='Synthetic content', graphic='identity', graphic_data={'name': 'Fixture'}),
+                       dict(id='stock', start=2, end=5, intention='Illustrate fixture',
+                            spoken_claim='Synthetic content', asset='stock', motion='push')],
+        }).write(comparison/'plan.json')
+        report = inspect_video(comparison/'B_improved.mp4', comparison/'B_improved.qa.json',
+                               settings=settings, comparison=comparison/'A_current.mp4', scene_boundaries=[1, 3])
+        # The studio serves a stable contact name rather than the CLI QA suffix.
+        contact = comparison/'B_improved.contact.jpg'
+        Path(report['contact_sheet']).replace(contact)
+        report['contact_sheet'] = str(contact)
+        from kitok.state import write_json_atomic
+        write_json_atomic(comparison/'B_improved.qa.json', report)
+        editorial_render = kitok.editorial_studio.render_editorial_plan
+        def local_editorial(*args, **kwargs):
+            return editorial_render(*args, **kwargs, encoder_name='libx264')
+        kitok.editorial_studio.render_editorial_plan = local_editorial
         def short_render(settings, queue, state, client, preset, *, ids, **kwargs):
             for cid in ids:
                 destination = settings.local_ready_dir / f'{cid}.mp4'

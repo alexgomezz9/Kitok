@@ -24,6 +24,7 @@
 - src/kitok/api/: transporte FastAPI local; schemas.py define las peticiones. Reutiliza servicios Python, no implementes reglas de negocio en React.
 - src/kitok/application.py: borradores y trabajos de shorts; un único ejecutor.
 - src/kitok/pipeline.py y generation.py: generación de shorts, validación y READY.
+- src/kitok/editing/: planes por escena, gráficos y QA; editorial_studio.py sirve comparaciones locales con audio aprobado, sin proveedores.
 - src/kitok/longform_studio.py: borradores/trabajos largos separados; comparte el ejecutor de shorts.
 - longform.py: configuración/CLI de largos. Los JSON del estudio son compatibles con este CLI.
 - src/kitok/rendering/, media/, providers/, stock/: motor largo nativo y adquisición de stock.
@@ -43,8 +44,8 @@
 - Generación y publicación son acciones separadas. Una fecha local no prueba que haya un post en Buffer.
 - Buffer requiere revisión y confirmación explícitas. Conserva los IDs remotos y los resultados ambiguos; no reintentes automáticamente mutaciones de publicación ni borres estado para forzarlas.
 - Los largos están fuera de la cola/calendario/publicador de shorts. No los introduzcas sin adaptar validación y contrato de publicación.
-- En largos, la interfaz elige native de forma explícita y lo identifica como experimental. El CLI conserva mpt por defecto. No cambies silenciosamente estos valores.
-- El backend de shorts Pexels/locales ya es nativo; conserva IDs y registros MPT históricos sin enviarlos automáticamente de nuevo. La integración completa y los límites verificados están en PROJECT_STATUS.md; no afirmes independencia total sin comprobar CLI/UI y recorridos reales.
+- Nuevos largos: native predeterminado en CLI y estudio, todavía experimental. MPT sólo se conserva para --renderer mpt --resume TASK_ID histórico; nunca envíes una tarea nueva ni conviertas una histórica silenciosamente.
+- Shorts Pexels/locales, CLI y estudio usan generación nativa; conserva IDs y registros MPT históricos sin enviarlos automáticamente de nuevo. La integración completa y los límites verificados están en PROJECT_STATUS.md; no afirmes independencia total sin comprobar CLI/UI y recorridos reales.
 - No reinicies trabajos de pago al arrancar. En largos, fallos/interrupciones requieren revisión; Fish puede haber consumido saldo.
 - Mantén el bloqueo de generación por ID durante todo el trabajo. CLI y estudio usan longform-ID en state/jobs/. No uses sólo un botón deshabilitado como protección contra duplicados.
 - HTTP no acepta rutas arbitrarias para guiones, configuración o descarga. Usa IDs validados y directorios controlados.

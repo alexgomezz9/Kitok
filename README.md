@@ -20,12 +20,15 @@ revisa. Las claves se configuran en .env; nunca se guardan en el frontend.
 ## Estado real
 
 - Shorts con fondos locales: Fish + FFmpeg.
-- Shorts con Pexels: todavía usan MoneyPrinterTurbo.
-- Vídeo largo: MPT por defecto en CLI; motor nativo experimental seleccionable.
+- Shorts con Pexels: Fish + Pexels + FFmpeg nativos.
+- Vídeo largo: motor nativo experimental por defecto en CLI y estudio.
+- Montaje: compara A/B y renderiza planes por escena con audio/recursos locales;
+  gráficos reutilizables, caché por plano y QA sobre el MP4 real.
 - Guardado local: outputs/ready y outputs/longform. No requiere Google Drive.
 - Generar o asignar una fecha local no publica. Buffer requiere confirmación.
 - El director autónomo, los perfiles multicanal y YouTube directo están diseñados,
-  pendientes de implementación. No borres MPT todavía.
+  pendientes de implementación. MPT sólo queda para recuperar tareas antiguas;
+  los vídeos nuevos no requieren su instalación.
 - El desarrollo y la verificación se hacen desde un checkout completo. El wheel
   Python aislado todavía no incluye la interfaz ni el CLI raíz de largos.
 
@@ -47,6 +50,7 @@ proveedores; los escenarios de navegador usan datos temporales.
 | Documento | Contenido |
 |---|---|
 | [GUIA.md](GUIA.md) | Operación diaria y comandos |
+| [Montaje por escenas](docs/editing.md) | Planes reutilizables y comparación sin nueva voz |
 | [Auditoría](docs/audit/2026-10-15.md) | Capacidades comprobadas, riesgos y límites |
 | [Desarrollo](docs/development.md) | Ciclo de coordinación, revisión y CI |
 | [Multicanal y director](docs/design/multichannel-production.md) | Propuesta de arquitectura y contratos |

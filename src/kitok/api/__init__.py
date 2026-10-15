@@ -22,6 +22,7 @@ from ..app_settings import preferences, save_preferences
 from ..scheduling import ScheduleService
 from ..thumbnails import ThumbnailService
 from ..longform_studio import LongformStudio
+from ..editorial_studio import EditorialStudio
 from .schemas import LongformRequest
 
 log = logging.getLogger('kitok.api')
@@ -32,6 +33,7 @@ def create_app(settings=None, *, catalog_path=None):
     assets = AssetService(application.s, catalog_path)
     calendar = ScheduleService(application)
     longform = LongformStudio(application)
+    editorial = EditorialStudio(application)
 
     @asynccontextmanager
     async def lifespan(app):
@@ -41,6 +43,7 @@ def create_app(settings=None, *, catalog_path=None):
     app = FastAPI(title='Kitok local studio', version='0.2.0', lifespan=lifespan)
     app.state.application = application
     app.state.longform = longform
+    app.state.editorial = editorial
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=['127.0.0.1', 'localhost', 'testserver', '[::1]'])
     origins = ['http://127.0.0.1:5173', 'http://localhost:5173', 'http://127.0.0.1:8000', 'http://localhost:8000']
     app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=['*'], allow_headers=['Content-Type'])
@@ -79,18 +82,6 @@ def create_app(settings=None, *, catalog_path=None):
                 'cloudinary_configured': bool(s.cloudinary_api_key.get_secret_value()),
                 'publishing_enabled': s.publish_enabled, 'timezone': s.timezone}
 
-    @app.post('/api/health/mpt')
-    def check_mpt():
-        from ..mpt_client import MPTClient
-        s = application.s
-        client = MPTClient(s.mpt_base_url, s.mpt_api_key, s.mpt_request_timeout_seconds,
-                           s.http_retry_attempts, s.http_retry_base_seconds)
-        try:
-            client.check()
-            return {'ok': True, 'message': 'MPT API conectado'}
-        finally:
-            client.close()
-
     @app.get('/api/metadata')
     def metadata():
         return {**assets.metadata(), 'delivery_warning': application.s.ready_directory_warning}
@@ -106,14 +97,15 @@ def create_app(settings=None, *, catalog_path=None):
         values = body.model_dump(exclude_none=True)
         values['id'] = values.get('id') or 'preview'
         item = ContentItem.model_validate(values)
-        uses_mpt = item.visual_profile == 'pexels'
+        uses_stock = item.visual_profile == 'pexels'
         checks = [
             {'label': 'FFmpeg instalado', 'ok': bool(shutil.which(application.s.ffmpeg_binary))},
             {'label': 'ffprobe instalado', 'ok': bool(shutil.which(application.s.ffprobe_binary))},
         ]
-        if item.content_format == 'dialogue' or not uses_mpt:
-            checks.append({'label': 'FISH_API_KEY configurada', 'ok': bool(application.s.fish_api_key.get_secret_value())})
-        if not uses_mpt:
+        checks.append({'label': 'FISH_API_KEY configurada', 'ok': bool(application.s.fish_api_key.get_secret_value())})
+        if uses_stock:
+            checks.append({'label': 'PEXELS_API_KEY configurada', 'ok': bool(application.s.pexels_api_key.get_secret_value())})
+        else:
             checks.append({'label': f'Fondo local en {item.visual_profile}', 'ok': any(
                 b['pool'] == item.visual_profile and b['compatible'] for b in assets.backgrounds())})
         if item.character_profile:
@@ -122,9 +114,8 @@ def create_app(settings=None, *, catalog_path=None):
             available = {c['id'] for c in assets.characters() if c['poses']}
             checks.append({'label': 'Poses de los personajes disponibles', 'ok': required <= available})
         return {'valid': True, 'can_generate': all(c['ok'] for c in checks), 'checks': checks,
-                'uses_mpt': uses_mpt, 'words': len(item.effective_script.split()),
-                'note': ('Necesita MPT encendido. La conexión y las credenciales remotas aún no están comprobadas.'
-                         if uses_mpt else 'Voz Fish + fondo local. No necesita MPT. La conexión Fish aún no está comprobada.')}
+                'uses_mpt': False, 'words': len(item.effective_script.split()),
+                'note': 'Motor nativo: voz Fish y ' + ('stock Pexels.' if uses_stock else 'fondo local.') + ' Las credenciales y conexiones remotas aún no están comprobadas.'}
 
     @app.get('/api/longform')
     def longform_list():
@@ -154,6 +145,24 @@ def create_app(settings=None, *, catalog_path=None):
     def longform_download(cid: str):
         path = longform.video_path(cid)
         return FileResponse(path, media_type='video/mp4', filename=path.name)
+
+    @app.get('/api/editorial')
+    def editorial_list():
+        return editorial.list()
+
+    @app.get('/api/editorial/{cid}')
+    def editorial_detail(cid: str):
+        return editorial.detail(cid)
+
+    @app.post('/api/editorial/{cid}/jobs', status_code=202)
+    def editorial_start(cid: str):
+        return editorial.start(cid)
+
+    @app.get('/api/editorial/{cid}/files/{name}')
+    def editorial_file(cid: str, name: str):
+        path = editorial.file(cid, name)
+        media = 'video/mp4' if path.suffix == '.mp4' else 'image/jpeg' if path.suffix == '.jpg' else 'application/json'
+        return FileResponse(path, media_type=media)
 
     @app.get('/api/content', response_model=list[ContentView])
     def content():

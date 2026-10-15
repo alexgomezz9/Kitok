@@ -2,7 +2,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ComponentProps } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import Workbench from './Workbench'
+import Workbench, { EditorialWorkbench } from './Workbench'
 import PublishReview from './PublishReview'
 import type { Metadata } from './api'
 
@@ -36,4 +36,52 @@ describe('guided studio',()=>{
  it('discards a delayed preview if the user edits its input meanwhile',async()=>{let resolve!:(response:Response)=>void;vi.mocked(fetch).mockImplementationOnce(()=>new Promise<Response>(r=>{resolve=r}));render(<Workbench {...props}/>);fillShort();fireEvent.click(screen.getByRole('button',{name:'Comprobar sin generar'}));fireEvent.change(screen.getByLabelText('Guion completo'),{target:{value:'Otro guion completo que necesita revisión.'}});resolve({ok:true,json:async()=>ok} as Response);await waitFor(()=>expect((screen.getByRole('button',{name:'Comprobar sin generar'}) as HTMLButtonElement).disabled).toBe(false));expect(screen.queryByText('Guardar borrador y continuar')).toBeNull()})
  it('shows an actionable error when a preview fails',async()=>{vi.mocked(fetch).mockRejectedValue(new Error('offline'));render(<Workbench {...props}/>);fillShort();fireEvent.click(screen.getByRole('button',{name:'Comprobar sin generar'}));await waitFor(()=>expect(props.onError).toHaveBeenCalledWith(expect.stringContaining('backend')));expect(screen.queryByText('Guardar borrador y continuar')).toBeNull()})
  it('previews Buffer separately from confirming the actual send',async()=>{vi.mocked(fetch).mockImplementation(async(path)=>{requests.push({path:String(path),body:null});return {ok:true,json:async()=>({token:'review',summary:{posts:2,uploads:1,estimated_requests:4,occupancy:'cache',issues:[],platforms:{tiktok:1,youtube:1}},rows:[]})} as Response});const done=vi.fn();render(<PublishReview id="short_1" onDone={done}/>);fireEvent.click(screen.getByRole('button',{name:'Previsualizar envío (dry-run)'}));await screen.findByRole('button',{name:'Confirmar envío a Buffer'});expect(requests.map(r=>r.path)).toEqual(['/api/content/short_1/publish-preview']);fireEvent.click(screen.getByRole('button',{name:'Confirmar envío a Buffer'}));await waitFor(()=>expect(done).toHaveBeenCalledOnce());expect(requests[1].path).toBe('/api/publish/review/confirm')})
+})
+
+
+describe('local editorial comparison',()=>{
+ const row={id:'sample_ab',title:'Saved edit',status:'ready',stage:'Plan guardado',error:null,duration:76,scene_count:12,files:{'A_current.mp4':'/api/editorial/sample_ab/files/A_current.mp4','B_improved.mp4':'/api/editorial/sample_ab/files/B_improved.mp4'},stats:{duration:76,geometry:[1920,1080],fps:30,full_decode:'passed',comparison:{audio_identical:true},black_intervals:[]}}
+ it('reads existing A/B without starting a render and starts only on explicit action',async()=>{
+  vi.mocked(fetch).mockImplementation(async(path,options)=>{requests.push({path:String(path),body:null});return {ok:true,json:async()=>options?.method==='POST'?row:[row]} as Response})
+  render(<EditorialWorkbench onError={vi.fn()}/>);
+  await screen.findByText('Saved edit',{selector:'h2'});
+  expect(screen.getByLabelText('Vídeo A').getAttribute('src')).toContain('/files/A_current.mp4');
+  expect(screen.getByLabelText('Vídeo B').getAttribute('src')).toContain('/files/B_improved.mp4');
+  expect(requests.map(r=>r.path)).toEqual(['/api/editorial']);
+  expect(screen.getByText(/Audio A\/B: idéntico/)).toBeTruthy();
+  fireEvent.click(screen.getByRole('button',{name:'Renderizar plan guardado · reutiliza audio'}));
+  await waitFor(()=>expect(requests.some(r=>r.path==='/api/editorial/sample_ab/jobs')).toBe(true));
+ })
+ it('disables a second render while the shared worker is busy',async()=>{
+  vi.mocked(fetch).mockResolvedValue({ok:true,json:async()=>[{...row,status:'running'}]} as Response);
+  render(<EditorialWorkbench onError={vi.fn()}/>);
+  expect((await screen.findByRole('button',{name:'Montaje en curso…'}) as HTMLButtonElement).disabled).toBe(true);
+ })
+ it('loads the promoted B revision after completion even when the run id is unchanged',async()=>{
+  let poll:(()=>void)|undefined;
+  const schedule=globalThis.setInterval;
+  vi.spyOn(globalThis,'setInterval').mockImplementation((callback,delay,...args)=>{
+   if(delay===3000)poll=callback as ()=>void;
+   return schedule(callback,delay,...args)
+  });
+  let current={...row,status:'running',run_id:'same-run',media_revision:'previous-video'};
+  vi.mocked(fetch).mockImplementation(async()=>({ok:true,json:async()=>[current]}) as Response);
+  try{
+   render(<EditorialWorkbench onError={vi.fn()}/>);
+   await screen.findByText('Saved edit',{selector:'h2'});
+   expect(screen.getByLabelText('Vídeo B').getAttribute('src')).toContain('previous-video');
+   current={...current,status:'succeeded',media_revision:'promoted-video'};
+   poll?.();
+   await waitFor(()=>expect(screen.getByLabelText('Vídeo B').getAttribute('src')).toContain('promoted-video'));
+  }finally{vi.mocked(globalThis.setInterval).mockRestore()}
+ })
+ it('offers Fish for stock shorts and no MPT selector for new long videos',()=>{
+  const rendered=render(<Workbench {...props}/>);
+  fireEvent.change(screen.getByLabelText('Estilo'),{target:{value:'classic'}});
+  expect(screen.queryByRole('option',{name:'Álvaro'})).toBeNull();
+  expect((screen.getByLabelText('Voz de la narración') as HTMLSelectElement).value).toBe('rick_es');
+  rendered.rerender(<Workbench {...props} mode="long"/>);
+  expect(screen.queryByLabelText('Motor')).toBeNull();
+  expect(screen.queryByRole('option',{name:/MoneyPrinterTurbo/})).toBeNull();
+ })
 })

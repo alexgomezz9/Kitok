@@ -1,16 +1,16 @@
 # Roadmap verificable
 
-Estado: propuesta, sin director ni YouTube implementados. Riesgos en [la auditoría](audit/2026-10-15.md); contratos en [multicanal y producción](design/multichannel-production.md).
+Estado: roadmap pendiente; base nativa y piloto editorial implementados, sin director general ni YouTube directo. Estado comprobado en [PROJECT_STATUS.md](../PROJECT_STATUS.md). Riesgos en [la auditoría](audit/2026-10-15.md); contratos en [multicanal y producción](design/multichannel-production.md).
 
 ## 0. Base reproducible y operación sencilla
 
-Mantener estudio Short/Largo, guía única, salida local, datos privados fuera de Git y código completo. Usar `make verify` y `make verify-browser`. No borrar MPT ni modificar el historial editorial.
+Mantener estudio Short/Largo, guía única, salida local, datos privados fuera de Git y código completo. Usar `make verify` y `make verify-browser`. Conservar el historial y los medios originales; MPT sólo permanece para recuperar tareas antiguas.
 
 Aceptación: copia Git sin `.env`, cola ni vídeos privados pasa las verificaciones; reconoce ausencia de claves sin generarlas; un dry-run no consume proveedores. Las pruebas con mocks no prueban generación real ni autonomía audiovisual.
 
 ## 1. Recuperación segura de operaciones de pago — prioridad máxima
 
-Implementar registro duradero de intención/resultado y reutilización de audio, empezando por una síntesis Fish aislada. Eliminar reintentos automáticos de POST ambiguos. Integrar después diálogos y native; conservar MPT task IDs y reconciliación existentes. Persistir artefactos y checkpoints antes de otro despacho. Mantener un solo ejecutor.
+Implementado: registro Fish por payload, caché validada/compartida entre modos, bloqueo de resultados ambiguos y cero retry de POST de voz. Integrado en nativo y diálogos, con regresiones offline y revisión independiente. Pendiente: ampliar reconciliación operativa de casos ambiguos que el proveedor no permite consultar; conservar IDs históricos y un solo ejecutor.
 
 Aceptación offline: fallos simulados antes de enviar, después de enviar, tras escribir audio y antes de confirmar estado; reinicio en cada punto; dos procesos intentando el mismo ID. Un resultado incierto queda visible y produce cero POST adicionales al reiniciar, abrir UI o repetir una consulta. Un audio confirmado evita nueva síntesis. Una reparación local no toca proveedores. Probar también disco lleno, JSON/registro corrupto y fallo de manifest sin perder resultados completos.
 
@@ -20,7 +20,7 @@ Validación real separada: sólo con autorización expresa, texto mínimo, lími
 
 Añadir esquema validado de perfil, selector sencillo y snapshot por trabajo. Extraer reglas Loose Thread a su perfil y mantener adaptador legacy para contenido sin canal. Compartir renderizador, catálogo de voces y servicios; no duplicar el pipeline por canal.
 
-Aceptación: dos perfiles de prueba con distintos idiomas/formatos resuelven configuraciones independientes; editar uno no cambia trabajos ya creados ni el otro canal. Cola histórica, IDs, rutas y referencias Buffer conservan sus valores, incluida música 0.06. La migración ofrece preview y rollback; no genera ni publica. Los JSON anteriores y ambos defaults de renderer siguen funcionando. Verificar separación de configuraciones con pruebas de CLI y API.
+Aceptación: dos perfiles de prueba con distintos idiomas/formatos resuelven configuraciones independientes; editar uno no cambia trabajos ya creados ni el otro canal. Cola histórica, IDs, rutas y referencias Buffer conservan sus valores, incluida música 0.06. La migración ofrece preview y rollback; no genera ni publica. Los JSON históricos siguen siendo legibles; la generación nueva usa native y MPT sólo admite recuperación explícita. Verificar separación de configuraciones con pruebas de CLI y API.
 
 ## 3. Director editorial y espera duradera
 
@@ -30,7 +30,7 @@ Aceptación: ninguna selección por silencio; cancelar investigación no produce
 
 ## 4. Montaje semántico, QA y reparación localizada
 
-Introducir escenas temporizadas tras medir audio, consultas Pexels por sección, overlays y transiciones mediante plantillas de código. Añadir un tipo de gráfico y subtítulos selectivos antes de ampliar opciones. Construir informes técnicos y hojas de contacto; después, una ronda acotada de reparación local y bundle íntegro con miniatura editorial.
+Implementado: montaje básico por secciones y planes explícitos por escena, tres gráficos reutilizables, render incremental, informes y contactos, CLI/Montaje y A/B UltimateBet76s corregido tras revisión visual. Los planes requieren preparación manual. Pendiente: selección mejor de recursos específicos, QA perceptual/semántico y paquete editorial con miniaturas. No se ha reeditado el episodio completo.
 
 Aceptación: fixtures audiovisuales con negro, silencio, clipping, duración errónea y escena ausente producen hallazgos con evidencia; una muestra válida no dispara bloqueos injustificados. Cambiar texto gráfico recompone sólo nodos dependientes y hace cero síntesis. Alineación desconocida se muestra como tal. Antes de paralelizar: locks de caché entre procesos, temporales únicos, recuperación de descargas y límites de recursos probados. Una comparación real autorizada evaluará ritmo y calidad; los tests no sustituyen esa revisión.
 
@@ -46,8 +46,15 @@ Sólo después de una entrega fiable, diseñar un adaptador YouTube con aprobaci
 
 Aceptación: modificar MP4, metadatos, destino o fecha invalida aprobación; reiniciar no publica; timeout de mutación no dispara otra. Las pruebas reales de subida requieren autorización independiente y comprobación del resultado remoto. Paralelismo multicanal sólo tras superar las pruebas de recursos y recuperación anteriores.
 
-## Carril independiente: terminar la migración MPT
+## Cierre de compatibilidad MPT
 
-Inventariar tareas MPT pendientes y migrar primero un short Pexels completo a servicios nativos reutilizados; después diálogo Pexels y equivalencia de largos. Comparar audio, duración, subtítulos, validación, stock, recuperación y rendimiento con fixtures y generaciones reales autorizadas. Unificar contratos antes de cambiar defaults.
+Nuevos shorts locales/Pexels y largos usan generación nativa. CLI largo y estudio
+ya seleccionan native; el CLI permite únicamente recuperar MPT con --resume.
+Las tareas antiguas no se convierten ni reenvían y el guard bajo lock impide
+consumir otra voz sobre un marcador MPT pendiente.
 
-MPT se podrá retirar cuando todos los recorridos usados tengan sustituto verificado, no queden tareas pendientes sin decisión y la guía refleje la transición. Mantener la instalación y los IDs históricos hasta entonces. Este carril no bloquea diseñar canales, pero sí cualquier afirmación de independencia total de MPT.
+Pendiente operativo: inventariar con el operador las tareas/medios que quiera
+recuperar antes de desinstalar MPT. No se borra su instalación automáticamente.
+Los tests de shorts usan FFmpeg real y proveedores simulados; una generación
+nueva de cada estilo contra APIs reales sigue sin comprobarse. La reedición
+UltimateBet reutiliza audio/stock reales y no equivale a esa matriz completa.

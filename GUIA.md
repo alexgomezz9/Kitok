@@ -25,7 +25,7 @@ studio-check comprueba las herramientas instaladas, sin generar vídeos ni conec
 ## Los cuatro pasos
 
 1. Escribe el título y el guion. Kitok no inventa el texto por ti.
-2. Pulsa «Comprobar sin generar». Valida el contenido y muestra requisitos locales. No hace llamadas a Fish, MPT, Pexels, Cloudinary ni Buffer.
+2. Pulsa «Comprobar sin generar». Valida el contenido y muestra requisitos locales. No hace llamadas a Fish, Pexels, Cloudinary ni Buffer.
 3. Guarda el borrador. Después pulsa «Generar». Esta segunda acción sí usa los proveedores necesarios y puede consumir saldo.
 4. Reproduce el resultado. Descárgalo o, para shorts, elige una fecha y revisa el envío a Buffer.
 
@@ -81,9 +81,9 @@ Los errores de fecha, cuota o publicación incierta se revisan antes de repetir 
 4. Comprueba sin generar y guarda el borrador. Se crean automáticamente un .txt y un .json en content/longform/studio/.
 5. Selecciona el borrador y pulsa «Generar vídeo largo». Espera a «Terminado», reproduce y descarga el MP4.
 
-La interfaz selecciona el motor nativo experimental de forma explícita. Usa FISH_API_KEY y PEXELS_API_KEY de Kitok. No necesita MPT. En opciones avanzadas puedes seleccionar MPT para un nuevo borrador; en ese caso necesita su API encendida y sus credenciales/configuración propias.
+La interfaz y el CLI usan el motor nativo: Fish + Pexels + FFmpeg. El largo nativo sigue siendo experimental; no necesita MPT. No se ofrecen nuevos trabajos MPT. Los trabajos históricos se conservan para consulta y recuperación explícita.
 
-La salida es horizontal 16:9, 1920×1080, sin subtítulos, en outputs/longform/. La duración depende del guion y de la voz; no se fija con un selector de minutos. Se admiten hasta 24.000 caracteres y 20 búsquedas. Las búsquedas son globales, sin sincronización semántica por frase.
+La salida es horizontal 16:9, 1920×1080, sin subtítulos, en outputs/longform/. La duración depende del guion y de la voz; no se fija con un selector de minutos. Se admiten hasta 24.000 caracteres y 20 búsquedas. El montaje básico organiza el guion en secciones y usa esas búsquedas. Los tiempos de sección pueden ser estimados; esto no garantiza que cada plano ilustre exactamente la frase. Para control por escena usa «Montaje».
 
 Los vídeos largos no entran en el calendario ni en el publicador Buffer de shorts. Descárgalos y súbelos a YouTube Studio. Los largos antiguos creados sólo por CLI siguen en outputs/longform/; la nueva lista muestra los borradores creados en este estudio.
 
@@ -171,20 +171,27 @@ script_file se resuelve desde la raíz del repositorio. El guion debe acabar con
 
 El dry-run largo valida el guion y los requisitos locales sin llamadas de red, bloqueos ni escrituras. Devuelve un error si falta alguna herramienta o clave requerida.
 
-Para usar MPT, indícalo explícitamente:
+Omitir --renderer selecciona native. Para recuperar una tarea MPT **ya enviada**,
+se conserva únicamente este recorrido histórico, que requiere su API:
 
 ```bash
-.venv/bin/python longform.py content/longform/mi_video.json --renderer mpt --dry-run
-.venv/bin/python longform.py content/longform/mi_video.json --renderer mpt
+.venv/bin/python longform.py content/longform/mi_video.json --renderer mpt --resume TASK_ID
 ```
 
-Omitir --renderer sigue seleccionando MPT, por compatibilidad. El CLI conserva --resume TASK_ID para recuperar una tarea MPT conocida. --start-over pide otra generación y puede consumir saldo: no lo uses como reparación automática. Los trabajos terminados por CLI se consultan en la terminal y en su carpeta; la lista del estudio no se sincroniza con ejecuciones manuales.
+No admite nuevas tareas MPT ni --start-over con ese motor. Conserva su ID y revisa
+los archivos antes de una recuperación. Los trabajos terminados por CLI se
+consultan en la terminal y en su carpeta; la lista del estudio no se sincroniza
+con ejecuciones manuales.
 
 ## Mejorar un montaje sin volver a pagar la voz
 
 Con un MP4 y audio ya aprobados, puedes preparar un plan por escenas y reutilizar
 los recursos locales. El montaje guarda cifras con significado, diagramas,
 rótulos y movimientos elegidos por escena. Cambiar un plano reutiliza el resto.
+
+En «Montaje», selecciona UltimateBet para reproducir o descargar A y B.
+«Renderizar plan guardado» vuelve a montar los recursos sin sintetizar voz.
+Para otro vídeo hace falta preparar el plan local; no hay editor visual de timeline.
 
 La preparación y el comando están en [docs/editing.md](docs/editing.md), con una
 plantilla en examples/editorial/plan.json. No genera guion ni hace llamadas a
@@ -193,15 +200,20 @@ que la referencia; la revisión visual sigue siendo necesaria.
 
 ## ¿Puedo borrar MoneyPrinterTurbo?
 
-Todavía no si quieres conservar todas las funciones. La migración es parcial, según el código actual:
+Para **generar nuevos shorts y largos**, Kitok ya usa Fish + FFmpeg, con Pexels
+cuando corresponde. Interfaz y CLI no necesitan que MPT esté instalado o encendido.
+Álvaro/Edge se conserva sólo para leer datos antiguos: elige una voz Fish al
+preparar nuevos vídeos. No existe una dependencia nueva de Edge TTS.
 
-- Rick con random y diálogos con fondos locales generan sin MPT.
-- El vídeo largo con --renderer native genera sin MPT; sigue marcado como experimental.
-- Las narraciones cortas con Pexels ya tienen generación nativa Fish + Pexels + FFmpeg.
-- Los diálogos cortos con fondo Pexels ya componen el visual de forma nativa, con sus voces y personajes.
-- El vídeo largo predeterminado por CLI y la opción MPT de la interfaz siguen usando MPT.
+Queda compatibilidad histórica: --check-mpt y la recuperación de una tarea larga
+mediante --renderer mpt --resume TASK_ID necesitan su API. No son el modo normal
+de generación. Si tienes una tarea MPT sin recuperar o medios guardados dentro
+de su carpeta, recupéralos/conserva esos archivos antes de desinstalarlo.
+No se ha borrado ninguna instalación ni convertido automáticamente sus tareas.
 
-Usar sólo los caminos locales/nativos permite trabajar con MPT apagado, pero no demuestra que la migración completa esté terminada. No se ha eliminado ninguna instalación. Antes de borrarla falta terminar la integración CLI/UI, cerrar las pruebas reales pendientes y decidir qué hacer con tareas MPT históricas. No se reanudan como trabajos nuevos ni se borra su ID.
+Se han probado los recorridos nativos con FFmpeg real y proveedores simulados,
+y se ha reeditado UltimateBet con audio y stock ya existentes. Esto no equivale
+a una nueva generación completa de cada estilo contra Fish/Pexels reales.
 
 ## Dónde vive cada cosa
 
@@ -213,6 +225,8 @@ Usar sólo los caminos locales/nativos permite trabajar con MPT apagado, pero no
 - state/longform/: estado de trabajos largos del estudio.
 - outputs/ready/: vídeos cortos terminados; es también el destino READY_DIR predeterminado, sin copia a Google Drive.
 - outputs/longform/: vídeos largos terminados.
+- outputs/evaluation/: comparaciones A/B, planes y comprobaciones locales.
+- PROJECT_STATUS.md: estado técnico breve y siguiente paso; no sustituye este manual.
 - assets/backgrounds/: fondos locales; assets/characters/: poses PNG; assets/music/: música.
 - presets/generation_profiles.json: catálogo de voces y estilos.
 - .env: claves y configuración privada. Nunca compartir ni subir a Git.
@@ -223,7 +237,7 @@ Usar sólo los caminos locales/nativos permite trabajar con MPT apagado, pero no
 - «No se puede conectar»: ejecuta make studio y abre el puerto 8000. Para desarrollo con Vite se usan dos terminales: .venv/bin/python -m kitok.api y npm --prefix frontend run dev (puerto 5173).
 - «Falta configurar»: corrige la herramienta, clave o archivo señalado; las claves se aplican tras reiniciar el backend.
 - «No hay fondo»: añade un MP4 compatible a assets/backgrounds/random/ o gameplay/, según el estilo. En herramientas avanzadas también puedes importar un archivo local.
-- «MPT»: comprueba su API; la WebUI sola no basta. Sistema incluye un botón de consulta explícita.
+- Un borrador histórico con MPT o Álvaro no se reenvía automáticamente. Prepara uno nuevo con voz Fish; conserva los IDs antiguos para consultar o recuperar tareas ya enviadas.
 - «Interrumpido», timeout o resultado incierto: consulta logs y el proveedor antes de repetir. No borres el historial para forzar un reenvío.
 
 ## Desarrollo y siguientes fases

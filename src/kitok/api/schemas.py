@@ -1,7 +1,7 @@
 """HTTP contract. Business validation remains in application/model services."""
 from datetime import datetime
 from typing import Any, Literal
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from ..models import DialogueTurn, ContentItem
 
 
@@ -16,7 +16,7 @@ class CreateContent(Request):
     keywords: list[str] = Field(default_factory=lambda: ['nature'], min_length=1, max_length=20)
     caption: str = ''
     content_format: Literal['explainer', 'dialogue'] = 'explainer'
-    voice_profile: str = 'alvaro'
+    voice_profile: str = 'rick_es'
     visual_profile: str = 'pexels'
     dialogue_preset: str | None = None
     character_profile: str | None = None
@@ -27,6 +27,21 @@ class CreateContent(Request):
     platforms: list[Literal['tiktok', 'instagram', 'youtube']] = ['tiktok', 'instagram', 'youtube']
     publish_at: datetime | None = None
     schedule_enabled: bool | None = None
+
+
+    @model_validator(mode='before')
+    @classmethod
+    def new_fish_voice(cls, values):
+        if isinstance(values, dict):
+            values = dict(values)
+            if values.get('content_format') == 'dialogue':
+                values.setdefault('voice_profile', 'alvaro')  # Historical model sentinel, no Edge synthesis.
+            else:
+                from ..profiles import VOICES
+                voice = values.get('voice_profile', 'rick_es')
+                if voice in VOICES and VOICES[voice].provider != 'fish':
+                    raise ValueError('Los vídeos nuevos requieren una voz Fish. Elige una voz Fish; la voz Edge histórica se conserva sólo para consulta.')
+        return values
 
 
 class EditContent(Request):
@@ -71,7 +86,7 @@ class CharacterRequest(Request):
 class VoiceRequest(Request):
     id: str
     display_name: str = Field(min_length=1, max_length=80)
-    provider: Literal['fish', 'edge'] = 'fish'
+    provider: Literal['fish'] = 'fish'
     value: str = Field(min_length=1, max_length=200)
     character: str | None = None
 

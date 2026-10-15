@@ -89,30 +89,32 @@ class LongformStudio:
             'music_enabled': body.music_enabled,
         }
 
+    @staticmethod
+    def _native_only(renderer):
+        if renderer != 'native':
+            raise ValueError('Los vídeos nuevos usan el motor nativo. MPT se conserva sólo para recuperar una tarea histórica con el CLI y --resume TASK_ID.')
+
     def preview(self, body):
+        self._native_only(body.renderer)
         item, config = self._definition_values(body)
         r = runner()
-        if body.renderer == 'native':
-            from .rendering.native import fish_reference_id
-            fish_reference_id(config['narrator_voice'])
+        from .rendering.native import fish_reference_id
+        fish_reference_id(config['narrator_voice'])
         checks = [
             {'label': 'FFmpeg instalado', 'ok': bool(shutil.which(self.s.ffmpeg_binary))},
             {'label': 'ffprobe instalado', 'ok': bool(shutil.which(self.s.ffprobe_binary))},
         ]
-        if body.renderer == 'native':
-            checks += [
-                {'label': 'FISH_API_KEY configurada en .env', 'ok': bool(self.s.fish_api_key.get_secret_value())},
-                {'label': 'PEXELS_API_KEY configurada en .env', 'ok': bool(self.s.pexels_api_key.get_secret_value())},
-            ]
+        checks += [
+            {'label': 'FISH_API_KEY configurada en .env', 'ok': bool(self.s.fish_api_key.get_secret_value())},
+            {'label': 'PEXELS_API_KEY configurada en .env', 'ok': bool(self.s.pexels_api_key.get_secret_value())},
+        ]
         if body.music_enabled:
             checks.append({'label': 'Música local disponible (assets/music/loose_thread/level.mp3)',
                            'ok': (self.root / r.DEFAULT_BACKGROUND_MUSIC_FILE).is_file()})
         return {'valid': True, 'can_generate': all(check['ok'] for check in checks),
                 'renderer': body.renderer, 'words': len(item.script.split()),
                 'checks': checks, 'format': '16:9 · 1920×1080 · sin subtítulos',
-                'note': ('Comprobación local: no verifica credenciales ni conexión. Generar usa Fish y Pexels; puede consumir saldo.'
-                         if body.renderer == 'native' else
-                         'Necesita MPT encendido y Fish/Pexels configurados allí. Su conexión aún no se ha comprobado.'),
+                'note': 'Comprobación local: no verifica credenciales ni conexión. Generar usa Fish y Pexels; puede consumir saldo.',
                 'output_directory': str(self.root / 'outputs' / 'longform')}
 
     def create(self, body):
@@ -166,6 +168,7 @@ class LongformStudio:
             try:
                 lease.enter_context(generation_lock(self.s, f'longform-{self._valid_id(cid)}'))
                 record = self._read(cid)
+                self._native_only(record['renderer'])
                 if record['status'] != 'draft':
                     raise ValueError('Este trabajo ya se inició. Revisa su resultado; no se reenvía automáticamente.')
                 from .api.schemas import LongformRequest
@@ -223,10 +226,7 @@ class LongformStudio:
                 lease.close()
 
     def _render(self, record, definition, stage):
-        if record['renderer'] == 'mpt':
-            r = runner()
-            return r.run_longform(definition, r.build_longform_preset(definition),
-                                  settings=self.s, project_root=self.root)
+        self._native_only(record['renderer'])
         from .providers.pexels import PexelsProvider
         from .media.ffmpeg import FFmpegNativeEngine, choose_encoder
         from .rendering.native import NativeLongformRenderer

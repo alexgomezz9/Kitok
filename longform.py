@@ -617,7 +617,7 @@ def run_longform(
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Render long-form with preserved MPT or explicit experimental Native."
+        description="Render new long-form videos with experimental Native (Fish + Pexels + FFmpeg). MPT only recovers existing tasks."
     )
     parser.add_argument("config", help="Path to the long-form JSON content definition")
     parser.add_argument(
@@ -625,8 +625,8 @@ def _parser() -> argparse.ArgumentParser:
         help='Validate the script and local prerequisites without generating, network calls or writes.',
     )
     parser.add_argument(
-        "--renderer", choices=("mpt", "native"), default="mpt",
-        help="Renderer to use. The safe default remains mpt.",
+        "--renderer", choices=("native", "mpt"), default="native",
+        help="Default: native (experimental). mpt is allowed only with --resume TASK_ID; it never submits a new task.",
     )
     parser.add_argument(
         "--encoder", choices=("auto", "h264_nvenc", "libx264"), default="auto",
@@ -645,11 +645,11 @@ def _parser() -> argparse.ArgumentParser:
         help="Show Native DEBUG details such as cache decisions, selections and FFmpeg commands.",
     )
     group = parser.add_mutually_exclusive_group()
-    group.add_argument("--resume", metavar="TASK_ID", help="Resume without submitting a new render")
+    group.add_argument("--resume", metavar="TASK_ID", help="Recover a known historical task; requires --renderer mpt and never submits a new render")
     group.add_argument(
         "--start-over",
         action="store_true",
-        help="Explicitly discard the saved task marker and submit a fresh render",
+        help="Explicitly render again with Native; may use paid providers. Unavailable for MPT.",
     )
     return parser
 
@@ -658,10 +658,14 @@ def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     lease = ExitStack()
     try:
+        if args.renderer == 'mpt' and (not args.resume or not args.resume.strip() or args.start_over):
+            raise LongformError('MPT is historical recovery only: use --renderer mpt --resume TASK_ID. New MPT tasks and --start-over are disabled.')
+        if args.renderer == 'native' and args.resume:
+            raise LongformError('--resume requires --renderer mpt and a known historical task ID')
         definition = load_longform_config(args.config)
         settings = Settings()
         if args.dry_run:
-            renderer = getattr(args, 'renderer', 'mpt')
+            renderer = args.renderer
             validate_tts_script(definition.item.script)
             checks = {
                 'ffmpeg': bool(shutil.which(settings.ffmpeg_binary)),
@@ -679,6 +683,16 @@ def main(argv: list[str] | None = None) -> int:
                              ensure_ascii=False, indent=2))
             return 0 if all(checks.values()) else 1
         lease.enter_context(generation_lock(settings, f'longform-{definition.item.id}'))
+        if args.renderer == 'native':
+            historical_task = longform_task_path(definition.item.id, project_root=settings.data_root or PROJECT_ROOT)
+            if historical_task.exists():
+                saved_id = _saved_task_id(historical_task)
+                recovery = f'--renderer mpt --resume {saved_id or "TASK_ID"}'
+                raise LongformError(
+                    f'A historical MPT task marker exists for {definition.item.id}. '
+                    f'Review and recover it with {recovery} before generating another voice. '
+                    'Native --start-over does not discard historical MPT tasks.'
+                )
         if args.renderer == "mpt":
             from kitok.rendering.mpt import MptRenderer
 

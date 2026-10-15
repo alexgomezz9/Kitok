@@ -154,7 +154,7 @@ def test_longform_ids_cannot_address_arbitrary_paths(studio, cid):
     assert client.get(f'/api/longform/{cid}/download').status_code == 422
 
 
-def test_short_preview_no_queue_write_and_reports_mpt(studio):
+def test_short_preview_no_queue_write_and_reports_native(studio):
     client, _, settings = studio
     before = settings.queue_path.read_bytes()
     response = client.post('/api/content-preview', json=BODY | {'music_enabled': False})
@@ -162,7 +162,7 @@ def test_short_preview_no_queue_write_and_reports_mpt(studio):
     short = {k: v for k, v in BODY.items() if k != 'music_enabled'}
     response = client.post('/api/content-preview', json=short)
     assert response.status_code == 200, response.text
-    assert response.json()['uses_mpt'] is True
+    assert response.json()['uses_mpt'] is False
     assert settings.queue_path.read_bytes() == before
 
 
@@ -237,11 +237,13 @@ def test_worker_keeps_lease_if_response_construction_fails(studio, monkeypatch):
     wait(service, cid)
 
 
-def test_mpt_preview_allows_its_existing_edge_voice(studio):
+@pytest.mark.parametrize('route', ['/api/longform-preview', '/api/longform'])
+def test_mpt_new_preview_and_draft_are_rejected(studio, route):
     client, _, _ = studio
-    response = client.post('/api/longform-preview', json=BODY | {'renderer': 'mpt', 'narrator_voice': 'es-ES-AlvaroNeural'})
-    assert response.status_code == 200
-    assert response.json()['renderer'] == 'mpt'
+    response = client.post(route, json=BODY | {'renderer': 'mpt', 'narrator_voice': 'es-ES-AlvaroNeural'})
+    assert response.status_code == 422
+    assert 'histórica' in response.json()['detail']
+    assert client.get('/api/longform').json() == []
 
 
 def test_longform_saved_definition_is_visible_after_reload(studio):
@@ -255,3 +257,30 @@ def test_longform_saved_definition_is_visible_after_reload(studio):
 def test_disabled_publishing_error_is_actionable(studio):
     from kitok.application import user_error
     assert 'PUBLISH_ENABLED=true' in user_error('Publishing disabled: set PUBLISH_ENABLED=true in .env')
+
+
+def test_historical_mpt_draft_stays_readable_but_cannot_start(studio, monkeypatch):
+    client, service = configured(studio, monkeypatch)
+    row = client.post('/api/longform', json=BODY).json()
+    record = service._read(row['id'])
+    record['renderer'] = record['request']['renderer'] = 'mpt'
+    record['request']['narrator_voice'] = 'es-ES-AlvaroNeural'
+    service._write(record)
+    before = (service.records / f"{row['id']}.json").read_bytes()
+    historical = client.get(f"/api/longform/{row['id']}").json()
+    assert historical['renderer'] == 'mpt' and historical['narrator_voice'] == 'es-ES-AlvaroNeural'
+    assert client.get('/api/longform').json()[0]['renderer'] == 'mpt'
+    response = client.post(f"/api/longform/{row['id']}/jobs")
+    assert response.status_code == 422 and 'histórica' in response.json()['detail']
+    assert (service.records / f"{row['id']}.json").read_bytes() == before
+    monkeypatch.setattr(runner(), 'run_longform', lambda *a, **kw: pytest.fail('Must not submit MPT'))
+    with pytest.raises(ValueError, match='histórica'):
+        service._render(record, None, lambda message: None)
+
+
+def test_metadata_new_classic_format_uses_fish(studio):
+    client, _, _ = studio
+    metadata = client.get('/api/metadata').json()
+    classic = next(row for row in metadata['formats'] if row['id'] == 'classic')
+    assert classic['voice_profile'] == 'rick_es'
+    assert next(row for row in metadata['voices'] if row['id'] == classic['voice_profile'])['provider'] == 'fish'

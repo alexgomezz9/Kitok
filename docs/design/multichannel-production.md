@@ -4,7 +4,7 @@ Estado: diseño para fases futuras; no añade configuración, endpoints, agentes
 
 ## Punto de partida y límites
 
-Kitok ya separa transporte FastAPI, interfaz React, servicios Python, generación, proveedores y publicación. El motor largo nativo reúne Fish, Pexels y FFmpeg; continúa experimental. Los shorts Pexels y el largo predeterminado por CLI dependen de MPT. El estudio elige native explícitamente para largos. Ninguna propuesta cambia esos valores, los archivos anteriores ni la confirmación de Buffer.
+Kitok ya separa transporte FastAPI, interfaz React, servicios Python, generación, proveedores y publicación. El motor largo nativo reúne Fish, Pexels y FFmpeg; continúa experimental. Los shorts Pexels/locales y los nuevos largos usan generación nativa; el CLI largo selecciona native por defecto. MPT se conserva sólo para diagnóstico y recuperación explícita de tareas antiguas. Esta propuesta multicanal no altera los archivos anteriores ni la confirmación de Buffer. El estado comprobado está en PROJECT_STATUS.md.
 
 Hoy la selección de stock largo usa búsquedas globales; no existe montaje semántico por frase. El arranque no reanuda trabajos de pago, native no recupera etapas y algunos fallos de transporte Fish pueden repetir solicitudes. Antes de dirigir producción sin supervisión hay que resolver esa recuperación. El objetivo es un director editorial sobre servicios comprobables, manteniendo Python y FFmpeg como ejecutores deterministas y salida local sin Google Drive.
 

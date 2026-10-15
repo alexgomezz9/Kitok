@@ -369,12 +369,14 @@ def test_audio_analysis_uses_same_final_mix_and_parses_loudnorm_json(tmp_path):
     assert parsed == LoudnormMeasurement(-16.78, 2.6, -1.74, -26.94, 0.23)
 
 
-def test_longform_cli_keeps_mpt_as_default():
+def test_longform_cli_defaults_to_native_and_preserves_explicit_mpt_recovery():
     import longform
 
     args = longform._parser().parse_args(["content.json"])
-    assert args.renderer == "mpt"
+    assert args.renderer == "native"
     assert args.nvenc_preset == "p5"
+    historical = longform._parser().parse_args(["content.json", "--renderer", "mpt", "--resume", "known-task"])
+    assert historical.renderer == "mpt" and historical.resume == "known-task"
 
 
 def test_native_renderer_isolated_flow_reuses_fish_and_preserves_tags(

@@ -1,42 +1,51 @@
 # Estado vigente de Kitok
 
-Actualizado: 2026-10-15. Rama de implementación: **feat/native-production**, base
-**80dc92f** (auditoría subida y CI comprobada). Main no se modifica.
+Actualizado: 2026-10-15. Rama **feat/native-production**; main intacto.
+Manual de operación: [GUIA.md](GUIA.md). Montaje: [docs/editing.md](docs/editing.md).
 
-## Ahora
+## Disponible
 
-Prioridad: comparación UltimateBet A/B de 76 segundos, reutilizando audio y stock
-existentes. Original: outputs/longform/loose_thread_ultimatebet_superuser_001.mp4
-(652,6 s, 1080p30). Derivados: outputs/evaluation/ultimatebet_ab/.
-No se debe volver a sintetizar ese audio para corregir montaje.
+- Nuevos shorts locales/Pexels: Fish + FFmpeg; Pexels cuando corresponde.
+- Nuevos largos: native predeterminado en CLI y estudio, todavía experimental.
+  MPT sólo para diagnóstico y recuperación explícita de tareas históricas.
+  Álvaro/Edge queda como dato histórico; las voces nuevas son Fish.
+- Montaje: comparación A/B, descarga y render de un plan local por escenas.
+  Reutiliza audio/recursos; cachea planos; gráficos de identidad, cifras y acceso
+  a información. No prepara el plan automáticamente ni ofrece editor de timeline.
+- Fish: caché compartida entre modos y bloqueo de peticiones ambiguas; no repetir
+  una síntesis incierta para reparar efectos. Datos, cachés y vídeos preservados.
+- Generación y publicación separadas. Buffer conserva revisión/confirmación.
+  Sin publicación de vídeos ni merge a main en este incremento.
 
-Hay cambios locales previos de migración shorts nativos, caché Fish y edición.
-Backend de shorts estabilizado: pruebas locales con FFmpeg para narración/diálogo,
-música, subtítulos y fondos; la integración CLI/UI continúa. No confundirlo con
-migración completa demostrada en todos los recorridos reales.
-La interfaz y CLI heredados todavía anuncian MPT; migración completa pendiente
-de integración y comprobación. Álvaro queda sólo como dato histórico: las voces
-nuevas deben ser Fish.
+## Evidencia actual
 
-## Evidencia y límites
+- UltimateBet: A/B **76 s, 1920×1080, 30 fps**, local en
+  outputs/evaluation/ultimatebet_ab/{A_current,B_improved}.mp4.
+  Original de 652,6 s conservado. B es la versión3 revisada visualmente; mismo
+  audio decodificado que A, decode completo correcto, sin negros detectados,
+  -16,13 LUFS y -1,8 dBTP. Sin nueva voz ni APIs durante la reedición.
+- Render NVENC: primera versión 65,9 s; corrección final 19,6 s,
+  1 plano renderizado y 16 reutilizados. Las medidas no incluyen todo el QA.
+- 55 pruebas editoriales/graphics pasan; relectura adversarial cerró enlaces,
+  promoción interrumpida, muestreo80 y revisión de caché del navegador.
+- 13 pruebas React, build TypeScript/Vite y **5 E2E Chromium** pasan. El E2E de
+  Montaje hace render FFmpeg real sobre medios temporales; Fish/Buffer no se usan.
+- Gate integrado: **487 Python, 13 React, build y 5 E2E** pasan con datos
+  temporales y red externa bloqueada en pytest. make studio-check pasa.
+- Guard CLI: una tarea MPT pendiente bloquea native incluso con --start-over,
+  bajo lock y antes de crear proveedores. Relectura independiente: 17 pruebas pasan.
+- Push comprobado hasta ab4b27c y CI correcta para ese SHA. El checkpoint de
+  integración CLI/UI está verificado localmente; actualizar SHA/CI tras subirlo.
 
-- UltimateBet A/B76s renderizado con NVENC. B conserva el mismo audio decodificado
-  que A; decode completo y QA inicial pasan. Revisión visual independiente y correcciones realizadas en B_v3. Última reparación
-  de una cifra: 1 plano renderizado y 16 reutilizados; 19,6 s de render, sin API.
-- Cliente Fish: caché y bloqueo compartidos entre modos, adopción de caché histórica,
-  sin retry ambiguo; 72 pruebas pertinentes y relectura independiente pasan.
-- Checkpoint backend nativo: 392 pruebas Python pasan desde una exportación exacta
-  del índice sin datos privados; incluye render FFmpeg de shorts y recuperación.
-- Hardware comunicado: RTX3050 Laptop 4GB y RAM8GB. Usar FFmpeg/Pillow/ASS,
-  renders secuenciales y caché; evitar modelos generativos pesados.
-- La base 80dc92f pasó 357 Python, 9 React y 4 E2E; esa cifra NO verifica los
-  cambios actuales. Ejecutar make verify sobre el siguiente checkpoint.
-- APIs existentes autorizadas cuando sean necesarias. Reutilizar antes de gastar;
-  sin publicación ni merge a main.
+## Límites y siguiente paso
 
-## Continuar
+No hay director autónomo, catálogo multicanal operativo, nuevos episodios
+completos mejorados ni YouTube directo. Revisión visual por muestras; audición
+subjetiva continua no realizada. No se ha probado cada estilo con una nueva
+llamada real Fish/Pexels; las pruebas de proveedores son aisladas.
 
-Leer .codex-work/PLAN.md si está disponible. Terminar B y comparar imagen/audio,
-cerrar revisión de caché Fish y pruebas de migración, actualizar GUIA y este estado,
-hacer commits/push verificados y comprobar CI. No borrar cola/estado/caché/media.
-Operación diaria: [GUIA.md](GUIA.md). Protocolo: [docs/development.md](docs/development.md).
+Subir el checkpoint integrado y comprobar CI. Siguiente mejora editorial:
+recursos más específicos por episodio y ampliar el plan al resto de UltimateBet
+reutilizando audio; no presentar ese trabajo como ya terminado. Mantener esta página breve; historial de diseño en docs/archive/.
+Hardware: RTX 3050 Laptop 4 GB / RAM 8 GB; render secuencial FFmpeg/Pillow/ASS.
+APIs existentes autorizadas cuando hagan falta; evitar consumo duplicado.

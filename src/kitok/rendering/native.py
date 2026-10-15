@@ -42,7 +42,7 @@ def fish_reference_id(voice_name: str) -> str:
     if len(parts) != 3 or parts[0] != "fish_audio" or not parts[1]:
         raise NativeRenderError(
             "Native long-form currently requires narrator_voice='fish_audio:<reference_id>:<name>'; "
-            "use --renderer mpt for other voice providers"
+            "choose a Fish narrator; legacy Edge voices are read-only history"
         )
     return parts[1]
 

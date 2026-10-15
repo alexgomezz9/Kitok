@@ -116,3 +116,24 @@ aislado sigue incompleto para el estudio y el CLI de largos; usar checkout compl
 Una suite verde demuestra sus escenarios con mocks. No demuestra saldo,
 conectividad Fish/Pexels/MPT, publicación Buffer, acceso vidIQ ni OAuth YouTube.
 Esos ensayos requieren autorización y evidencia propias.
+
+## Continuidad de cada checkpoint
+
+PROJECT_STATUS.md es la entrada breve para el siguiente chat: capacidades
+comprobadas, límites y siguiente paso. GUIA.md describe operación, incluyendo el
+frontend que la lee. AGENTS.md obliga a actualizar ambos y los documentos afectados
+en cada unidad terminada; elimina afirmaciones antiguas de las páginas vigentes,
+y conserva propuestas/encargos fechados bajo docs/archive/ o docs/research/.
+
+El operador autoriza commits y pushes de ramas de trabajo verificadas. El
+coordinador revisa el índice, ejecuta el gate pertinente, crea un commit coherente,
+sube la rama y coteja SHA/CI. No hay un hook que haga push de cualquier cambio
+parcial: las pruebas y la inspección preceden al checkpoint. Main, publicación
+de vídeos y gastos significativos mantienen su aprobación específica. No añadas
+otras skills o hooks que dupliquen el protocolo actual.
+
+Durante el piloto editorial, la revisión produjo correcciones comprobables:
+enlaces internos que redirigían salidas, promoción interrumpida de QA/contact,
+muestreo de más de 80 planos y caché del reproductor tras completar un render. Las
+regresiones persistentes están en test_editorial_studio/test_editorial_plan y
+Workbench.test; el E2E de Montaje renderiza FFmpeg real con medios temporales.
