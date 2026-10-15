@@ -96,21 +96,29 @@ def test_api_opens_with_missing_delivery_and_exposes_fallback(tmp_path, monkeypa
 
 def test_generation_completes_ready_in_local_folder_after_delivery_failure(tmp_path):
     from unittest.mock import Mock
-    from kitok.models import ContentItem, ContentQueue, MPTTask, ValidationResult
+    from kitok.generation import GenerationPlan
+    from kitok.models import ContentItem, ContentQueue, ValidationResult
     from kitok.pipeline import Pipeline
     from kitok.state import StateStore
     settings = settings_at(tmp_path)
     settings.ready_dir.write_text('external destination unavailable')
     settings.ensure_directories()
-    item = ContentItem(id='local_fallback', subject='Example', script='A complete narration for our fixture.', keywords=['city'])
+    item = ContentItem(id='local_fallback', subject='Example', script='A complete narration for our fixture.',
+                       keywords=['city'], voice_profile='rick_es')
     state = StateStore(settings.state_path)
     client = Mock()
-    client.submit_video.return_value = 'fixture-task'
-    client.get_task.return_value = MPTTask(task_id='fixture-task', state=1, videos=['fixture.mp4'])
-    client.download_artifact.side_effect = lambda source, path: path.write_bytes(b'mock-rendered-video')
+    for method in ('submit_video', 'get_task', 'download_artifact'):
+        getattr(client, method).side_effect = AssertionError('Native generation must not use MPT')
     pipeline = Pipeline(settings, ContentQueue(items=[item]), state, client, {})
+    pipeline.generator.plan = Mock(return_value=GenerationPlan({}))
+    pipeline.generator.finish = Mock(side_effect=lambda item, plan, source, target, workspace:
+                                     target.write_bytes(b'mock-rendered-video'))
     pipeline.validator.prepare = Mock(return_value=ValidationResult(ok=True))
     pipeline.process(ids={item.id})
+    assert client.mock_calls == []
+    pipeline.generator.plan.assert_called_once()
+    pipeline.generator.finish.assert_called_once()
+    pipeline.validator.prepare.assert_called_once()
     result = state.get(item.id)
     assert result['status'] == 'ready', result
     assert Path(result['ready_path']).parent == settings.local_ready_dir

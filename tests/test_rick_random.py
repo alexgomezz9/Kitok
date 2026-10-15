@@ -177,15 +177,20 @@ def test_local_composition_removes_background_audio_and_bounds_short_subtitles(t
     assert all(len(cue["text"].split()) <= 4 for cue in cues)
 
 
-def test_pexels_explainer_still_uses_existing_mpt_plan(local_kitok, tmp_path, monkeypatch):
+def test_pexels_explainer_uses_native_measured_narration(local_kitok, tmp_path, monkeypatch):
     settings = local_kitok[0]
-    fish = Mock(side_effect=AssertionError("Pexels explainer must not call local Fish client"))
-    monkeypatch.setattr("kitok.generation.FishVoiceClient", fish)
+    fish = Mock()
+    monkeypatch.setattr("kitok.generation.FishVoiceClient", Mock(return_value=fish))
+    monkeypatch.setattr("kitok.generation.PexelsProvider", Mock())
+    audio = DialogueAudio(tmp_path / "rick.mp3", [], 10)
+    monkeypatch.setattr("kitok.generation.DialogueAudioService.generate_single", Mock(return_value=audio))
+    clips = [object()]
+    monkeypatch.setattr(GenerationService, "_stock_timeline", Mock(return_value=clips))
     item = rick_item(visual_profile="pexels", visual_seed=None)
     plan = GenerationService(settings, {"subtitle_enabled": True}).plan(item, tmp_path)
-    assert plan.local_background is None and plan.dialogue_audio is None
+    assert plan.dialogue_audio is audio and plan.stock_timeline is clips
     assert plan.preset["voice_name"].startswith("fish_audio:")
-    fish.assert_not_called()
+    fish.close.assert_called_once()
 
 
 def test_rick_random_smoke_cli_routes_without_loading_queue(monkeypatch):

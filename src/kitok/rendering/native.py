@@ -1,15 +1,17 @@
 from __future__ import annotations
 
 import logging
+import json
+import hashlib
 import random
-import shutil
-import tempfile
 import time
 from pathlib import Path
 
 from ..fish_voice import FishVoiceClient
 from ..longform.models import TimelineClip
-from ..longform.timeline import build_timeline
+from ..longform.timeline import build_timeline, build_semantic_timeline
+from ..editing.alignment import detect_pauses, read_word_alignment
+from ..editing.manifest import load_or_create_manifest, script_hash
 from ..media.ffmpeg import FFmpegNativeEngine, write_render_manifest
 from ..media.ffprobe import probe_media
 from ..stock.selector import OutputGeometry
@@ -89,7 +91,7 @@ class NativeLongformRenderer(LongformRenderer):
         )
         if definition.music_enabled and not definition.background_music_file.is_file():
             raise NativeRenderError(
-                f"Loose Thread background music does not exist: {definition.background_music_file}"
+                f"Background music does not exist: {definition.background_music_file}"
             )
         reference_id = fish_reference_id(definition.voice_name)
         script = validate_native_script(definition.item.script)
@@ -98,7 +100,10 @@ class NativeLongformRenderer(LongformRenderer):
             preflight(definition.item.keywords, orientation="landscape")
         work_root = self.output_path.parent / ".native-work"
         work_root.mkdir(parents=True, exist_ok=True)
-        workspace = Path(tempfile.mkdtemp(prefix=f"{definition.item.id}-", dir=work_root))
+        # The caller holds the content-ID generation lock. Stable workspaces preserve
+        # completed audio and chunk receipts when changing only text/effects.
+        workspace = work_root / definition.item.id
+        workspace.mkdir(parents=True, exist_ok=True)
         success = False
         fish_seconds = search_seconds = download_seconds = timeline_seconds = 0.0
         ffmpeg_seconds = validation_seconds = 0.0
@@ -110,6 +115,9 @@ class NativeLongformRenderer(LongformRenderer):
                 self.settings.fish_api_key.get_secret_value(),
                 self.settings.fish_model,
                 timeout=self.settings.fish_tts_timeout_seconds,
+                cache_dir=self.settings.audio_cache_dir,
+                ffprobe=self.settings.ffprobe_binary,
+                timestamps=True,
             )
             try:
                 # One coherent call: direction tags are forwarded verbatim.
@@ -130,13 +138,48 @@ class NativeLongformRenderer(LongformRenderer):
 
             stage = time.monotonic()
             timeline_seed = self.seed or definition.item.id
-            slots = build_timeline(
-                narration_duration,
-                definition.item.keywords,
-                minimum_clip=definition.video_clip_duration_min,
-                maximum_clip=definition.video_clip_duration_max,
-                seed=timeline_seed,
-            )
+            editing = None
+            edit_path = self.output_path.with_suffix(".edit.json")
+            audio_fingerprint = hashlib.sha256(narration.read_bytes()).hexdigest()
+            if getattr(definition, "editing_enabled", True):
+                if edit_path.exists() and start_over:
+                    old_edit = json.loads(edit_path.read_text(encoding="utf-8"))
+                    if old_edit.get("script_sha256") != script_hash(script) or abs(float(old_edit.get("duration", 0)) - narration_duration) > .05 or old_edit.get("audio_sha256") != audio_fingerprint:
+                        # Preserve operator edits while rebuilding for genuinely new narration.
+                        backup = workspace / f"edit-{time.time_ns()}.json"
+                        shutil_copy = edit_path.read_bytes()
+                        backup.write_bytes(shutil_copy)
+                        edit_path.unlink()
+                alignment_path = getattr(definition, "alignment_file", None) or narration.with_suffix(".alignment.json")
+                word_alignment = read_word_alignment(Path(alignment_path))
+                options = dict(
+                    audio_sha256=audio_fingerprint,
+                    style=getattr(definition, "editing_style", None),
+                    visual_sections=getattr(definition, "visual_sections", None),
+                    word_alignment=word_alignment,
+                    pauses=detect_pauses(narration, self.settings.ffmpeg_binary) if not word_alignment else None,
+                )
+                try:
+                    editing = load_or_create_manifest(edit_path, script, narration_duration, definition.item.keywords, **options)
+                except ValueError:
+                    if not word_alignment or edit_path.exists():
+                        raise
+                    log.warning("Provider timestamps do not match transcript; falling back to explicitly estimated sentence timing")
+                    options["word_alignment"] = None
+                    options["pauses"] = detect_pauses(narration, self.settings.ffmpeg_binary)
+                    editing = load_or_create_manifest(edit_path, script, narration_duration, definition.item.keywords, **options)
+                slots = build_semantic_timeline(
+                    editing.sections, narration_duration, definition.item.keywords,
+                    minimum_clip=definition.video_clip_duration_min,
+                    maximum_clip=definition.video_clip_duration_max,
+                )
+            else:
+                slots = build_timeline(
+                    narration_duration, definition.item.keywords,
+                    minimum_clip=definition.video_clip_duration_min,
+                    maximum_clip=definition.video_clip_duration_max,
+                    seed=timeline_seed,
+                )
             timeline_seconds = time.monotonic() - stage
 
             stage = time.monotonic()
@@ -225,6 +268,7 @@ class NativeLongformRenderer(LongformRenderer):
                 lra_target=definition.audio_lra_target,
                 true_peak_target=definition.audio_true_peak_target,
                 on_stage=self.output,
+                editing=editing,
             )
             ffmpeg_seconds = time.monotonic() - stage
             self._stage("FFmpeg", ffmpeg_seconds)
@@ -254,6 +298,8 @@ class NativeLongformRenderer(LongformRenderer):
                     "renderer": "native",
                     "content_id": definition.item.id,
                     "narration_duration": narration_duration,
+                    "edit_manifest": str(edit_path) if editing else None,
+                    "alignment": editing.alignment if editing else None,
                     "timings": timings.__dict__,
                     "timeline": [
                         {
@@ -290,9 +336,7 @@ class NativeLongformRenderer(LongformRenderer):
                 },
             )
         finally:
-            if success and not self.keep_workspace:
-                shutil.rmtree(workspace)
-            elif not success:
+            if not success:
                 log.warning("Native workspace preserved after failure: %s", workspace)
                 if self.output:
                     self.output(f"Native workspace preserved after failure: {workspace}")

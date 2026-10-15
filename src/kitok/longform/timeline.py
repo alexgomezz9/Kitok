@@ -54,3 +54,33 @@ def build_timeline(
         )
         start += duration
     return slots
+
+
+def build_semantic_timeline(
+    sections, narration_duration: float, keywords, *, minimum_clip: float = 5.5, maximum_clip: float = 8.5,
+) -> list[TimelineSlot]:
+    """Cut at sentence boundaries where practical, keeping measured audio coverage."""
+    if not sections:
+        return build_timeline(narration_duration, keywords, minimum_clip=minimum_clip, maximum_clip=maximum_clip, seed="semantic")
+    if minimum_clip <= 0 or maximum_clip < minimum_clip or narration_duration <= 0 or not keywords:
+        raise TimelineError("Invalid semantic timeline inputs")
+    # Include boundaries near a sensible shot length rather than cutting each short phrase.
+    boundaries = [0.0]
+    section_boundaries = sorted({float(section.audio_end) for section in sections if section.audio_end is not None and 0 < section.audio_end < narration_duration})
+    while narration_duration - boundaries[-1] > maximum_clip:
+        start = boundaries[-1]
+        candidates = [value for value in section_boundaries if minimum_clip <= value - start <= maximum_clip]
+        chosen = min(candidates, key=lambda value: abs((minimum_clip + maximum_clip) / 2 - (value - start))) if candidates else start + (minimum_clip + maximum_clip) / 2
+        if 0 < narration_duration - chosen < minimum_clip:
+            chosen = start + (narration_duration - start) / 2
+        boundaries.append(chosen)
+    boundaries.append(narration_duration)
+    slots = []
+    for index, (start, end) in enumerate(zip(boundaries, boundaries[1:])):
+        overlap = [section for section in sections if section.audio_start is not None and section.audio_end is not None and section.audio_start < end and section.audio_end > start]
+        text = " ".join(section.section for section in overlap)
+        explicit_keywords = [keyword for section in overlap for keyword in section.keywords]
+        matches = [keyword for keyword in dict.fromkeys(explicit_keywords) if any(token.casefold() in text.casefold() for token in keyword.split() if len(token) > 2)]
+        query = matches[0] if matches else keywords[index % len(keywords)]
+        slots.append(TimelineSlot(index, query, start, end - start, text))
+    return slots

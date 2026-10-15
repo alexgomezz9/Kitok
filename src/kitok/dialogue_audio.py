@@ -92,16 +92,17 @@ class DialogueAudioService:
         self._stage("Dialogue audio", "ok", time.monotonic() - started)
         return DialogueAudio(target, timeline, timeline[-1].end)
 
-    def generate_single(self, item, workspace: Path) -> DialogueAudio:
+    def generate_single(self, item, workspace: Path, *, speed: float | None = None) -> DialogueAudio:
         """Generate one measured Fish narration without an unnecessary concat pass."""
         profile = voice(item.voice_profile)
         if profile.provider != "fish":
-            raise ValueError(f"Single-speaker local narration requires a Fish voice: {item.voice_profile}")
+            raise ValueError(f"Native narration requires a Fish voice: {item.voice_profile}")
         target = workspace / f"narration_{item.voice_profile}.mp3"
-        label = f"Fish {profile.display_name.removesuffix(' ES')}"
+        label = f"{profile.provider.title()} {profile.display_name.removesuffix(' ES')}"
         self._stage(label, "start")
         started = time.monotonic()
-        self.fish.synthesize(item.script, profile.value, target)
+        self.fish.synthesize(item.script, profile.value, target,
+                             **({"speed": speed} if speed is not None else {}))
         duration = media_duration(target, self.ffprobe)
         self._stage(label, "ok", time.monotonic() - started)
         return DialogueAudio(

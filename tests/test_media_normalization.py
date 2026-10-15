@@ -6,7 +6,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from kitok.models import MPTTask
+from kitok.generation import GenerationPlan
 from kitok.pipeline import Pipeline
 from kitok.regeneration import ReadyRegenerator
 from kitok.video_validator import VideoValidator, validate_for_publishing
@@ -87,19 +87,27 @@ def test_failed_final_validation_preserves_original(tmp_path, monkeypatch):
 def test_ready_only_after_final_validation(local_kitok, monkeypatch, regenerate, valid_final):
     settings, queue, state, video = local_kitok
     settings.ensure_directories()
+    queue.items = [item.model_copy(update={"voice_profile": "rick_es"}) for item in queue.items]
     state.upsert("one", status="ready" if regenerate else "pending")
     fake = Mock()
-    fake.submit_video.return_value = "new-task"
-    fake.get_task.return_value = MPTTask(task_id="new-task", state=1, videos=["artifact"])
-    fake.download_artifact.side_effect = lambda artifact, path: path.write_bytes(b"original")
+    for method in ("submit_video", "get_task", "download_artifact"):
+        getattr(fake, method).side_effect = AssertionError("Native generation must not use MPT")
     calls = mock_tools(monkeypatch, probe_info(170000), probe_info(120000 if valid_final else 160000))
+    engine = (ReadyRegenerator(settings, queue, state, fake, {}) if regenerate
+              else Pipeline(settings, queue, state, fake, {}))
+    engine.generator.plan = Mock(return_value=GenerationPlan({}))
+    engine.generator.finish = Mock(side_effect=lambda item, plan, source, target, workspace:
+                                    target.write_bytes(b"original"))
     if regenerate:
-        result = ReadyRegenerator(settings, queue, state, fake, {}).run(ids={"one"})
+        result = engine.run(ids={"one"})
         assert result.regenerated == int(valid_final)
         assert result.failed == int(not valid_final)
     else:
-        Pipeline(settings, queue, state, fake, {}).process(ids={"one"})
+        engine.process(ids={"one"})
         assert state.get("one")["status"] == ("ready" if valid_final else "failed")
+    assert fake.mock_calls == []
+    engine.generator.plan.assert_called_once()
+    engine.generator.finish.assert_called_once()
     assert [args[0] for args in calls] == ["ffprobe", "ffmpeg", "ffprobe"]
     if valid_final:
         assert state.get("one")["validation"]["normalized"] is True

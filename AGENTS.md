@@ -44,7 +44,7 @@
 - Buffer requiere revisión y confirmación explícitas. Conserva los IDs remotos y los resultados ambiguos; no reintentes automáticamente mutaciones de publicación ni borres estado para forzarlas.
 - Los largos están fuera de la cola/calendario/publicador de shorts. No los introduzcas sin adaptar validación y contrato de publicación.
 - En largos, la interfaz elige native de forma explícita y lo identifica como experimental. El CLI conserva mpt por defecto. No cambies silenciosamente estos valores.
-- La migración MPT sigue parcial: shorts Pexels y largos MPT aún lo necesitan. No borres MPT ni afirmes independencia total sin migrar y verificar estos recorridos.
+- El backend de shorts Pexels/locales ya es nativo; conserva IDs y registros MPT históricos sin enviarlos automáticamente de nuevo. La integración completa y los límites verificados están en PROJECT_STATUS.md; no afirmes independencia total sin comprobar CLI/UI y recorridos reales.
 - No reinicies trabajos de pago al arrancar. En largos, fallos/interrupciones requieren revisión; Fish puede haber consumido saldo.
 - Mantén el bloqueo de generación por ID durante todo el trabajo. CLI y estudio usan longform-ID en state/jobs/. No uses sólo un botón deshabilitado como protección contra duplicados.
 - HTTP no acepta rutas arbitrarias para guiones, configuración o descarga. Usa IDs validados y directorios controlados.

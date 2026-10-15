@@ -37,7 +37,7 @@ En «Crear short» elige uno de los estilos básicos:
 
 - Rick: una narración con voz Fish, personajes/subtítulos del formato existente y un fondo de assets/backgrounds/random/. No necesita MPT.
 - Rick y Morty: diálogo por turnos, voces Fish y gameplay local. Los PNG transparentes van en assets/characters/rick/ y assets/characters/morty/. No necesita MPT con fondo local.
-- Narración con Pexels: guion y palabras para buscar imágenes. Todavía necesita la API de MoneyPrinterTurbo encendida. Álvaro es la voz inicial.
+- Narración con Pexels: Fish, búsquedas y montaje FFmpeg nativos. Elige una voz Fish; Álvaro se conserva sólo como dato de borradores antiguos.
 
 1. Introduce el título y el guion; en diálogo, escribe lo que dice cada personaje en su bloque.
 2. Si usas Pexels, escribe búsquedas concretas separadas por comas; por ejemplo: brain, science, laboratory.
@@ -186,11 +186,11 @@ Todavía no si quieres conservar todas las funciones. La migración es parcial, 
 
 - Rick con random y diálogos con fondos locales generan sin MPT.
 - El vídeo largo con --renderer native genera sin MPT; sigue marcado como experimental.
-- Las narraciones cortas con Pexels siguen usando MPT para generación.
-- Los diálogos cortos con fondo Pexels siguen pidiendo el visual a MPT.
+- Las narraciones cortas con Pexels ya tienen generación nativa Fish + Pexels + FFmpeg.
+- Los diálogos cortos con fondo Pexels ya componen el visual de forma nativa, con sus voces y personajes.
 - El vídeo largo predeterminado por CLI y la opción MPT de la interfaz siguen usando MPT.
 
-Usar sólo los caminos locales/nativos permite trabajar con MPT apagado, pero no demuestra que la migración completa esté terminada. No se ha eliminado ninguna instalación. Antes de borrarla habría que migrar los shorts Pexels, validar ambos formatos con generaciones reales y decidir qué hacer con tareas MPT pendientes.
+Usar sólo los caminos locales/nativos permite trabajar con MPT apagado, pero no demuestra que la migración completa esté terminada. No se ha eliminado ninguna instalación. Antes de borrarla falta terminar la integración CLI/UI, cerrar las pruebas reales pendientes y decidir qué hacer con tareas MPT históricas. No se reanudan como trabajos nuevos ni se borra su ID.
 
 ## Dónde vive cada cosa
 

@@ -1,4 +1,4 @@
-"""Bulk replacement of unpublished ready videos with fresh MPT renders."""
+"""Bulk replacement of unpublished ready videos with native renders."""
 from __future__ import annotations
 
 import tempfile
@@ -6,8 +6,6 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .file_manager import copy_atomic, output_filename
-from .mpt_client import TASK_STATE_FAILED
-from .mpt_watch import wait_for_mpt_task
 from .video_validator import VideoValidator
 from .generation import GenerationService
 from .locks import generation_lock, GenerationBusy
@@ -46,7 +44,7 @@ class ReadyRegenerator:
         self.generator = GenerationService(settings,preset)
 
     def run(self, *, dry_run=False, ids: set[str] | None = None) -> RegenerationSummary:
-        """Render fresh MPT tasks sequentially; dry-run never writes or contacts MPT."""
+        """Render native replacements sequentially; dry-run never writes or uses providers."""
         summary = RegenerationSummary()
         items = [item for item in self.q.items if ids is None or item.id in ids]
         if ids and ids - set(self.q.by_id()):
@@ -97,8 +95,8 @@ class ReadyRegenerator:
     def _regenerate_locked(self, item):
         # Never recover a prior task for this command; every attempt is fresh.
         attempts = int(self.state.get(item.id).get("attempts", 0)) + 1
-        self.state.upsert(item.id, attempts=attempts, mpt_task_id=None,
-                          mpt_progress=None, regeneration_status="in_progress",
+        self.state.upsert(item.id, attempts=attempts, generation_renderer="native",
+                          regeneration_status="in_progress",
                           last_error=None)
         name = output_filename(item)
         generated = self.s.generated_dir / name
@@ -113,19 +111,6 @@ class ReadyRegenerator:
             workspace = Path(temp)
             plan = self.generator.plan(item, workspace)
             source = None
-            if plan.local_background is None:
-                task_id = self.client.submit_video(item, plan.preset)
-                self.state.upsert(item.id, mpt_task_id=task_id)
-                task = self._wait(item, task_id)
-                if task.state == TASK_STATE_FAILED:
-                    detail = task.error or "MoneyPrinterTurbo task failed"
-                    if task.failed_stage:
-                        detail += f" (stage: {task.failed_stage})"
-                    raise RuntimeError(detail)
-                if not task.videos:
-                    raise RuntimeError("MPT completed without video artifacts")
-                source = workspace / "mpt_visual.mp4" if item.content_format == "dialogue" else workspace / name
-                self.client.download_artifact(task.videos[0], source)
             staged = Path(temp) / name
             self.generator.finish(item, plan, source, staged, workspace)
             validation = self.validator.prepare(staged,item.platforms,self.s.ffmpeg_binary)
@@ -137,14 +122,5 @@ class ReadyRegenerator:
         self.state.upsert(item.id, status="ready", output_path=str(generated),
                           ready_path=str(external), validation=validation.model_dump(),
                           regeneration_status="succeeded", last_error=None,
-                          **({"generation_warnings": self.generator.last_warnings,
-                              "generation_debug": self.generator.last_metadata}
-                             if item.content_format == "dialogue" else {}))
-
-    def _wait(self, item, task_id):
-        return wait_for_mpt_task(
-            self.client, task_id, poll_seconds=self.s.poll_interval_seconds,
-            timeout_seconds=self.s.task_timeout_minutes * 60,
-            stall_seconds=self.s.mpt_progress_stall_minutes * 60,
-            on_update=lambda task: self.state.upsert(item.id, mpt_progress=task.progress),
-        )
+                          generation_warnings=self.generator.last_warnings,
+                          generation_debug=self.generator.last_metadata)

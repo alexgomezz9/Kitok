@@ -11,7 +11,9 @@ existentes. Original: outputs/longform/loose_thread_ultimatebet_superuser_001.mp
 No se debe volver a sintetizar ese audio para corregir montaje.
 
 Hay cambios locales previos de migración shorts nativos, caché Fish y edición.
-Siguen en estabilización/revisión: no confundirlos con la base auditada.
+Backend de shorts estabilizado: pruebas locales con FFmpeg para narración/diálogo,
+música, subtítulos y fondos; la integración CLI/UI continúa. No confundirlo con
+migración completa demostrada en todos los recorridos reales.
 La interfaz y CLI heredados todavía anuncian MPT; migración completa pendiente
 de integración y comprobación. Álvaro queda sólo como dato histórico: las voces
 nuevas deben ser Fish.
@@ -22,6 +24,8 @@ nuevas deben ser Fish.
   que A; decode completo y QA inicial pasan. Revisión visual/correcciones en curso.
 - Cliente Fish: caché y bloqueo compartidos entre modos, adopción de caché histórica,
   sin retry ambiguo; 72 pruebas pertinentes y relectura independiente pasan.
+- Checkpoint backend nativo: 392 pruebas Python pasan desde una exportación exacta
+  del índice sin datos privados; incluye render FFmpeg de shorts y recuperación.
 - Hardware comunicado: RTX3050 Laptop 4GB y RAM8GB. Usar FFmpeg/Pillow/ASS,
   renders secuenciales y caché; evitar modelos generativos pesados.
 - La base 80dc92f pasó 357 Python, 9 React y 4 E2E; esa cifra NO verifica los

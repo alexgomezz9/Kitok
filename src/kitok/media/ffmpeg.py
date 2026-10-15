@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import logging
 import queue
 import re
@@ -13,6 +14,8 @@ from pathlib import Path
 from typing import Callable, Sequence
 
 from ..longform.models import TimelineClip
+from ..editing.ass import clip_edit_filters, filter_path, write_chunk_ass
+from ..editing.manifest import EditManifest
 from .ffprobe import MediaInfo, probe_media
 
 log = logging.getLogger(__name__)
@@ -221,6 +224,8 @@ def build_chunk_command(
     spec: RenderSpec,
     first_chunk: bool,
     last_chunk: bool,
+    editing: EditManifest | None = None,
+    subtitles: Path | None = None,
 ) -> tuple[list[str], str]:
     if not clips:
         raise ValueError("A render chunk needs at least one clip")
@@ -231,15 +236,19 @@ def build_chunk_command(
         command += ["-i", str(clip.source)]
         label = f"v{index}"
         labels.append(f"[{label}]")
+        clip_effects = clip_edit_filters(editing, clip.slot.start, clip.slot.duration, spec.width, spec.height, spec.fps) if editing else []
+        effect_chain = "," + ",".join(clip_effects) + ",setsar=1" if clip_effects else ""
         filters.append(
             f"[{index}:v:0]trim=start={clip.source_start:.6f}:duration={clip.slot.duration:.6f},"
             "setpts=PTS-STARTPTS,"
             f"scale={spec.width}:{spec.height}:force_original_aspect_ratio=increase:force_divisible_by=2,"
-            f"crop={spec.width}:{spec.height},fps={spec.fps},setsar=1,format=yuv420p[{label}]"
+            f"crop={spec.width}:{spec.height},fps={spec.fps},setsar=1,format=yuv420p{effect_chain}[{label}]"
         )
     filters.append("".join(labels) + f"concat=n={len(clips)}:v=1:a=0[joined]")
     current = "joined"
     effects: list[str] = []
+    if subtitles:
+        effects.append(f"ass=filename='{filter_path(subtitles)}'")
     if first_chunk:
         effects.append(f"fade=t=in:st=0:d={spec.fade_in:g}")
     if last_chunk:
@@ -540,6 +549,7 @@ class FFmpegNativeEngine:
         lra_target: float,
         true_peak_target: float,
         on_stage: Callable[[str], None] | None = None,
+        editing: EditManifest | None = None,
     ) -> MediaInfo:
         if not clips:
             raise FFmpegError("Native render has no timeline clips")
@@ -563,6 +573,11 @@ class FFmpegNativeEngine:
             )
             chunk = workspace / f"chunk-{index:04d}.mp4"
             filter_script = workspace / f"chunk-{index:04d}.filters"
+            subtitles = workspace / f"chunk-{index:04d}.ass"
+            has_subtitles = bool(editing and write_chunk_ass(
+                editing, subtitles, start=group[0].slot.start,
+                end=group[-1].slot.end, width=self.spec.width, height=self.spec.height,
+            ))
             command, script = build_chunk_command(
                 group,
                 chunk,
@@ -572,15 +587,35 @@ class FFmpegNativeEngine:
                 spec=self.spec,
                 first_chunk=index == 0,
                 last_chunk=index == len(groups) - 1,
+                editing=editing,
+                subtitles=subtitles if has_subtitles else None,
             )
             filter_script.write_text(script, encoding="utf-8")
             log.debug("FFmpeg filter stage=chunk %d/%d filter=%s", chunk_number, len(groups), script)
-            self._run_progress(
-                command,
-                f"chunk {chunk_number}/{len(groups)}",
-                expected_duration=chunk_duration,
-                chunk=(chunk_number, len(groups)),
-            )
+            fingerprint = hashlib.sha256(json.dumps({
+                "command": command, "filters": script,
+                "sources": [(str(clip.source), clip.source.stat().st_size, clip.source.stat().st_mtime_ns) for clip in group],
+                "subtitles": subtitles.read_text(encoding="utf-8") if has_subtitles else "",
+            }, sort_keys=True).encode()).hexdigest()
+            receipt = chunk.with_suffix(".sha256")
+            reusable = chunk.is_file() and receipt.is_file() and receipt.read_text() == fingerprint
+            if reusable:
+                try:
+                    cached = probe_media(chunk, self.ffprobe)
+                    reusable = abs(cached.duration - chunk_duration) < .25 and (cached.width, cached.height) == (self.spec.width, self.spec.height)
+                except Exception:
+                    reusable = False
+            if not reusable:
+                receipt.unlink(missing_ok=True)
+                self._run_progress(
+                    command,
+                    f"chunk {chunk_number}/{len(groups)}",
+                    expected_duration=chunk_duration,
+                    chunk=(chunk_number, len(groups)),
+                )
+                receipt.write_text(fingerprint)
+            else:
+                log.info("FFmpeg chunk %d/%d cache hit", chunk_number, len(groups))
             chunks.append(chunk)
             log.info(
                 "FFmpeg chunk %d/%d complete elapsed=%.2fs media=%s percentage=100.0%%",
