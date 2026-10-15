@@ -21,6 +21,8 @@ from ..assets import AssetService, inside, identifier
 from ..app_settings import preferences, save_preferences
 from ..scheduling import ScheduleService
 from ..thumbnails import ThumbnailService
+from ..longform_studio import LongformStudio
+from .schemas import LongformRequest
 
 log = logging.getLogger('kitok.api')
 
@@ -29,6 +31,7 @@ def create_app(settings=None, *, catalog_path=None):
     application = Application(settings)
     assets = AssetService(application.s, catalog_path)
     calendar = ScheduleService(application)
+    longform = LongformStudio(application)
 
     @asynccontextmanager
     async def lifespan(app):
@@ -37,6 +40,7 @@ def create_app(settings=None, *, catalog_path=None):
 
     app = FastAPI(title='Kitok local studio', version='0.2.0', lifespan=lifespan)
     app.state.application = application
+    app.state.longform = longform
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=['127.0.0.1', 'localhost', 'testserver', '[::1]'])
     origins = ['http://127.0.0.1:5173', 'http://localhost:5173', 'http://127.0.0.1:8000', 'http://localhost:8000']
     app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=['*'], allow_headers=['Content-Type'])
@@ -89,6 +93,66 @@ def create_app(settings=None, *, catalog_path=None):
     @app.get('/api/metadata')
     def metadata():
         return assets.metadata()
+
+    @app.get('/api/guide')
+    def guide():
+        path = Path(__file__).resolve().parents[3] / 'GUIA.md'
+        return {'markdown': path.read_text(encoding='utf-8')}
+
+    @app.post('/api/content-preview')
+    def short_preview(body: CreateContent):
+        from ..models import ContentItem
+        values = body.model_dump(exclude_none=True)
+        values['id'] = values.get('id') or 'preview'
+        item = ContentItem.model_validate(values)
+        uses_mpt = item.visual_profile == 'pexels'
+        checks = [
+            {'label': 'FFmpeg instalado', 'ok': bool(shutil.which(application.s.ffmpeg_binary))},
+            {'label': 'ffprobe instalado', 'ok': bool(shutil.which(application.s.ffprobe_binary))},
+        ]
+        if item.content_format == 'dialogue' or not uses_mpt:
+            checks.append({'label': 'FISH_API_KEY configurada', 'ok': bool(application.s.fish_api_key.get_secret_value())})
+        if not uses_mpt:
+            checks.append({'label': f'Fondo local en {item.visual_profile}', 'ok': any(
+                b['pool'] == item.visual_profile and b['compatible'] for b in assets.backgrounds())})
+        if item.character_profile:
+            from .. import profiles
+            required = {v[0] for v in profiles.CHARACTER_PROFILES[item.character_profile].values()}
+            available = {c['id'] for c in assets.characters() if c['poses']}
+            checks.append({'label': 'Poses de los personajes disponibles', 'ok': required <= available})
+        return {'valid': True, 'can_generate': all(c['ok'] for c in checks), 'checks': checks,
+                'uses_mpt': uses_mpt, 'words': len(item.effective_script.split()),
+                'note': ('Necesita MPT encendido. La conexión y las credenciales remotas aún no están comprobadas.'
+                         if uses_mpt else 'Voz Fish + fondo local. No necesita MPT. La conexión Fish aún no está comprobada.')}
+
+    @app.get('/api/longform')
+    def longform_list():
+        return longform.list()
+
+    @app.post('/api/longform-preview')
+    def longform_preview(body: LongformRequest):
+        return longform.preview(body)
+
+    @app.post('/api/longform', status_code=201)
+    def longform_create(body: LongformRequest):
+        return longform.create(body)
+
+    @app.get('/api/longform/{cid}')
+    def longform_detail(cid: str):
+        return longform.detail(cid)
+
+    @app.post('/api/longform/{cid}/jobs', status_code=202)
+    def longform_start(cid: str):
+        return longform.start(cid)
+
+    @app.get('/api/longform/{cid}/video')
+    def longform_video(cid: str):
+        return FileResponse(longform.video_path(cid), media_type='video/mp4')
+
+    @app.get('/api/longform/{cid}/download')
+    def longform_download(cid: str):
+        path = longform.video_path(cid)
+        return FileResponse(path, media_type='video/mp4', filename=path.name)
 
     @app.get('/api/content', response_model=list[ContentView])
     def content():
@@ -284,4 +348,13 @@ def create_app(settings=None, *, catalog_path=None):
             assets.s = application.s
             return preferences(application.s)
 
+    # A production build makes the entire local studio available on one port.
+    # API routes stay above the mount so unknown /api paths never return HTML.
+    dist = Path(__file__).resolve().parents[3] / 'frontend' / 'dist'
+    if (dist / 'index.html').is_file():
+        from fastapi.staticfiles import StaticFiles
+        @app.api_route('/api/{unknown:path}', methods=['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
+        def unknown_api(unknown: str):
+            raise HTTPException(404, 'API route not found')
+        app.mount('/', StaticFiles(directory=dist, html=True), name='studio')
     return app

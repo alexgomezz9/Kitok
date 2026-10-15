@@ -1,7 +1,7 @@
 """HTTP contract. Business validation remains in application/model services."""
 from datetime import datetime
 from typing import Any, Literal
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from ..models import DialogueTurn, ContentItem
 
 
@@ -142,3 +142,17 @@ class PreferencesRequest(Request):
     dialogue_gap_ms: int | None = Field(default=None, ge=0, le=1000)
     default_posting_slots: list[str] | None = None
     timezone: str | None = None
+
+
+class LongformRequest(Request):
+    subject: str = Field(min_length=1, max_length=100)
+    script: str = Field(min_length=20, max_length=24000)
+    keywords: list[str] = Field(min_length=1, max_length=20)
+    renderer: Literal['native', 'mpt'] = 'native'
+    music_enabled: bool = False
+    narrator_voice: str | None = Field(default=None, max_length=200)
+
+    @field_validator('subject', 'script', mode='before')
+    @classmethod
+    def strip_text(cls, value):
+        return value.strip() if isinstance(value, str) else value
