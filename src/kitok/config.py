@@ -30,6 +30,8 @@ class Settings(BaseSettings):
     fish_api_key: SecretStr = SecretStr("")
     fish_model: str = "s2.1-pro-free"
     fish_tts_timeout_seconds: float = Field(default=180.0, gt=0)
+    pexels_api_key: SecretStr = SecretStr("")
+    native_cache_dir: Path = PROJECT_ROOT / "cache" / "pexels"
     dialogue_gap_ms: int = Field(default=140, ge=0, le=1000)
     dialogue_subtitle_max_chars: int = Field(default=26, ge=4, le=80)
     dialogue_subtitle_font_size: int = Field(default=13, ge=1, le=200)
