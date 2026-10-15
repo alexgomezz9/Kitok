@@ -1,0 +1,7 @@
+{
+  "id": "native_smoke_demo",
+  "subject": "Synthetic city documentary test",
+  "script_file": "examples/longform/native_smoke.txt",
+  "keywords": ["city skyline", "city street", "night lights", "public transport"],
+  "music_enabled": false
+}

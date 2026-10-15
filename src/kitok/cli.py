@@ -56,7 +56,8 @@ def parser():
 def load_all(*, read_only=False):
     s=configured(Settings())
     if not read_only: s.ensure_directories()
-    q=ContentQueue.load(s.queue_path); st=StateStore(s.state_path,create_parent=not read_only)
+    q=(ContentQueue(items=[]) if read_only and not s.queue_path.exists() else ContentQueue.load(s.queue_path))
+    st=StateStore(s.state_path,create_parent=not read_only)
     pp=s.mpt_preset_path if s.mpt_preset_path.is_absolute() else (PROJECT_ROOT/s.mpt_preset_path).resolve()
     return s,q,st,load_preset(pp)
 

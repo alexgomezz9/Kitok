@@ -1,0 +1,5 @@
+This is a synthetic narration for testing a local documentary pipeline. It makes no claims about a real event, person, company, or historical source. The pictures show a city at different times of day. The voice remains continuous while the stock footage changes at simple cuts.
+
+First, imagine a wide skyline in the morning. The next shot moves closer to a street, where people walk past ordinary buildings. A train or bus can illustrate movement without implying that a particular journey took place. These images are examples of visual coverage, not evidence for a news story.
+
+Later, the scene becomes darker and the lights appear. Listen for a steady narration level as each image changes. There should be no abrupt loss of audio and no unwanted fade at the end of a sentence. The final picture can fade to black after the voice has finished. This short example exists only to help inspect rendering, duration, audio, and the exported video file.
