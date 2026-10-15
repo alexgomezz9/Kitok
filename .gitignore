@@ -38,3 +38,7 @@ assets/backgrounds/**/*.webm
 frontend/*.tsbuildinfo
 frontend/*.tsbuildinfo
 *.mp3
+# Guided studio operator data and private agent working notes.
+content/longform/studio/
+state/longform/
+.codex-work/

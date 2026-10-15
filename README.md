@@ -1,5 +1,9 @@
 # Kitok — local video control panel
 
+> **Uso sencillo (shorts y vídeos largos):** lee [GUIA.md](GUIA.md) o ejecuta
+> `make studio` y abre http://127.0.0.1:8000. La guía también aparece dentro del estudio.
+> La migración de MoneyPrinterTurbo es parcial; la guía indica qué modos aún lo necesitan.
+
 # How Kitok Works
 
 ```text

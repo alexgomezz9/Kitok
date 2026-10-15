@@ -13,3 +13,13 @@ run:
 	. .venv/bin/activate && python main.py
 plan:
 	. .venv/bin/activate && python main.py --plan
+
+.PHONY: studio studio-check studio-setup
+studio:
+	bash scripts/studio.sh
+studio-check:
+	bash scripts/studio.sh --check
+studio-setup:
+	python3 -m venv .venv
+	.venv/bin/python -m pip install -e ".[dev]"
+	PATH="$(CURDIR)/.tools/node/bin:$$PATH" npm --prefix frontend ci
