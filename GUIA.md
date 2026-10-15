@@ -222,6 +222,7 @@ a una nueva generación completa de cada estilo contra Fish/Pexels reales.
 - content_queue.json: borradores y fechas de shorts.
 - state/state.json: intentos, rutas y publicaciones de shorts. No borrar para reintentar.
 - content/longform/studio/: guiones y configuraciones creados desde la interfaz.
+- content/longform/ID/assets/: recursos específicos aportados para un episodio; excluidos de Git.
 - state/longform/: estado de trabajos largos del estudio.
 - outputs/ready/: vídeos cortos terminados; es también el destino READY_DIR predeterminado, sin copia a Google Drive.
 - outputs/longform/: vídeos largos terminados.

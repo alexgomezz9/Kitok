@@ -6,7 +6,8 @@ Manual de operación: [GUIA.md](GUIA.md). Montaje: [docs/editing.md](docs/editin
 ## Disponible
 
 - Nuevos shorts locales/Pexels: Fish + FFmpeg; Pexels cuando corresponde.
-- Nuevos largos: native predeterminado en CLI y estudio, todavía experimental.
+- Nuevos largos: native predeterminado en CLI y estudio; la interfaz lo
+  identifica como experimental.
   MPT sólo para diagnóstico y recuperación explícita de tareas históricas.
   Álvaro/Edge queda como dato histórico; las voces nuevas son Fish.
 - Montaje: comparación A/B, descarga y render de un plan local por escenas.

@@ -43,7 +43,7 @@ no copies las cifras ni el guion de un competidor.
 Terror/lore es viable **con un paquete de imágenes o gameplay del personaje**.
 Para Slender Man, por ejemplo, un bosque genérico no explica quién creó al
 personaje ni sus distintas adaptaciones. Guarda tus clips/capturas autorizados
-bajo `assets/episodes/ID/`, descríbelos en `assets` del plan y el montaje los
+bajo `content/longform/ID/assets/`, descríbelos en `assets` del plan y el montaje los
 utiliza por escena. Ese flujo ya admite vídeo e imágenes locales; Kitok no busca
 ni descarga automáticamente material específico de personajes desde YouTube.
 
