@@ -189,3 +189,69 @@ def test_native_dispatch_never_constructs_mpt(studio, monkeypatch):
     assert client.post(f"/api/longform/{row['id']}/jobs").status_code == 202
     assert wait(service, row['id'])['status'] == 'succeeded'
     assert closed == [True]
+
+
+def test_outside_edits_cannot_change_reviewed_job(studio, monkeypatch):
+    client, service = configured(studio, monkeypatch)
+    row = client.post('/api/longform', json=BODY).json()
+    Path(row['script_path']).write_text('Esta narración es diferente de la que se revisó.')
+    assert client.post(f"/api/longform/{row['id']}/jobs").status_code == 422
+    assert service.detail(row['id'])['status'] == 'draft'
+
+
+
+@pytest.mark.parametrize('hidden', [{'voice_rate': 2.0}, {'audio_loudness_target': -30}, {'script_file': '/etc/passwd'}])
+def test_hidden_config_edits_are_rejected_before_loading(studio, monkeypatch, hidden):
+    client, service = configured(studio, monkeypatch)
+    row = client.post('/api/longform', json=BODY).json()
+    config = Path(row['config_path'])
+    config.write_text(json.dumps(json.loads(config.read_text()) | hidden))
+    assert client.post(f"/api/longform/{row['id']}/jobs").status_code == 422
+    assert service.detail(row['id'])['status'] == 'draft'
+
+
+def test_worker_keeps_lease_if_response_construction_fails(studio, monkeypatch):
+    from kitok.locks import GenerationBusy
+    client, service = configured(studio, monkeypatch)
+    row = client.post('/api/longform', json=BODY).json()
+    cid = row['id']
+    started, release = threading.Event(), threading.Event()
+    def render(*args):
+        started.set()
+        assert release.wait(3)
+    def broken_response(*args):
+        raise OSError('simulated response read error')
+    monkeypatch.setattr(service, '_render', render)
+    detail = service.detail
+    monkeypatch.setattr(service, 'detail', broken_response)
+    try:
+        with pytest.raises(OSError):
+            service.start(cid)
+        assert started.wait(3)
+        with pytest.raises(GenerationBusy):
+            with generation_lock(service.s, f'longform-{cid}'):
+                pytest.fail('Worker lost its lease')
+    finally:
+        release.set()
+        monkeypatch.setattr(service, 'detail', detail)
+    wait(service, cid)
+
+
+def test_mpt_preview_allows_its_existing_edge_voice(studio):
+    client, _, _ = studio
+    response = client.post('/api/longform-preview', json=BODY | {'renderer': 'mpt', 'narrator_voice': 'es-ES-AlvaroNeural'})
+    assert response.status_code == 200
+    assert response.json()['renderer'] == 'mpt'
+
+
+def test_longform_saved_definition_is_visible_after_reload(studio):
+    client, _, _ = studio
+    row = client.post('/api/longform', json=BODY).json()
+    saved = client.get(f"/api/longform/{row['id']}").json()
+    assert saved['script'] == BODY['script'] and saved['keywords'] == BODY['keywords']
+    assert saved['narrator_voice'].startswith('fish_audio:')
+
+
+def test_disabled_publishing_error_is_actionable(studio):
+    from kitok.application import user_error
+    assert 'PUBLISH_ENABLED=true' in user_error('Publishing disabled: set PUBLISH_ENABLED=true in .env')

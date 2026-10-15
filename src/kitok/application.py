@@ -30,6 +30,7 @@ def run_generation(settings, queue, state, client, preset, *, ids=None, retry_fa
 def user_error(error):
     text = str(error)
     patterns = [
+        ('Publishing disabled', 'Para enviar a Buffer, configura PUBLISH_ENABLED=true en .env y reinicia el estudio.'),
         ('FISH_API_KEY', 'Configura FISH_API_KEY en .env para generar las voces.'),
         ('network request', 'No se pudo conectar con Fish. Comprueba la conexión y vuelve a intentarlo.'),
         ('HTTP 429', 'Fish ha limitado las solicitudes. Espera un momento antes de reintentar.'),

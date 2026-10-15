@@ -92,8 +92,9 @@ class LongformStudio:
     def preview(self, body):
         item, config = self._definition_values(body)
         r = runner()
-        from .rendering.native import fish_reference_id
-        fish_reference_id(config['narrator_voice'])
+        if body.renderer == 'native':
+            from .rendering.native import fish_reference_id
+            fish_reference_id(config['narrator_voice'])
         checks = [
             {'label': 'FFmpeg instalado', 'ok': bool(shutil.which(self.s.ffmpeg_binary))},
             {'label': 'ffprobe instalado', 'ok': bool(shutil.which(self.s.ffprobe_binary))},
@@ -139,6 +140,10 @@ class LongformStudio:
             'config_path': str(self.folder / f'{cid}.json'),
             'script_path': str(self.folder / f'{cid}.txt'),
             'output_path': str(path),
+            'script': record['request']['script'],
+            'keywords': record['request']['keywords'],
+            'narrator_voice': record['request']['narrator_voice'] or runner().DEFAULT_NARRATOR_VOICE,
+            'music_enabled': record['request']['music_enabled'],
         }
 
     def list(self):
@@ -157,6 +162,7 @@ class LongformStudio:
         with self.application._mutex:
             # Hold this cross-process lock from reservation through completion.
             lease = ExitStack()
+            submitted = False
             try:
                 lease.enter_context(generation_lock(self.s, f'longform-{self._valid_id(cid)}'))
                 record = self._read(cid)
@@ -168,8 +174,16 @@ class LongformStudio:
                 if not preview['can_generate']:
                     missing = ', '.join(c['label'] for c in preview['checks'] if not c['ok'])
                     raise ValueError(f'Falta configurar: {missing}')
-                # Load the actual saved CLI files before scheduling paid work.
-                definition = runner().load_longform_config(self.folder / f'{cid}.json', project_root=self.root)
+                # Reject every outside config change, including hidden CLI
+                # options. Do this before following script_file from disk.
+                config_path = self.folder / f'{cid}.json'
+                expected_config = self._definition_values(body, cid)[1]
+                expected_config['script_file'] = str((self.folder / f'{cid}.txt').relative_to(self.root))
+                if json.loads(config_path.read_text(encoding='utf-8')) != expected_config:
+                    raise ValueError('El guion o la configuración cambió fuera del estudio. Crea y revisa un nuevo borrador.')
+                definition = runner().load_longform_config(config_path, project_root=self.root)
+                if definition.item.script != body.script:
+                    raise ValueError('El guion cambió fuera del estudio. Crea y revisa un nuevo borrador.')
                 if self.output_path(cid).exists() or runner().longform_task_path(cid, project_root=self.root).exists():
                     raise ValueError('Ya existe una salida o una tarea MPT. Revisa los archivos antes de continuar.')
                 record.update(status='queued', stage='En cola; espera a que terminen los otros vídeos.', error=None)
@@ -177,13 +191,15 @@ class LongformStudio:
                 try:
                     # Same single worker as shorts: no extra CPU/GPU competition.
                     self.application._executor.submit(self._run, record, definition, lease)
+                    submitted = True  # Ownership of the lease has transferred to the worker.
                 except Exception:
                     record.update(status='draft', stage='No se pudo iniciar; puedes volver a intentarlo.')
                     self._write(record)
                     raise
                 return self.detail(cid)
             except Exception:
-                lease.close()
+                if not submitted:
+                    lease.close()
                 raise
 
     def _run(self, record, definition, lease):
