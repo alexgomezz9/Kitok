@@ -23,3 +23,9 @@ studio-setup:
 	python3 -m venv .venv
 	.venv/bin/python -m pip install -e ".[dev]"
 	PATH="$(CURDIR)/.tools/node/bin:$$PATH" npm --prefix frontend ci
+
+.PHONY: verify verify-browser
+verify:
+	.venv/bin/python scripts/verify.py
+verify-browser:
+	.venv/bin/python scripts/verify.py --e2e
