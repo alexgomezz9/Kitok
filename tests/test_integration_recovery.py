@@ -7,7 +7,7 @@ import pytest
 from pydantic import SecretStr
 
 from kitok.config import Settings
-from kitok.fish_voice import FishVoiceClient
+from kitok.fish_voice import FishVoiceClient, FishVoiceError
 from kitok.generation import GenerationPlan, GenerationService
 from kitok.models import ContentItem, ContentQueue, MPTTask, ValidationResult
 from kitok.mpt_client import MPTClient, MPTError, MPTTaskNotFound
@@ -28,16 +28,16 @@ def test_fish_uses_configurable_long_read_timeout():
     assert Settings(_env_file=None, fish_tts_timeout_seconds=210).fish_tts_timeout_seconds == 210
 
 
-def test_fish_retries_server_error_and_limits_attempts(tmp_path, monkeypatch):
+def test_fish_server_error_is_never_retried(tmp_path, monkeypatch):
     seen = []
     def handler(request):
         seen.append(request)
         return httpx.Response(503 if len(seen) == 1 else 200,
                               content=b"ID3audio", headers={"content-type": "audio/mpeg"})
-    monkeypatch.setattr("kitok.fish_voice.time.sleep", lambda _: None)
     with httpx.Client(transport=httpx.MockTransport(handler)) as http:
-        FishVoiceClient("test-key", attempts=2, client=http).synthesize("Hola", "ref", tmp_path / "voice.mp3")
-    assert len(seen) == 2
+        with pytest.raises(FishVoiceError, match="HTTP 503"):
+            FishVoiceClient("test-key", attempts=2, client=http).synthesize("Hola", "ref", tmp_path / "voice.mp3")
+    assert len(seen) == 1
 
 
 def test_mpt_submit_timeout_never_reposts():

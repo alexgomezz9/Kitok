@@ -82,18 +82,17 @@ def test_mpt_payload_uses_derived_dialogue_script_without_mutating_preset():
     client.close()
 
 
-def test_fish_request_model_reference_atomic_output_and_retries(tmp_path, monkeypatch):
+def test_fish_request_model_reference_and_atomic_output(tmp_path, monkeypatch):
     seen = []
     def handler(request):
         seen.append(request)
-        return httpx.Response(429 if len(seen) == 1 else 200,
+        return httpx.Response(200,
                               content=b"ID3audio", headers={"content-type": "audio/mpeg"})
-    monkeypatch.setattr("kitok.fish_voice.time.sleep", lambda _: None)
     with httpx.Client(transport=httpx.MockTransport(handler)) as http:
         fish = FishVoiceClient("private-token", "s2.1-pro-free", client=http)
         target = tmp_path / "turn.mp3"
         fish.synthesize("Hola", VOICES["rick_es"].value, target)
-    assert len(seen) == 2 and target.read_bytes() == b"ID3audio"
+    assert len(seen) == 1 and target.read_bytes() == b"ID3audio"
     assert not (tmp_path / "turn.mp3.part").exists()
     assert json.loads(seen[0].content) == {"text": "Hola", "reference_id": VOICES["rick_es"].value,
                                            "format": "mp3"}

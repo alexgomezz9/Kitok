@@ -87,7 +87,7 @@ La salida es horizontal 16:9, 1920×1080, sin subtítulos, en outputs/longform/.
 
 Los vídeos largos no entran en el calendario ni en el publicador Buffer de shorts. Descárgalos y súbelos a YouTube Studio. Los largos antiguos creados sólo por CLI siguen en outputs/longform/; la nueva lista muestra los borradores creados en este estudio.
 
-Si falla o se interrumpe, no se vuelve a generar automáticamente. Revisa logs/kitok-AAAAMMDD.log y los archivos antes de crear otra copia. Repetir una generación puede volver a consumir voz. El cliente Fish existente reintenta algunos fallos de transporte; no hay garantía de cobro exactamente una vez.
+Si falla o se interrumpe, no se vuelve a generar automáticamente. Revisa logs/kitok-AAAAMMDD.log y los archivos antes de crear otra copia. Repetir una generación puede volver a consumir voz. El cliente Fish de Kitok no reintenta peticiones de voz tras un fallo; un resultado incierto requiere revisión. La caché nueva permite reutilizar audio confirmado sin pedir otra síntesis.
 
 ## Usar shorts desde el backend / terminal
 

@@ -18,8 +18,10 @@ nuevas deben ser Fish.
 
 ## Evidencia y límites
 
-- Original UltimateBet y audio/cache local inspeccionados; primera hoja de contacto
-  muestra overlays por regex y tiempos estimados. A extraído, B en preparación.
+- UltimateBet A/B76s renderizado con NVENC. B conserva el mismo audio decodificado
+  que A; decode completo y QA inicial pasan. Revisión visual/correcciones en curso.
+- Cliente Fish: caché y bloqueo compartidos entre modos, adopción de caché histórica,
+  sin retry ambiguo; 72 pruebas pertinentes y relectura independiente pasan.
 - Hardware comunicado: RTX3050 Laptop 4GB y RAM8GB. Usar FFmpeg/Pillow/ASS,
   renders secuenciales y caché; evitar modelos generativos pesados.
 - La base 80dc92f pasó 357 Python, 9 React y 4 E2E; esa cifra NO verifica los

@@ -141,6 +141,8 @@ class Settings(BaseSettings):
                 for p in ("tiktok", "instagram", "youtube")}
 
     @property
+    def audio_cache_dir(self): return (self.data_root or PROJECT_ROOT) / "cache" / "audio"
+    @property
     def queue_path(self): return (self.data_root or PROJECT_ROOT) / "content_queue.json"
     @property
     def state_path(self): return (self.data_root or PROJECT_ROOT) / "state" / "state.json"
