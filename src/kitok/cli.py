@@ -128,10 +128,12 @@ def main(argv=None):
         return 2
     if a.publish_id or any(getattr(a, flag) for flag in publishing_modes):
         return publishing_main(a)
-    try: s,q,st,preset=load_all()
+    read_only = a.dry_run or a.status
+    try: s,q,st,preset=load_all(read_only=read_only)
     except Exception as e:
         console.print(f"[red]Startup error:[/red] {e}"); return 2
-    configure_logging(s.logs_dir,a.verbose)
+    if not read_only:
+        configure_logging(s.logs_dir,a.verbose)
 
     if a.dry_run:
         v=VideoValidator(s.ffprobe_binary)
