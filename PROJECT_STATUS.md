@@ -21,21 +21,22 @@ Manual de operación: [GUIA.md](GUIA.md). Montaje: [docs/editing.md](docs/editin
 
 - UltimateBet: A/B **76 s, 1920×1080, 30 fps**, local en
   outputs/evaluation/ultimatebet_ab/{A_current,B_improved}.mp4.
-  Original de 652,6 s conservado. B es la versión3 revisada visualmente; mismo
+  Original de 652,6 s conservado. B es la versión 3 revisada visualmente; mismo
   audio decodificado que A, decode completo correcto, sin negros detectados,
   -16,13 LUFS y -1,8 dBTP. Sin nueva voz ni APIs durante la reedición.
 - Render NVENC: primera versión 65,9 s; corrección final 19,6 s,
   1 plano renderizado y 16 reutilizados. Las medidas no incluyen todo el QA.
 - 55 pruebas editoriales/graphics pasan; relectura adversarial cerró enlaces,
-  promoción interrumpida, muestreo80 y revisión de caché del navegador.
+  promoción interrumpida, muestreo a 80 puntos y revisión de caché del navegador.
 - 13 pruebas React, build TypeScript/Vite y **5 E2E Chromium** pasan. El E2E de
   Montaje hace render FFmpeg real sobre medios temporales; Fish/Buffer no se usan.
 - Gate integrado: **487 Python, 13 React, build y 5 E2E** pasan con datos
   temporales y red externa bloqueada en pytest. make studio-check pasa.
 - Guard CLI: una tarea MPT pendiente bloquea native incluso con --start-over,
   bajo lock y antes de crear proveedores. Relectura independiente: 17 pruebas pasan.
-- Push comprobado hasta ab4b27c y CI correcta para ese SHA. El checkpoint de
-  integración CLI/UI está verificado localmente; actualizar SHA/CI tras subirlo.
+- Código integrado e5ac321 subido y
+  [CI correcta](https://github.com/alexgomezz9/Kitok/actions/runs/38807115646)
+  comprobada. Este checkpoint añade documentación revisada y conserva la investigación recibida.
 
 ## Límites y siguiente paso
 
@@ -44,8 +45,10 @@ completos mejorados ni YouTube directo. Revisión visual por muestras; audición
 subjetiva continua no realizada. No se ha probado cada estilo con una nueva
 llamada real Fish/Pexels; las pruebas de proveedores son aisladas.
 
-Subir el checkpoint integrado y comprobar CI. Siguiente mejora editorial:
+[PR de borrador preparada](https://github.com/alexgomezz9/Kitok/pull/1), sin merge.
+Siguiente mejora editorial:
 recursos más específicos por episodio y ampliar el plan al resto de UltimateBet
-reutilizando audio; no presentar ese trabajo como ya terminado. Mantener esta página breve; historial de diseño en docs/archive/.
+reutilizando audio; no presentar ese trabajo como ya terminado.
+Mantener esta página breve; historial de diseño en docs/archive/.
 Hardware: RTX 3050 Laptop 4 GB / RAM 8 GB; render secuencial FFmpeg/Pillow/ASS.
 APIs existentes autorizadas cuando hagan falta; evitar consumo duplicado.

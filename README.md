@@ -55,6 +55,7 @@ proveedores; los escenarios de navegador usan datos temporales.
 | [Desarrollo](docs/development.md) | Ciclo de coordinación, revisión y CI |
 | [Multicanal y director](docs/design/multichannel-production.md) | Propuesta de arquitectura y contratos |
 | [YouTube oficial](docs/design/youtube.md) | OAuth, métricas y almacenamiento histórico propuestos |
+| [Herramientas y canales](docs/research/README.md) | Decisiones por hardware y viabilidad editorial |
 | [Roadmap](docs/roadmap.md) | Fases y aceptación verificable |
 | [Mapa rápido](PROJECT_GUIDE.md) | Entradas y referencias |
 | [Archivo histórico](docs/archive/) | Documentación anterior, no instrucciones vigentes |
