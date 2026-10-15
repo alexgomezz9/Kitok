@@ -1,5 +1,6 @@
 """Isolated browser fixture: real HTTP/files, simulated paid renderers only."""
 from pathlib import Path
+import os
 import shutil
 import subprocess
 import sys
@@ -30,7 +31,10 @@ def main():
         horizontal = root / 'horizontal.mp4'
         sample(vertical, '360x640')
         sample(horizontal, '640x360')
-        settings = Settings(_env_file=None, data_root=root, ready_dir=root / 'phone',
+        delivery = root / 'phone'
+        if os.environ.get('KITOK_E2E_UNAVAILABLE_DELIVERY') == '1':
+            delivery.write_text('unavailable external destination')
+        settings = Settings(_env_file=None, data_root=root, ready_dir=delivery,
                             background_root=root / 'assets/backgrounds', character_root=root / 'characters',
                             native_cache_dir=root / 'cache', fish_api_key='browser-test', pexels_api_key='browser-test')
         app = create_app(settings)

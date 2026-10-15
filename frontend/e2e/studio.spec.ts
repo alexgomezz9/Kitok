@@ -1,5 +1,14 @@
 import { test, expect } from '@playwright/test'
 
+test('an unavailable delivery folder shows a local fallback warning',async({page})=>{
+ test.skip(process.env.KITOK_E2E_UNAVAILABLE_DELIVERY!=='1','Requires unavailable-delivery fixture')
+ await page.goto('/')
+ await expect(page.getByRole('status').filter({hasText:'La carpeta de entrega no está disponible'})).toBeVisible()
+ const response=await page.request.get('/api/health')
+ expect(response.status()).toBe(200)
+ expect((await response.json()).delivery_directory).toMatch(/outputs\/ready$/)
+})
+
 test('short: preview, save draft, explicit generation, video and local date',async({page})=>{
  await page.goto('/')
  await expect(page.getByRole('heading',{name:'¿Qué vas a crear?'})).toBeVisible()

@@ -74,6 +74,7 @@ def create_app(settings=None, *, catalog_path=None):
                 'gameplay_count': sum(1 for x in assets.backgrounds() if x['pool'] == 'gameplay' and x['compatible']),
                 'character_count': len(assets.characters()), 'ready_directory': str(s.local_ready_dir),
                 'ready_accessible': s.local_ready_dir.is_dir(),
+                'delivery_directory': str(s.ready_dir), 'delivery_warning': s.ready_directory_warning,
                 'buffer_configured': bool(s.buffer_api_key.get_secret_value()),
                 'cloudinary_configured': bool(s.cloudinary_api_key.get_secret_value()),
                 'publishing_enabled': s.publish_enabled, 'timezone': s.timezone}
@@ -92,7 +93,7 @@ def create_app(settings=None, *, catalog_path=None):
 
     @app.get('/api/metadata')
     def metadata():
-        return assets.metadata()
+        return {**assets.metadata(), 'delivery_warning': application.s.ready_directory_warning}
 
     @app.get('/api/guide')
     def guide():

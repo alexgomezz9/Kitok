@@ -10,6 +10,8 @@ make studio
 
 Abre http://127.0.0.1:8000 en el navegador. Una sola terminal sirve el frontend y el backend. Déjala abierta mientras se genera un vídeo. El cierre puede esperar al trabajo en curso; no hay un botón de cancelación.
 
+Si READY_DIR apunta a una unidad externa que no se puede abrir, Kitok arranca con un aviso y guarda los vídeos nuevos en outputs/ready durante esa sesión. Podrás generarlos y descargarlos desde el navegador; no se copiarán a la unidad externa. La configuración de .env se conserva: conecta la unidad y reinicia Kitok para volver a usarla. Los archivos y rutas guardados de vídeos anteriores no se modifican.
+
 Si es la primera instalación, necesitas Python 3.11+, Node 22.12+ o 24, npm y FFmpeg (incluye ffprobe). Después:
 
 ```bash

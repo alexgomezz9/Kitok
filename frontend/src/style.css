@@ -9,3 +9,4 @@
 @media(max-width:800px){.advanced-nav{margin:0}.advanced-nav summary{margin:8px;white-space:nowrap}.advanced-nav button{white-space:nowrap}.workflow-steps{gap:10px}.workflow-steps li{font-size:11px}}
 @media(max-width:520px){.mode-picker{grid-template-columns:1fr;gap:10px}.mode-picker button{padding:16px}.mode-picker strong{font-size:18px}.workflow-steps{display:grid;grid-template-columns:1fr 1fr}.review-box{padding:14px}.long-library{grid-template-columns:1fr}}
 .saved-script{white-space:pre-wrap;max-height:320px;overflow:auto}
+.delivery-warning{background:#fff0d4;color:#735022;line-height:1.7}

@@ -28,6 +28,7 @@ export default function App(){
  <main><div className="topbar"><span>Estudio / {[...pages,...advancedPages].find(p=>p[0]===page)?.[1]}</span><span className="local-pill"><span className="live-dot"/> Local · {meta?.timezone||'Conectando'}</span></div>
  {error&&<div role="alert" className="alert error">{error}<button className="icon" onClick={()=>setError('')} aria-label="Cerrar error"><X size={16}/></button></div>}
  {notice&&<div role="status" className="alert success">{notice}<button className="icon" onClick={()=>setNotice('')} aria-label="Cerrar aviso"><X size={16}/></button></div>}
+ {meta?.delivery_warning&&<div role="status" className="alert delivery-warning">{meta.delivery_warning}</div>}
  {!meta?<Empty>Conectando con el estudio…</Empty>:<>
  {(page==='create'||page==='longform')&&<Workbench mode={page==='longform'?'long':'short'} meta={meta} onMode={mode=>navigate(mode==='long'?'longform':'create')} onCreated={id=>{setSelected(id);refresh();navigate('videos')}} onError={setError}/>}
  {page==='guide'&&<Guide/>}
