@@ -1,5 +1,16 @@
 # Kitok: contrato para agentes
 
+## Continuidad, Git y documentación
+
+- Lee primero PROJECT_STATUS.md (estado vigente y siguiente paso), después GUIA.md y sólo el código necesario para el encargo. El estado orienta; verifica de nuevo los hechos que vayas a cambiar o afirmar.
+- Mantén PROJECT_STATUS.md breve: rama/base, capacidades comprobadas, comandos/pruebas con fecha, trabajo en curso, límites y siguiente paso. No uses este archivo como diario ni copies logs completos.
+- En cada unidad terminada actualiza estado, guía y referencias afectadas en el mismo checkpoint. Reescribe afirmaciones obsoletas de documentos vigentes; conserva historia útil en docs/archive/ con fecha y aviso.
+- Dentro de Kitok el operador autoriza commits coherentes y push de ramas de trabajo después de verificar cada unidad. Hazlo durante el trabajo, no sólo al final. Comprueba el SHA remoto y el resultado de CI; informa si no se pudieron comprobar.
+- Antes de commit/push revisa el índice y las rutas: no incluir .env, estado privado, contenido editorial local, medios, cachés, logs ni cambios ajenos sin revisar.
+- No hagas commits vacíos, pushes de estados conocidos rotos, force-push, merge a main, despliegue ni publicación de vídeos. Mantén las aprobaciones específicas de publicación y gasto significativo.
+- Al cerrar o interrumpir trabajo, deja el siguiente paso exacto y los bloqueos reales en PROJECT_STATUS.md y .codex-work/PROJECT_STATE.md. Otros chats no deben asumir que los cambios sin commit están completos.
+- No instales skills ni hooks duplicados. El coordinador encarga revisión, recibe feedback, corrige y pide relectura; las comprobaciones deterministas preceden a nuevos agentes.
+
 ## Antes de empezar
 
 - Lee GUIA.md: es el manual de operación y la fuente de la página «Cómo usarlo».

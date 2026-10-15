@@ -14,7 +14,8 @@ Requisitos: Python 3.11+, Node 22.12+ o 24 y FFmpeg/ffprobe.
 Abre http://127.0.0.1:8000. Escribe → comprueba sin generar → guarda → genera y
 revisa. Las claves se configuran en .env; nunca se guardan en el frontend.
 
-**Manual completo:** [GUIA.md](GUIA.md).
+**Manual completo:** [GUIA.md](GUIA.md). Estado de desarrollo y siguiente paso:
+[PROJECT_STATUS.md](PROJECT_STATUS.md).
 
 ## Estado real
 
