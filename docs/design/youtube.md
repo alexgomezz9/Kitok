@@ -1,0 +1,62 @@
+# YouTube oficial: diseño de integración local
+
+Estado: **propuesta, no implementada**. Documentación oficial consultada el 15 de octubre de 2026. No se han creado credenciales, solicitado permisos, conectado cuentas, creado trabajos remotos ni publicado vídeos. Las posibilidades documentadas no demuestran disponibilidad en los canales del operador.
+
+## Responsabilidades y primera entrega
+
+Data API aportaría identidad del canal, catálogo y metadatos. Analytics resolvería consultas delimitadas y retención; Reporting alimentaría el histórico masivo. El backend Python normalizaría respuestas; React leería únicamente nuestra API local. Las estadísticas privadas no dependerían de vidIQ.
+
+Primera entrega propuesta: conexión aprobada de un canal, identidad comprobada, sincronización de lectura y pantalla con procedencia/fecha. Después incorporar Reporting, gráficos y otros canales. Publicación quedaría para una fase independiente. El guardado continúa local, sin Google Drive.
+
+## OAuth y permisos mínimos
+
+Propuesta: cliente OAuth de tipo Desktop, navegador del sistema, retorno temporal a `127.0.0.1` en puerto disponible, PKCE S256 y `state` aleatorio de un solo uso. Validar identidad remota y pedir confirmación antes de vincularla al canal editorial; nunca deducir el canal por correo o nombre. El flujo oficial admite retorno loopback; la autorización incremental no está soportada para aplicaciones instaladas. Una ampliación futura requeriría un flujo explícito de autorización, revisando los permisos completos. [OAuth Desktop](https://developers.google.com/youtube/v3/guides/auth/installed-apps).
+
+Permisos propuestos, pendientes de aprobación: `youtube.readonly` para catálogo/identidad y `yt-analytics.readonly` para estadísticas no monetarias. La referencia de `reports.query` exige actualmente también `youtube.readonly`; no basta asumir el alcance Analytics aislado. No solicitar permisos monetarios ni de escritura. [Autorización](https://developers.google.com/youtube/reporting/guides/authorization), [reports.query](https://developers.google.com/youtube/analytics/reference/reports/query).
+
+Guardar una referencia privada de autorización por canal y verificarla antes de cada sincronización. Tokens fuera del repositorio, frontend y logs; preferir almacén seguro del sistema y permisos restrictivos. Una credencial separada en disco no garantiza concesiones OAuth independientes: desconectar podría afectar otros accesos del mismo proyecto. Mostrar el alcance de la revocación antes de ejecutarla. No reutilizar tokens silenciosamente entre canales.
+
+## Reporting: alcance confirmado
+
+La documentación enumera estos contratos:
+
+| Informe | Grano de la fila | Métricas |
+| --- | --- | --- |
+| `channel_reach_basic_a1` | `date`, `channel_id`, `video_id` | `video_thumbnail_impressions`, `video_thumbnail_impressions_ctr` |
+| `channel_reach_combined_a1` | Las anteriores más `traffic_source_type`, `traffic_source_detail`, `operating_system`, `device_type` | Las mismas |
+
+Son impresiones de miniatura y CTR, sin prometer cobertura de todas las superficies Shorts. Comprobar `reportTypes.list` para cada autorización; un informe documentado puede no estar disponible en una cuenta. [Channel reports](https://developers.google.com/youtube/reporting/v1/reports/channel_reports).
+
+La definición oficial describe CTR como porcentaje de impresiones que terminan en clic. Conservar valor y unidad originales; verificar la escala del CSV antes de aplicar formato porcentual. No calcularlo con vistas totales ni sumar/promediar CTR entre filas. Para un agregado, consultar el ratio oficial del grano requerido o mostrar «no disponible». No añadir puntuaciones derivadas. [Métricas](https://developers.google.com/youtube/reporting/v1/reports/metrics).
+
+## Almacenamiento e importación propuestos
+
+SQLite local con migraciones versionadas, claves foráneas y transacciones. Separación lógica obligatoria por canal:
+
+- `youtube_connections`: canal editorial, ID remoto, referencia privada, permisos concedidos, última comprobación y estado.
+- `youtube_videos`: canal/ID, metadatos, actualización, eliminación detectada y referencia al vídeo Kitok cuando exista.
+- `youtube_reporting_jobs`: canal, tipo/versionado e ID remoto; creación explícita, después de consultar trabajos existentes.
+- `youtube_report_imports`: job/ID de informe, intervalo, creación remota, checksum, esquema y estado de importación.
+- `youtube_reach_basic_daily` y `youtube_reach_combined_daily`: claves por todas las dimensiones del contrato; métricas originales y referencia de procedencia. Mantener cadenas vacías diferenciadas de ausencias inválidas.
+- `youtube_analytics_queries`: firma normalizada de consulta, filtros, dimensiones, periodo, filas originales y fecha de extracción; retención en colección propia por vídeo/posición, sin mezclarla con alcance diario.
+- `youtube_sync_runs`: progreso duradero, páginas pendientes, errores saneados y próxima ejecución.
+
+Propuesta de importador: descargar a temporal, leer cabeceras por nombre, validar esquema, cargar staging y reemplazar transaccionalmente la partición afectada. Restricción única por informe evita duplicados. Un backfill más reciente reemplaza el intervalo completo, incluidas filas desaparecidas; nunca sumar ambas versiones. Avanzar el cursor sólo tras confirmar la transacción; impedir dos escritores por conexión. [Procesamiento oficial](https://developers.google.com/youtube/reporting/v1/reports).
+
+Conservar `date` literalmente. Timestamps de ejecución/ingestión en UTC; también guardar `startTime`/`endTime` originales. La definición de dimensión usa Pacific con cambios horarios; otra sección describe UTC−8 fijo. Por ello no reconstruir intervalos suponiendo 24 horas; validar días DST con datos reales antes de reconciliar APIs. La hora de publicación del vídeo es otro dato. [Dimensiones](https://developers.google.com/youtube/reporting/v1/reports/dimensions).
+
+Reporting ofrece inicialmente histórico limitado y descargas con caducidad; no prometer reconstrucción ilimitada. Conservar cobertura y huecos por fecha, sin convertir datos ausentes o anonimizados en ceros. La reanudación listaría informes desde un cursor solapado y deduplicaría por identidad/versión. [Histórico y backfills](https://developers.google.com/youtube/reporting/v1/reports).
+
+## Dashboard, errores y conservación
+
+Interfaz propuesta: canal, periodo y botón «Actualizar estadísticas». Mostrar vídeos, métricas oficiales, impresiones/CTR y curva de retención disponible; separar Short/largo mediante clasificación explícita verificable. Indicar fuente, grano, cobertura, última sincronización y retrasos. Retención usaría las combinaciones admitidas por Analytics, sin extrapolarla a vídeos sin respuesta. [Informes de canal](https://developers.google.com/youtube/analytics/channel_reports).
+
+Propuesta: timeouts, reintentos limitados con espera para lecturas transitorias; permisos insuficientes y revocación suspenden sincronización. Registrar errores por canal sin respuestas sensibles. Cuotas, disponibilidad, monetización y compatibilidad real quedan **sin verificar**. La creación de jobs es una mutación y exige reconciliación antes de repetirla.
+
+Las políticas permiten histórico autorizado Analytics/Reporting con comprobación cada 30 días de que la autorización sigue vigente y de que los vídeos/recursos correspondientes no se han eliminado; otros metadatos requieren actualización/eliminación a 30 días. Diseñar purga también para CSV, copias y cachés. Revocación desde Kitok y solicitudes de borrado exigen eliminación cuanto antes y en siete días como máximo. Proponer objetivo inmediato, con borrado verificable. [Políticas de almacenamiento](https://developers.google.com/youtube/terms/developer-policies).
+
+## Publicación y aceptación futura
+
+La lectura nunca habilita subidas. Publicación futura necesita aprobación de permisos, canal, MP4/hash, metadatos y visibilidad explícita antes de `videos.insert`; persistir intento/ID y reconciliar respuestas ambiguas. [Videos: insert](https://developers.google.com/youtube/v3/docs/videos/insert).
+
+vidIQ queda opcional para competidores/outliers con conexión autorizada; no se ha comprobado esa conexión. Aceptación futura: fixtures de esquemas/cabeceras, importación repetida, backfill con filas eliminadas, interrupción antes del commit, DST, permisos revocados y aislamiento entre canales. Finalmente, una prueba oficial de lectura autorizada deberá demostrar identidad, informes realmente disponibles y valores contrastados con YouTube Studio. Los mocks no satisfacen esa verificación.

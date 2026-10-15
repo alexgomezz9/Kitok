@@ -234,14 +234,14 @@ class ControlPanel:
             reason = skip_reason(state.get(content_id))
             if reason:
                 raise ValueError(reason)
-            summary["MPT tasks"] = 1
+            summary["Renderer"] = "Native (Fish + Pexels + FFmpeg)"
         elif kind == "generate":
             if queue.by_id()[content_id].editorial_status != "active":
                 raise ValueError("Restore this item before generation")
             status = state.get(content_id).get("status", "pending")
             if status not in {"pending", "failed", "submitted", "generating"}:
                 raise ValueError(f"Cannot generate an item in {status} state")
-            summary["MPT tasks"] = "Resume saved task or submit one new task"
+            summary["Renderer"] = "Native (Fish + Pexels + FFmpeg)"
         elif kind == "reset":
             summary["publishing state to clear"] = state.get(content_id).get("publishing", {})
             summary["Reminder"] = "Use only after manually deleting the social posts."
@@ -340,27 +340,17 @@ class ControlPanel:
             self.s.ensure_directories()
             path = self.s.mpt_preset_path
             preset = load_preset(path if path.is_absolute() else PROJECT_ROOT / path)
-            client = MPTClient(self.s.mpt_base_url, self.s.mpt_api_key, self.s.mpt_request_timeout_seconds,
-                               self.s.http_retry_attempts, self.s.http_retry_base_seconds)
-            try:
-                result = ReadyRegenerator(self.s, queue, state, client, preset).run(ids={action.content_id})
-                return vars(result)
-            finally:
-                client.close()
+            result = ReadyRegenerator(self.s, queue, state, None, preset).run(ids={action.content_id})
+            return vars(result)
         if action.kind == "generate":
             self.s.ensure_directories()
             path = self.s.mpt_preset_path
             preset = load_preset(path if path.is_absolute() else PROJECT_ROOT / path)
-            client = MPTClient(self.s.mpt_base_url, self.s.mpt_api_key, self.s.mpt_request_timeout_seconds,
-                               self.s.http_retry_attempts, self.s.http_retry_base_seconds)
-            try:
-                Pipeline(self.s, queue, state, client, preset).process(
-                    ids={action.content_id}, retry_failed=True)
-                result = state.get(action.content_id)
-                return {"id": action.content_id, "generation_status": result.get("status", "pending"),
-                        "last_error": result.get("last_error")}
-            finally:
-                client.close()
+            Pipeline(self.s, queue, state, None, preset).process(
+                ids={action.content_id}, retry_failed=True)
+            result = state.get(action.content_id)
+            return {"id": action.content_id, "generation_status": result.get("status", "pending"),
+                    "last_error": result.get("last_error")}
         if action.kind not in {"fill", "publish"}:
             raise ValueError("Unknown action")
         if not action.rows:

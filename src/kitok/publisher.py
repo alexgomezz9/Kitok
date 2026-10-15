@@ -149,6 +149,8 @@ class Publisher:
                            refreshed_at=cached.get("refreshed_at"))
         slots = {}
         for platform, channel in channels.items():
+            if platforms is not None and platform not in platforms:
+                continue
             slots[platform] = available_slots(plan.counts[platform], self.s.buffer_max_scheduled_per_channel)
             if channel["id"] in blocked or any(channel.get(k) for k in ("isDisconnected", "isLocked", "isQueuePaused")):
                 slots[platform] = 0
@@ -377,7 +379,7 @@ class Publisher:
         self._require_ready_item(content_id)
         return self.publish(
             ids={content_id},
-            platforms=PLATFORMS,
+            platforms=self.q.by_id()[content_id].platforms,
             require_all=True,
             before_execute=before_execute,
         )
@@ -385,7 +387,7 @@ class Publisher:
     def plan_one(self, content_id: str) -> PublishPlan:
         """Preview only this ready item; no uploads or remote mutations."""
         self._require_ready_item(content_id)
-        return self.plan(ids={content_id}, platforms=PLATFORMS, require_all=True)
+        return self.plan(ids={content_id}, platforms=self.q.by_id()[content_id].platforms, require_all=True)
 
     def _require_ready_item(self, content_id):
         if content_id not in self.q.by_id():

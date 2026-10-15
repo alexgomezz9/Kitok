@@ -52,7 +52,7 @@ def test_load_longform_config_reads_script_and_builds_content_item(tmp_path):
     assert definition.background_music_file == (
         tmp_path / "assets/music/loose_thread/level.mp3"
     )
-    assert definition.background_music_volume == 0.07
+    assert definition.background_music_volume == 0.06
     assert definition.audio_loudness_target == -16
     assert definition.audio_lra_target == 7
     assert definition.audio_true_peak_target == -1.5
@@ -67,6 +67,13 @@ def test_longform_config_honors_new_and_legacy_narrator_overrides(tmp_path):
     )
     assert legacy.voice_name == "fish_audio:old:Daniel"
     assert legacy.voice_rate == 1.0
+
+    legacy_095_root = tmp_path / "legacy-095"
+    legacy_095 = longform.load_longform_config(
+        write_definition(legacy_095_root, voice_rate=0.95),
+        project_root=legacy_095_root,
+    )
+    assert legacy_095.voice_rate == 0.95
 
     other_root = tmp_path / "new-key"
     modern = longform.load_longform_config(

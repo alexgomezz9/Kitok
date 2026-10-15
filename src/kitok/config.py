@@ -1,12 +1,23 @@
 from __future__ import annotations
+import logging
+import tempfile
 from pathlib import Path
-from pydantic import Field, SecretStr, field_validator, model_validator
+from pydantic import Field, PrivateAttr, SecretStr, field_validator, model_validator
 from zoneinfo import ZoneInfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
+def _probe_directory_write(path: Path) -> None:
+    # Existing read-only mounts can pass mkdir(exist_ok=True). A temporary file
+    # tests actual writes without leaving artifacts or touching existing media.
+    with tempfile.TemporaryFile(dir=path, prefix='.kitok-write-check-') as probe:
+        probe.write(b'kitok\n')
+        probe.flush()
+
 class Settings(BaseSettings):
+    _ready_directory_warning: str | None = PrivateAttr(default=None)
+
     model_config = SettingsConfigDict(
         env_file=PROJECT_ROOT / ".env",
         env_file_encoding="utf-8",
@@ -19,6 +30,8 @@ class Settings(BaseSettings):
     fish_api_key: SecretStr = SecretStr("")
     fish_model: str = "s2.1-pro-free"
     fish_tts_timeout_seconds: float = Field(default=180.0, gt=0)
+    pexels_api_key: SecretStr = SecretStr("")
+    native_cache_dir: Path = PROJECT_ROOT / "cache" / "pexels"
     dialogue_gap_ms: int = Field(default=140, ge=0, le=1000)
     dialogue_subtitle_max_chars: int = Field(default=26, ge=4, le=80)
     dialogue_subtitle_font_size: int = Field(default=13, ge=1, le=200)
@@ -55,7 +68,7 @@ class Settings(BaseSettings):
     default_posting_slots: list[str] = ["13:00", "19:00", "22:00"]
     character_left_anchor: int = Field(default=40, ge=0, le=300)
     character_right_anchor: int = Field(default=40, ge=0, le=300)
-    ready_dir: Path = PROJECT_ROOT / "outputs" / "ready-phone"
+    ready_dir: Path = PROJECT_ROOT / "outputs" / "ready"
     mpt_preset_path: Path = PROJECT_ROOT / "presets" / "mpt_default.json"
 
     poll_interval_seconds: float = Field(default=5.0, gt=0)
@@ -128,6 +141,8 @@ class Settings(BaseSettings):
                 for p in ("tiktok", "instagram", "youtube")}
 
     @property
+    def audio_cache_dir(self): return (self.data_root or PROJECT_ROOT) / "cache" / "audio"
+    @property
     def queue_path(self): return (self.data_root or PROJECT_ROOT) / "content_queue.json"
     @property
     def state_path(self): return (self.data_root or PROJECT_ROOT) / "state" / "state.json"
@@ -142,9 +157,30 @@ class Settings(BaseSettings):
     @property
     def cache_path(self): return self.state_path.with_name("services.json")
 
+    @property
+    def ready_directory_warning(self):
+        return self._ready_directory_warning
+
     def ensure_directories(self) -> None:
+        # Local production/state folders are mandatory. A phone/cloud sync
+        # destination must not prevent opening the studio when its drive is off.
         for p in (
-            self.ready_dir, self.generated_dir, self.failed_dir,
+            self.generated_dir, self.failed_dir,
             self.local_ready_dir, self.state_path.parent, self.logs_dir
         ):
             p.expanduser().mkdir(parents=True, exist_ok=True)
+        _probe_directory_write(self.local_ready_dir)
+        destination = self.ready_dir.expanduser()
+        try:
+            destination.mkdir(parents=True, exist_ok=True)
+            if destination.resolve() != self.local_ready_dir.resolve():
+                _probe_directory_write(destination)
+        except OSError as error:
+            self.ready_dir = self.local_ready_dir
+            self._ready_directory_warning = (
+                f'La carpeta de entrega no está disponible: {destination}. '
+                f'Los vídeos nuevos se guardarán en {self.local_ready_dir}. '
+                'No se copiarán a la unidad externa durante esta sesión. '
+                'Conecta la unidad y reinicia Kitok para volver a usarla.'
+            )
+            logging.getLogger('kitok.config').warning('%s (%s)', self._ready_directory_warning, error)

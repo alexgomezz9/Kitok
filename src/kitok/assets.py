@@ -37,7 +37,7 @@ class AssetService:
 
     def metadata(self):
         catalog = profiles.load_catalog(self.catalog_path)
-        formats = [{'id': 'classic', 'name': 'Clásico', 'content_format': 'explainer', 'voice_profile': 'alvaro'}]
+        formats = [{'id': 'classic', 'name': 'Narración Fish', 'content_format': 'explainer', 'voice_profile': 'rick_es'}]
         formats += [{'id': key, 'name': value.display_name, 'content_format': 'explainer', 'voice_profile': key}
                     for key, value in profiles.VOICES.items() if value.provider == 'fish']
         formats += [{'id': key, 'name': ' + '.join(profiles.VOICES[s].display_name.replace(' ES', '') for s in speakers),

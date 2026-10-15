@@ -63,15 +63,24 @@ def test_caption_tags_and_limits():
 
 
 def test_platform_metadata():
-    youtube = post_content(item(), "youtube", "#tag")
+    # Explicit disclosure policy: this test checks the opt-in payload, not a
+    # different default from the production settings.
+    youtube = post_content(item(), "youtube", "#tag", ai_assisted=True, youtube_ai_generated=True)
     assert youtube["metadata"]["youtube"] == {"title": "Subject", "categoryId": "27", "madeForKids": False,
                                                "privacy": "public", "notifySubscribers": True, "isAiGenerated": True}
     assert youtube["text"] == "Caption #tag"
     assert youtube["aiAssisted"] is True
     assert youtube["schedulingType"] == "automatic" and youtube["mode"] == "customScheduled"
-    assert post_content(item(), "instagram", "")["metadata"]["instagram"] == {
+    assert post_content(item(), "instagram", "", instagram_ai_generated=True)["metadata"]["instagram"] == {
         "type": "reel", "shouldShareToFeed": True, "isAiGenerated": True}
-    assert post_content(item(), "tiktok", "")["metadata"]["tiktok"] == {"isAiGenerated": True}
+    assert post_content(item(), "tiktok", "", tiktok_ai_generated=True)["metadata"]["tiktok"] == {"isAiGenerated": True}
+
+
+def test_platform_metadata_preserves_current_default_disclosure_policy():
+    for platform in ("youtube", "instagram", "tiktok"):
+        payload = post_content(item(), platform, "")
+        assert payload["aiAssisted"] is False
+        assert payload["metadata"][platform]["isAiGenerated"] is False
 
 
 @pytest.mark.parametrize("count,expected", [(0, 9), (8, 1), (9, 0), (10, 0)])

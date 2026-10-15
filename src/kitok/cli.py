@@ -17,7 +17,7 @@ from .video_validator import VideoValidator
 console=Console()
 
 def parser():
-    p=argparse.ArgumentParser(description="Kitok -> MoneyPrinterTurbo pipeline")
+    p=argparse.ArgumentParser(description="Kitok native video generation (Fish + Pexels + FFmpeg)")
     p.add_argument("--id",action="append",dest="ids")
     p.add_argument("--publish-id",metavar="CONTENT_ID")
     p.add_argument("--reset-publish-id",metavar="CONTENT_ID",action="append")
@@ -42,7 +42,7 @@ def parser():
     p.add_argument("--retry-failed",action="store_true")
     p.add_argument("--regenerate-all-ready",action="store_true")
     mode.add_argument("--status",action="store_true")
-    mode.add_argument("--check-mpt",action="store_true")
+    mode.add_argument("--check-mpt",action="store_true",help="Explicit historical MPT connectivity diagnostic; not required for native generation")
     mode.add_argument("--plan",action="store_true")
     mode.add_argument("--smoke-test",choices=["dialogue-pexels", "dialogue-gameplay", "rick-random"])
     for flag in ("buffer-usage", "cloudinary-usage", "dashboard"):
@@ -56,17 +56,21 @@ def parser():
 def load_all(*, read_only=False):
     s=configured(Settings())
     if not read_only: s.ensure_directories()
-    q=ContentQueue.load(s.queue_path); st=StateStore(s.state_path,create_parent=not read_only)
+    q=(ContentQueue(items=[]) if read_only and not s.queue_path.exists() else ContentQueue.load(s.queue_path))
+    st=StateStore(s.state_path,create_parent=not read_only)
     pp=s.mpt_preset_path if s.mpt_preset_path.is_absolute() else (PROJECT_ROOT/s.mpt_preset_path).resolve()
     return s,q,st,load_preset(pp)
 
 def show_status(q,st):
     t=Table(title="Kitok status")
-    for c in ["ID","Publish","Status","Attempts","MPT %","Last error"]: t.add_column(c)
+    for c in ["ID","Publish","Status","Attempts","Stage","Last error"]: t.add_column(c)
     for item in sorted(q.items,key=lambda x:(x.publish_at is None, x.publish_at or "", x.id)):
         r=st.get(item.id)
+        stage = r.get("stage") or ""
+        if r.get("mpt_task_id") and r.get("generation_renderer") != "native":
+            stage = "Historical MPT" + (f" {r['mpt_progress']}%" if r.get("mpt_progress") is not None else "")
         t.add_row(item.id,item.publish_at.strftime("%Y-%m-%d %H:%M") if item.schedule_enabled and item.publish_at else "Unscheduled",r.get("status","pending"),
-                  str(r.get("attempts",0)),str(r.get("mpt_progress","")),str(r.get("last_error") or ""))
+                  str(r.get("attempts",0)),str(stage),str(r.get("last_error") or ""))
     console.print(t)
 
 def main(argv=None):
@@ -127,16 +131,18 @@ def main(argv=None):
         return 2
     if a.publish_id or any(getattr(a, flag) for flag in publishing_modes):
         return publishing_main(a)
-    try: s,q,st,preset=load_all()
+    read_only = a.dry_run or a.status
+    try: s,q,st,preset=load_all(read_only=read_only)
     except Exception as e:
         console.print(f"[red]Startup error:[/red] {e}"); return 2
-    configure_logging(s.logs_dir,a.verbose)
+    if not read_only:
+        configure_logging(s.logs_dir,a.verbose)
 
     if a.dry_run:
         v=VideoValidator(s.ffprobe_binary)
         console.print(f"[green]Queue OK[/green]: {len(q.items)} items")
         console.print(f"[green]Preset OK[/green]: {len(preset)} fields")
-        console.print(f"MPT: {s.mpt_base_url}")
+        console.print("Renderer: native (Fish + Pexels + FFmpeg)")
         console.print(f"READY_DIR: {s.ready_dir.expanduser()}")
         console.print("ffprobe: "+("OK" if v.ffprobe_available() else "NOT FOUND"))
         return 0 if v.ffprobe_available() else 1
@@ -148,23 +154,32 @@ def main(argv=None):
             generate_publish_plan(q,st.all(),s.ready_dir.expanduser())
         console.print("[green]Plan regenerated[/green]"); return 0
 
-    client=MPTClient(s.mpt_base_url,s.mpt_api_key,s.mpt_request_timeout_seconds,
-                     s.http_retry_attempts,s.http_retry_base_seconds)
+    if a.check_mpt:
+        client=MPTClient(s.mpt_base_url,s.mpt_api_key,s.mpt_request_timeout_seconds,
+                         s.http_retry_attempts,s.http_retry_base_seconds)
+        try:
+            result = client.check()
+            console.print("[green]Historical MPT reachable[/green]")
+            console.print(result)
+            return 0
+        except MPTError as e:
+            console.print(f"[red]Historical MPT error:[/red] {e}")
+            return 3
+        finally:
+            client.close()
+    ids=set(a.ids) if a.ids else None
+    if ids:
+        missing=ids-set(q.by_id())
+        if missing:
+            console.print(f"[red]Unknown ids:[/red] {', '.join(sorted(missing))}")
+            return 2
     try:
-        if a.check_mpt:
-            console.print("[green]MPT reachable[/green]")
-            console.print(client.check()); return 0
-        ids=set(a.ids) if a.ids else None
-        if ids:
-            missing=ids-set(q.by_id())
-            if missing:
-                console.print(f"[red]Unknown ids:[/red] {', '.join(sorted(missing))}"); return 2
-        run_generation(s,q,st,client,preset,ids=ids,retry_failed=a.retry_failed)
-        show_status(q,st); return 0
-    except MPTError as e:
-        console.print(f"[red]MPT error:[/red] {e}"); return 3
-    finally:
-        client.close()
+        run_generation(s,q,st,None,preset,ids=ids,retry_failed=a.retry_failed)
+        show_status(q,st)
+        return 0
+    except (OSError, RuntimeError, ValueError) as e:
+        console.print(f"[red]Generation error:[/red] {e}")
+        return 3
 
 
 def scheduling_main(args):
@@ -268,13 +283,10 @@ def regeneration_main(args):
     except Exception as error:
         console.print(f"[red]Startup error:[/red] {error}")
         return 2
-    client = None
     try:
         if not args.dry_run:
             configure_logging(s.logs_dir, args.verbose)
-            client = MPTClient(s.mpt_base_url, s.mpt_api_key, s.mpt_request_timeout_seconds,
-                               s.http_retry_attempts, s.http_retry_base_seconds)
-        run = ReadyRegenerator(s, q, state, client, preset, print_line=console.print)
+        run = ReadyRegenerator(s, q, state, None, preset, print_line=console.print)
         summary = run.run(dry_run=args.dry_run)
         label = "Dry-run" if args.dry_run else "Regeneration"
         console.print(f"{label} summary: regenerated={summary.regenerated} "
@@ -284,9 +296,6 @@ def regeneration_main(args):
     except (OSError, RuntimeError, ValueError) as error:
         console.print(f"[red]Regeneration error:[/red] {error}")
         return 3
-    finally:
-        if client is not None:
-            client.close()
 
 
 def reset_publishing_main(args):

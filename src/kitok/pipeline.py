@@ -1,15 +1,10 @@
-"""Submit/recover MPT tasks, normalize media, then atomically copy READY files.
-
-Generation writes MPT tasks and local state. It never uploads or schedules posts.
-"""
+"""Generate shorts natively, validate media and atomically copy READY files."""
 from __future__ import annotations
 import json, logging, tempfile
 from pathlib import Path
 from .config import Settings
 from .file_manager import copy_atomic, output_filename, write_metadata_sidecar
 from .models import ContentQueue
-from .mpt_client import MPTClient, MPTTaskNotFound, TASK_STATE_FAILED
-from .mpt_watch import MPTTaskStalled, MPTTaskTimedOut, wait_for_mpt_task
 from .publish_plan import generate_publish_plan
 from .state import StateStore
 from .video_validator import VideoValidator
@@ -27,15 +22,15 @@ def load_preset(path:Path)->dict:
     return raw
 
 class Pipeline:
-    def __init__(self,settings:Settings,queue:ContentQueue,state:StateStore,client:MPTClient,preset:dict):
+    def __init__(self,settings:Settings,queue:ContentQueue,state:StateStore,client=None,preset:dict|None=None):
         self.s=settings; self.q=queue; self.state=state; self.client=client; self.preset=preset
         self.validator=VideoValidator(settings.ffprobe_binary,settings.min_video_seconds,
                                       settings.max_video_seconds,settings.min_vertical_width,
                                       settings.min_vertical_height)
-        self.generator=GenerationService(settings,preset)
+        self.generator=GenerationService(settings,preset or {})
 
     def process(self,ids:set[str]|None=None,retry_failed:bool=False) -> None:
-        """Submit/recover selected MPT tasks; writes generation state and local files."""
+        """Generate selected drafts; historical remote tasks require explicit review."""
         for item in self.q.items:
             if ids is not None and item.id not in ids: continue
             cur=self.state.get(item.id); status=cur.get("status","pending")
@@ -43,23 +38,17 @@ class Pipeline:
                 log.info("SKIP %s already ready",item.id); continue
             if status=="failed" and not retry_failed:
                 log.info("SKIP %s failed; use --retry-failed",item.id); continue
-            if status=="failed" and retry_failed:
-                self.state.reset_failed(item.id)
+            if cur.get("generation_renderer") == "native" and status in {"generating", "generated", "submitted"} and not retry_failed:
+                log.warning("SKIP %s interrupted native generation; review paid work before --retry-failed", item.id)
+                continue
             try:
                 self._process_item(item)
             except GenerationBusy as error:
                 log.warning("SKIP %s: %s", item.id, error)
                 continue
             except KeyboardInterrupt: raise
-            except (MPTTaskNotFound, MPTTaskStalled, MPTTaskTimedOut) as e:
-                self.state.upsert(item.id,status="failed",last_error=str(e))
-                log.error("FAILED %s: %s",item.id,e)
             except Exception as e:
-                latest=self.state.get(item.id)
-                if latest.get("mpt_task_id") and latest.get("status") in {"submitted","generating"}:
-                    self.state.upsert(item.id,last_error=str(e))
-                else:
-                    self.state.upsert(item.id,status="failed",last_error=str(e))
+                self.state.upsert(item.id,status="failed",last_error=str(e))
                 log.exception("FAILED %s: %s",item.id,e)
             self.refresh_plans()
 
@@ -68,36 +57,22 @@ class Pipeline:
             self._generate_and_prepare(item,Path(temp))
 
     def _generate_and_prepare(self,item,workspace):
-        cur=self.state.get(item.id); task_id=cur.get("mpt_task_id")
-        if not task_id:
-            self.state.increment_attempts(item.id)
+        cur=self.state.get(item.id)
+        if cur.get("mpt_task_id") and cur.get("generation_renderer") != "native":
+            raise RuntimeError(
+                f"Historical MPT task {cur['mpt_task_id']} requires review; native generation does not resume or resubmit it. "
+                "Preserve this record and create a new draft ID after reviewing its result."
+            )
+        self.state.increment_attempts(item.id)
+        self.state.upsert(item.id, generation_renderer="native", status="generating", last_error=None)
         self.generator.on_stage = lambda label, event, elapsed=None: self.state.upsert(item.id, generation_stage=label) if event == "start" else None
         self.state.upsert(item.id, generation_stage="Preparing audio")
         plan=self.generator.plan(item,workspace)
         source=None
-        if plan.local_background is None:
-            if task_id:
-                log.info("RECOVER %s task=%s",item.id,task_id)
-            else:
-                task_id=self.client.submit_video(item,plan.preset)
-                self.state.upsert(item.id,status="submitted",mpt_task_id=task_id,last_error=None)
-                log.info("SUBMITTED %s task=%s",item.id,task_id)
-            task=self._wait(item,task_id)
-            if task.state==TASK_STATE_FAILED:
-                detail=task.error or "MoneyPrinterTurbo task failed"
-                if task.failed_stage: detail+=f" (stage: {task.failed_stage})"
-                self.state.upsert(item.id,status="failed",last_error=detail); return
-            if not task.videos:
-                self.state.upsert(item.id,status="failed",last_error="MPT completed without video artifacts"); return
-            source=(self.s.generated_dir/output_filename(item) if item.content_format=="explainer"
-                    else workspace/"mpt_visual.mp4")
-            self.client.download_artifact(task.videos[0],source)
-
         name=output_filename(item)
         generated=self.s.generated_dir/name
         self.generator.finish(item,plan,source,generated,workspace)
-        if plan.local_background is not None:
-            self.state.upsert(item.id,status="generated",last_error=None)
+        self.state.upsert(item.id,status="generated",last_error=None)
         self.state.upsert(item.id, generation_stage="Validating")
         result=self.validator.prepare(generated,item.platforms,self.s.ffmpeg_binary)
         if not result.ok:
@@ -116,21 +91,9 @@ class Pipeline:
 
         self.state.upsert(item.id,status="ready",output_path=str(generated),ready_path=str(external),
                           last_error=None,validation=result.model_dump(),
-                          **({"generation_warnings": self.generator.last_warnings,
-                              "generation_debug": self.generator.last_metadata}
-                             if item.content_format == "dialogue" else {}))
+                          generation_warnings=self.generator.last_warnings,
+                          generation_debug=self.generator.last_metadata)
         log.info("READY %s -> %s",item.id,external)
-
-    def _wait(self,item,task_id):
-        def update(task):
-            self.state.upsert(item.id,status="generating",mpt_progress=task.progress,last_error=None)
-            log.info("WAIT %s state=%s progress=%s",item.id,task.state,task.progress)
-        task=wait_for_mpt_task(self.client,task_id,poll_seconds=self.s.poll_interval_seconds,
-                               timeout_seconds=self.s.task_timeout_minutes*60,
-                               stall_seconds=self.s.mpt_progress_stall_minutes*60,on_update=update)
-        if task.state != TASK_STATE_FAILED:
-            self.state.upsert(item.id,status="generated",last_error=None)
-        return task
 
     def refresh_plans(self) -> None:
         """Write local handoff plans; never schedules remote posts."""

@@ -359,7 +359,9 @@ class DialogueCompositor:
         return max(2, round(source_width * factor)), max(2, round(source_height * factor))
 
     def compose(self, item, source: Path, dialogue, destination: Path, workspace: Path,
-                *, selection: BackgroundSelection | None = None) -> Path:
+                *, selection: BackgroundSelection | None = None,
+                music: Path | None = None, music_volume: float = 0,
+                voice_volume: float = 1, subtitle_enabled: bool = True) -> Path:
         duration = selection.segment_duration if selection else dialogue.duration
         if selection:
             if selection.source != source or selection.start_offset + duration > selection.source_duration + 0.001:
@@ -369,6 +371,8 @@ class DialogueCompositor:
         else:
             source_duration = media_duration(source, self.s.ffprobe_binary)
             offset = 0.0 if source_duration <= duration else (_stable_number(item.id + ":segment") % 10000) / 10000 * (source_duration - duration)
+        self.metadata["audio_mix"] = {"music": str(music) if music else None,
+                                      "music_volume": music_volume, "voice_volume": voice_volume}
         self.metadata["final_dialogue_duration"] = duration
         self.metadata["final_audio_duration"] = duration
         subtitle_started = time.monotonic()
@@ -402,6 +406,9 @@ class DialogueCompositor:
         # Input-level seek avoids decoding hours of AV1 before the chosen offset.
         command += ["-ss", f"{offset:.3f}", "-i", str(source.resolve()), "-i", str(dialogue.path.resolve())]
         rendered = []
+        if music:
+            command += ["-stream_loop", "-1", "-i", str(music.resolve())]
+        character_input = 3 if music else 2
         for layer in poses:
             cropped = self.registry.cropped(layer.asset, workspace).resolve()
             width, height = self._target_size(cropped, layer)
@@ -414,7 +421,7 @@ class DialogueCompositor:
         filters = ["[0:v]fps=30,scale=1080:1920:force_original_aspect_ratio=increase,"
                    "crop=1080:1920,setsar=1,format=yuv420p[base]"]
         current = "base"
-        for index, (layer, _, width, height) in enumerate(rendered, 2):
+        for index, (layer, _, width, height) in enumerate(rendered, character_input):
             scaled, out = f"pose{index}", f"layer{index}"
             filters.append(f"[{index}:v]format=rgba,scale={width}:{height}:flags=lanczos[{scaled}]")
             anchor = (getattr(self.s, "character_left_anchor", 40) if layer.side == "left" else
@@ -439,9 +446,21 @@ class DialogueCompositor:
             bold = ",Bold=1" if getattr(self.s, "dialogue_subtitle_bold", False) else ""
             subtitle_style = (f"FontSize={font_size}{bold},Alignment=2,"
                               f"MarginV={subtitle_margin},Outline={outline:g}")
-        filters.append(f"[{current}]subtitles='dialogue.srt':"
-                       f"force_style='{subtitle_style}'[video]")
-        command += ["-filter_complex", ";".join(filters), "-map", "[video]", "-map", "1:a:0",
+        if subtitle_enabled:
+            filters.append(f"[{current}]subtitles='dialogue.srt':"
+                           f"force_style='{subtitle_style}'[video]")
+        else:
+            filters.append(f"[{current}]null[video]")
+        audio_map = "1:a:0"
+        if music or voice_volume != 1:
+            filters.append(f"[1:a]volume={voice_volume:g}[voice]")
+            if music:
+                filters.append(f"[2:a]volume={music_volume:g},atrim=duration={duration:.6f}[music]")
+                filters.append("[voice][music]amix=inputs=2:duration=first:normalize=0,alimiter=limit=0.95:level=0[audio]")
+            else:
+                filters.append("[voice]anull[audio]")
+            audio_map = "[audio]"
+        command += ["-filter_complex", ";".join(filters), "-map", "[video]", "-map", audio_map,
                     "-t", f"{duration:.3f}", "-c:v", "libx264", "-preset", "medium", "-crf", "22",
                     "-pix_fmt", "yuv420p", "-r", "30", "-c:a", "aac", "-profile:a", "aac_low",
                     "-b:a", "120k", "-ar", "48000", "-movflags", "+faststart", str(destination.resolve())]

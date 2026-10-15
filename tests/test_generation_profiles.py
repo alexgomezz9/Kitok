@@ -42,17 +42,34 @@ def test_old_queue_defaults_and_dialogue_script(tmp_path):
 
 
 @pytest.mark.parametrize("profile,expected", [
-    ("alvaro", "es-ES-AlvaroNeural"),
     ("rick_es", "fish_audio:f75ae6efbe9945c19be01e233e045d0e:Rick ES"),
     ("morty_es", "fish_audio:5d4a03fbc6d94f9897d5f3969fd9a765:Morty ES"),
 ])
-def test_voice_resolution_and_immutable_preset(profile, expected, tmp_path, local_kitok):
+def test_voice_resolution_and_immutable_preset(profile, expected, tmp_path, local_kitok, monkeypatch):
     settings = local_kitok[0]
+    monkeypatch.setattr("kitok.generation.PexelsProvider", Mock())
+    monkeypatch.setattr("kitok.generation.FishVoiceClient", Mock())
+    monkeypatch.setattr("kitok.generation.DialogueAudioService.generate_single", Mock(return_value=SimpleNamespace()))
+    monkeypatch.setattr(GenerationService, "_stock_timeline", Mock(return_value=[]))
     preset = {"voice_name": "es-ES-AlvaroNeural", "subtitle_enabled": True}
     item = ContentItem.model_validate(row(voice_profile=profile))
     plan = GenerationService(settings, preset).plan(item, tmp_path)
     assert plan.preset["voice_name"] == expected
     assert preset["voice_name"] == "es-ES-AlvaroNeural"
+
+
+def test_historical_edge_voice_is_readable_but_fails_before_providers(tmp_path, local_kitok, monkeypatch):
+    settings = local_kitok[0]
+    stock = Mock(side_effect=AssertionError("must not contact stock"))
+    speech = Mock(side_effect=AssertionError("must not contact Fish"))
+    monkeypatch.setattr("kitok.generation.PexelsProvider", stock)
+    monkeypatch.setattr("kitok.generation.FishVoiceClient", speech)
+    item = ContentItem.model_validate(row())
+    assert item.voice_profile == "alvaro"
+    with pytest.raises(ValueError, match="Legacy voice 'alvaro'.*requires a Fish voice"):
+        GenerationService(settings, {}).plan(item, tmp_path)
+    stock.assert_not_called()
+    speech.assert_not_called()
 
 
 @pytest.mark.parametrize("changes", [
@@ -82,18 +99,17 @@ def test_mpt_payload_uses_derived_dialogue_script_without_mutating_preset():
     client.close()
 
 
-def test_fish_request_model_reference_atomic_output_and_retries(tmp_path, monkeypatch):
+def test_fish_request_model_reference_and_atomic_output(tmp_path, monkeypatch):
     seen = []
     def handler(request):
         seen.append(request)
-        return httpx.Response(429 if len(seen) == 1 else 200,
+        return httpx.Response(200,
                               content=b"ID3audio", headers={"content-type": "audio/mpeg"})
-    monkeypatch.setattr("kitok.fish_voice.time.sleep", lambda _: None)
     with httpx.Client(transport=httpx.MockTransport(handler)) as http:
         fish = FishVoiceClient("private-token", "s2.1-pro-free", client=http)
         target = tmp_path / "turn.mp3"
         fish.synthesize("Hola", VOICES["rick_es"].value, target)
-    assert len(seen) == 2 and target.read_bytes() == b"ID3audio"
+    assert len(seen) == 1 and target.read_bytes() == b"ID3audio"
     assert not (tmp_path / "turn.mp3.part").exists()
     assert json.loads(seen[0].content) == {"text": "Hola", "reference_id": VOICES["rick_es"].value,
                                            "format": "mp3"}
@@ -185,19 +201,22 @@ def test_empty_local_pool_fails_before_fish(local_kitok, tmp_path, monkeypatch):
         GenerationService(settings, {}).plan(ContentItem.model_validate(dialogue_row(visual_profile="minecraft")), tmp_path)
 
 
-def test_pexels_dialogue_plan_requests_silent_mpt_visual(local_kitok, tmp_path, monkeypatch):
+def test_pexels_dialogue_plan_uses_native_stock_and_audio(local_kitok, tmp_path, monkeypatch):
     settings = local_kitok[0]
     fish = Mock()
     fish_factory = Mock(return_value=fish)
     monkeypatch.setattr("kitok.generation.FishVoiceClient", fish_factory)
-    monkeypatch.setattr("kitok.generation.DialogueAudioService.generate", lambda *args: SimpleNamespace())
+    monkeypatch.setattr("kitok.generation.PexelsProvider", Mock())
+    audio = SimpleNamespace()
+    monkeypatch.setattr("kitok.generation.DialogueAudioService.generate", lambda *args: audio)
+    clips = [object()]
+    monkeypatch.setattr(GenerationService, "_stock_timeline", Mock(return_value=clips))
     preset = {"voice_name": "es-ES-AlvaroNeural", "subtitle_enabled": True, "font_size": 100}
     plan = GenerationService(settings, preset).plan(ContentItem.model_validate(dialogue_row()), tmp_path)
-    assert plan.preset == {"voice_name": "no-voice", "subtitle_enabled": False,
-                           "font_size": 100, "video_script": "octopus"}
-    assert preset["voice_name"] == "es-ES-AlvaroNeural"
+    assert plan.preset == preset
+    assert plan.dialogue_audio is audio and plan.stock_timeline is clips
     fish.close.assert_called_once()
-    assert fish_factory.call_args.kwargs["timeout"] == settings.fish_tts_timeout_seconds
+    assert fish_factory.call_args.kwargs["cache_dir"] == settings.audio_cache_dir
 
 
 def test_compositor_uses_timeline_for_poses_and_exact_duration(tmp_path, monkeypatch, caplog):

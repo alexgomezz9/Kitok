@@ -1,0 +1,26 @@
+{
+  "episode_id": "mi_montaje",
+  "channel_id": "mi_canal",
+  "title": "Mi montaje revisado",
+  "audio_source": "outputs/evaluation/mi_montaje/A_current.mp4",
+  "duration": 6,
+  "palette": "ivory",
+  "accent": "#B7EA68",
+  "assets": {},
+  "scenes": [
+    {
+      "id": "dato",
+      "start": 0,
+      "end": 6,
+      "intention": "Explicar un dato que ya aparece en la narración",
+      "spoken_claim": "Sustituir por una afirmación comprobada del guion",
+      "graphic": "metric",
+      "graphic_data": {
+        "value": "TU DATO",
+        "label": "Qué mide exactamente",
+        "attribution": "Añadir fuente comprobada"
+      },
+      "motion": "push"
+    }
+  ]
+}

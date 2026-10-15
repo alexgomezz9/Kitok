@@ -11,7 +11,6 @@ from uuid import uuid4
 from .app_settings import configured
 from .config import PROJECT_ROOT
 from .models import ContentItem, ContentQueue
-from .mpt_client import MPTClient
 from .pipeline import Pipeline, load_preset
 from .regeneration import ReadyRegenerator, skip_reason
 from .state import StateStore, write_json_atomic
@@ -30,6 +29,7 @@ def run_generation(settings, queue, state, client, preset, *, ids=None, retry_fa
 def user_error(error):
     text = str(error)
     patterns = [
+        ('Publishing disabled', 'Para enviar a Buffer, configura PUBLISH_ENABLED=true en .env y reinicia el estudio.'),
         ('FISH_API_KEY', 'Configura FISH_API_KEY en .env para generar las voces.'),
         ('network request', 'No se pudo conectar con Fish. Comprueba la conexión y vuelve a intentarlo.'),
         ('HTTP 429', 'Fish ha limitado las solicitudes. Espera un momento antes de reintentar.'),
@@ -127,6 +127,8 @@ class Application:
             values.setdefault('id', suggested_id(values['subject'], set(queue.by_id()) | set(state.all())))
             values.setdefault('schedule_enabled', values.get('publish_at') is not None)
             values.setdefault('caption', values['subject'])
+            if values.get('content_format', 'explainer') == 'explainer':
+                values.setdefault('voice_profile', 'rick_es')
             created = add_item(self.s.queue_path, state, values, expected_revision=queue_digest(self.s.queue_path))
             return self.content(created.id)
 
@@ -194,17 +196,13 @@ class Application:
 
     def _run_job(self, cid, job):
         state = StateStore(self.s.state_path)
-        client = None
         try:
             state.upsert(cid, job={**job, 'status': 'running'}, last_error=None)
             settings = configured(self.s)
             queue = ContentQueue.load(settings.queue_path)
             preset = load_preset(settings.mpt_preset_path if settings.mpt_preset_path.is_absolute()
                                  else PROJECT_ROOT / settings.mpt_preset_path)
-            client = MPTClient(settings.mpt_base_url, settings.mpt_api_key,
-                               settings.mpt_request_timeout_seconds, settings.http_retry_attempts,
-                               settings.http_retry_base_seconds)
-            result = run_generation(settings, queue, state, client, preset, ids={cid}, retry_failed=True,
+            result = run_generation(settings, queue, state, None, preset, ids={cid}, retry_failed=True,
                                     regenerate=job['action'] in {'regenerate', 'background'})
             record = StateStore(settings.state_path).get(cid)
             if record.get('status') != 'ready' or (result is not None and result.failed):
@@ -214,8 +212,6 @@ class Application:
             log.exception('Generation job failed: %s', cid)
             state.upsert(cid, job={**job, 'status': 'failed', 'error': user_error(error)}, last_error=str(error))
         finally:
-            if client:
-                client.close()
             with self._mutex:
                 self._pending.discard(cid)
 

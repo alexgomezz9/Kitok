@@ -24,7 +24,9 @@ def configured(settings=None):
         values = json.loads(path.read_text())
         if not isinstance(values, dict) or set(values) - EDITABLE:
             raise ValueError('Invalid app_config.json: only editable preferences are allowed')
+        warning = base.ready_directory_warning
         base = Settings(_env_file=None, **{**base.model_dump(), **values})
+        base._ready_directory_warning = warning
     if base.character_reaction_min_seconds > base.character_reaction_max_seconds:
         raise ValueError('Reaction minimum must not exceed its maximum')
     for slot in base.default_posting_slots:
@@ -39,6 +41,7 @@ def save_preferences(settings, changes):
     from .profiles import VISUAL_PROFILES
     merged = {**preferences(settings), **changes}
     candidate = Settings(_env_file=None, **{**settings.model_dump(), **merged})
+    candidate._ready_directory_warning = settings.ready_directory_warning
     if candidate.default_visual_profile not in VISUAL_PROFILES:
         raise ValueError('Unknown default visual profile')
     if candidate.character_reaction_min_seconds > candidate.character_reaction_max_seconds:

@@ -12,8 +12,6 @@ from .dialogue_video import BackgroundPool
 from .file_manager import copy_atomic
 from .generation import GenerationService
 from .models import ContentItem
-from .mpt_client import MPTClient, TASK_STATE_FAILED
-from .mpt_watch import wait_for_mpt_task
 from .pipeline import load_preset
 from .state import StateStore
 from .video_validator import VideoValidator
@@ -82,7 +80,6 @@ def run_dialogue_pexels_smoke(*, settings: Settings | None = None, output=print)
     preset_path = source_settings.mpt_preset_path
     if not preset_path.is_absolute():
         preset_path = (PROJECT_ROOT / preset_path).resolve()
-    client = None
     try:
         preset = load_preset(preset_path)
         with tempfile.TemporaryDirectory(prefix="kitok-dialogue-smoke-") as temp:
@@ -97,64 +94,14 @@ def run_dialogue_pexels_smoke(*, settings: Settings | None = None, output=print)
             state = StateStore(smoke_settings.state_path)
             item = _smoke_item()
             state.upsert(item.id, status="pending")
-            client = MPTClient(smoke_settings.mpt_base_url, smoke_settings.mpt_api_key,
-                               smoke_settings.mpt_request_timeout_seconds,
-                               smoke_settings.http_retry_attempts,
-                               smoke_settings.http_retry_base_seconds)
-            reporter.begin("MPT connectivity")
-            client.check()
-            reporter.ok("MPT connectivity")
-
             generator = GenerationService(smoke_settings, preset, on_stage=reporter.event)
             plan = generator.plan(item, root)
-            request = MPTClient.build_payload(item, plan.preset)
-            output("MPT request: " + json.dumps(request, ensure_ascii=False, sort_keys=True))
+            output("Renderer: native (no MPT server or requests)")
             output(f"Dialogue timeline: {[(t.speaker, round(t.start, 2), round(t.end, 2)) for t in plan.dialogue_audio.timeline]}")
-
-            reporter.begin("MPT submit")
-            task_id = client.submit_video(item, plan.preset)
-            state.upsert(item.id, status="submitted", mpt_task_id=task_id)
-            reporter.ok("MPT submit")
-            output(f"MPT task: {task_id}")
-
-            reporter.begin("MPT materials")
-            materials_done = False
-            last_status = None
-            def on_update(task):
-                nonlocal materials_done, last_status
-                state.upsert(item.id, status="generating", mpt_progress=task.progress)
-                status = (task.state, task.progress)
-                if status != last_status:
-                    output(f"MPT polling: state={task.state}, progress={task.progress}")
-                    last_status = status
-                if not materials_done and task.progress is not None and task.progress >= 50:
-                    reporter.ok("MPT materials")
-                    reporter.begin("MPT concat")
-                    materials_done = True
-
-            task = wait_for_mpt_task(
-                client, task_id, poll_seconds=smoke_settings.poll_interval_seconds,
-                timeout_seconds=smoke_settings.task_timeout_minutes * 60,
-                stall_seconds=smoke_settings.mpt_progress_stall_minutes * 60,
-                on_update=on_update,
-            )
-            if task.state == TASK_STATE_FAILED:
-                raise RuntimeError(f"MPT task failed at {task.failed_stage}: {task.error}")
-            if not task.videos:
-                raise RuntimeError("MPT completed without a visual artifact")
-            if not materials_done:
-                reporter.ok("MPT materials")
-                reporter.begin("MPT concat")
-            reporter.ok("MPT concat")
-
-            reporter.begin("MPT artifact")
-            visual = root / "mpt_visual.mp4"
-            client.download_artifact(task.videos[0], visual)
-            reporter.ok("MPT artifact")
 
             reporter.begin("Kitok composition")
             staged = root / "dialogue_final.mp4"
-            generator.finish(item, plan, visual, staged, root)
+            generator.finish(item, plan, None, staged, root)
             reporter.ok("Kitok composition")
 
             reporter.begin("Validation")
@@ -169,7 +116,12 @@ def run_dialogue_pexels_smoke(*, settings: Settings | None = None, output=print)
             state.upsert(item.id, status="ready", validation=validation.model_dump(),
                          ready_path=str(smoke_settings.local_ready_dir / staged.name))
             reporter.ok("Validation")
-            output(f"Final temporary MP4: duration={validation.duration:.2f}s, "
+            preview_dir = PROJECT_ROOT / "outputs" / "smoke"
+            preview_dir.mkdir(parents=True, exist_ok=True)
+            preview = preview_dir / "dialogue_pexels_preview.mp4"
+            copy_atomic(staged, preview)
+            output(f"Preview: {preview}")
+            output(f"Final MP4: duration={validation.duration:.2f}s, "
                    f"size={validation.width}x{validation.height}, fps={validation.fps}, "
                    f"video={validation.video_codec}/{validation.pixel_format}, "
                    f"audio={validation.audio_codec}/{validation.audio_profile} "
@@ -180,9 +132,6 @@ def run_dialogue_pexels_smoke(*, settings: Settings | None = None, output=print)
         output(f"{reporter.active or 'Smoke test'} FAILED: {error}")
         output(f"TOTAL .................... {time.monotonic() - started:.1f}s")
         return 1
-    finally:
-        if client is not None:
-            client.close()
 
 
 def run_dialogue_gameplay_smoke(*, settings: Settings | None = None, output=print) -> int:

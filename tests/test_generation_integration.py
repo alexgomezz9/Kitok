@@ -13,6 +13,7 @@ from kitok.models import ContentItem, ContentQueue, MPTTask, ValidationResult
 from kitok.pipeline import Pipeline
 from kitok.queue_editor import add_batch, edit_item, queue_digest
 from kitok.regeneration import ReadyRegenerator
+from kitok.application import Application
 
 
 def dialogue(cid="one", visual="minecraft"):
@@ -25,7 +26,27 @@ def dialogue(cid="one", visual="minecraft"):
     })
 
 
-@pytest.mark.parametrize("visual,expect_mpt", [("pexels", True), ("minecraft", False),
+def test_new_application_drafts_use_fish_without_reinterpreting_historical_queue(tmp_path):
+    from kitok.config import Settings
+    settings = Settings(_env_file=None, data_root=tmp_path, ready_dir=tmp_path / "ready")
+    legacy = {"id": "legacy", "subject": "Old draft", "script": "A sufficiently long historical script.",
+              "keywords": ["city"]}
+    settings.queue_path.write_text(json.dumps([legacy]))
+    before = settings.queue_path.read_bytes()
+    app = Application(settings)
+    try:
+        assert app.content("legacy")["item"]["voice_profile"] == "alvaro"
+        assert settings.queue_path.read_bytes() == before
+        new = app.create({"id": "new", "subject": "New draft", "script": legacy["script"], "keywords": ["city"]})
+        assert new["item"]["voice_profile"] == "rick_es"
+        explicit = app.create({**legacy, "id": "explicit", "voice_profile": "alvaro"})
+        assert explicit["item"]["voice_profile"] == "alvaro"
+        assert app.content("legacy")["item"]["voice_profile"] == "alvaro"
+    finally:
+        app.close()
+
+
+@pytest.mark.parametrize("visual,expect_mpt", [("pexels", False), ("minecraft", False),
                                                 ("gameplay", False)])
 def test_pipeline_dialogue_uses_shared_generation_then_validator(local_kitok, monkeypatch, tmp_path,
                                                                   visual, expect_mpt):
@@ -60,7 +81,7 @@ def test_pipeline_dialogue_uses_shared_generation_then_validator(local_kitok, mo
 
 
 @pytest.mark.parametrize("visual,expect_mpt", [("minecraft", False), ("gameplay", False),
-                                                ("pexels", True)])
+                                                ("pexels", False)])
 def test_regenerator_dialogue_uses_shared_generation_and_validation(local_kitok, tmp_path,
                                                                     visual, expect_mpt):
     settings, _, state, _ = local_kitok

@@ -1,0 +1,241 @@
+"""Local long-form drafts/jobs, independent of the shorts queue and publishing.
+
+The existing CLI config and renderers remain authoritative. No external work is
+performed by save/preview/list. A paid render always requires an explicit start.
+"""
+from __future__ import annotations
+
+from contextlib import ExitStack
+from datetime import datetime, timezone
+from functools import lru_cache
+import importlib.util
+import json
+import logging
+from pathlib import Path
+import re
+import shutil
+import sys
+from uuid import uuid4
+
+from .config import PROJECT_ROOT
+from .locks import generation_lock, GenerationBusy
+from .models import ContentItem
+from .state import write_json_atomic
+
+log = logging.getLogger('kitok.longform_studio')
+
+
+@lru_cache(maxsize=1)
+def runner():
+    """Load the repository CLI without relying on the shell's working directory."""
+    spec = importlib.util.spec_from_file_location('kitok_longform_cli', PROJECT_ROOT / 'longform.py')
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+class LongformStudio:
+    def __init__(self, application):
+        self.application = application
+        self.s = application.s
+        self.root = self.s.data_root or PROJECT_ROOT
+        self.folder = self.root / 'content' / 'longform' / 'studio'
+        self.records = self.s.state_path.parent / 'longform'
+        self.folder.mkdir(parents=True, exist_ok=True)
+        self.records.mkdir(parents=True, exist_ok=True)
+        # Never replay paid work after a restart. A live worker owns the flock.
+        for path in self.records.glob('*.json'):
+            record = json.loads(path.read_text(encoding='utf-8'))
+            cid = record['id']
+            self._valid_id(cid)
+            if record['status'] in {'queued', 'running'}:
+                try:
+                    with generation_lock(self.s, f'longform-{cid}'):
+                        # The live worker may have completed between the first
+                        # read and acquiring the lock. Preserve that result.
+                        current = self._read(cid)
+                        if current['status'] in {'queued', 'running'}:
+                            current['status'] = 'interrupted'
+                            current['error'] = 'El trabajo se interrumpió. Revisa los logs antes de generar otra copia; la voz puede haberse cobrado.'
+                            self._write(current)
+                except GenerationBusy:
+                    pass
+
+    @staticmethod
+    def _valid_id(cid):
+        # Only server-issued IDs can address drafts or files through HTTP.
+        if not isinstance(cid, str) or not re.fullmatch(r'lf_[0-9a-f]{32}', cid):
+            raise ValueError('Vídeo largo no encontrado')
+        return cid
+
+    def _write(self, record):
+        write_json_atomic(self.records / f"{self._valid_id(record['id'])}.json", record)
+
+    def _read(self, cid):
+        path = self.records / f'{self._valid_id(cid)}.json'
+        if not path.is_file():
+            raise ValueError('Vídeo largo no encontrado')
+        return json.loads(path.read_text(encoding='utf-8'))
+
+    def _definition_values(self, body, cid='lf_preview'):
+        r = runner()
+        item = ContentItem(id=cid, subject=body.subject, script=body.script,
+                           keywords=body.keywords, platforms=['youtube'], schedule_enabled=False)
+        r.validate_tts_script(item.script)
+        return item, {
+            'id': cid, 'subject': item.subject, 'keywords': item.keywords,
+            'narrator_voice': body.narrator_voice or r.DEFAULT_NARRATOR_VOICE,
+            'music_enabled': body.music_enabled,
+        }
+
+    @staticmethod
+    def _native_only(renderer):
+        if renderer != 'native':
+            raise ValueError('Los vídeos nuevos usan el motor nativo. MPT se conserva sólo para recuperar una tarea histórica con el CLI y --resume TASK_ID.')
+
+    def preview(self, body):
+        self._native_only(body.renderer)
+        item, config = self._definition_values(body)
+        r = runner()
+        from .rendering.native import fish_reference_id
+        fish_reference_id(config['narrator_voice'])
+        checks = [
+            {'label': 'FFmpeg instalado', 'ok': bool(shutil.which(self.s.ffmpeg_binary))},
+            {'label': 'ffprobe instalado', 'ok': bool(shutil.which(self.s.ffprobe_binary))},
+        ]
+        checks += [
+            {'label': 'FISH_API_KEY configurada en .env', 'ok': bool(self.s.fish_api_key.get_secret_value())},
+            {'label': 'PEXELS_API_KEY configurada en .env', 'ok': bool(self.s.pexels_api_key.get_secret_value())},
+        ]
+        if body.music_enabled:
+            checks.append({'label': 'Música local disponible (assets/music/loose_thread/level.mp3)',
+                           'ok': (self.root / r.DEFAULT_BACKGROUND_MUSIC_FILE).is_file()})
+        return {'valid': True, 'can_generate': all(check['ok'] for check in checks),
+                'renderer': body.renderer, 'words': len(item.script.split()),
+                'checks': checks, 'format': '16:9 · 1920×1080 · sin subtítulos',
+                'note': 'Comprobación local: no verifica credenciales ni conexión. Generar usa Fish y Pexels; puede consumir saldo.',
+                'output_directory': str(self.root / 'outputs' / 'longform')}
+
+    def create(self, body):
+        self.preview(body)  # Bad scripts never become stored jobs. Missing keys may be fixed later.
+        cid = f'lf_{uuid4().hex}'
+        item, config = self._definition_values(body, cid)
+        script_path = self.folder / f'{cid}.txt'
+        config['script_file'] = str(script_path.relative_to(self.root))
+        script_path.write_text(item.script + '\n', encoding='utf-8')
+        write_json_atomic(self.folder / f'{cid}.json', config)
+        record = {'id': cid, 'subject': item.subject, 'status': 'draft',
+                  'renderer': body.renderer, 'created_at': datetime.now(timezone.utc).isoformat(),
+                  'stage': 'Guion guardado. Comprueba los requisitos antes de generar.', 'error': None,
+                  'request': body.model_dump()}
+        self._write(record)
+        return self.detail(cid)
+
+    def detail(self, cid):
+        record = self._read(cid)
+        path = self.output_path(cid)
+        available = record['status'] == 'succeeded' and path.is_file()
+        return {k: v for k, v in record.items() if k != 'request'} | {
+            'preview_url': f'/api/longform/{cid}/video' if available else None,
+            'download_url': f'/api/longform/{cid}/download' if available else None,
+            'config_path': str(self.folder / f'{cid}.json'),
+            'script_path': str(self.folder / f'{cid}.txt'),
+            'output_path': str(path),
+            'script': record['request']['script'],
+            'keywords': record['request']['keywords'],
+            'narrator_voice': record['request']['narrator_voice'] or runner().DEFAULT_NARRATOR_VOICE,
+            'music_enabled': record['request']['music_enabled'],
+        }
+
+    def list(self):
+        return sorted([self.detail(path.stem) for path in self.records.glob('*.json')],
+                      key=lambda row: row['created_at'], reverse=True)
+
+    def output_path(self, cid):
+        return self.root / 'outputs' / 'longform' / f'{self._valid_id(cid)}.mp4'
+
+    def video_path(self, cid):
+        if self._read(cid)['status'] != 'succeeded' or not self.output_path(cid).is_file():
+            raise ValueError('El vídeo largo todavía no está disponible')
+        return self.output_path(cid)
+
+    def start(self, cid):
+        with self.application._mutex:
+            # Hold this cross-process lock from reservation through completion.
+            lease = ExitStack()
+            submitted = False
+            try:
+                lease.enter_context(generation_lock(self.s, f'longform-{self._valid_id(cid)}'))
+                record = self._read(cid)
+                self._native_only(record['renderer'])
+                if record['status'] != 'draft':
+                    raise ValueError('Este trabajo ya se inició. Revisa su resultado; no se reenvía automáticamente.')
+                from .api.schemas import LongformRequest
+                body = LongformRequest.model_validate(record['request'])
+                preview = self.preview(body)
+                if not preview['can_generate']:
+                    missing = ', '.join(c['label'] for c in preview['checks'] if not c['ok'])
+                    raise ValueError(f'Falta configurar: {missing}')
+                # Reject every outside config change, including hidden CLI
+                # options. Do this before following script_file from disk.
+                config_path = self.folder / f'{cid}.json'
+                expected_config = self._definition_values(body, cid)[1]
+                expected_config['script_file'] = str((self.folder / f'{cid}.txt').relative_to(self.root))
+                if json.loads(config_path.read_text(encoding='utf-8')) != expected_config:
+                    raise ValueError('El guion o la configuración cambió fuera del estudio. Crea y revisa un nuevo borrador.')
+                definition = runner().load_longform_config(config_path, project_root=self.root)
+                if definition.item.script != body.script:
+                    raise ValueError('El guion cambió fuera del estudio. Crea y revisa un nuevo borrador.')
+                if self.output_path(cid).exists() or runner().longform_task_path(cid, project_root=self.root).exists():
+                    raise ValueError('Ya existe una salida o una tarea MPT. Revisa los archivos antes de continuar.')
+                record.update(status='queued', stage='En cola; espera a que terminen los otros vídeos.', error=None)
+                self._write(record)
+                try:
+                    # Same single worker as shorts: no extra CPU/GPU competition.
+                    self.application._executor.submit(self._run, record, definition, lease)
+                    submitted = True  # Ownership of the lease has transferred to the worker.
+                except Exception:
+                    record.update(status='draft', stage='No se pudo iniciar; puedes volver a intentarlo.')
+                    self._write(record)
+                    raise
+                return self.detail(cid)
+            except Exception:
+                if not submitted:
+                    lease.close()
+                raise
+
+    def _run(self, record, definition, lease):
+        def stage(message):
+            record.update(status='running', stage=message)
+            self._write(record)
+        try:
+            stage('Generando narración y vídeo. Puede tardar varios minutos.')
+            self._render(record, definition, stage)
+            if not self.output_path(record['id']).is_file():
+                raise RuntimeError('El motor terminó sin crear un vídeo')
+            record.update(status='succeeded', stage='Vídeo terminado. Reprodúcelo y descárgalo.')
+        except Exception:
+            log.exception('Long-form job failed: %s', record['id'])
+            record.update(status='failed', error='No se pudo terminar el vídeo. Revisa logs/kitok-AAAAMMDD.log. No se reintenta automáticamente; Fish puede haber consumido saldo.',
+                          stage='Necesita revisión')
+        finally:
+            try:
+                self._write(record)
+            finally:
+                lease.close()
+
+    def _render(self, record, definition, stage):
+        self._native_only(record['renderer'])
+        from .providers.pexels import PexelsProvider
+        from .media.ffmpeg import FFmpegNativeEngine, choose_encoder
+        from .rendering.native import NativeLongformRenderer
+        provider = PexelsProvider(self.s.pexels_api_key.get_secret_value(), self.s.native_cache_dir,
+                                  ffprobe=self.s.ffprobe_binary, attempts=self.s.http_retry_attempts)
+        try:
+            encoder = choose_encoder(self.s.ffmpeg_binary, requested='auto', nvenc_preset='p5')
+            engine = FFmpegNativeEngine(ffmpeg=self.s.ffmpeg_binary, ffprobe=self.s.ffprobe_binary, encoder=encoder)
+            NativeLongformRenderer(self.s, provider, engine, output_path=self.output_path(record['id']),
+                                   output=stage).render(definition)
+        finally:
+            provider.close()

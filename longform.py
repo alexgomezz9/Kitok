@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import argparse
+from contextlib import ExitStack
 import json
 import math
+import shutil
 import subprocess
 import sys
 import time
@@ -14,6 +16,7 @@ from typing import Any, Callable
 from pydantic import ValidationError
 
 from kitok.config import PROJECT_ROOT, Settings
+from kitok.locks import generation_lock
 from kitok.dialogue_audio import media_duration
 from kitok.models import ContentItem, MPTTask
 from kitok.mpt_client import MPTClient, TASK_STATE_COMPLETE, TASK_STATE_FAILED
@@ -26,7 +29,7 @@ DEFAULT_NARRATOR_VOICE = (
 )
 DEFAULT_VOICE_RATE = 0.98
 DEFAULT_BACKGROUND_MUSIC_FILE = Path("assets/music/loose_thread/level.mp3")
-DEFAULT_BACKGROUND_MUSIC_VOLUME = 0.07
+DEFAULT_BACKGROUND_MUSIC_VOLUME = 0.06
 DEFAULT_AUDIO_LOUDNESS_TARGET = -16.0
 DEFAULT_AUDIO_LRA_TARGET = 7.0
 DEFAULT_AUDIO_TRUE_PEAK_TARGET = -1.5
@@ -519,8 +522,14 @@ def poll_and_download(
         if task.state == TASK_STATE_COMPLETE:
             if not task.videos:
                 raise LongformError(f"MPT task {task_id} completed but returned no video")
-            print("Downloading...")
+            print(f"MPT task complete: {datetime.now(timezone.utc).isoformat()}")
+            download_started = monotonic()
+            print(f"Artifact download start: {datetime.now(timezone.utc).isoformat()}")
             client.download_artifact(task.videos[0], destination)
+            print(
+                f"Artifact download end: {datetime.now(timezone.utc).isoformat()} "
+                f"({monotonic() - download_started:.2f}s)"
+            )
             return destination
 
         if task.state == TASK_STATE_FAILED:
@@ -591,11 +600,16 @@ def run_longform(
             sleep=sleep,
             monotonic=monotonic,
         )
-        print("Normalizing narration and mixing Loose Thread music...")
+        postprocess_started = monotonic()
+        print(f"Kitok postprocess start: {datetime.now(timezone.utc).isoformat()}")
         result = audio_processor(result, definition, settings=settings)
+        print(
+            f"Kitok postprocess end: {datetime.now(timezone.utc).isoformat()} "
+            f"({monotonic() - postprocess_started:.2f}s)"
+        )
         if _saved_task_id(task_path) == active_task_id:
             task_path.unlink(missing_ok=True)
-        print(f"DONE: {result.resolve()}")
+        print(f"Final DONE: {datetime.now(timezone.utc).isoformat()} {result.resolve()}")
         return result
     finally:
         client.close()
@@ -603,34 +617,137 @@ def run_longform(
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Submit or resume an experimental long-form MPT video render."
+        description="Render new long-form videos with experimental Native (Fish + Pexels + FFmpeg). MPT only recovers existing tasks."
     )
     parser.add_argument("config", help="Path to the long-form JSON content definition")
+    parser.add_argument(
+        '--dry-run', action='store_true',
+        help='Validate the script and local prerequisites without generating, network calls or writes.',
+    )
+    parser.add_argument(
+        "--renderer", choices=("native", "mpt"), default="native",
+        help="Default: native (experimental). mpt is allowed only with --resume TASK_ID; it never submits a new task.",
+    )
+    parser.add_argument(
+        "--encoder", choices=("auto", "h264_nvenc", "libx264"), default="auto",
+        help="Native video encoder; auto runtime-probes NVENC and falls back to libx264.",
+    )
+    parser.add_argument(
+        "--nvenc-preset", choices=("p4", "p5", "p6", "p7"), default="p5",
+        help="Native NVENC preset. p5 is the benchmark-backed quality-first default.",
+    )
+    parser.add_argument(
+        "--keep-native-workspace", action="store_true",
+        help="Keep Native temporary narration, filter scripts and chunks after success.",
+    )
+    parser.add_argument(
+        "--verbose", action="store_true",
+        help="Show Native DEBUG details such as cache decisions, selections and FFmpeg commands.",
+    )
     group = parser.add_mutually_exclusive_group()
-    group.add_argument("--resume", metavar="TASK_ID", help="Resume without submitting a new render")
+    group.add_argument("--resume", metavar="TASK_ID", help="Recover a known historical task; requires --renderer mpt and never submits a new render")
     group.add_argument(
         "--start-over",
         action="store_true",
-        help="Explicitly discard the saved task marker and submit a fresh render",
+        help="Explicitly render again with Native; may use paid providers. Unavailable for MPT.",
     )
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
+    lease = ExitStack()
     try:
+        if args.renderer == 'mpt' and (not args.resume or not args.resume.strip() or args.start_over):
+            raise LongformError('MPT is historical recovery only: use --renderer mpt --resume TASK_ID. New MPT tasks and --start-over are disabled.')
+        if args.renderer == 'native' and args.resume:
+            raise LongformError('--resume requires --renderer mpt and a known historical task ID')
         definition = load_longform_config(args.config)
-        preset = build_longform_preset(definition)
-        run_longform(
-            definition,
-            preset,
-            settings=Settings(),
-            resume_task_id=args.resume,
-            start_over=args.start_over,
-        )
-    except LongformError as exc:
+        settings = Settings()
+        if args.dry_run:
+            renderer = args.renderer
+            validate_tts_script(definition.item.script)
+            checks = {
+                'ffmpeg': bool(shutil.which(settings.ffmpeg_binary)),
+                'ffprobe': bool(shutil.which(settings.ffprobe_binary)),
+                'music': not definition.music_enabled or definition.background_music_file.is_file(),
+            }
+            if renderer == 'native':
+                from kitok.rendering.native import fish_reference_id
+                fish_reference_id(definition.voice_name)
+                checks.update(fish_configured=bool(settings.fish_api_key.get_secret_value()),
+                              pexels_configured=bool(settings.pexels_api_key.get_secret_value()))
+            print(json.dumps({'dry_run': True, 'renderer': renderer,
+                              'words': len(definition.item.script.split()), 'checks': checks,
+                              'note': 'Local checks only; no network, rendering, uploads or scheduling.'},
+                             ensure_ascii=False, indent=2))
+            return 0 if all(checks.values()) else 1
+        lease.enter_context(generation_lock(settings, f'longform-{definition.item.id}'))
+        if args.renderer == 'native':
+            historical_task = longform_task_path(definition.item.id, project_root=settings.data_root or PROJECT_ROOT)
+            if historical_task.exists():
+                saved_id = _saved_task_id(historical_task)
+                recovery = f'--renderer mpt --resume {saved_id or "TASK_ID"}'
+                raise LongformError(
+                    f'A historical MPT task marker exists for {definition.item.id}. '
+                    f'Review and recover it with {recovery} before generating another voice. '
+                    'Native --start-over does not discard historical MPT tasks.'
+                )
+        if args.renderer == "mpt":
+            from kitok.rendering.mpt import MptRenderer
+
+            preset = build_longform_preset(definition)
+            renderer = MptRenderer(
+                lambda current, *, start_over=False: run_longform(
+                    current,
+                    preset,
+                    settings=settings,
+                    resume_task_id=args.resume,
+                    start_over=start_over,
+                )
+            )
+            renderer.render(definition, start_over=args.start_over)
+        else:
+            if args.resume:
+                raise LongformError("--resume is MPT-only; Native never creates an MPT task")
+            from kitok.logging_setup import configure_logging
+            from kitok.media.ffmpeg import FFmpegNativeEngine, choose_encoder
+            from kitok.providers.pexels import PexelsProvider
+            from kitok.rendering.native import NativeLongformRenderer
+
+            configure_logging(settings.logs_dir, args.verbose)
+            provider = PexelsProvider(
+                settings.pexels_api_key.get_secret_value(),
+                settings.native_cache_dir,
+                ffprobe=settings.ffprobe_binary,
+                attempts=settings.http_retry_attempts,
+            )
+            try:
+                encoder = choose_encoder(
+                    settings.ffmpeg_binary,
+                    requested=args.encoder,
+                    nvenc_preset=args.nvenc_preset,
+                )
+                engine = FFmpegNativeEngine(
+                    ffmpeg=settings.ffmpeg_binary,
+                    ffprobe=settings.ffprobe_binary,
+                    encoder=encoder,
+                )
+                result = NativeLongformRenderer(
+                    settings,
+                    provider,
+                    engine,
+                    output_path=longform_output_path(definition.item.id),
+                    keep_workspace=args.keep_native_workspace,
+                ).render(definition, start_over=args.start_over)
+                print(f"Final DONE: {datetime.now(timezone.utc).isoformat()} {result.output.resolve()}")
+            finally:
+                provider.close()
+    except (LongformError, RuntimeError, ValueError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
+    finally:
+        lease.close()
     return 0
 
 
