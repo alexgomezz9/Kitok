@@ -1,0 +1,70 @@
+# Montaje por escenas
+
+El montaje básico de largos usa búsquedas y secciones del guion. El montaje por
+escenas añade decisiones explícitas sobre una narración ya aprobada: qué explica
+cada plano, qué fuente respalda el dato, qué recurso muestra y cuándo cambia.
+No investiga ni inventa esas decisiones automáticamente.
+
+## Preparar un montaje
+
+1. Conserva una referencia audiovisual con el audio final aprobado dentro del
+   proyecto. Para la comparación, guárdala como
+   `outputs/evaluation/MI_ID/A_current.mp4`.
+2. Copia [la plantilla](../examples/editorial/plan.json) a
+   `outputs/evaluation/MI_ID/plan.json`. Ajusta `episode_id`, `channel_id`, título,
+   `audio_source`, duración y escenas al fragmento real. La plantilla tiene
+   marcadores editoriales: no es un contenido terminado.
+3. Todos los recursos deben existir dentro del proyecto. En `assets`, identifica
+   cada archivo y su descripción, URL/autor y uso: `illustration`, `document` o
+   `provided`. Una ilustración no es una prueba histórica. No se descarga stock
+   ni se sintetiza voz durante este montaje.
+4. Los planos cubren toda la duración sin huecos ni solapamientos, duran al menos
+   0,4 s y utilizan límites en la rejilla de fotogramas. Para anclar una frase a
+   timestamps reales de Fish usa `phrase_time`; `frame_time` redondea cada límite
+   global. Los tiempos estimados conservan esa etiqueta; no se presentan como ASR.
+5. Renderiza a un nombre nuevo. Una salida existente se rechaza para conservarla:
+
+```bash
+.venv/bin/python scripts/render_edit.py outputs/evaluation/MI_ID/plan.json \
+  --output outputs/evaluation/MI_ID/B_prueba.mp4 \
+  --compare-to outputs/evaluation/MI_ID/A_current.mp4
+```
+
+`--compare-to` exige que el audio decodificado sea idéntico. Para comparar un
+fragmento, utiliza A con ese mismo fragmento, no el episodio completo. El audio
+final se copia sin volver a normalizarlo. El CLI también admite narración sin
+mezclar con `audio_is_final_mix=false`, actualmente con offset cero.
+
+## Opciones del plan
+
+Cada escena elige **un** recurso existente (`asset`) o una plantilla (`graphic`):
+identidad, cifra con significado o diagrama de información privada/expuesta.
+`graphic_data` contiene textos y datos aprobados; no hay cifras por defecto.
+Las imágenes y vídeos aportados también sirven como recursos. En vídeo,
+`source_start` y la duración deben caber en el archivo; no se estira una toma
+insuficiente ni se cambia por otra silenciosamente.
+
+`headline` y `kicker` son rótulos breves deliberados; no se extraen palabras sueltas
+mediante regex. Movimiento: ninguno, acercamiento o desplazamiento suave.
+Transición: corte o entrada breve desde negro. `palette` marfil/verde y `accent`
+fijan el estilo del plan; una escena puede cambiar la paleta. `channel_id` registra
+el canal y permite conservar planes de estilos distintos, pero no resuelve un
+catálogo multicanal ni abre canales de YouTube.
+
+## Verificar y reparar
+
+Se guardan el MP4, manifiesto `.editorial.json`, informe `.qa.json` y hoja
+`.qa.contact.jpg`. El informe incluye decodificación completa, geometría,
+duraciones por stream, sonoridad, negros, hashes y comparación de audio. La hoja
+muestra hasta 80 puntos distribuidos: en planes mayores es una muestra declarada,
+no la inspección de todos los planos. No acredita por sí sola sincronía semántica,
+legibilidad, derechos ni buen ritmo; revisa esos aspectos visualmente.
+
+Los planos se almacenan en `.editorial-work/EPISODIO/` con huellas de recursos,
+estilo y filtros. Corregir una escena invalida sólo su render; el ensamblado final
+se repite. No borres esa carpeta ni el audio para corregir un rótulo. Los render
+secuenciales usan NVENC cuando la comprobación real funciona y libx264 como
+alternativa; no necesitan modelos de vídeo ni descargas CUDA.
+
+La integración del estudio ofrece reproducción A/B y render explícito del plan
+local. No hay editor visual de timeline ni generación autónoma de planes.

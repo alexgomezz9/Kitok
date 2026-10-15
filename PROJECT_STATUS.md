@@ -21,7 +21,8 @@ nuevas deben ser Fish.
 ## Evidencia y límites
 
 - UltimateBet A/B76s renderizado con NVENC. B conserva el mismo audio decodificado
-  que A; decode completo y QA inicial pasan. Revisión visual/correcciones en curso.
+  que A; decode completo y QA inicial pasan. Revisión visual independiente y correcciones realizadas en B_v3. Última reparación
+  de una cifra: 1 plano renderizado y 16 reutilizados; 19,6 s de render, sin API.
 - Cliente Fish: caché y bloqueo compartidos entre modos, adopción de caché histórica,
   sin retry ambiguo; 72 pruebas pertinentes y relectura independiente pasan.
 - Checkpoint backend nativo: 392 pruebas Python pasan desde una exportación exacta

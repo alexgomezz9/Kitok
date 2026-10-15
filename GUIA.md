@@ -180,6 +180,17 @@ Para usar MPT, indícalo explícitamente:
 
 Omitir --renderer sigue seleccionando MPT, por compatibilidad. El CLI conserva --resume TASK_ID para recuperar una tarea MPT conocida. --start-over pide otra generación y puede consumir saldo: no lo uses como reparación automática. Los trabajos terminados por CLI se consultan en la terminal y en su carpeta; la lista del estudio no se sincroniza con ejecuciones manuales.
 
+## Mejorar un montaje sin volver a pagar la voz
+
+Con un MP4 y audio ya aprobados, puedes preparar un plan por escenas y reutilizar
+los recursos locales. El montaje guarda cifras con significado, diagramas,
+rótulos y movimientos elegidos por escena. Cambiar un plano reutiliza el resto.
+
+La preparación y el comando están en [docs/editing.md](docs/editing.md), con una
+plantilla en examples/editorial/plan.json. No genera guion ni hace llamadas a
+Fish/Pexels. El informe comprueba el archivo real y puede exigir el mismo audio
+que la referencia; la revisión visual sigue siendo necesaria.
+
 ## ¿Puedo borrar MoneyPrinterTurbo?
 
 Todavía no si quieres conservar todas las funciones. La migración es parcial, según el código actual:
