@@ -18,7 +18,7 @@ beforeEach(()=>{
   requests.push({path,body})
   let value:unknown=path==='/api/longform'?longRows:ok
   if(path==='/api/content')value={item:{id:'new_short'}}
-  if(path==='/api/longform'&&options?.method==='POST'){value={id:'lf_1',subject:'Mi documental',status:'draft',renderer:'native',stage:'Guion guardado'};longRows=[value]}
+  if(path==='/api/longform'&&options?.method==='POST'){value={id:'lf_1',subject:'Mi documental',status:'draft',renderer:'native',stage:'Guion guardado',created_at:'2026-10-15T10:00:00Z',config_path:'/tmp/kitok/content/longform/studio/lf_1.json',script_path:'/tmp/kitok/content/longform/studio/lf_1.txt',output_path:'/tmp/kitok/outputs/longform/lf_1.mp4',script:'Un guion completo y suficientemente largo.',keywords:['city','science'],narrator_voice:'fish_audio:voice:Test',music_enabled:false,preview_url:null,download_url:null,error:null};longRows=[value]}
   return {ok:true,json:async()=>value}
  }))
 })
