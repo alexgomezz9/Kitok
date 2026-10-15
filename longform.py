@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import argparse
+from contextlib import ExitStack
 import json
 import math
+import shutil
 import subprocess
 import sys
 import time
@@ -14,6 +16,7 @@ from typing import Any, Callable
 from pydantic import ValidationError
 
 from kitok.config import PROJECT_ROOT, Settings
+from kitok.locks import generation_lock
 from kitok.dialogue_audio import media_duration
 from kitok.models import ContentItem, MPTTask
 from kitok.mpt_client import MPTClient, TASK_STATE_COMPLETE, TASK_STATE_FAILED
@@ -606,6 +609,10 @@ def _parser() -> argparse.ArgumentParser:
         description="Submit or resume an experimental long-form MPT video render."
     )
     parser.add_argument("config", help="Path to the long-form JSON content definition")
+    parser.add_argument(
+        '--dry-run', action='store_true',
+        help='Validate the script and local prerequisites without generating, network calls or writes.',
+    )
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--resume", metavar="TASK_ID", help="Resume without submitting a new render")
     group.add_argument(
@@ -618,19 +625,42 @@ def _parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
+    lease = ExitStack()
     try:
         definition = load_longform_config(args.config)
+        settings = Settings()
+        if args.dry_run:
+            renderer = getattr(args, 'renderer', 'mpt')
+            validate_tts_script(definition.item.script)
+            checks = {
+                'ffmpeg': bool(shutil.which(settings.ffmpeg_binary)),
+                'ffprobe': bool(shutil.which(settings.ffprobe_binary)),
+                'music': not definition.music_enabled or definition.background_music_file.is_file(),
+            }
+            if renderer == 'native':
+                from kitok.rendering.native import fish_reference_id
+                fish_reference_id(definition.voice_name)
+                checks.update(fish_configured=bool(settings.fish_api_key.get_secret_value()),
+                              pexels_configured=bool(settings.pexels_api_key.get_secret_value()))
+            print(json.dumps({'dry_run': True, 'renderer': renderer,
+                              'words': len(definition.item.script.split()), 'checks': checks,
+                              'note': 'Local checks only; no network, rendering, uploads or scheduling.'},
+                             ensure_ascii=False, indent=2))
+            return 0 if all(checks.values()) else 1
+        lease.enter_context(generation_lock(settings, f'longform-{definition.item.id}'))
         preset = build_longform_preset(definition)
         run_longform(
             definition,
             preset,
-            settings=Settings(),
+            settings=settings,
             resume_task_id=args.resume,
             start_over=args.start_over,
         )
-    except LongformError as exc:
+    except (LongformError, RuntimeError, ValueError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
+    finally:
+        lease.close()
     return 0
 
 
