@@ -27,6 +27,7 @@
 - Mantén la interfaz sencilla: escribir → comprobar sin generar → generar/revisar → descargar o programar.
 - Guardar borradores y hacer previews no debe generar voz, contactar proveedores ni publicar.
 - No generes guiones automáticamente ni añadas opciones que el usuario no necesita para la decisión.
+- El uso diario guarda los vídeos localmente (outputs/ready y outputs/longform); no requiere Google Drive. No reactives copias a una unidad externa por defecto. Conserva las rutas históricas.
 - Generación y publicación son acciones separadas. Una fecha local no prueba que haya un post en Buffer.
 - Buffer requiere revisión y confirmación explícitas. Conserva los IDs remotos y los resultados ambiguos; no reintentes automáticamente mutaciones de publicación ni borres estado para forzarlas.
 - Los largos están fuera de la cola/calendario/publicador de shorts. No los introduzcas sin adaptar validación y contrato de publicación.

@@ -66,7 +66,7 @@ class Settings(BaseSettings):
     default_posting_slots: list[str] = ["13:00", "19:00", "22:00"]
     character_left_anchor: int = Field(default=40, ge=0, le=300)
     character_right_anchor: int = Field(default=40, ge=0, le=300)
-    ready_dir: Path = PROJECT_ROOT / "outputs" / "ready-phone"
+    ready_dir: Path = PROJECT_ROOT / "outputs" / "ready"
     mpt_preset_path: Path = PROJECT_ROOT / "presets" / "mpt_default.json"
 
     poll_interval_seconds: float = Field(default=5.0, gt=0)

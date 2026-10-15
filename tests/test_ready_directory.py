@@ -144,3 +144,9 @@ def test_local_write_failure_still_prevents_startup(tmp_path, monkeypatch):
     with pytest.raises(PermissionError, match='local write denied'):
         settings.ensure_directories()
     assert settings.ready_directory_warning is None
+
+
+def test_default_delivery_is_local_without_a_second_copy(monkeypatch):
+    monkeypatch.delenv('READY_DIR', raising=False)
+    settings = Settings(_env_file=None, data_root=None)
+    assert settings.ready_dir == settings.local_ready_dir
