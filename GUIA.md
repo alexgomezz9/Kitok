@@ -205,7 +205,7 @@ Usar sólo los caminos locales/nativos permite trabajar con MPT apagado, pero no
 - assets/backgrounds/: fondos locales; assets/characters/: poses PNG; assets/music/: música.
 - presets/generation_profiles.json: catálogo de voces y estilos.
 - .env: claves y configuración privada. Nunca compartir ni subir a Git.
-- README.md y PROJECT_GUIDE.md: referencias técnicas anteriores, con más detalles y notas históricas. Para el recorrido diario usa esta guía.
+- README.md y PROJECT_GUIDE.md: entradas al proyecto; docs/ contiene auditoría, diseños y roadmap. Las referencias históricas están en docs/archive/.
 
 ## Si algo falla
 
@@ -214,3 +214,7 @@ Usar sólo los caminos locales/nativos permite trabajar con MPT apagado, pero no
 - «No hay fondo»: añade un MP4 compatible a assets/backgrounds/random/ o gameplay/, según el estilo. En herramientas avanzadas también puedes importar un archivo local.
 - «MPT»: comprueba su API; la WebUI sola no basta. Sistema incluye un botón de consulta explícita.
 - «Interrumpido», timeout o resultado incierto: consulta logs y el proveedor antes de repetir. No borres el historial para forzar un reenvío.
+
+## Desarrollo y siguientes fases
+
+Para verificar cambios usa make verify; para incluir navegador, make verify-browser. El plan multicanal, el director y YouTube directo están en docs/roadmap.md y docs/design/. Son propuestas: no están implementados todavía. Los ejemplos públicos están en examples/; los contenidos del operador no se suben a Git. Los pilotos, backups e importaciones antiguos se conservan en local/.

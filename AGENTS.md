@@ -20,7 +20,8 @@
 - content_queue.json y state/state.json: datos activos de shorts, no fixtures.
 - content/longform/studio/ y state/longform/: borradores y trabajos largos del operador.
 - presets/generation_profiles.json: catálogo de voces/estilos. .env: configuración privada, nunca mostrar ni versionar.
-- PROJECT_GUIDE.md y README.md: referencias técnicas con partes históricas; contrasta con el código.
+- README.md y PROJECT_GUIDE.md: entradas vigentes. docs/archive/: historia, no contratos actuales.
+- docs/development.md: protocolo del coordinador, revisión y gates. docs/design/ y docs/roadmap.md: propuestas futuras, no capacidades implementadas.
 
 ## Invariantes del producto
 
@@ -45,12 +46,13 @@ Desde la raíz:
 
 ```bash
 make studio-check
-.venv/bin/python -m pytest -q
-npm --prefix frontend test
-npm --prefix frontend run build
-git diff --check
+make verify
+# Si afecta flujos de UI/API, con Chromium instalado:
+make verify-browser
 ```
 
+- El coordinador gestiona encargos, hallazgos, correcciones y relectura directamente; el operador no debe copiar mensajes entre agentes. Sigue docs/development.md.
+- Para cambios pequeños minimiza agentes/contexto. En límites críticos usa revisión independiente de corrección, adversarial y evaluación; resuelve P0/P1 y verifica el resultado corregido.
 - Ejecuta primero las pruebas del módulo afectado. Usa tmp_path/data_root y proveedores simulados para no tocar contenido ni consumir servicios reales.
 - Los tests bloquean red externa. Las pruebas de UI/transporte no demuestran una generación real de Fish/Pexels/MPT ni una publicación real en Buffer.
 - Las pruebas de navegador deben usar un workspace temporal y mocks para operaciones externas; no abras una cola real con acciones automáticas.
