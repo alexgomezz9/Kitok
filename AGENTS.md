@@ -11,6 +11,15 @@
 - Al cerrar o interrumpir trabajo, deja el siguiente paso exacto y los bloqueos reales en PROJECT_STATUS.md y .codex-work/PROJECT_STATE.md. Otros chats no deben asumir que los cambios sin commit están completos.
 - No instales skills ni hooks duplicados. El coordinador encarga revisión, recibe feedback, corrige y pide relectura; las comprobaciones deterministas preceden a nuevos agentes.
 
+## Autonomía técnica y editorial autorizada
+
+- El operador encarga investigar, probar, descartar y terminar mejoras útiles sin pedir aprobación para cada paso local. Elige según calidad audiovisual demostrada, coste, mantenimiento y el equipo de 4 GB VRAM / 8 GB RAM. Conserva los experimentos útiles y sus límites; no instales listas enteras de herramientas.
+- Prioriza una muestra real revisada antes de ampliar un episodio. Contrasta con referencias vistas, no sólo con sus títulos. Corrige encuadres, legibilidad, acción y sincronización; una suite verde no demuestra calidad narrativa.
+- El agente decide el brief editorial y los hechos con fuentes; los componentes deterministas seleccionan recursos, compilan, mezclan y renderizan. Evita llamadas LLM por plano, fotograma o reintento de operaciones ya resueltas.
+- Antes de otra síntesis busca audio Fish y alineación existentes. Las APIs ya configuradas están autorizadas cuando hacen falta; no repitas solicitudes ambiguas ni contrates nuevos servicios de pago. Los créditos de investigación vidIQ y el gasto significativo requieren aprobación específica.
+- Comprueba identidad, contexto y licencia antes de usar recursos. Stock y reconstrucciones se declaran ilustrativos; no se presentan como imágenes del caso. Conserva autor, URL, licencia, cambios y obligaciones ShareAlike. Content ID desconocido no significa libre de reclamaciones.
+- YouTube se conecta por lectura oficial con consentimiento del titular. No amplíes scopes para evitar un paso de autenticación; no publiques, modifiques el canal ni fusiones a main con esta autorización general.
+
 ## Antes de empezar
 
 - Lee GUIA.md: es el manual de operación y la fuente de la página «Cómo usarlo».
@@ -39,7 +48,7 @@
 
 - Mantén la interfaz sencilla: escribir → comprobar sin generar → generar/revisar → descargar o programar.
 - Guardar borradores y hacer previews no debe generar voz, contactar proveedores ni publicar.
-- No generes guiones automáticamente ni añadas opciones que el usuario no necesita para la decisión.
+- La interfaz básica usa el guion aportado. Los agentes pueden preparar borradores investigados en encargos editoriales autorizados; no inventes hechos ni actives voz o publicación al guardar. No añadas opciones que el usuario no necesita para la decisión.
 - El uso diario guarda los vídeos localmente (outputs/ready y outputs/longform); no requiere Google Drive. No reactives copias a una unidad externa por defecto. Conserva las rutas históricas.
 - Generación y publicación son acciones separadas. Una fecha local no prueba que haya un post en Buffer.
 - Buffer requiere revisión y confirmación explícitas. Conserva los IDs remotos y los resultados ambiguos; no reintentes automáticamente mutaciones de publicación ni borres estado para forzarlas.

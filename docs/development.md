@@ -3,7 +3,7 @@
 Contrato vigente del proyecto: [AGENTS.md](../AGENTS.md). Esta página concreta el
 ciclo de trabajo; no instala otro sistema global de agentes.
 
-## Inventario comprobado el 15 de octubre de 2026
+## Inventario histórico comprobado el 15 de octubre de 2026
 
 Se inspeccionaron nombres y valores permitidos de configuración, instrucciones,
 roles, skills y hooks. No se abrieron credenciales ni se copiaron configuraciones
@@ -24,7 +24,7 @@ privadas al repositorio.
   proyecto visible. No se deduce que falten capacidades por esa ausencia.
 - Hay metadatos de 17 plugins en caché, entre ellos GitHub y vidIQ, y nombres de
   MCP HappyRobot configurados. Caché/configuración no acredita instalación activa,
-  permisos ni autenticación. No se han conectado esos servicios para esta tarea.
+  permisos ni autenticación. No se conectaron esos servicios en aquella auditoría. El estado vigente de GitHub/vidIQ/YouTube se registra en PROJECT_STATUS.md.
 - Las herramientas de subagentes sí se usaron en esta sesión para auditorías y
   revisión independientes. No había un gate ejecutable local/CI que agrupara
   higiene, Python, React y navegador.
@@ -82,8 +82,8 @@ skills. La carencia concreta se resuelve con el gate del repositorio.
 
 Si falta evidencia, declarar «no verificado». Agotar tiempo no convierte una
 revisión o integración en aprobada. No crear agentes para tareas que un comando
-determinista resuelve mejor. Este protocolo coordina desarrollo; no implementa el
-futuro director editorial.
+determinista resuelve mejor. Este protocolo coordina desarrollo. El compilador editorial prepara planes desde
+un brief explícito; no sustituye la investigación ni la revisión audiovisual.
 
 ## Gate ejecutable
 

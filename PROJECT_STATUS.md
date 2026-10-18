@@ -60,8 +60,10 @@ Audio real18s en outputs/evaluation/audio_library/ultimatebet_ducked_demo_v2.m4a
 Sin audición subjetiva ni cambios en A/B/C. Content ID desconocido.
 Checkpoint YouTube 0ad6d7b subido; CI39117169871 correcta. Catálogo:8 pruebas
 aisladas correctas y foto de Hamilton importada realmente con CC BY-SA2.0.
-Trabajo en curso: C de UltimateBet con fotografía específica licenciada y
-composición animada/3D; los prototipos no son el piloto terminado.
+Trabajo en curso: C de UltimateBet con fotografía licenciada y composición3D.
+C1 de76s renderizada: audio idéntico y QAreal correcto; la revisión detectó
+texto UTF8, cartas ambiguas y revelación breve. C2 corregida en render.
+AGENTS fija autonomía editorial, reutilización de voz, pruebas visuales y Git.
 Siguiente mejora editorial:
 recursos más específicos por episodio y ampliar el plan al resto de UltimateBet
 reutilizando audio; no presentar ese trabajo como ya terminado.
