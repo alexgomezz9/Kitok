@@ -215,6 +215,14 @@ Se han probado los recorridos nativos con FFmpeg real y proveedores simulados,
 y se ha reeditado UltimateBet con audio y stock ya existentes. Esto no equivale
 a una nueva generación completa de cada estilo contra Fish/Pexels reales.
 
+## Conectar YouTube para lectura
+
+La conexión oficial opcional está preparada como CLI. La configuración de cuenta,
+los comandos y los límites están en docs/integrations/youtube-readonly.md.
+Necesita una autorización de Google en el navegador y un cliente OAuth Desktop;
+no publiques ni pegues sus credenciales. No permite subir, modificar o borrar vídeos.
+El acceso real a las métricas sigue pendiente del consentimiento de tu cuenta.
+
 ## Dónde vive cada cosa
 
 - GUIA.md: este manual; lo lee también «Cómo usarlo» en el frontend. Actualizar aquí mantiene ambos sincronizados.

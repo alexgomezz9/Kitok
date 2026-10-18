@@ -1,6 +1,6 @@
 # Estado vigente de Kitok
 
-Actualizado: 2026-10-15. Rama **feat/native-production**; main intacto.
+Actualizado: 2026-10-18. Rama **feat/documentary-director**; main intacto.
 Manual de operación: [GUIA.md](GUIA.md). Montaje: [docs/editing.md](docs/editing.md).
 
 ## Disponible
@@ -41,12 +41,16 @@ Manual de operación: [GUIA.md](GUIA.md). Montaje: [docs/editing.md](docs/editin
 
 ## Límites y siguiente paso
 
-No hay director autónomo, catálogo multicanal operativo, nuevos episodios
-completos mejorados ni YouTube directo. Revisión visual por muestras; audición
+No hay director autónomo, catálogo multicanal operativo ni nuevos episodios
+completos mejorados. YouTube: CLI oficial sólo lectura implementado y revisado,
+38 pruebas aisladas pasan; OAuth real pendiente. No importa todavía CTR/CSV.
+VidIQ reconoce LooseThread mediante consulta gratuita; exige verificación reciente. Revisión visual por muestras; audición
 subjetiva continua no realizada. No se ha probado cada estilo con una nueva
 llamada real Fish/Pexels; las pruebas de proveedores son aisladas.
 
 [PR de borrador preparada](https://github.com/alexgomezz9/Kitok/pull/1), sin merge.
+Trabajo en curso: C de UltimateBet con fotografía específica licenciada y
+composición animada/3D; los prototipos no son el piloto terminado.
 Siguiente mejora editorial:
 recursos más específicos por episodio y ampliar el plan al resto de UltimateBet
 reutilizando audio; no presentar ese trabajo como ya terminado.
