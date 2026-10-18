@@ -189,9 +189,12 @@ Con un MP4 y audio ya aprobados, puedes preparar un plan por escenas y reutiliza
 los recursos locales. El montaje guarda cifras con significado, diagramas,
 rótulos y movimientos elegidos por escena. Cambiar un plano reutiliza el resto.
 
-En «Montaje», selecciona UltimateBet para reproducir o descargar A y B.
+En «Montaje», selecciona «UltimateBet — C» para comparar el montaje anterior
+(A) con la nueva versión (B). Conservamos también la comparación original.
+El enlace de fuentes y licencias acompaña a la muestra nueva.
 «Renderizar plan guardado» vuelve a montar los recursos sin sintetizar voz.
-Para otro vídeo hace falta preparar el plan local; no hay editor visual de timeline.
+Para otro vídeo prepara un plan local; no hay editor visual de timeline.
+Los planos 3D opcionales requieren `make cinema-setup` una sola vez.
 
 La preparación y el comando están en [docs/editing.md](docs/editing.md), con una
 plantilla en examples/editorial/plan.json. No genera guion ni hace llamadas a

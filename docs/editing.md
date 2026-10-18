@@ -37,7 +37,8 @@ mezclar con `audio_is_final_mix=false`, actualmente con offset cero.
 
 ## Opciones del plan
 
-Cada escena elige **un** recurso existente (`asset`) o una plantilla (`graphic`):
+Cada escena elige un recurso existente (`asset`), una plantilla (`graphic`) o
+una composición animada (`composition`). Las plantillas ofrecen:
 identidad, cifra con significado o diagrama de información privada/expuesta.
 `graphic_data` contiene textos y datos aprobados; no hay cifras por defecto.
 Las imágenes y vídeos aportados también sirven como recursos. En vídeo,
@@ -68,3 +69,31 @@ alternativa; no necesitan modelos de vídeo ni descargas CUDA.
 
 La integración del estudio ofrece reproducción A/B y render explícito del plan
 local. No hay editor visual de timeline ni generación autónoma de planes.
+
+## Planos con acción y fotografía
+
+Una escena puede elegir `composition` en lugar de `graphic`: `table` reconstruye
+una mesa 3D; `records` muestra la relación entre informes, y `photo` anima una
+fotografía existente con rótulo y crédito. `composition_data` valida modo, cámara,
+texto, instante de revelación y punto de enfoque. `photo` requiere `asset`;
+`table`/`records` no. En composiciones `source_start` debe ser cero y el plano
+no puede superar 30 segundos.
+
+Instalación opcional del navegador local, después de `make studio-setup`:
+
+```bash
+make cinema-setup
+```
+
+La mesa usa Three.js/Chromium local, sin modelos de generación ni servicios
+externos. Cámaras: `wide`, `opponent`, `cards`, `chips`, `overhead`.
+Modos 3D: `opponent`, `aggression`, `loss`, `question`, `private`, `exposed`.
+Las cartas sólo se revelan en `exposed` después de `reveal_at`, expresado en
+segundos desde el inicio del plano. La geometría3D máxima es 1920×1080.
+Los actuales escenarios de mesa/informes representan Paredes/NioNio: no los
+uses para otro reparto hasta parametrizarlo. No son capturas del software real
+ni manos históricas. La fotografía sí admite otros sujetos con recurso revisado.
+
+Estos planos se renderizan secuencialmente y se cachean por datos, recursos y
+código 3D. Cambiar una cámara invalida ese plano, sin repetir Fish. Software WebGL
+es compatible con la 3050/4 GB, pero resulta más lento que ensamblar stock.

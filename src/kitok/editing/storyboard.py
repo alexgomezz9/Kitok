@@ -21,6 +21,7 @@ class EditorialAsset(PlanModel):
     source_url: str | None = Field(default=None, max_length=2000)
     credit: str | None = Field(default=None, max_length=300)
     usage: Literal["illustration", "document", "provided"] = "illustration"
+    sha256: str | None = Field(default=None, pattern=r'^[a-f0-9]{64}$')
 
 
 class EditorialScene(PlanModel):
@@ -34,6 +35,8 @@ class EditorialScene(PlanModel):
     source_start: float = Field(default=0, ge=0, allow_inf_nan=False)
     graphic: Literal["identity", "metric", "hidden_information"] | None = None
     graphic_data: dict = Field(default_factory=dict)
+    composition: Literal['table', 'records', 'photo'] | None = None
+    composition_data: dict = Field(default_factory=dict)
     motion: Literal["none", "push", "pan"] = "none"
     transition: Literal["cut", "fade"] = "cut"
     headline: str | None = Field(default=None, max_length=95)
@@ -45,7 +48,22 @@ class EditorialScene(PlanModel):
     def valid_scene(self):
         if self.end - self.start < .4 - 1e-6:
             raise ValueError("A scene needs at least 0.4 seconds")
-        if bool(self.asset) == bool(self.graphic):
+        if self.composition:
+            from .cinema import CinemaData
+            data = CinemaData.model_validate(self.composition_data)
+            if self.composition == 'table' and data.engine == 'three' and data.mode not in {
+                'opponent', 'aggression', 'loss', 'private', 'exposed', 'question'
+            }:
+                raise ValueError('Unsupported 3D table mode')
+            if self.source_start:
+                raise ValueError('Generated compositions require source_start=0')
+            if self.graphic or (self.composition == 'photo') != bool(self.asset):
+                raise ValueError('Photo compositions require an asset; table/records use their own scene')
+            if self.end - self.start > 30:
+                raise ValueError('A cinematic shot may not exceed 30 seconds')
+        elif self.composition_data:
+            raise ValueError('Composition data requires a composition')
+        elif bool(self.asset) == bool(self.graphic):
             raise ValueError("Choose exactly one existing asset or generated graphic")
         if self.graphic_data and not self.graphic:
             raise ValueError("Graphic data requires a graphic template")
@@ -80,6 +98,9 @@ class EditorialPlan(PlanModel):
         cursor = 0.
         tolerance = 1e-6
         for scene in self.scenes:
+            if (scene.composition == 'table' and scene.composition_data.get('engine', 'three') == 'three'
+                    and (self.width > 1920 or self.height > 1080)):
+                raise ValueError('3D scenes support at most 1920x1080')
             for point in (scene.start, scene.end):
                 if abs(point * self.fps - round(point * self.fps)) > 1e-4:
                     raise ValueError(f"Scene boundaries must use the global {self.fps}fps frame grid; use frame_time()")

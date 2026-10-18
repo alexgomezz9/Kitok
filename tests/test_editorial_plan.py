@@ -53,6 +53,59 @@ def test_plan_cannot_read_media_outside_project(tmp_path):
         project_file(root,str(outside))
 
 
+@pytest.mark.parametrize('changed', ['audio', 'asset'])
+def test_approved_input_hash_is_checked_before_any_render_output(tmp_path, monkeypatch, changed):
+    from kitok.editing.storyboard import file_hash
+    from kitok.editing import production
+    for name in ('audio.mp4', 'source.mp4'):
+        (tmp_path / name).write_bytes(b'approved bytes')
+    data = payload()
+    data['alignment'] = {'audio_sha256': file_hash(tmp_path / 'audio.mp4')}
+    data['assets']['clip']['sha256'] = file_hash(tmp_path / 'source.mp4')
+    (tmp_path / ('audio.mp4' if changed == 'audio' else 'source.mp4')).write_bytes(b'changed resource')
+    monkeypatch.setattr(production, 'probe_media', lambda *a: SimpleNamespace(audio_codec='aac', duration=2))
+    monkeypatch.setattr(production, 'stream_durations', lambda *a: (2, 2))
+    monkeypatch.setattr(production, '_run', lambda *a, **k: pytest.fail('No rendering before hash validation'))
+    output = tmp_path / 'outputs' / 'blocked.mp4'
+    with pytest.raises(ValueError, match='changed after preparing'):
+        render_editorial_plan(EditorialPlan.model_validate(data), root=tmp_path, output=output,
+                              settings=Settings(_env_file=None, data_root=tmp_path))
+    assert not output.parent.exists()
+
+
+@pytest.mark.parametrize('racing', ['video', 'receipt'])
+def test_exclusive_promotion_preserves_files_created_during_render(tmp_path, racing):
+    from kitok.editing.production import _publish_new
+    pending, output, receipt = (tmp_path / name for name in ('pending.mp4', 'final.mp4', 'final.editorial.json'))
+    pending.write_bytes(b'rendered video')
+    protected = output if racing == 'video' else receipt
+    protected.write_bytes(b'operator file created during rendering')
+    with pytest.raises(FileExistsError):
+        _publish_new(pending, output, receipt, {'episode_id': 'new'})
+    assert protected.read_bytes() == b'operator file created during rendering'
+    assert not (receipt if racing == 'video' else output).exists()
+    assert not pending.exists()
+
+
+def test_exclusive_promotion_keeps_a_receipt_replaced_by_another_writer(tmp_path, monkeypatch):
+    from kitok.editing.production import _publish_new
+    import os
+    pending, output, receipt = (tmp_path / name for name in ('pending.mp4', 'final.mp4', 'final.editorial.json'))
+    pending.write_bytes(b'rendered video')
+    link = os.link
+    def concurrent(source, destination):
+        if destination == output:
+            replacement = tmp_path / 'other.json'
+            replacement.write_bytes(b'another writer receipt')
+            replacement.replace(receipt)
+            raise FileExistsError('Output appeared concurrently')
+        return link(source, destination)
+    monkeypatch.setattr('kitok.editing.production.os.link', concurrent)
+    with pytest.raises(FileExistsError):
+        _publish_new(pending, output, receipt, {'episode_id': 'new'})
+    assert receipt.read_bytes() == b'another writer receipt'
+
+
 def test_quality_samples_long_scene_lists_instead_of_failing_after_render(tmp_path, monkeypatch):
     from kitok.editing import quality
     monkeypatch.setattr(quality, 'probe_media', lambda *args: SimpleNamespace(

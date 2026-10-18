@@ -23,6 +23,10 @@ studio-setup:
 	.venv/bin/python -m pip install -e ".[dev]"
 	PATH="$(CURDIR)/.tools/node/bin:$$PATH" npm --prefix frontend ci
 
+.PHONY: cinema-setup
+cinema-setup:
+	PLAYWRIGHT_BROWSERS_PATH="$(CURDIR)/.tools/browsers" frontend/node_modules/.bin/playwright install chromium --only-shell
+
 .PHONY: verify verify-browser
 verify:
 	.venv/bin/python scripts/verify.py

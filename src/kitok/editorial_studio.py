@@ -18,7 +18,7 @@ from .locks import generation_lock, GenerationBusy
 from .state import write_json_atomic
 
 log = logging.getLogger('kitok.editorial_studio')
-FILES = frozenset({'A_current.mp4', 'B_improved.mp4', 'B_improved.qa.json', 'B_improved.contact.jpg'})
+FILES = frozenset({'A_current.mp4', 'B_improved.mp4', 'B_improved.qa.json', 'B_improved.contact.jpg', 'CREDITS.md'})
 
 
 class EditorialStudio:

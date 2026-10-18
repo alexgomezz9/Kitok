@@ -161,7 +161,7 @@ def create_app(settings=None, *, catalog_path=None):
     @app.get('/api/editorial/{cid}/files/{name}')
     def editorial_file(cid: str, name: str):
         path = editorial.file(cid, name)
-        media = 'video/mp4' if path.suffix == '.mp4' else 'image/jpeg' if path.suffix == '.jpg' else 'application/json'
+        media = {'.mp4': 'video/mp4', '.jpg': 'image/jpeg', '.md': 'text/plain'}.get(path.suffix, 'application/json')
         return FileResponse(path, media_type=media)
 
     @app.get('/api/content', response_model=list[ContentView])

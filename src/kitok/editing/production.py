@@ -4,9 +4,12 @@ from __future__ import annotations
 from contextlib import contextmanager
 import fcntl
 import json
+import os
 from pathlib import Path
 import subprocess
+import tempfile
 import time
+from uuid import uuid4
 
 from ..longform.models import TimelineClip, TimelineSlot
 from ..media.ffmpeg import FFmpegNativeEngine, RenderSpec, choose_encoder, encoder_arguments
@@ -108,10 +111,19 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
         raise ValueError("Existing audio does not cover this edit plan")
     # Validate every local input before creating outputs.
     assets = {key: project_file(root, asset.path) for key, asset in plan.assets.items()}
+    inputs = {audio: file_hash(audio)}
+    if plan.alignment.get('audio_sha256', inputs[audio]) != inputs[audio]:
+        raise ValueError('Approved audio changed after preparing the plan')
+    for key, source in assets.items():
+        digest = file_hash(source)
+        if plan.assets[key].sha256 is not None and plan.assets[key].sha256 != digest:
+            raise ValueError(f'Approved resource changed after preparing the plan: {key}')
+        inputs[source] = digest
     if output in assets.values() or output == audio:
         raise ValueError("Editorial output cannot replace an input")
-    if output.exists():
-        raise ValueError("Editorial output exists; choose a new output to preserve the previous cut")
+    manifest = output.with_suffix('.editorial.json')
+    if output.exists() or manifest.exists() or manifest.is_symlink():
+        raise ValueError("Editorial output or receipt exists; choose a new output to preserve the previous cut")
     output.parent.mkdir(parents=True, exist_ok=True)
     workspace = output.parent / ".editorial-work" / plan.episode_id
     workspace.mkdir(parents=True, exist_ok=True)
@@ -126,7 +138,15 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
             scene_start = time.monotonic()
             duration = scene.end - scene.start
             image = bool(scene.graphic)
-            if image:
+            if scene.composition:
+                from .cinema import CinemaData, render_cinema
+                source = workspace / f'{scene.id}.composition.mp4'
+                render_cinema(CinemaData.model_validate(scene.composition_data), scene.composition,
+                              duration=duration, width=plan.width, height=plan.height,
+                              fps=plan.fps, output=source, settings=settings, encoder=encoder,
+                              photo=assets[scene.asset] if scene.asset else None)
+                source_identity = file_hash(source)
+            elif image:
                 source = workspace / f"{scene.id}.png"
                 render_graphic(scene.graphic, scene.graphic_data, source,
                                width=plan.width, height=plan.height,
@@ -195,7 +215,7 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
         assembled = workspace / "assembled.mp4"
         engine.render(clips,audio,plan.duration,assembled,workspace/"assembly",
                       music=None,music_volume=0,loudness_target=-16,lra_target=20,true_peak_target=-1.5)
-        pending = output.with_name(f".{output.stem}.part.mp4")
+        pending = output.with_name(f".{output.stem}.{uuid4().hex}.part.mp4")
         if plan.audio_is_final_mix:
             # Exactly the approved mix. Rendering visuals must not alter its gain/music.
             seek = ["-ss",str(plan.audio_offset)] if plan.audio_offset else []
@@ -212,7 +232,6 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
                 or video_duration is None or abs(video_duration-plan.duration)>1/plan.fps+.02
                 or audio_duration is None or audio_duration<plan.duration-.05):
             raise RuntimeError("Editorial final validation failed")
-        pending.replace(output)
         result = {"version":1,"episode_id":plan.episode_id,"channel_id":plan.channel_id,
                   "output":str(output.relative_to(root)),"duration":final.duration,
                   "audio_stream_duration":audio_duration,"video_stream_duration":video_duration,
@@ -221,5 +240,36 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
                   "audio_source_sha256":file_hash(audio),"audio_is_final_mix":plan.audio_is_final_mix,
                   "alignment":plan.alignment,"provider_requests":0,"scenes":[s.model_dump() for s in plan.scenes],
                   "assets":{key:asset.model_dump() for key,asset in plan.assets.items()}}
-        write_json_atomic(output.with_suffix(".editorial.json"),result)
+        if any(file_hash(path) != digest for path, digest in inputs.items()):
+            raise ValueError('An editorial input changed during rendering; delivery was blocked')
+        _publish_new(pending, output, manifest, result)
         return result
+
+
+def _publish_new(pending: Path, output: Path, manifest: Path, result: dict):
+    """Exclusive promotion across independent episode locks, preserving racing files."""
+    fd, name = tempfile.mkstemp(prefix='.editorial-receipt-', dir=output.parent)
+    temporary = Path(name)
+    owned_receipt = None
+    try:
+        with os.fdopen(fd, 'w', encoding='utf-8') as handle:
+            json.dump(result, handle, ensure_ascii=False, allow_nan=False)
+            handle.flush()
+            os.fsync(handle.fileno())
+            stat = os.fstat(handle.fileno())
+            identity = (stat.st_dev, stat.st_ino)
+        os.link(temporary, manifest)
+        owned_receipt = identity
+        os.link(pending, output)
+    except BaseException:
+        if owned_receipt is not None:
+            try:
+                stat = manifest.lstat()
+                if (stat.st_dev, stat.st_ino) == owned_receipt:
+                    manifest.unlink()
+            except FileNotFoundError:
+                pass
+        raise
+    finally:
+        temporary.unlink(missing_ok=True)
+        pending.unlink(missing_ok=True)

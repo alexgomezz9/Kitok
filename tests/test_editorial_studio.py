@@ -70,6 +70,21 @@ def test_reads_only_valid_saved_comparisons_and_allowlisted_files(studio):
     assert before == after
 
 
+def test_editorial_credits_are_plain_text_and_cannot_redirect_to_private_files(studio):
+    client, _, settings = studio
+    folder, audio, _ = comparison(settings)
+    credits = folder / 'CREDITS.md'
+    credits.write_text('Author / CC BY-SA 2.0 / source URL / adapted crop')
+    row = client.get('/api/editorial/sample_ab').json()
+    response = client.get(row['files']['CREDITS.md'])
+    assert response.status_code == 200
+    assert response.headers['content-type'].startswith('text/plain')
+    assert 'CC BY-SA' in response.text
+    credits.unlink()
+    credits.symlink_to(audio)
+    assert client.get('/api/editorial/sample_ab/files/CREDITS.md').status_code == 422
+
+
 def test_success_preserves_inputs_and_previous_b_and_exposes_qa(studio, monkeypatch):
     client, app, settings = studio
     folder, audio, _ = comparison(settings)

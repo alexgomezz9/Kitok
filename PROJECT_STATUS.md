@@ -1,72 +1,45 @@
 # Estado vigente de Kitok
 
-Actualizado: 2026-10-18. Rama **feat/documentary-director**; main intacto.
-Manual de operación: [GUIA.md](GUIA.md). Montaje: [docs/editing.md](docs/editing.md).
+Actualizado: 2026-10-18. Rama **feat/documentary-director**, base f9549b7.
+Main intacto; sin publicación de vídeos ni merge. Manual: [GUIA.md](GUIA.md).
 
-## Disponible
+## Capacidades comprobadas
 
-- Nuevos shorts locales/Pexels: Fish + FFmpeg; Pexels cuando corresponde.
-- Nuevos largos: native predeterminado en CLI y estudio; la interfaz lo
-  identifica como experimental.
-  MPT sólo para diagnóstico y recuperación explícita de tareas históricas.
-  Álvaro/Edge queda como dato histórico; las voces nuevas son Fish.
-- Montaje: comparación A/B, descarga y render de un plan local por escenas.
-  Reutiliza audio/recursos; cachea planos; gráficos de identidad, cifras y acceso
-  a información. No prepara el plan automáticamente ni ofrece editor de timeline.
-- Fish: caché compartida entre modos y bloqueo de peticiones ambiguas; no repetir
-  una síntesis incierta para reparar efectos. Datos, cachés y vídeos preservados.
-- Generación y publicación separadas. Buffer conserva revisión/confirmación.
-  Sin publicación de vídeos ni merge a main en este incremento.
+- Nuevos shorts y largos: Fish/Pexels/FFmpeg nativos. MPT sólo diagnóstico y
+  recuperación histórica explícita. Álvaro/Edge no se usa para nuevas voces.
+- Estudio local con Short, Vídeo largo y Montaje; almacenamiento sin Google Drive.
+- Planes por escena: recursos, gráficos, fotografía animada y reconstrucción 3D
+  local con cartas/fichas/cámaras; render secuencial y caché, sin nueva síntesis.
+  Los escenarios de póker actuales son Paredes/NioNio. No hay editor de timeline.
+- Catálogo Commons con derechos/procedencia por imagen; música local CC BY4.0
+  con selección por canal/trabajo, crossfade y ducking. No integrado en formularios.
+- CLI YouTube oficial sólo lectura preparado; OAuth real pendiente de cliente
+  Desktop/consentimiento. VidIQ reconoce LooseThread pero pide verificación.
+  No se gastaron créditos de investigación vidIQ. CTR/CSV aún no importado.
 
-- Catálogo Commons: búsqueda, importación limitada y procedencia/licencias por
-  imagen; selección por entidad y función, sin sustituir personas. CLI en GUIA.
+## Evidencia del incremento
 
-- Biblioteca musical:4 pistas oficiales CC BY4.0, caché verificada, selector por
-  trabajo/canal, crossfade y ducking. CLI separado; no activado en formularios.
+- UltimateBet C3:76s,1920×1080,30fps,17escenas, voz/mix idénticos a B anterior;
+  decode completo, sin negros, -16,13LUFS/-1,8dBTP. Original652,6s/A/B conservados.
+- Revisión visual independiente corrigió mojibake, cartas ambiguas, origen de la
+  apuesta y tiempo de revelación. C3 y una salida desde brief revisadas por muestras.
+- Fotografía real de Hamilton: Gene Bromberg, CC BY-SA2.0; atribución y cambios
+  conservados. Algunas fuentes stock se reescalan; salida1080p no implica fuente1080p.
+- Mezcla musical separada18s: -16,24LUFS/-1,8dBTP;15 tests y revisión pasan.
+- Promoción exclusiva conserva vídeos/recibos concurrentes. Hash aprobado opcional
+  bloquea entradas cambiadas.50 pruebas editoriales/3D y probes de cierre Chromium
+  normal y forzado correctos; no garantizan limpieza ante SIGKILL externo/caída SO.
+- Gate previo642Python/13React/build/5E2E pasó. Gate sobre últimos guards en curso.
+- Checkpoints YouTube0ad6d7b, Commons2acbd67, audio3a86bcd y contrato0097395 subidos;
+  CI comprobada correcta hasta audio39137490878. Main y PR1 sin merge.
 
-## Evidencia actual
+## Límites y trabajo en curso
 
-- UltimateBet: A/B **76 s, 1920×1080, 30 fps**, local en
-  outputs/evaluation/ultimatebet_ab/{A_current,B_improved}.mp4.
-  Original de 652,6 s conservado. B es la versión 3 revisada visualmente; mismo
-  audio decodificado que A, decode completo correcto, sin negros detectados,
-  -16,13 LUFS y -1,8 dBTP. Sin nueva voz ni APIs durante la reedición.
-- Render NVENC: primera versión 65,9 s; corrección final 19,6 s,
-  1 plano renderizado y 16 reutilizados. Las medidas no incluyen todo el QA.
-- 55 pruebas editoriales/graphics pasan; relectura adversarial cerró enlaces,
-  promoción interrumpida, muestreo a 80 puntos y revisión de caché del navegador.
-- 13 pruebas React, build TypeScript/Vite y **5 E2E Chromium** pasan. El E2E de
-  Montaje hace render FFmpeg real sobre medios temporales; Fish/Buffer no se usan.
-- Gate integrado: **487 Python, 13 React, build y 5 E2E** pasan con datos
-  temporales y red externa bloqueada en pytest. make studio-check pasa.
-- Guard CLI: una tarea MPT pendiente bloquea native incluso con --start-over,
-  bajo lock y antes de crear proveedores. Relectura independiente: 17 pruebas pasan.
-- Código integrado e5ac321 subido y
-  [CI correcta](https://github.com/alexgomezz9/Kitok/actions/runs/38807115646)
-  comprobada. Este checkpoint añade documentación revisada y conserva la investigación recibida.
+C mejora el lenguaje visual, pero sigue usando mucho stock genérico y un diagrama
+plano; no se ha mejorado el episodio completo. Sin audición subjetiva ni reproducción
+continua. Antes de ampliarlo conviene obtener más recursos específicos y unificar
+el tratamiento de stock/3D. Content ID de recursos musicales/desconocidos no probado.
 
-## Límites y siguiente paso
-
-No hay director autónomo, catálogo multicanal operativo ni nuevos episodios
-completos mejorados. YouTube: CLI oficial sólo lectura implementado y revisado,
-38 pruebas aisladas pasan; OAuth real pendiente. No importa todavía CTR/CSV.
-VidIQ reconoce LooseThread mediante consulta gratuita; exige verificación reciente. Revisión visual por muestras; audición
-subjetiva continua no realizada. No se ha probado cada estilo con una nueva
-llamada real Fish/Pexels; las pruebas de proveedores son aisladas.
-
-[PR de borrador preparada](https://github.com/alexgomezz9/Kitok/pull/1), sin merge.
-Audio real18s en outputs/evaluation/audio_library/ultimatebet_ducked_demo_v2.m4a:
--16,24LUFS/-1,8dBTP, decode correcto;15 tests y relectura independiente pasan.
-Sin audición subjetiva ni cambios en A/B/C. Content ID desconocido.
-Checkpoint YouTube 0ad6d7b subido; CI39117169871 correcta. Catálogo:8 pruebas
-aisladas correctas y foto de Hamilton importada realmente con CC BY-SA2.0.
-Trabajo en curso: C de UltimateBet con fotografía licenciada y composición3D.
-C1 de76s renderizada: audio idéntico y QAreal correcto; la revisión detectó
-texto UTF8, cartas ambiguas y revelación breve. C2 corregida en render.
-AGENTS fija autonomía editorial, reutilización de voz, pruebas visuales y Git.
-Siguiente mejora editorial:
-recursos más específicos por episodio y ampliar el plan al resto de UltimateBet
-reutilizando audio; no presentar ese trabajo como ya terminado.
-Mantener esta página breve; historial de diseño en docs/archive/.
-Hardware: RTX 3050 Laptop 4 GB / RAM 8 GB; render secuencial FFmpeg/Pillow/ASS.
-APIs existentes autorizadas cuando hagan falta; evitar consumo duplicado.
+En curso: fijar la salida C en Montaje, cerrar compilación desde brief con catálogo
+Pexels ilustrativo, gate final, documentación y checkpoints. No dar por terminados
+los archivos sin commit. Próximo chat: verificar este estado y .codex-work/PROJECT_STATE.md.
