@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "id": "long_note_two",
+      "isrc": "USUAN1100420",
+      "title": "Long Note Two",
+      "author": "Kevin MacLeod",
+      "filename": "Long Note Two.mp3",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1100420",
+      "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Long%20Note%20Two.mp3",
+      "license_id": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution": "\"Long Note Two\" — Kevin MacLeod (incompetech.com). Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/ Source: https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1100420",
+      "sha256": "53fd96b8fdcae5d2a9bb35a342cfb67344994952f76ff60ff94f56644262f93b",
+      "moods": [
+        "suspense",
+        "investigation",
+        "mystery"
+      ],
+      "channels": [
+        "loose_thread",
+        "documentary",
+        "lore"
+      ],
+      "content_id": "unknown",
+      "verified_on": "2026-10-18"
+    },
+    {
+      "id": "echoes_of_time_v2",
+      "isrc": "USUAN1300030",
+      "title": "Echoes of Time v2",
+      "author": "Kevin MacLeod",
+      "filename": "Echoes of Time v2.mp3",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1300030",
+      "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Echoes%20of%20Time%20v2.mp3",
+      "license_id": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution": "\"Echoes of Time v2\" — Kevin MacLeod (incompetech.com). Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/ Source: https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1300030",
+      "sha256": "36ab41619325e19d6b7ab56d572161c2ba40bfcacf409a2558e3986b0ee0c62a",
+      "moods": [
+        "suspense",
+        "investigation",
+        "mystery"
+      ],
+      "channels": [
+        "loose_thread",
+        "documentary",
+        "lore"
+      ],
+      "content_id": "unknown",
+      "verified_on": "2026-10-18"
+    },
+    {
+      "id": "dreams_become_real",
+      "isrc": "USUAN1500027",
+      "title": "Dreams Become Real",
+      "author": "Kevin MacLeod",
+      "filename": "Dreams Become Real.mp3",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1500027",
+      "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Dreams%20Become%20Real.mp3",
+      "license_id": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution": "\"Dreams Become Real\" — Kevin MacLeod (incompetech.com). Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/ Source: https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1500027",
+      "sha256": "a8ea5df5f969ed8d898af7fe07eb4712233f03e9d83f7ebcc88d1c851f3171b0",
+      "moods": [
+        "reflective",
+        "resolution"
+      ],
+      "channels": [
+        "loose_thread",
+        "documentary",
+        "lore"
+      ],
+      "content_id": "unknown",
+      "verified_on": "2026-10-18"
+    },
+    {
+      "id": "darkest_child",
+      "isrc": "USUAN1100783",
+      "title": "Darkest Child",
+      "author": "Kevin MacLeod",
+      "filename": "Darkest Child.mp3",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1100783",
+      "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Darkest%20Child.mp3",
+      "license_id": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution": "\"Darkest Child\" — Kevin MacLeod (incompetech.com). Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/ Source: https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1100783",
+      "sha256": "7591bd67ba227c2a3ffd97a6751c66e0b56d543ba91a6a2699a765191c880518",
+      "moods": [
+        "horror",
+        "mystery"
+      ],
+      "channels": [
+        "lore",
+        "horror"
+      ],
+      "content_id": "unknown",
+      "verified_on": "2026-10-18"
+    }
+  ]
+}

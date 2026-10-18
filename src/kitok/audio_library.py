@@ -1,0 +1,419 @@
+"""Small licensed music library and local speech-first audio production.
+
+Only four audited Incompetech sources can be downloaded. Licenses, source
+evidence, hashes, selection receipts and mix measurements remain traceable.
+Nothing in this module synthesizes speech or contacts generation APIs.
+"""
+from __future__ import annotations
+
+from contextlib import closing, contextmanager
+from datetime import datetime, timezone
+import fcntl
+import hashlib
+import json
+import math
+import os
+from pathlib import Path
+import re
+import shutil
+import subprocess
+import tempfile
+from urllib.parse import quote
+import wave
+
+import httpx
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
+
+from .media.ffmpeg import parse_loudnorm_measurement
+from .media.ffprobe import measure_loudness, probe_media
+
+
+class AudioLibraryError(RuntimeError):
+    pass
+
+
+BASE = "https://incompetech.com/music/royalty-free/"
+LICENSE = "https://creativecommons.org/licenses/by/4.0/"
+AUDITED = {
+    "long_note_two": ("USUAN1100420", "Long Note Two"),
+    "echoes_of_time_v2": ("USUAN1300030", "Echoes of Time v2"),
+    "dreams_become_real": ("USUAN1500027", "Dreams Become Real"),
+    "darkest_child": ("USUAN1100783", "Darkest Child"),
+}
+ID = re.compile(r"[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}\Z")
+
+
+class MusicSource(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    id: str
+    isrc: str
+    title: str
+    author: str = "Kevin MacLeod"
+    filename: str
+    source_url: str
+    download_url: str
+    license_id: str = "CC-BY-4.0"
+    license_url: str = LICENSE
+    attribution: str
+    sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+    moods: list[str] = Field(min_length=1)
+    channels: list[str] = Field(min_length=1)
+    content_id: str = "unknown"
+    verified_on: str
+
+    @model_validator(mode="after")
+    def audited_source(self):
+        if self.id not in AUDITED or AUDITED[self.id] != (self.isrc, self.title):
+            raise ValueError("Source must be one of the four audited tracks")
+        if self.author != "Kevin MacLeod" or self.filename != self.title + ".mp3":
+            raise ValueError("Unexpected author or filename")
+        if self.download_url != BASE + "mp3-royaltyfree/" + quote(self.filename):
+            raise ValueError("Only the audited author's exact download URL is accepted")
+        if self.source_url != BASE + "index.html?Search=Search&isrc=" + self.isrc:
+            raise ValueError("Expected the track's official ISRC source page")
+        if self.license_id != "CC-BY-4.0" or self.license_url != LICENSE or self.content_id != "unknown":
+            raise ValueError("License must permit commercial use with attribution; Content ID is unverified")
+        if not self.attribution or self.title not in self.attribution or self.author not in self.attribution or LICENSE not in self.attribution:
+            raise ValueError("Missing attribution or license reference")
+        return self
+
+
+def _hash(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for block in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def _atomic_json(path: Path, value: dict, *, replace: bool = True) -> tuple[int, int]:
+    fd, temporary = tempfile.mkstemp(prefix=".receipt-", dir=path.parent)
+    try:
+        with os.fdopen(fd, "w") as handle:
+            json.dump(value, handle, ensure_ascii=False, indent=2, allow_nan=False)
+            handle.flush()
+            os.fsync(handle.fileno())
+            identity = os.fstat(handle.fileno())
+        if replace:
+            os.replace(temporary, path)
+        else:
+            try:
+                os.link(temporary, path)
+            except FileExistsError:
+                raise AudioLibraryError("A receipt appeared during mixing; it was preserved") from None
+        return identity.st_dev, identity.st_ino
+    finally:
+        Path(temporary).unlink(missing_ok=True)
+
+
+class AudioLibrary:
+    def __init__(self, catalog: Path, cache: Path, *, ffmpeg="ffmpeg", ffprobe="ffprobe", client: httpx.Client | None = None):
+        try:
+            payload = json.loads(Path(catalog).read_text())
+            if payload.get("version") != 1:
+                raise ValueError("Unsupported catalog version")
+            self.sources = {source.id: source for source in (MusicSource.model_validate(item) for item in payload["sources"])}
+            if len(self.sources) != len(payload["sources"]):
+                raise ValueError("Duplicate track ID")
+        except (OSError, ValueError, KeyError, TypeError, AttributeError, ValidationError) as exc:
+            raise AudioLibraryError("Invalid or unapproved music catalog") from exc
+        raw_cache = Path(cache).absolute()
+        if any(p.is_symlink() for p in (raw_cache, *raw_cache.parents)):
+            raise AudioLibraryError("Library directories cannot be symlinks")
+        raw_cache.mkdir(parents=True, exist_ok=True)
+        self.cache, self.ffmpeg, self.ffprobe = raw_cache, ffmpeg, ffprobe
+        self.client = client or httpx.Client(trust_env=False)
+        self._owns_client = client is None
+        self._pieces = None
+
+    def close(self):
+        if self._owns_client:
+            self.client.close()
+
+    @contextmanager
+    def _lock(self):
+        fd = os.open(self.cache / ".library.lock", os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
+        try:
+            try:
+                fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                raise AudioLibraryError("Another audio-library operation is in progress") from None
+            yield
+        finally:
+            os.close(fd)
+
+    def _directory(self, track_id: str) -> Path:
+        if track_id not in self.sources:
+            raise AudioLibraryError("Unknown track ID")
+        directory = self.cache / track_id
+        if directory.is_symlink():
+            raise AudioLibraryError("Track directories cannot be symlinks")
+        directory.mkdir(exist_ok=True)
+        if any(path.is_symlink() for path in directory.iterdir()):
+            raise AudioLibraryError("Track files cannot be symlinks")
+        return directory
+
+    def _get(self, url: str, *, maximum: int) -> bytes:
+        allowed = {BASE + "pieces.json"}
+        allowed |= {source.source_url for source in self.sources.values()}
+        allowed |= {source.download_url for source in self.sources.values()}
+        if url not in allowed:
+            raise AudioLibraryError("Download URL is not in the audited catalog")
+        request = self.client.build_request("GET", url, timeout=40)
+        request.headers.pop("authorization", None)
+        request.headers.pop("cookie", None)
+        try:
+            response = self.client.send(request, stream=True, auth=None, follow_redirects=False)
+            with closing(response):
+                if response.status_code != 200:
+                    raise AudioLibraryError(f"Music source returned HTTP {response.status_code}; no redirect or automatic retry")
+                length = response.headers.get("content-length")
+                if length and (not length.isdigit() or int(length) > maximum):
+                    raise AudioLibraryError("Music source exceeds the download size limit")
+                result = bytearray()
+                for block in response.iter_bytes():
+                    result.extend(block)
+                    if len(result) > maximum:
+                        raise AudioLibraryError("Music source exceeds the download size limit")
+                return bytes(result)
+        except httpx.HTTPError:
+            raise AudioLibraryError("Music download failed; no automatic retry") from None
+
+    def _cached(self, track_id: str) -> dict | None:
+        directory, source = self._directory(track_id), self.sources[track_id]
+        try:
+            receipt = json.loads((directory / "receipt.json").read_text())
+            valid = receipt.get("sha256") == source.sha256 and _hash(directory / "music.mp3") == source.sha256
+            valid = valid and receipt.get("source") == source.model_dump()
+            valid = valid and _hash(directory / "license.html") == receipt.get("license_evidence_sha256")
+            valid = valid and _hash(directory / "source.json") == receipt.get("track_evidence_sha256")
+            if valid:
+                return receipt
+        except (OSError, ValueError, AttributeError):
+            pass
+        return None
+
+    def fetch(self, track_id: str, *, local_file: Path | None = None) -> dict:
+        """Download or import a hash-pinned file, verifying current per-track evidence.
+
+        local_file can reuse an already downloaded exact file; it never bypasses
+        hash, media, licensing or provenance checks.
+        """
+        with self._lock():
+            cached = self._cached(track_id)
+            if cached:
+                return {**cached, "cache_hit": True}
+            source, directory = self.sources[track_id], self._directory(track_id)
+            html = self._get(source.source_url, maximum=512 * 1024)
+            if b"By Attribution 4.0 License" not in html or b"creativecommons.org/licenses/by/4.0/" not in html:
+                raise AudioLibraryError("The source page no longer confirms the audited CC BY 4.0 license")
+            if self._pieces is None:
+                try:
+                    self._pieces = json.loads(self._get(BASE + "pieces.json", maximum=4 * 1024 * 1024))
+                except ValueError:
+                    raise AudioLibraryError("The official track catalog is invalid") from None
+            if not isinstance(self._pieces, list):
+                raise AudioLibraryError("The official track catalog is invalid")
+            matches = [item for item in self._pieces if isinstance(item, dict) and item.get("isrc") == source.isrc]
+            if len(matches) != 1 or matches[0].get("title") != source.title or matches[0].get("filename") != source.filename:
+                raise AudioLibraryError("Official track identity does not match the audited source")
+            fd, temporary = tempfile.mkstemp(prefix=".download-", suffix=".mp3", dir=directory)
+            os.close(fd)
+            temporary = Path(temporary)
+            try:
+                if local_file is not None:
+                    if Path(local_file).stat().st_size > 32 * 1024 * 1024:
+                        raise AudioLibraryError("Local music file exceeds size limit")
+                    shutil.copyfile(local_file, temporary)
+                else:
+                    temporary.write_bytes(self._get(source.download_url, maximum=32 * 1024 * 1024))
+                if _hash(temporary) != source.sha256:
+                    raise AudioLibraryError("Music hash changed; review the source instead of accepting new bytes silently")
+                media = probe_media(temporary, self.ffprobe)
+                if not media.audio_codec or not 1 <= media.duration <= 1800:
+                    raise AudioLibraryError("Downloaded file is not a bounded audio track")
+                evidence = json.dumps(matches[0], sort_keys=True).encode()
+                (directory / "license.html").write_bytes(html)
+                (directory / "source.json").write_bytes(evidence)
+                temporary.replace(directory / "music.mp3")
+                receipt = {"version": 1, "source": source.model_dump(), "sha256": source.sha256,
+                           "duration": media.duration, "bytes": (directory / "music.mp3").stat().st_size,
+                           "fetched_at": datetime.now(timezone.utc).isoformat(),
+                           "license_evidence_sha256": hashlib.sha256(html).hexdigest(),
+                           "track_evidence_sha256": hashlib.sha256(evidence).hexdigest(),
+                           "content_id": "unknown", "commercial_use": "permitted with attribution under CC BY 4.0"}
+                _atomic_json(directory / "receipt.json", receipt)
+                return {**receipt, "cache_hit": False}
+            finally:
+                temporary.unlink(missing_ok=True)
+
+    def _state(self) -> dict:
+        path = self.cache / "selection.json"
+        if path.is_symlink():
+            raise AudioLibraryError("Selection state cannot be a symlink")
+        try:
+            state = json.loads(path.read_text()) if path.exists() else {"version": 1, "jobs": {}, "last": {}}
+            if state.get("version") != 1 or not isinstance(state.get("jobs"), dict) or not isinstance(state.get("last"), dict):
+                raise ValueError
+            return state
+        except (OSError, ValueError, AttributeError):
+            raise AudioLibraryError("Selection state is invalid; preserve and inspect it") from None
+
+    def select(self, job_id: str, *, channel: str, mood: str, count: int = 2) -> dict:
+        if not all(isinstance(value, str) and ID.fullmatch(value) for value in (job_id, channel, mood)) or count not in (1, 2):
+            raise AudioLibraryError("Expected validated job/channel/mood IDs and one or two tracks")
+        with self._lock():
+            state = self._state()
+            request = {"channel": channel, "mood": mood, "count": count}
+            if job_id in state["jobs"]:
+                selection = self._selection(state, job_id)
+                if any(selection.get(key) != value for key, value in request.items()):
+                    raise AudioLibraryError("This job already has a different audio selection; use a new revision ID")
+                if any(not self._cached(track_id) for track_id in selection["tracks"]):
+                    raise AudioLibraryError("A selected track is missing or corrupted")
+                return selection
+            candidates = [source.id for source in self.sources.values()
+                          if channel in source.channels and mood in source.moods and self._cached(source.id)]
+            if len(candidates) < count:
+                raise AudioLibraryError("Not enough cached licensed tracks for this channel and mood; fetch matching tracks first")
+            previous = state["last"].get(channel)
+            ordered = sorted(candidates, key=lambda value: hashlib.sha256(f"{job_id}:{channel}:{mood}:{value}".encode()).hexdigest())
+            if previous in ordered and len(ordered) > 1:
+                ordered.remove(previous)
+                ordered.append(previous)
+            selection = {"job_id": job_id, **request, "tracks": ordered[:count],
+                         "selected_at": datetime.now(timezone.utc).isoformat(),
+                         "credits": [self.sources[track].attribution for track in ordered[:count]],
+                         "changes_notice": "Music trimmed, crossfaded, mixed and dynamically ducked under narration.",
+                         "content_id": "unknown"}
+            state["jobs"][job_id] = selection
+            state["last"][channel] = ordered[0]
+            _atomic_json(self.cache / "selection.json", state)
+            return selection
+
+    def _selection(self, state: dict, job_id: str) -> dict:
+        selection = state["jobs"].get(job_id)
+        valid = isinstance(selection, dict) and selection.get("job_id") == job_id
+        tracks = selection.get("tracks") if valid else None
+        valid = valid and isinstance(tracks, list) and len(tracks) in (1, 2)
+        valid = valid and all(isinstance(track, str) and track in self.sources for track in tracks)
+        if not valid or selection.get("credits") != [self.sources[track].attribution for track in tracks]:
+            raise AudioLibraryError("Audio selection is missing or invalid; preserve and inspect its state")
+        return selection
+
+    def mix(self, job_id: str, narration: Path, output: Path, *, duration: float,
+            offset: float = 0, crossfade: float = 1.5) -> dict:
+        """Render a separate mix; narration and existing outputs are never overwritten."""
+        if not ID.fullmatch(job_id) or not all(math.isfinite(value) for value in (duration, offset, crossfade)):
+            raise AudioLibraryError("Invalid audio request")
+        if not 3 <= duration <= 7200 or offset < 0 or not .1 <= crossfade <= min(5, duration / 2):
+            raise AudioLibraryError("Invalid duration, offset or crossfade")
+        narration, output = Path(narration).resolve(), Path(output).absolute()
+        if not narration.is_file() or output.exists() or output.is_symlink() or output.resolve() == narration:
+            raise AudioLibraryError("Narration must exist and output must be a new separate file")
+        if output.suffix.lower() not in {".m4a", ".wav"}:
+            raise AudioLibraryError("Use .m4a or .wav for the separate mix")
+        info = probe_media(narration, self.ffprobe)
+        if not info.audio_codec or offset + duration > info.duration + .02:
+            raise AudioLibraryError("Narration does not cover the requested interval")
+        output.parent.mkdir(parents=True, exist_ok=True)
+        receipt_path = output.with_suffix(output.suffix + ".json")
+        if receipt_path.exists() or receipt_path.is_symlink():
+            raise AudioLibraryError("Output receipt already exists")
+        narration_sha256 = _hash(narration)
+        with self._lock(), tempfile.TemporaryDirectory(prefix=".audio-mix-", dir=output.parent) as workspace:
+            selection = self._selection(self._state(), job_id)
+            if not all(self._cached(track_id) for track_id in selection["tracks"]):
+                raise AudioLibraryError("Select verified cached tracks before mixing")
+            inputs = [self.ffmpeg, "-nostdin", "-hide_banner", "-y", "-ss", f"{offset:.6f}", "-i", str(narration)]
+            for track_id in selection["tracks"]:
+                inputs += ["-stream_loop", "-1", "-i", str(self._directory(track_id) / "music.mp3")]
+            chain = self._mix_filter(duration, crossfade, len(selection["tracks"]))
+            analysis_filter = chain + ";[mixed]loudnorm=I=-16:LRA=7:TP=-1.8:print_format=json[analysis]"
+            analysis = self._run(inputs + ["-filter_complex", analysis_filter, "-map", "[analysis]", "-vn", "-t", str(duration), "-f", "null", "-"], "mix analysis")
+            measured = parse_loudnorm_measurement(analysis.stderr)
+            if not all(math.isfinite(value) for value in (measured.input_i, measured.input_lra, measured.input_tp, measured.input_thresh, measured.target_offset)):
+                raise AudioLibraryError("Cannot normalize silent or non-finite audio")
+            normalize = (f"loudnorm=I=-16:LRA=7:TP=-1.8:measured_I={measured.input_i}:"
+                         f"measured_LRA={measured.input_lra}:measured_TP={measured.input_tp}:"
+                         f"measured_thresh={measured.input_thresh}:offset={measured.target_offset}:linear=true")
+            temporary = Path(workspace) / ("mixed" + output.suffix.lower())
+            codec = ["-c:a", "aac", "-b:a", "192k"] if output.suffix.lower() == ".m4a" else ["-c:a", "pcm_s16le"]
+            self._run(inputs + ["-filter_complex", chain + ";[mixed]" + normalize + "[out]", "-map", "[out]", "-vn", "-t", str(duration),
+                                "-ar", "48000", "-ac", "2", *codec, str(temporary)], "audio mix")
+            final_info, loudness = probe_media(temporary, self.ffprobe), measure_loudness(temporary, self.ffmpeg)
+            if abs(final_info.duration - duration) > .08 or not all(isinstance(loudness.get(key), (int, float)) and math.isfinite(loudness[key])
+                    for key in ("integrated_lufs", "true_peak_dbtp", "loudness_range_lu")):
+                raise AudioLibraryError("Audio duration or loudness validation failed")
+            if abs(loudness["integrated_lufs"] + 16) > 1 or loudness["true_peak_dbtp"] > -1.5:
+                raise AudioLibraryError("Measured mix does not meet -16 LUFS / -1.5 dBTP")
+            if _hash(narration) != narration_sha256:
+                raise AudioLibraryError("Narration changed during mixing; no output was promoted")
+            source_receipts = [self._cached(track_id) for track_id in selection["tracks"]]
+            if not all(source_receipts):
+                raise AudioLibraryError("A music source changed during mixing; no output was promoted")
+            receipt = {"version": 1, "job_id": job_id, "selection": selection,
+                       "narration_sha256": narration_sha256, "narration_offset": offset,
+                       "duration": final_info.duration, "crossfade_seconds": crossfade if len(selection["tracks"]) == 2 else 0,
+                       "ducking": {"threshold": .012, "ratio": 8, "attack_ms": 15, "release_ms": 300},
+                       "target_lufs": -16, "target_true_peak_dbtp": -1.5, "encoding_headroom_db": .3,
+                       "measured": loudness, "output_sha256": _hash(temporary),
+                       "sources": source_receipts,
+                       "filter": chain, "created_at": datetime.now(timezone.utc).isoformat()}
+            owned_receipt = _atomic_json(receipt_path, receipt, replace=False)
+            try:
+                # Prevent replacing a result that appeared while FFmpeg was running.
+                os.link(temporary, output)
+            except FileExistsError:
+                try:
+                    present = receipt_path.lstat()
+                    if (present.st_dev, present.st_ino) == owned_receipt:
+                        receipt_path.unlink()
+                except FileNotFoundError:
+                    pass
+                raise AudioLibraryError("Output appeared during mixing; it was preserved") from None
+            return receipt
+
+    @staticmethod
+    def _mix_filter(duration: float, crossfade: float, count: int) -> str:
+        filters = [f"[0:a]atrim=duration={duration:.6f},asetpts=PTS-STARTPTS,aformat=sample_rates=48000:channel_layouts=stereo,"
+                   "loudnorm=I=-19:LRA=7:TP=-3,aresample=48000,asplit=2[voice][key]"]
+        segment = (duration + crossfade) / 2 if count == 2 else duration
+        for index in range(count):
+            filters.append(f"[{index+1}:a]atrim=duration={segment:.6f},asetpts=PTS-STARTPTS,"
+                           "aformat=sample_rates=48000:channel_layouts=stereo,highpass=f=60,lowpass=f=6500,"
+                           f"loudnorm=I=-29:LRA=11:TP=-8,aresample=48000[m{index}]")
+        filters.append(f"[m0][m1]acrossfade=d={crossfade:.6f}:c1=tri:c2=tri[bed]" if count == 2 else "[m0]anull[bed]")
+        filters += ["[bed][key]sidechaincompress=threshold=0.012:ratio=8:attack=15:release=300:makeup=1[ducked]",
+                    f"[ducked]afade=t=in:d=0.08,afade=t=out:st={duration-.4:.6f}:d=0.4[bedfaded]",
+                    "[voice][bedfaded]amix=inputs=2:duration=first:normalize=0[mixed]"]
+        return ";".join(filters)
+
+    @staticmethod
+    def _run(command: list[str], label: str) -> subprocess.CompletedProcess:
+        try:
+            return subprocess.run(command, capture_output=True, text=True, check=True, timeout=3600)
+        except (OSError, subprocess.SubprocessError) as exc:
+            raise AudioLibraryError(f"FFmpeg failed during {label}") from exc
+
+
+def synthesize_sfx(output: Path, *, kind: str = "soft_tick", duration: float = .22) -> dict:
+    """A quiet original Kitok sound, independent of external recordings/models."""
+    import struct
+    if kind not in {"soft_tick", "low_pulse"} or not math.isfinite(duration) or not .05 <= duration <= 1:
+        raise AudioLibraryError("Unknown or excessive sound effect")
+    output = Path(output)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    rate, frequency = 48000, (900 if kind == "soft_tick" else 90)
+    fd = os.open(output, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
+    with os.fdopen(fd, "wb") as raw, wave.open(raw, "wb") as writer:
+        writer.setparams((1, 2, rate, 0, "NONE", "not compressed"))
+        frames = bytearray()
+        for index in range(round(duration * rate)):
+            t = index / rate
+            envelope = math.sin(math.pi * min(1, t / .008) / 2) ** 2 * math.exp(-7 * t / duration)
+            value = .07 * envelope * math.sin(2 * math.pi * frequency * t)
+            frames.extend(struct.pack("<h", round(value * 32767)))
+        writer.writeframes(frames)
+    return {"author": "Kitok", "origin": "original procedural synthesis", "kind": kind,
+            "duration": duration, "sha256": _hash(output), "external_samples": False}

@@ -270,3 +270,30 @@ licencia comercial explícita compatible y conserva las obligaciones de atribuci
 y ShareAlike. Revisa la página y el contexto antes de anotar identidad/función.
 `list` lee `cache/media-library/`; no descarga ni genera voz. Content ID figura
 como desconocido: la licencia no garantiza ausencia de reclamaciones automáticas.
+
+## Música y efectos locales
+
+La biblioteca incluye cuatro pistas auditadas de Kevin MacLeod (CC BY4.0), con
+fuente oficial, autor, licencia, hash y créditos por archivo. Las búsquedas y las
+mezclas no generan voz. La primera descarga usa Internet; las siguientes reutilizan
+la caché verificada. No es una suscripción ni un servicio de generación de pago.
+
+```bash
+.venv/bin/python scripts/audio_library.py list
+.venv/bin/python scripts/audio_library.py fetch all
+.venv/bin/python scripts/audio_library.py select --job mi_episodio --channel loose_thread --mood investigation
+.venv/bin/python scripts/audio_library.py mix --job mi_episodio --narration RUTA_AUDIO_EXISTENTE.mp3 --duration 60 --output outputs/mi_mezcla.m4a
+```
+
+Sustituye la ruta y usa un nombre de salida nuevo. La selección por trabajo queda
+estable; un nuevo trabajo rota la pista principal cuando hay alternativas. El
+mezclador enlaza dos pistas y baja la música mientras habla el narrador, conserva
+la voz hasta el final y mide sonoridad/pico. No reemplaza el audio original ni se
+activa por sí solo en los largos del formulario. Entrega un `.m4a.json` con fuentes,
+créditos y cambios: inclúyelos cuando uses el resultado. Content ID es desconocido.
+
+Para un efecto original discreto sin muestras externas:
+
+```bash
+.venv/bin/python scripts/audio_library.py sfx --output outputs/mi_tick.wav
+```

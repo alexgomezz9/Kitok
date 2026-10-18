@@ -21,6 +21,9 @@ Manual de operación: [GUIA.md](GUIA.md). Montaje: [docs/editing.md](docs/editin
 - Catálogo Commons: búsqueda, importación limitada y procedencia/licencias por
   imagen; selección por entidad y función, sin sustituir personas. CLI en GUIA.
 
+- Biblioteca musical:4 pistas oficiales CC BY4.0, caché verificada, selector por
+  trabajo/canal, crossfade y ducking. CLI separado; no activado en formularios.
+
 ## Evidencia actual
 
 - UltimateBet: A/B **76 s, 1920×1080, 30 fps**, local en
@@ -52,6 +55,9 @@ subjetiva continua no realizada. No se ha probado cada estilo con una nueva
 llamada real Fish/Pexels; las pruebas de proveedores son aisladas.
 
 [PR de borrador preparada](https://github.com/alexgomezz9/Kitok/pull/1), sin merge.
+Audio real18s en outputs/evaluation/audio_library/ultimatebet_ducked_demo_v2.m4a:
+-16,24LUFS/-1,8dBTP, decode correcto;15 tests y relectura independiente pasan.
+Sin audición subjetiva ni cambios en A/B/C. Content ID desconocido.
 Checkpoint YouTube 0ad6d7b subido; CI39117169871 correcta. Catálogo:8 pruebas
 aisladas correctas y foto de Hamilton importada realmente con CC BY-SA2.0.
 Trabajo en curso: C de UltimateBet con fotografía específica licenciada y
