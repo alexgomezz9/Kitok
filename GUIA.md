@@ -252,3 +252,21 @@ El acceso real a las métricas sigue pendiente del consentimiento de tu cuenta.
 ## Desarrollo y siguientes fases
 
 Para verificar cambios usa make verify; para incluir navegador, make verify-browser. El plan multicanal, el director y YouTube directo están en docs/roadmap.md y docs/design/. Son propuestas: no están implementados todavía. Los ejemplos públicos están en examples/; los contenidos del operador no se suben a Git. Los pilotos, backups e importaciones antiguos se conservan en local/.
+
+## Recursos específicos con licencia
+
+El catálogo local conserva procedencia, autor, licencia, hash, entidad y función de
+cada imagen. Buscar devuelve candidatos; no identifica automáticamente a una
+persona ni convierte una fotografía de contexto en prueba del caso.
+
+```bash
+.venv/bin/python scripts/media_library.py search "Russ Hamilton"
+.venv/bin/python scripts/media_library.py fetch "File:Russ Hamilton 2007.jpg" --entity "Russ Hamilton" --role portrait --usage identity
+.venv/bin/python scripts/media_library.py list
+```
+
+Sólo `search` y `fetch` consultan Commons. `fetch` acepta imágenes raster con una
+licencia comercial explícita compatible y conserva las obligaciones de atribución
+y ShareAlike. Revisa la página y el contexto antes de anotar identidad/función.
+`list` lee `cache/media-library/`; no descarga ni genera voz. Content ID figura
+como desconocido: la licencia no garantiza ausencia de reclamaciones automáticas.

@@ -18,6 +18,9 @@ Manual de operación: [GUIA.md](GUIA.md). Montaje: [docs/editing.md](docs/editin
 - Generación y publicación separadas. Buffer conserva revisión/confirmación.
   Sin publicación de vídeos ni merge a main en este incremento.
 
+- Catálogo Commons: búsqueda, importación limitada y procedencia/licencias por
+  imagen; selección por entidad y función, sin sustituir personas. CLI en GUIA.
+
 ## Evidencia actual
 
 - UltimateBet: A/B **76 s, 1920×1080, 30 fps**, local en
@@ -49,6 +52,8 @@ subjetiva continua no realizada. No se ha probado cada estilo con una nueva
 llamada real Fish/Pexels; las pruebas de proveedores son aisladas.
 
 [PR de borrador preparada](https://github.com/alexgomezz9/Kitok/pull/1), sin merge.
+Checkpoint YouTube 0ad6d7b subido; CI39117169871 correcta. Catálogo:8 pruebas
+aisladas correctas y foto de Hamilton importada realmente con CC BY-SA2.0.
 Trabajo en curso: C de UltimateBet con fotografía específica licenciada y
 composición animada/3D; los prototipos no son el piloto terminado.
 Siguiente mejora editorial:
