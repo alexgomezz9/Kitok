@@ -193,7 +193,7 @@ En «Montaje», selecciona «UltimateBet — C» para comparar el montaje anteri
 (A) con la nueva versión (B). Conservamos también la comparación original.
 El enlace de fuentes y licencias acompaña a la muestra nueva.
 «Renderizar plan guardado» vuelve a montar los recursos sin sintetizar voz.
-Para otro vídeo prepara un plan local; no hay editor visual de timeline.
+Para otro vídeo prepara un brief o un plan local; no hay editor visual de timeline.
 Los planos 3D opcionales requieren `make cinema-setup` una sola vez.
 
 La preparación y el comando están en [docs/editing.md](docs/editing.md), con una
@@ -254,7 +254,7 @@ El acceso real a las métricas sigue pendiente del consentimiento de tu cuenta.
 
 ## Desarrollo y siguientes fases
 
-Para verificar cambios usa make verify; para incluir navegador, make verify-browser. El plan multicanal, el director y YouTube directo están en docs/roadmap.md y docs/design/. Son propuestas: no están implementados todavía. Los ejemplos públicos están en examples/; los contenidos del operador no se suben a Git. Los pilotos, backups e importaciones antiguos se conservan en local/.
+Para verificar cambios usa make verify; para incluir navegador, make verify-browser. El compilador de briefs y el CLI de YouTube de lectura están implementados con los límites de este manual. La orquestación editorial general y el catálogo multicanal automático siguen siendo propuestas en docs/roadmap.md y docs/design/. Los ejemplos públicos están en examples/; los contenidos del operador no se suben a Git. Los pilotos, backups e importaciones antiguos se conservan en local/.
 
 ## Recursos específicos con licencia
 
@@ -300,3 +300,28 @@ Para un efecto original discreto sin muestras externas:
 ```bash
 .venv/bin/python scripts/audio_library.py sfx --output outputs/mi_tick.wav
 ```
+
+## Preparar automáticamente un plan desde decisiones editoriales
+
+Los agentes pueden guardar un brief con escenas, afirmaciones respaldadas y roles
+visuales. El compilador busca recursos del catálogo local y propone cámaras sin
+volver a generar voz ni contactar proveedores:
+
+```bash
+.venv/bin/python scripts/direct_edit.py outputs/evaluation/MI_ID/brief.json --output outputs/evaluation/MI_ID/plan_nuevo.json
+```
+
+Si falta un recurso, lo indica y no entrega un plan a medias. La preparación
+requiere ese brief; no basta con pegar un guion arbitrario. Detalles y límites en
+[docs/editing.md](docs/editing.md). La muestra C conserva su brief para reutilizarla.
+
+Para anotar un clip Pexels ya descargado y revisado, sin volver a pedirlo:
+
+```bash
+.venv/bin/python scripts/media_library.py register-pexels 7328530 --entity "Poker table and chips" --role footage
+```
+
+Siempre queda como ilustración, con la licencia Pexels y su página de origen;
+no como una imagen histórica ni como identidad de una persona. El catálogo usa
+la resolución realmente medida. Si no coincide con la declarada, exige revisión
+expresa; no modifica la caché original para ocultar la diferencia.

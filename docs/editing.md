@@ -97,3 +97,27 @@ ni manos históricas. La fotografía sí admite otros sujetos con recurso revisa
 Estos planos se renderizan secuencialmente y se cachean por datos, recursos y
 código 3D. Cambiar una cámara invalida ese plano, sin repetir Fish. Software WebGL
 es compatible con la 3050/4 GB, pero resulta más lento que ensamblar stock.
+
+## Compilar decisiones una vez y reutilizarlas
+
+El agente prepara un brief con audio aprobado y beats contiguos: intención,
+afirmación, fuente y recurso por entidad/función, o una reconstrucción explícita.
+El compilador selecciona recursos locales con licencia, verifica sus hashes,
+elige la cámara por intención y explica cada decisión. No llama a LLMs, stock ni
+voz; si falta un recurso devuelve código 2 sin escribir un plan incompleto.
+
+```bash
+.venv/bin/python scripts/direct_edit.py outputs/evaluation/MI_ID/brief.json \
+  --output outputs/evaluation/MI_ID/plan_nuevo.json
+```
+
+La muestra local conserva `brief.json` y `director_plan.json`. La CLI exige un
+nombre de salida nuevo; no sobrescribe el brief ni un plan anterior. Las fuentes
+están bajo `cache/media-library/`. Los recursos agotados no se repiten salvo
+`reuse_asset` explícito. Las fotos y el stock sirven para otros episodios; las
+reconstrucciones de póker actuales exigen el reparto UltimateBet declarado.
+No interpreta un guion arbitrario ni investiga hechos automáticamente.
+
+El plan fija el SHA del audio y de cada recurso seleccionado. Un cambio de bytes
+tras la preparación bloquea el render; si un input cambia durante el trabajo,
+se bloquea la entrega. Los planes antiguos sin SHA conservan compatibilidad.

@@ -1,9 +1,13 @@
 # Continuar trabajando en Kitok
 
-Lee AGENTS.md, GUIA.md, docs/audit/2026-10-15.md y docs/roadmap.md.
-Revisa Git y ejecuta make verify antes de asumir que todo funciona.
+Lee primero PROJECT_STATUS.md, después AGENTS.md y GUIA.md; abre sólo el código
+necesario. La auditoría del15/10 y docs/design son referencias históricas/propuestas,
+no el estado vigente. Verifica Git y el comportamiento que vayas a afirmar.
 
-El coordinador gestiona implementación, revisiones y correcciones.
-No ejecutes servicios de pago, OAuth ni publicación sin autorización.
+El coordinador gestiona implementación, revisión, correcciones y checkpoints.
+Las APIs existentes y los pushes de ramas verificadas están autorizados según
+AGENTS. No repitas voz disponible ni solicitudes ambiguas. Publicación, merge a
+main, servicios nuevos de pago y créditos de investigación vidIQ requieren permiso.
+Google exige cliente OAuth y consentimiento del titular; no inventes una conexión.
 
-El encargo original se conserva en docs/archive/initial-task.md.
+Conserva datos, medios, cachés y pruebas. Actualiza estado y manual en cada unidad.

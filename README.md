@@ -23,11 +23,14 @@ revisa. Las claves se configuran en .env; nunca se guardan en el frontend.
 - Shorts con Pexels: Fish + Pexels + FFmpeg nativos.
 - Vídeo largo: motor nativo experimental por defecto en CLI y estudio.
 - Montaje: compara A/B y renderiza planes por escena con audio/recursos locales;
-  gráficos reutilizables, caché por plano y QA sobre el MP4 real.
+  gráficos, fotografía animada, reconstrucción 3D, caché y QA sobre el MP4 real.
+- Compilador de briefs: selección local por entidad/función, derechos y hashes;
+  biblioteca musical con crossfade/ducking. No interpreta guiones arbitrarios.
 - Guardado local: outputs/ready y outputs/longform. No requiere Google Drive.
 - Generar o asignar una fecha local no publica. Buffer requiere confirmación.
-- El director autónomo, los perfiles multicanal y YouTube directo están diseñados,
-  pendientes de implementación. MPT sólo queda para recuperar tareas antiguas;
+- YouTube: CLI oficial de lectura preparado, consentimiento de Google pendiente.
+  El director general y los perfiles multicanal siguen pendientes.
+  MPT sólo queda para recuperar tareas antiguas;
   los vídeos nuevos no requieren su instalación.
 - El desarrollo y la verificación se hacen desde un checkout completo. El wheel
   Python aislado todavía no incluye la interfaz ni el CLI raíz de largos.
@@ -54,7 +57,7 @@ proveedores; los escenarios de navegador usan datos temporales.
 | [Auditoría](docs/audit/2026-10-15.md) | Capacidades comprobadas, riesgos y límites |
 | [Desarrollo](docs/development.md) | Ciclo de coordinación, revisión y CI |
 | [Multicanal y director](docs/design/multichannel-production.md) | Propuesta de arquitectura y contratos |
-| [YouTube oficial](docs/design/youtube.md) | OAuth, métricas y almacenamiento histórico propuestos |
+| [YouTube de lectura](docs/integrations/youtube-readonly.md) | Configuración, consultas y límites actuales |
 | [Herramientas y canales](docs/research/README.md) | Decisiones por hardware y viabilidad editorial |
 | [Roadmap](docs/roadmap.md) | Fases y aceptación verificable |
 | [Mapa rápido](PROJECT_GUIDE.md) | Entradas y referencias |

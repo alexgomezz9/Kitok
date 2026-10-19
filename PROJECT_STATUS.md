@@ -1,45 +1,57 @@
 # Estado vigente de Kitok
 
-Actualizado: 2026-10-18. Rama **feat/documentary-director**, base f9549b7.
-Main intacto; sin publicación de vídeos ni merge. Manual: [GUIA.md](GUIA.md).
+Actualizado: 2026-10-19. Rama **feat/documentary-director**, base f9549b7.
+Main intacto; sin publicación ni merge. Manual: [GUIA.md](GUIA.md).
 
-## Capacidades comprobadas
+## Disponible y comprobado
 
-- Nuevos shorts y largos: Fish/Pexels/FFmpeg nativos. MPT sólo diagnóstico y
-  recuperación histórica explícita. Álvaro/Edge no se usa para nuevas voces.
-- Estudio local con Short, Vídeo largo y Montaje; almacenamiento sin Google Drive.
-- Planes por escena: recursos, gráficos, fotografía animada y reconstrucción 3D
-  local con cartas/fichas/cámaras; render secuencial y caché, sin nueva síntesis.
-  Los escenarios de póker actuales son Paredes/NioNio. No hay editor de timeline.
-- Catálogo Commons con derechos/procedencia por imagen; música local CC BY4.0
-  con selección por canal/trabajo, crossfade y ducking. No integrado en formularios.
-- CLI YouTube oficial sólo lectura preparado; OAuth real pendiente de cliente
-  Desktop/consentimiento. VidIQ reconoce LooseThread pero pide verificación.
-  No se gastaron créditos de investigación vidIQ. CTR/CSV aún no importado.
+- Shorts/largos nuevos: Fish + FFmpeg nativos y Pexels cuando corresponde.
+  MPT sólo diagnóstico/recuperación histórica; Álvaro/Edge no se usa para voz nueva.
+- Estudio local: Short, Vídeo largo, Montaje y guía única; sin Google Drive.
+- Montaje: gráficos, fotografía animada y reconstrucción 3D secuencial/cacheada.
+  Escenarios de póker aún restringidos a Paredes/NioNio; sin editor de timeline.
+- Compilador: brief explícito → selección de recursos por entidad/función → plan.
+  Comprueba licencia, hash, cobertura y repetición; un faltante bloquea el plan.
+  No investiga ni interpreta un guion arbitrario. CLI sin voz, red ni publicación.
+- Biblioteca Commons + registro offline Pexels. Procedencia/derechos conservados;
+  stock sólo ilustrativo. Un recurso de menor resolución exige revisión expresa.
+- Música: 4 pistas CC BY 4.0, selector por trabajo/canal, crossfade, ducking y SFX.
+  CLI independiente, no activado en formularios ni en el audio de comparación.
+- YouTube: OAuth Desktop PKCE y CLI oficial sólo lectura preparados. Conexión real
+  pendiente de cliente/consentimiento Google. VidIQ reconoce LooseThread y pide
+  verificación. Sin créditos de investigación gastados. CTR/CSV aún no importado.
 
-## Evidencia del incremento
+## Evidencia del 18 y revalidación del 19 de octubre
 
-- UltimateBet C3:76s,1920×1080,30fps,17escenas, voz/mix idénticos a B anterior;
-  decode completo, sin negros, -16,13LUFS/-1,8dBTP. Original652,6s/A/B conservados.
-- Revisión visual independiente corrigió mojibake, cartas ambiguas, origen de la
-  apuesta y tiempo de revelación. C3 y una salida desde brief revisadas por muestras.
-- Fotografía real de Hamilton: Gene Bromberg, CC BY-SA2.0; atribución y cambios
-  conservados. Algunas fuentes stock se reescalan; salida1080p no implica fuente1080p.
-- Mezcla musical separada18s: -16,24LUFS/-1,8dBTP;15 tests y revisión pasan.
-- Promoción exclusiva conserva vídeos/recibos concurrentes. Hash aprobado opcional
-  bloquea entradas cambiadas.50 pruebas editoriales/3D y probes de cierre Chromium
-  normal y forzado correctos; no garantizan limpieza ante SIGKILL externo/caída SO.
-- Gate previo642Python/13React/build/5E2E pasó. Gate sobre últimos guards en curso.
-- Checkpoints YouTube0ad6d7b, Commons2acbd67, audio3a86bcd y contrato0097395 subidos;
-  CI comprobada correcta hasta audio39137490878. Main y PR1 sin merge.
+- C final: outputs/evaluation/ultimatebet_cinema/B_improved.mp4; 76 s, 1920×1080, 30 fps,
+  17 escenas. A es el B anterior. Original de 652,6 s y todas las versiones conservados.
+- Flujo real brief→plan→render; voz/mix idénticos a A, decode completo correcto,
+  sin negros, -16,13LUFS/-1,8dBTP. Último ensamblado 14,49 s, 17 planos reutilizados,
+  NVENC y cero proveedores; QA aparte. Reconstrucciones 3D se renderizaron antes.
+- Revisión visual independiente corrigió UTF8, cartas ambiguas, origen de apuesta,
+  rótulos y tiempo de revelación. Final coincide byte a byte con el archivo revisado.
+  Chromium real reprodujo A/B a 62,8 s; créditos HTTP 200, sin errores de página.
+- Foto Hamilton: Gene Bromberg, CC BY-SA 2.0; cambios/licencia en CREDITS.md y vídeo.
+  Algunas fuentes se reescalan: salida 1080p no implica fuentes 1080p.
+- Mezcla musical separada 18 s: -16,24LUFS/-1,8dBTP; 15 tests/revisión correctos.
+- Gate final: **649 Python, 13 React, build y 5 E2E** correctos, reejecutados el 19/10; studio-check correcto.
+  136 tests afectados repetidos por revisor independiente, sin P1/P2 pendientes.
+- Promoción exclusiva conserva archivos concurrentes. SHA aprobado bloquea cambios
+  antes/durante render. Probes Chromium normal y congelado cierran procesos propios
+  con TERM repetido; no garantizan limpieza ante SIGKILL externo/caída del sistema.
 
-## Límites y trabajo en curso
+## Git, límites y siguiente paso
 
-C mejora el lenguaje visual, pero sigue usando mucho stock genérico y un diagrama
-plano; no se ha mejorado el episodio completo. Sin audición subjetiva ni reproducción
-continua. Antes de ampliarlo conviene obtener más recursos específicos y unificar
-el tratamiento de stock/3D. Content ID de recursos musicales/desconocidos no probado.
+Checkpoints coherentes subidos durante el trabajo. Motor 3D ef5c164: CI 39138920635
+correcta, comprobada el 19/10. El checkpoint del compilador se verifica y sube al
+cerrar esta unidad; su resultado remoto se registrará tras el push.
+PR1 histórica sigue en borrador sin merge; esta rama tampoco se fusiona a main.
 
-En curso: fijar la salida C en Montaje, cerrar compilación desde brief con catálogo
-Pexels ilustrativo, gate final, documentación y checkpoints. No dar por terminados
-los archivos sin commit. Próximo chat: verificar este estado y .codex-work/PROJECT_STATE.md.
+La mejora es real, pero sigue habiendo stock genérico, contraste stock/3D y un
+diagrama plano. Sin audición subjetiva ni reproducción audiovisual continua.
+No se ha mejorado el episodio completo ni creado un director general multicanal.
+Content ID permanece desconocido. No prometer monetización, CTR o retención.
+
+Siguiente trabajo: reunir recursos específicos adicionales y unificar aspecto de
+stock/3D antes de ampliar al episodio entero. Google requiere intervención de
+cuenta; ese requisito no impide trabajar en edición. Mantener GUIA/estado/Git al día.

@@ -1,6 +1,6 @@
 # Roadmap verificable
 
-Estado: roadmap pendiente; base nativa y piloto editorial implementados, sin director general ni YouTube directo. Estado comprobado en [PROJECT_STATUS.md](../PROJECT_STATUS.md). Riesgos en [la auditoría](audit/2026-10-15.md); contratos en [multicanal y producción](design/multichannel-production.md).
+Estado: roadmap pendiente; base nativa, C editorial, compilador de briefs y CLI YouTube de lectura implementados; sin director general ni autorización Google real. Estado comprobado en [PROJECT_STATUS.md](../PROJECT_STATUS.md). Riesgos en [la auditoría](audit/2026-10-15.md); contratos en [multicanal y producción](design/multichannel-production.md).
 
 ## 0. Base reproducible y operación sencilla
 
@@ -24,19 +24,23 @@ Aceptación: dos perfiles de prueba con distintos idiomas/formatos resuelven con
 
 ## 3. Director editorial y espera duradera
 
-Implementar primero un recorrido sin proveedores pagados: elegir canal, guardar investigación con fuentes, presentar candidatos, esperar selección, revisar guion y producir un `EditPlan` validado. La generación automática de guion será una capacidad futura habilitada expresamente. Reutilizar `VisualSection`. Añadir eventos persistidos y suscripción recuperable para UI/director; reservar el worker existente para ejecutar, sin un agente por etapa.
+Implementado: compilación determinista de un brief explícito a EditorialPlan, con recursos/licencias/SHA y faltantes que bloquean. No hay investigación ni guion autónomos.
+
+Pendiente el recorrido completo sin proveedores pagados: elegir canal, guardar investigación con fuentes, presentar candidatos, esperar selección, revisar guion y producir un `EditPlan` validado. La generación automática de guion será una capacidad futura habilitada expresamente. Reutilizar `VisualSection`. Añadir eventos persistidos y suscripción recuperable para UI/director; reservar el worker existente para ejecutar, sin un agente por etapa.
 
 Aceptación: ninguna selección por silencio; cancelar investigación no produce voz; un candidato sin evidencia identifica sus lagunas. Reiniciar mantiene selección, revisiones y cursor; el consumidor recupera los eventos perdidos sin duplicar trabajo. Contratos de investigación, guion y ejecución se prueban con fixtures y una integración local completa. Probar también instrucciones maliciosas en páginas/transcripciones: no amplían herramientas, gasto ni autorizaciones. No se necesita vidIQ para operar; su falta de conexión se declara.
 
 ## 4. Montaje semántico, QA y reparación localizada
 
-Implementado: montaje básico por secciones y planes explícitos por escena, tres gráficos reutilizables, render incremental, informes y contactos, CLI/Montaje y A/B UltimateBet76s corregido tras revisión visual. Los planes requieren preparación manual. Pendiente: selección mejor de recursos específicos, QA perceptual/semántico y paquete editorial con miniaturas. No se ha reeditado el episodio completo.
+Implementado: montaje básico por secciones y planes explícitos por escena, tres gráficos reutilizables, render incremental, informes y contactos, CLI/Montaje y A/B UltimateBet76s corregido tras revisión visual. C añade escenas 3D, foto licenciada, biblioteca Commons/Pexels, música con ducking y preparación desde brief explícito. El brief requiere decisiones editoriales. Pendiente: selección mejor de recursos específicos, QA perceptual/semántico y paquete editorial con miniaturas. No se ha reeditado el episodio completo.
 
 Aceptación: fixtures audiovisuales con negro, silencio, clipping, duración errónea y escena ausente producen hallazgos con evidencia; una muestra válida no dispara bloqueos injustificados. Cambiar texto gráfico recompone sólo nodos dependientes y hace cero síntesis. Alineación desconocida se muestra como tal. Antes de paralelizar: locks de caché entre procesos, temporales únicos, recuperación de descargas y límites de recursos probados. Una comparación real autorizada evaluará ritmo y calidad; los tests no sustituyen esa revisión.
 
 ## 5. YouTube oficial en lectura
 
-Aplicar [el diseño YouTube](design/youtube.md): OAuth por canal, comprobación de identidad/permisos, ingestión idempotente Data/Analytics/Reporting, informes reach a1 y dashboard histórico local. Esta fase exige aprobación antes de crear credenciales o solicitar permisos. No incorporar upload aún.
+Implementado: [CLI oficial de lectura](integrations/youtube-readonly.md), OAuth Desktop PKCE, identidad, catálogo, consultas Analytics y enumeración Reporting. Consentimiento real pendiente.
+
+Pendiente del [diseño completo](design/youtube.md): ingestión CSV reach a1, CTR, dashboard histórico y retención/purga automática conforme a políticas. El operador debe crear su cliente Desktop y consentir; no incorporar upload.
 
 Aceptación offline: CSV y respuestas versionadas prueban backfill, duplicados, periodos, expiración, revocación, borrado y aislamiento de canales. Con autorización real, demostrar identidad y acceso a un canal; comprobar disponibilidad y unidades de los informes antes de mostrar CTR. Datos ausentes se muestran como pendientes, nunca como cero. La retención sigue las políticas documentadas y se revalida antes de implementar.
 

@@ -66,15 +66,20 @@ ni cuerpos sensibles. No copies estos archivos a documentación o informes.
 
 ## Repositorios estudiados
 
-- ConorBronsdon: buena superficie GET acotada como referencia, sin Reporting y
+- [ConorBronsdon](https://github.com/conorbronsdon/yt-analytics-mcp): buena superficie GET acotada como referencia, sin Reporting y
   con algunas afirmaciones documentales obsoletas; no instalado globalmente.
-- Modbender: alcance demasiado amplio, OAuth sin state/PKCE y recorrido CSV sin
+- [Modbender](https://github.com/modbender/youtube-analytics-mcp): alcance demasiado amplio, OAuth sin state/PKCE y recorrido CSV sin
   completar en el código inspeccionado.
-- FelipeFontoura: scopes y herramientas de escritura, y descarga de URL arbitraria
+- [FelipeFontoura](https://github.com/felipefontoura/youtube-studio-mcp): scopes y herramientas de escritura, y descarga de URL arbitraria
   con Bearer; descartado para una conexión estrictamente de lectura.
-- Jakeschincariol: instrucciones y utilidades editoriales MIT, no un conector ni
+- [Jakeschincariol](https://github.com/Jakeschincariol/youtube-agent-skill): instrucciones y utilidades editoriales MIT, no un conector ni
   un orquestador completo. Sus scores son heurísticos; parser de pausas/retención
   tiene casos de unidades, decimales y JSON que requieren corrección antes de uso.
 
 La implementación local reutiliza httpx/stdlib existentes y evita instalar tres
 servidores completos o copiar herramientas de publicación que no necesitamos.
+
+Del último repo adoptamos la separación de voz editorial, intención del montaje
+y revisión de retención con fuentes. No copiamos sus seis parsers ni instalamos
+las once skills globalmente: no conectan YouTube y sus heurísticas no prueban
+retención futura. El compilador local ejecuta decisiones explícitas verificadas.
