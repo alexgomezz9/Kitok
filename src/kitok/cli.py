@@ -107,7 +107,7 @@ def main(argv=None):
         if a.dashboard:
             import sys
             from streamlit.web import cli as streamlit_cli
-            sys.argv = ["streamlit", "run", str(PROJECT_ROOT / "dashboard.py"),
+            sys.argv = ["streamlit", "run", str(PROJECT_ROOT / "scripts" / "dashboard.py"),
                         "--server.address=127.0.0.1", "--browser.gatherUsageStats=false"]
             return streamlit_cli.main()
         return usage_main(a)

@@ -33,7 +33,7 @@ revisa. Las claves se configuran en .env; nunca se guardan en el frontend.
   MPT sólo queda para recuperar tareas antiguas;
   los vídeos nuevos no requieren su instalación.
 - El desarrollo y la verificación se hacen desde un checkout completo. El wheel
-  Python aislado todavía no incluye la interfaz ni el CLI raíz de largos.
+  Python aislado todavía no distribuye la interfaz, presets y recursos del estudio.
 
 ## Verificar
 

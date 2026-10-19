@@ -370,7 +370,7 @@ def test_audio_analysis_uses_same_final_mix_and_parses_loudnorm_json(tmp_path):
 
 
 def test_longform_cli_defaults_to_native_and_preserves_explicit_mpt_recovery():
-    import longform
+    from kitok.longform import cli as longform
 
     args = longform._parser().parse_args(["content.json"])
     assert args.renderer == "native"

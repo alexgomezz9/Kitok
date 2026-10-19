@@ -8,13 +8,11 @@ from __future__ import annotations
 from contextlib import ExitStack
 from datetime import datetime, timezone
 from functools import lru_cache
-import importlib.util
 import json
 import logging
 from pathlib import Path
 import re
 import shutil
-import sys
 from uuid import uuid4
 
 from .config import PROJECT_ROOT
@@ -27,12 +25,9 @@ log = logging.getLogger('kitok.longform_studio')
 
 @lru_cache(maxsize=1)
 def runner():
-    """Load the repository CLI without relying on the shell's working directory."""
-    spec = importlib.util.spec_from_file_location('kitok_longform_cli', PROJECT_ROOT / 'longform.py')
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = module
-    spec.loader.exec_module(module)
-    return module
+    """Use the shared package CLI without importing a root script dynamically."""
+    from .longform import cli
+    return cli
 
 
 class LongformStudio:

@@ -11,7 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-import longform
+from kitok.longform import cli as longform
 from kitok.config import Settings
 from kitok.logging_setup import configure_logging
 from kitok.media.ffmpeg import FFmpegNativeEngine, choose_encoder

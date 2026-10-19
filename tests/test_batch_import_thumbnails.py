@@ -96,7 +96,7 @@ def test_batch_preview_never_writes_and_confirmation_imports(local_kitok, monkey
     remote = Mock(side_effect=AssertionError("Unexpected remote request"))
     monkeypatch.setattr(ControlPanel, "refresh_buffer", remote)
     before = settings.queue_path.read_bytes(), state.path.read_bytes()
-    app = AppTest.from_file(Path(__file__).resolve().parents[1] / "dashboard.py", default_timeout=20).run()
+    app = AppTest.from_file(Path(__file__).resolve().parents[1] / "scripts" / "dashboard.py", default_timeout=20).run()
     app.sidebar.radio[0].set_value("Content").run()
     assert next(area for area in app.text_area if area.label == "Batch JSON")
     next(area for area in app.text_area if area.label == "Batch JSON").set_value(json.dumps(_rows(queue))).run()

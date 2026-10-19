@@ -11,7 +11,7 @@ El mapa anterior está preservado en
 [docs/archive/project-guide-2026-09.md](docs/archive/project-guide-2026-09.md).
 
 Entradas actuales: main.py (shorts), longform.py (largos), python -m kitok.api
-(API/estudio), dashboard.py (Streamlit legado). El motor nativo largo sigue siendo
+(API/estudio), scripts/dashboard.py (panel Streamlit opcional). El motor nativo largo sigue siendo
 experimental; shorts Pexels/locales y nuevos largos no necesitan MPT. Su API sólo
 se usa al pedir diagnóstico o recuperación histórica explícita.
 Montaje por escenas: [docs/editing.md](docs/editing.md). Estado breve:

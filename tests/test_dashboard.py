@@ -16,7 +16,7 @@ def test_dashboard_pages_and_reruns_never_request_or_write(local_kitok, monkeypa
     refresh = Mock(side_effect=AssertionError("unrequested refresh"))
     monkeypatch.setattr(ControlPanel, "refresh_buffer", refresh)
     before = state.path.read_bytes()
-    app = AppTest.from_file(Path(__file__).resolve().parents[1] / "dashboard.py", default_timeout=20).run()
+    app = AppTest.from_file(Path(__file__).resolve().parents[1] / "scripts" / "dashboard.py", default_timeout=20).run()
     assert not app.exception
     for page in ["Calendar", "Content", "Attention", "Home"]:
         app.sidebar.radio[0].set_value(page).run()
@@ -34,7 +34,7 @@ def test_dashboard_requires_confirmation_and_does_not_repeat(local_kitok, monkey
     monkeypatch.setattr("kitok.control_panel.Settings", lambda: settings)
     execute = Mock(return_value={"created": 6})
     monkeypatch.setattr(ControlPanel, "execute", execute)
-    app = AppTest.from_file(Path(__file__).resolve().parents[1] / "dashboard.py", default_timeout=20).run()
+    app = AppTest.from_file(Path(__file__).resolve().parents[1] / "scripts" / "dashboard.py", default_timeout=20).run()
     next(button for button in app.sidebar.button if button.label == "Advanced / System").click().run()
     app.button(key="system-fill").click().run()
     assert not app.exception
@@ -52,7 +52,7 @@ def test_disabled_publishing_keeps_preview_available(local_kitok, monkeypatch):
     settings, _, _, _ = local_kitok
     settings.publish_enabled = False
     monkeypatch.setattr("kitok.control_panel.Settings", lambda: settings)
-    app = AppTest.from_file(Path(__file__).resolve().parents[1] / "dashboard.py", default_timeout=20).run()
+    app = AppTest.from_file(Path(__file__).resolve().parents[1] / "scripts" / "dashboard.py", default_timeout=20).run()
     next(button for button in app.sidebar.button if button.label == "Advanced / System").click().run()
     assert app.button(key="system-fill").disabled
     assert not app.button(key="preview-all").disabled
@@ -65,7 +65,7 @@ def test_explicit_refresh_and_cancel_do_not_repeat_actions(local_kitok, monkeypa
     execute = Mock()
     monkeypatch.setattr(ControlPanel, "refresh_buffer", refresh)
     monkeypatch.setattr(ControlPanel, "execute", execute)
-    app = AppTest.from_file(Path(__file__).resolve().parents[1] / "dashboard.py", default_timeout=20).run()
+    app = AppTest.from_file(Path(__file__).resolve().parents[1] / "scripts" / "dashboard.py", default_timeout=20).run()
     app.button(key="home-refresh").click().run()
     refresh.assert_called_once()
     app.run()

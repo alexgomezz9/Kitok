@@ -9,7 +9,7 @@ from kitok.dashboard_presenter import content_status, recommendations, status_la
 from kitok.service_cache import buffer_cache
 
 
-DASHBOARD = Path(__file__).resolve().parents[1] / "dashboard.py"
+DASHBOARD = Path(__file__).resolve().parents[1] / "scripts" / "dashboard.py"
 
 
 def _snapshot(settings, posts):

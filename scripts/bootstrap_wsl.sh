@@ -10,4 +10,4 @@ python -m pip install --upgrade pip
 pip install -e ".[dev]"
 [ -f .env ] || cp .env.example .env
 python main.py --dry-run || true
-echo "Setup complete. Edit .env, start the MPT API in Windows, then run: python main.py --check-mpt"
+echo "Setup complete. Configure .env, then run: make studio-setup && make studio"

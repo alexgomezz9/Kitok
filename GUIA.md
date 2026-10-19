@@ -230,7 +230,9 @@ El acceso real a las métricas sigue pendiente del consentimiento de tu cuenta.
 
 - GUIA.md: este manual; lo lee también «Cómo usarlo» en el frontend. Actualizar aquí mantiene ambos sincronizados.
 - AGENTS.md: reglas del proyecto para los agentes.
-- content_queue.json: borradores y fechas de shorts.
+- content_queue.json: borradores y fechas de shorts. Ejemplo público: examples/shorts/queue.json.
+- main.py y longform.py: entradas CLI; la implementación está en src/kitok/.
+- scripts/dashboard.py: entrada del panel Streamlit opcional, separado del estudio diario.
 - state/state.json: intentos, rutas y publicaciones de shorts. No borrar para reintentar.
 - content/longform/studio/: guiones y configuraciones creados desde la interfaz.
 - content/longform/ID/assets/: recursos específicos aportados para un episodio; excluidos de Git.

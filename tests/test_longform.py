@@ -7,7 +7,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-import longform
+from kitok.longform import cli as longform
 from kitok.config import Settings
 from kitok.models import MPTTask
 

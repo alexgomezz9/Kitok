@@ -35,7 +35,7 @@
 - src/kitok/pipeline.py y generation.py: generación de shorts, validación y READY.
 - src/kitok/editing/: planes por escena, gráficos y QA; editorial_studio.py sirve comparaciones locales con audio aprobado, sin proveedores.
 - src/kitok/longform_studio.py: borradores/trabajos largos separados; comparte el ejecutor de shorts.
-- longform.py: configuración/CLI de largos. Los JSON del estudio son compatibles con este CLI.
+- longform.py: entrada CLI de largos; la lógica compartida vive en src/kitok/longform/cli.py. Los JSON del estudio son compatibles con este CLI.
 - src/kitok/rendering/, media/, providers/, stock/: motor largo nativo y adquisición de stock.
 - control_panel.py y publisher.py: revisión, confirmación, idempotencia y reconciliación de publicación; buffer_client.py y cloudinary_host.py: transporte externo.
 - content_queue.json y state/state.json: datos activos de shorts, no fixtures.

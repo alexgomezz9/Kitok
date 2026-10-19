@@ -143,7 +143,7 @@ def test_dashboard_conditional_controls_and_no_external_calls(local_kitok, monke
     monkeypatch.setattr("kitok.control_panel.Settings", lambda: settings)
     network = Mock(side_effect=AssertionError("external call during render"))
     monkeypatch.setattr(ControlPanel, "refresh_buffer", network)
-    app = AppTest.from_file(Path(__file__).resolve().parents[1] / "dashboard.py", default_timeout=20).run()
+    app = AppTest.from_file(Path(__file__).resolve().parents[1] / "scripts" / "dashboard.py", default_timeout=20).run()
     app.sidebar.radio[0].set_value("Content").run()
     assert not app.exception
     assert any(widget.label == "Voice" for widget in app.selectbox)

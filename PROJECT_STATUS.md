@@ -55,6 +55,11 @@ diagrama plano. Sin audición subjetiva ni reproducción audiovisual continua.
 No se ha mejorado el episodio completo ni creado un director general multicanal.
 Content ID permanece desconocido. No prometer monetización, CTR o retención.
 
-Siguiente trabajo: reunir recursos específicos adicionales y unificar aspecto de
+Reorganización en curso (19/10): CLI de largos en el paquete, entradas finas en
+raíz, panel opcional en scripts y ejemplos en examples.100 pruebas afectadas y
+studio-check correctos; guías e inventario de automatización en preparación.
+El operador ha autorizado explícitamente integrar esta entrega en main tras el gate.
+
+Siguiente trabajo editorial: reunir recursos específicos adicionales y unificar aspecto de
 stock/3D antes de ampliar al episodio entero. Google requiere intervención de
 cuenta; ese requisito no impide trabajar en edición. Mantener GUIA/estado/Git al día.
