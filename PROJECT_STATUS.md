@@ -42,9 +42,12 @@ Main intacto; sin publicación ni merge. Manual: [GUIA.md](GUIA.md).
 
 ## Git, límites y siguiente paso
 
-Checkpoints coherentes subidos durante el trabajo. Motor 3D ef5c164: CI 39138920635
-correcta, comprobada el 19/10. El checkpoint del compilador se verifica y sube al
-cerrar esta unidad; su resultado remoto se registrará tras el push.
+Código y documentación subidos en checkpoints coherentes. Compilador 5c591f3:
+SHA local/remoto iguales y árbol limpio comprobados el 19/10. Su
+[CI 39286768070](https://github.com/alexgomezz9/Kitok/actions/runs/39286768070)
+seguía en cola al cerrar; no hay resultado remoto todavía. La CI del motor 3D
+ef5c164 (39138920635) sí terminó correctamente. No hay código pendiente de este
+incremento; la ejecución de GitHub requiere una comprobación posterior.
 PR1 histórica sigue en borrador sin merge; esta rama tampoco se fusiona a main.
 
 La mejora es real, pero sigue habiendo stock genérico, contraste stock/3D y un
