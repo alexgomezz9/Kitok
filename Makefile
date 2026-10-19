@@ -32,3 +32,7 @@ verify:
 	.venv/bin/python scripts/verify.py
 verify-browser:
 	.venv/bin/python scripts/verify.py --e2e
+
+.PHONY: docs-check
+docs-check:
+	.venv/bin/python scripts/check_documentation.py

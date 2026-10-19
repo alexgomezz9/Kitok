@@ -1,3 +1,7 @@
+> ARCHIVO HISTÓRICO — conservado el 19 de octubre de 2026.
+> No es un manual vigente ni acredita capacidades actuales.
+> Consulta el [índice de documentación actual](../../README.md).
+
 > Referencia del encargo recibido el 2026-10-15. Las instrucciones vigentes son
 > AGENTS.md y GUIA.md; el avance comprobado está en PROJECT_STATUS.md.
 > Esta propuesta incluye capacidades que aún no están implementadas.

@@ -1,139 +1,71 @@
-# Desarrollo y revisión coordinada
+# Desarrollo, agentes y mantenimiento
 
-Contrato vigente del proyecto: [AGENTS.md](../AGENTS.md). Esta página concreta el
-ciclo de trabajo; no instala otro sistema global de agentes.
+Las reglas permanentes están en [AGENTS.md](../AGENTS.md). El estado de cada
+entrega está en [PROJECT_STATUS.md](../PROJECT_STATUS.md). El manual operativo
+está en [GUIA.md](../GUIA.md), también servido en el frontend.
 
-## Inventario histórico comprobado el 15 de octubre de 2026
+## Ciclo de trabajo
 
-Se inspeccionaron nombres y valores permitidos de configuración, instrucciones,
-roles, skills y hooks. No se abrieron credenciales ni se copiaron configuraciones
-privadas al repositorio.
+1. Leer el estado y el diff; acotar objetivo observable, archivos, invariantes y
+   pruebas. Abrir sólo el código relevante. Usar plan-work para cambios sustanciales.
+2. Resolver una unidad coherente. Si se delega, asignar propiedad de archivos y
+   recordar que el árbol es compartido. El coordinador recoge y corrige hallazgos.
+3. Verificar primero el módulo afectado. En límites de pagos, concurrencia,
+   publicación y seguridad, pedir revisión independiente acotada y releer fixes.
+4. Actualizar las fuentes de documentación afectadas y eliminar sus afirmaciones
+   obsoletas. Archivar sólo lo histórico útil, con aviso claro; no dejar dos guías
+   con instrucciones alternativas para el mismo flujo.
+5. Ejecutar el gate pertinente, revisar índice y secretos, crear commit con el
+   código y sus tests/documentación esenciales y subir la rama autorizada.
+   Comparar SHA remoto y comprobar CI; indicar expresamente si sigue pendiente.
+6. Actualizar estado y siguiente paso al cerrar. Antes de integrar main, verificar
+   autorización expresa y ascendencia remota. No forzar ni borrar cambios ajenos.
 
-- Configuración global: modelo gpt-6.1-sol con razonamiento high. Cinco roles:
-  architect, explorer, reviewer, adversarial y evaluator; configurados para lectura.
-- Skills existentes: takehome-discovery, plan-work, execute-plan, git-checkpoint,
-  release-gate y verify-before-completion. Cubren planificación, ejecución,
-  checkpoints, verificación y revisión.
-- SessionStart invoca session_context.py e inyecta el estado privado de
-  .codex-work/ en inicio, reanudación, limpieza y compactación.
-- PreToolUse aplica git_guard.py al matcher Bash. Una prueba inocua con texto de
-  una operación destructiva fue bloqueada: hay un falso positivo por coincidencia
-  textual. No se modificó ni eludió el hook. Su configuración no demuestra que
-  intercepte todas las herramientas disponibles en cada cliente.
-- .codex/ y .agents/ existen como directorios del entorno sin configuración de
-  proyecto visible. No se deduce que falten capacidades por esa ausencia.
-- Hay metadatos de 17 plugins en caché, entre ellos GitHub y vidIQ, y nombres de
-  MCP HappyRobot configurados. Caché/configuración no acredita instalación activa,
-  permisos ni autenticación. No se conectaron esos servicios en aquella auditoría. El estado vigente de GitHub/vidIQ/YouTube se registra en PROJECT_STATUS.md.
-- Las herramientas de subagentes sí se usaron en esta sesión para auditorías y
-  revisión independientes. No había un gate ejecutable local/CI que agrupara
-  higiene, Python, React y navegador.
+## Fuentes de verdad y orden
 
-Las capacidades nativas permiten roles y trabajo delegado; las skills reutilizan
-instrucciones bajo demanda. Los roles heredan límites del entorno: una instrucción
-de «sólo lectura» no sustituye el sandbox. No se añaden skills con nombres
-duplicados ni hooks globales.
-[Subagentes](https://developers.openai.com/codex/subagents/),
-[skills](https://developers.openai.com/codex/skills/),
-[hooks](https://developers.openai.com/codex/hooks/).
+| Cambio | Documentos que revisar |
+| --- | --- |
+| Comando, ruta o paso de usuario | GUIA.md, ejemplos y enlaces afectados |
+| Capacidad o límite de automatización | docs/capabilities.md y PROJECT_STATUS.md |
+| Flujo de montaje o esquema de brief | docs/editing.md y examples/editorial/ |
+| Conexión o métrica YouTube | docs/integrations/youtube-readonly.md |
+| Regla de ingeniería/organización | AGENTS.md y este protocolo |
+| Trabajo aún no implementado | docs/roadmap.md; nunca presentarlo como disponible |
 
-## Comparación y decisión
+La raíz tiene una lista pequeña de entradas/configuración permitidas. Los ejemplos
+van en examples/, herramientas en scripts/, código en src/kitok/ y documentación
+temática en docs/. No reorganizar cola, estado, medios o cachés privados sin
+comprobar su uso. No añadir informes temporales ni otro prompt de continuidad en raíz.
 
-| Referencia Superpowers | Lo que ya existe | Mejora adoptada aquí |
-|---|---|---|
-| subagent-driven-development | Coordinador, roles y release-gate | Encargos delimitados y devolución directa de hallazgos al coordinador |
-| executing-plans | plan-work, execute-plan y estado privado | Cerrar cada unidad con evidencia y actualizar pendientes |
-| requesting-code-review | reviewer, architect y release-gate | Review por requisitos y corrección; contexto acotado e independiente |
-| verification-before-completion | Skill homónima y contrato de evidencia | Un comando reproducible que falla al primer error |
-| systematic-debugging | Tests y revisión, sin otra skill específica | Reproducir, aislar causa, corregir y verificar regresión antes de ampliar cambios |
+## Agentes y skills: qué hay realmente
 
-Fuentes de comparación:
-[desarrollo delegado](https://github.com/obra/superpowers/blob/main/skills/subagent-driven-development/SKILL.md),
-[ejecución](https://github.com/obra/superpowers/blob/main/skills/executing-plans/SKILL.md),
-[revisión](https://github.com/obra/superpowers/blob/main/skills/requesting-code-review/SKILL.md),
-[verificación](https://github.com/obra/superpowers/blob/main/skills/verification-before-completion/SKILL.md),
-[depuración](https://github.com/obra/superpowers/blob/main/skills/systematic-debugging/SKILL.md).
-Se adoptan prácticas en este protocolo, sin instalar Superpowers ni copiar sus
-skills. La carencia concreta se resuelve con el gate del repositorio.
+Se han usado agentes de implementación y revisiones independientes durante el
+desarrollo; no son servicios de producción ni tareas que estén ejecutándose en
+segundo plano. Kitok no tiene un enjambre de agentes, cron editorial o LLM por frame.
+Los agentes pueden leer el contrato del repo y preparar briefs; el programa ejecuta
+los pasos deterministas descritos en [capacidades](capabilities.md).
 
-## Protocolo del coordinador
+Las skills ya disponibles plan-work, verify-before-completion y git-checkpoint
+cubren planificación, evidencia y Git. No se han instalado nuevas skills, MCPs o
+hooks globales para este ordenamiento. Un workflow especializado puede añadirse
+cuando una necesidad repetida lo justifique; no duplicar estas instrucciones.
+AGENTS.md aporta guía persistente y las skills aportan procedimientos reutilizables;
+ninguno sustituye la verificación ni instala por sí solo un orquestador.
+[Guía oficial AGENTS.md](https://developers.openai.com/codex/guides/agents-md),
+[prácticas de instrucciones](https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra).
 
-1. Leer guía, estado y diff. Especificar objetivo observable, requisitos, archivos
-   propios, datos que preservar, acciones externas autorizadas y comprobación.
-   Para cambios sustanciales, comparar el diseño mínimo y fallos principales.
-2. Implementar una unidad pequeña. En encargos paralelos, asignar propiedad
-   exclusiva y recordar que otros trabajan en el mismo árbol.
-3. Ejecutar primero la prueba pertinente. Ante fallo: guardar reproducción,
-   formular causa contrastable y cambiar una hipótesis cada vez. Un fallo de test
-   puede ser contrato obsoleto; contrastarlo antes de cambiar producción.
-4. Enviar a revisión el diff y requisitos, comandos ejecutables y límites; evitar
-   justificaciones privadas que sesguen al revisor. Revisar tanto cumplimiento como
-   corrección. Un cambio pequeño suele necesitar una revisión; estado persistente,
-   pagos, concurrencia, seguridad o entrega importante requieren perspectivas
-   independientes de corrección, adversarial y evaluación.
-5. El revisor devuelve ubicación, escenario reproducible, impacto, prioridad
-   P0–P3 y evidencia faltante. El coordinador deduplica y decide. Corrige P0/P1,
-   añade regresión cuando aporta valor y pide relectura del límite afectado.
-   Desacuerdos se resuelven con código/pruebas; los riesgos aceptados quedan escritos.
-6. Ejecutar el gate final sobre el resultado corregido, no sobre un commit anterior.
-   Actualizar estado privado y documentación pública de operación. Crear commits
-   coherentes. El coordinador gestiona este ciclo sin pedir al operador que copie
-   mensajes entre agentes.
+## Gate reproducible
 
-Si falta evidencia, declarar «no verificado». Agotar tiempo no convierte una
-revisión o integración en aprobada. No crear agentes para tareas que un comando
-determinista resuelve mejor. Este protocolo coordina desarrollo. El compilador editorial prepara planes desde
-un brief explícito; no sustituye la investigación ni la revisión audiovisual.
+```bash
+make docs-check
+make studio-check
+make verify
+# Con Chromium instalado:
+make verify-browser
+```
 
-## Gate ejecutable
-
-    make verify
-    make verify-browser
-
-verify comprueba rutas, modos y contenido del índice Git y del árbol de trabajo, además de firmas conocidas de credenciales
-sin imprimir valores, ejecuta pytest, Vitest, build TypeScript/Vite y diff --check.
-verify-browser añade Playwright contra HTTP local, archivos temporales y proveedores
-simulados. Instalar Chromium previamente como indica README. Cada paso tiene límite
-de diez minutos y un fallo interrumpe los siguientes. Los tests Python bloquean
-conexiones de socket; el gate retira credenciales exportadas de proveedores de su
-entorno, pero no es un sandbox contra código malicioso ni un detector exhaustivo de
-secretos. No ejecutar pruebas de procedencia desconocida con .env real.
-
-[CI](../.github/workflows/verify.yml) ejecuta verify-browser en push/PR y manualmente,
-con Python 3.12, Node 24, FFmpeg y Chromium, sin secretos de proveedores ni permisos
-de escritura. No publica ni despliega. Las versiones de actions se contrastaron con
-sus repositorios oficiales:
-[checkout](https://github.com/actions/checkout),
-[setup-python](https://github.com/actions/setup-python),
-[setup-node](https://github.com/actions/setup-node).
-La ejecución remota debe comprobarse tras el push; definir YAML no prueba CI verde.
-
-Antes de entregar una reorganización, repetir el gate desde un clone sin .env,
-cola, estado ni medios privados. Un clone que reutiliza dependencias instaladas
-prueba integridad de fuentes, no una instalación nueva desde Internet. El wheel
-aislado sigue incompleto para el estudio y el CLI de largos; usar checkout completo.
-
-Una suite verde demuestra sus escenarios con mocks. No demuestra saldo,
-conectividad Fish/Pexels/MPT, publicación Buffer, acceso vidIQ ni OAuth YouTube.
-Esos ensayos requieren autorización y evidencia propias.
-
-## Continuidad de cada checkpoint
-
-PROJECT_STATUS.md es la entrada breve para el siguiente chat: capacidades
-comprobadas, límites y siguiente paso. GUIA.md describe operación, incluyendo el
-frontend que la lee. AGENTS.md obliga a actualizar ambos y los documentos afectados
-en cada unidad terminada; elimina afirmaciones antiguas de las páginas vigentes,
-y conserva propuestas/encargos fechados bajo docs/archive/ o docs/research/.
-
-El operador autoriza commits y pushes de ramas de trabajo verificadas. El
-coordinador revisa el índice, ejecuta el gate pertinente, crea un commit coherente,
-sube la rama y coteja SHA/CI. No hay un hook que haga push de cualquier cambio
-parcial: las pruebas y la inspección preceden al checkpoint. Main, publicación
-de vídeos y gastos significativos mantienen su aprobación específica. No añadas
-otras skills o hooks que dupliquen el protocolo actual.
-
-Durante el piloto editorial, la revisión produjo correcciones comprobables:
-enlaces internos que redirigían salidas, promoción interrumpida de QA/contact,
-muestreo de más de 80 planos y caché del reproductor tras completar un render. Las
-regresiones persistentes están en test_editorial_studio/test_editorial_plan y
-Workbench.test; el E2E de Montaje renderiza FFmpeg real con medios temporales.
+verify añade higiene de fuentes/índice, documentos, pytest, React, build y whitespace;
+verify-browser añade los recorridos aislados con medios temporales. Los tests
+bloquean proveedores externos y no acreditan una síntesis Fish o publicación real.
+No usar la cola del operador para pruebas automáticas. CI ejecuta el mismo gate
+sin secretos ni permisos de escritura: [workflow](../.github/workflows/verify.yml).

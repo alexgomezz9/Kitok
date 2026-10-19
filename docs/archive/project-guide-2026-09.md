@@ -1,3 +1,7 @@
+> ARCHIVO HISTÓRICO — conservado el 19 de octubre de 2026.
+> No es un manual vigente ni acredita capacidades actuales.
+> Consulta el [índice de documentación actual](../README.md).
+
 > Mapa histórico, con cifras y observaciones no revalidadas. Consulta ../audit/2026-10-15.md.
 
 # Kitok project guide

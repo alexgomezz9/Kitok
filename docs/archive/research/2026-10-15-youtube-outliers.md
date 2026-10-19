@@ -1,3 +1,7 @@
+> ARCHIVO HISTÓRICO — conservado el 19 de octubre de 2026.
+> No es un manual vigente ni acredita capacidades actuales.
+> Consulta el [índice de documentación actual](../../README.md).
+
 # YouTube competitor & outlier research — snapshot 2026-10-15
 
 **Purpose:** Preserve observations from the user's vidIQ research session without spending more vidIQ credits. Use as a cached **historical snapshot**, not current analytics. Numbers/views/subscriber counts change. This document is not a claim that these stories have been fully fact-checked.

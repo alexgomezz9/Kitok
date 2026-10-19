@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "episode_id": "mi_documental_muestra",
+  "channel_id": "mi_canal",
+  "title": "PLANTILLA: sustituir por el título revisado",
+  "family": "generic",
+  "cast": {},
+  "audio_source": "outputs/evaluation/mi_documental_muestra/A_current.mp4",
+  "audio_approved": true,
+  "audio_offset": 0,
+  "duration": 12,
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "beats": [
+    {
+      "id": "contexto",
+      "start": 0,
+      "end": 6,
+      "intent": "establish",
+      "claim": "SUSTITUIR por la afirmación comprobada que se escucha entre 0 y 6 segundos.",
+      "evidence_url": "https://example.com/SUSTITUIR_FUENTE_DEL_CONTEXTO",
+      "direction": "Presentar el contexto con un clip ilustrativo revisado, sin atribuirlo al caso real.",
+      "headline": "SUSTITUIR: contexto",
+      "kicker": "ILUSTRACIÓN",
+      "composer": "stock",
+      "entity": "SUSTITUIR_ENTIDAD_ILUSTRATIVA",
+      "role": "footage",
+      "source_start": 0
+    },
+    {
+      "id": "identidad",
+      "start": 6,
+      "end": 12,
+      "intent": "profile",
+      "claim": "SUSTITUIR por la afirmación comprobada que se escucha entre 6 y 12 segundos.",
+      "evidence_url": "https://example.com/SUSTITUIR_FUENTE_DE_LA_IDENTIDAD",
+      "direction": "Mostrar una fotografía cuya identidad y contexto se hayan verificado.",
+      "composer": "photo",
+      "entity": "SUSTITUIR_NOMBRE_DEL_SUJETO",
+      "role": "portrait",
+      "label": "SUSTITUIR: nombre",
+      "detail": "SUSTITUIR: contexto de la fotografía",
+      "focus_x": 0.5,
+      "focus_y": 0.45
+    }
+  ]
+}

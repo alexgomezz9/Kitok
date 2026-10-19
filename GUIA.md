@@ -244,7 +244,9 @@ El acceso real a las métricas sigue pendiente del consentimiento de tu cuenta.
 - assets/backgrounds/: fondos locales; assets/characters/: poses PNG; assets/music/: música.
 - presets/generation_profiles.json: catálogo de voces y estilos.
 - .env: claves y configuración privada. Nunca compartir ni subir a Git.
-- README.md y PROJECT_GUIDE.md: entradas al proyecto; docs/ contiene auditoría, diseños y roadmap. Las referencias históricas están en docs/archive/.
+- README.md y docs/README.md: entradas e índice de documentación vigente.
+- docs/capabilities.md: qué se automatiza y cómo adaptar el flujo a otros vídeos.
+- docs/archive/README.md: índice histórico separado de los manuales actuales.
 
 ## Si algo falla
 
@@ -256,7 +258,7 @@ El acceso real a las métricas sigue pendiente del consentimiento de tu cuenta.
 
 ## Desarrollo y siguientes fases
 
-Para verificar cambios usa make verify; para incluir navegador, make verify-browser. El compilador de briefs y el CLI de YouTube de lectura están implementados con los límites de este manual. La orquestación editorial general y el catálogo multicanal automático siguen siendo propuestas en docs/roadmap.md y docs/design/. Los ejemplos públicos están en examples/; los contenidos del operador no se suben a Git. Los pilotos, backups e importaciones antiguos se conservan en local/.
+Para verificar cambios usa make verify; para incluir navegador, make verify-browser. El compilador de briefs y el CLI de YouTube de lectura están implementados con los límites de este manual. La orquestación editorial general y el catálogo multicanal automático siguen siendo propuestas en docs/roadmap.md. Los ejemplos públicos están en examples/; los contenidos del operador no se suben a Git. Los pilotos, backups e importaciones antiguos se conservan en local/.
 
 ## Recursos específicos con licencia
 

@@ -48,20 +48,18 @@ Para los recorridos reales de navegador con renderizadores de pago simulados:
 La instalación del navegador necesita red. Los tests no necesitan claves de
 proveedores; los escenarios de navegador usan datos temporales.
 
-## Documentación
+## Documentación vigente
 
-| Documento | Contenido |
-|---|---|
-| [GUIA.md](GUIA.md) | Operación diaria y comandos |
-| [Montaje por escenas](docs/editing.md) | Planes reutilizables y comparación sin nueva voz |
-| [Auditoría](docs/audit/2026-10-15.md) | Capacidades comprobadas, riesgos y límites |
-| [Desarrollo](docs/development.md) | Ciclo de coordinación, revisión y CI |
-| [Multicanal y director](docs/design/multichannel-production.md) | Propuesta de arquitectura y contratos |
-| [YouTube de lectura](docs/integrations/youtube-readonly.md) | Configuración, consultas y límites actuales |
-| [Herramientas y canales](docs/research/README.md) | Decisiones por hardware y viabilidad editorial |
-| [Roadmap](docs/roadmap.md) | Fases y aceptación verificable |
-| [Mapa rápido](PROJECT_GUIDE.md) | Entradas y referencias |
-| [Archivo histórico](docs/archive/) | Documentación anterior, no instrucciones vigentes |
+- [Índice de manuales](docs/README.md): encuentra la fuente adecuada sin duplicados.
+- [Qué hace Kitok y cómo reutilizarlo](docs/capabilities.md): automatización real,
+  trabajo de agentes/operador y adaptación a nuevos vídeos/canales.
+- [Guía diaria](GUIA.md): frontend, terminal, pasos y resolución de problemas.
+- [Estado comprobado](PROJECT_STATUS.md): evidencia, límites y siguiente paso.
+- [Desarrollo](docs/development.md): Git, revisiones y mantenimiento constante.
+
+Los documentos sustituidos sólo se conservan en el [archivo histórico](docs/archive/README.md),
+fuera de las instrucciones operativas. `make docs-check` comprueba enlaces,
+estructura y contratos de ejemplos; también forma parte de `make verify` y CI.
 
 ## Estructura
 

@@ -7,9 +7,17 @@
 - En cada unidad terminada actualiza estado, guía y referencias afectadas en el mismo checkpoint. Reescribe afirmaciones obsoletas de documentos vigentes; conserva historia útil en docs/archive/ con fecha y aviso.
 - Dentro de Kitok el operador autoriza commits coherentes y push de ramas de trabajo después de verificar cada unidad. Hazlo durante el trabajo, no sólo al final. Comprueba el SHA remoto y el resultado de CI; informa si no se pudieron comprobar.
 - Antes de commit/push revisa el índice y las rutas: no incluir .env, estado privado, contenido editorial local, medios, cachés, logs ni cambios ajenos sin revisar.
-- No hagas commits vacíos, pushes de estados conocidos rotos, force-push, merge a main, despliegue ni publicación de vídeos. Mantén las aprobaciones específicas de publicación y gasto significativo.
+- No hagas commits vacíos, pushes de estados conocidos rotos ni force-push. Integrar main, desplegar o publicar vídeos requiere intención expresa del operador; la autorización de una de esas acciones no autoriza las otras. Mantén las aprobaciones específicas de gasto significativo.
 - Al cerrar o interrumpir trabajo, deja el siguiente paso exacto y los bloqueos reales en PROJECT_STATUS.md y .codex-work/PROJECT_STATE.md. Otros chats no deben asumir que los cambios sin commit están completos.
 - No instales skills ni hooks duplicados. El coordinador encarga revisión, recibe feedback, corrige y pide relectura; las comprobaciones deterministas preceden a nuevos agentes.
+
+## Orden y documentación siempre vigentes
+
+- Raíz: sólo README.md, AGENTS.md, GUIA.md, PROJECT_STATUS.md, lanzadores y configuración necesarios. Ejemplos en examples/, herramientas en scripts/, lógica en src/kitok/ y manuales temáticos en docs/. No crear otro prompt/diario/mapa duplicado en raíz.
+- Cada cambio de comportamiento revisa sus fuentes: comandos/rutas → GUIA; capacidades/automatización → docs/capabilities.md; montaje → docs/editing.md y ejemplos; cuenta/métricas → guía de integración. Corrige o retira afirmaciones obsoletas en ese mismo checkpoint, incluidos instaladores y ayuda CLI.
+- Una fuente principal por tema. La documentación vigente enlaza historia sólo mediante docs/archive/README.md; todo documento archivado lleva aviso de que no es una instrucción actual. No borres datos operativos para limpiar documentación.
+- Antes de cerrar, ejecuta make docs-check. Verifica enlaces y ejemplos, pero revisa además la exactitud semántica contra código y runtime; ningún hook garantiza documentación correcta automáticamente.
+- Mantén explícita la frontera entre Kitok, agente/editor y operador. No conviertas un piloto o una propuesta en una capacidad general, ni un agente de desarrollo en un servicio autónomo de producción.
 
 ## Autonomía técnica y editorial autorizada
 
@@ -41,8 +49,8 @@
 - content_queue.json y state/state.json: datos activos de shorts, no fixtures.
 - content/longform/studio/ y state/longform/: borradores y trabajos largos del operador.
 - presets/generation_profiles.json: catálogo de voces/estilos. .env: configuración privada, nunca mostrar ni versionar.
-- README.md y PROJECT_GUIDE.md: entradas vigentes. docs/archive/: historia, no contratos actuales.
-- docs/development.md: protocolo del coordinador, revisión y gates. docs/design/ y docs/roadmap.md: propuestas futuras, no capacidades implementadas.
+- README.md y docs/README.md: entradas vigentes; docs/capabilities.md: reutilización y reparto Kitok/agente/operador. docs/archive/: historia, no contratos actuales.
+- docs/development.md: protocolo del coordinador, revisión y gates. docs/roadmap.md: trabajo pendiente; diseños sustituidos sólo en docs/archive/.
 
 ## Invariantes del producto
 
@@ -66,6 +74,7 @@
 Desde la raíz:
 
 ```bash
+make docs-check
 make studio-check
 make verify
 # Si afecta flujos de UI/API, con Chromium instalado:

@@ -41,6 +41,7 @@ def main(argv=None):
         return 1
     steps = [
         ('Source hygiene', [sys.executable, 'scripts/check_repository.py']),
+        ('Current documentation and public examples', [sys.executable, 'scripts/check_documentation.py']),
         ('Python tests (external network blocked by test fixtures)', [sys.executable, '-m', 'pytest', '-q']),
         ('Frontend tests', ['npm', '--prefix', 'frontend', 'test']),
         ('TypeScript and frontend build', ['npm', '--prefix', 'frontend', 'run', 'build']),

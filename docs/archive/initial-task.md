@@ -1,3 +1,7 @@
+> ARCHIVO HISTÓRICO — conservado el 19 de octubre de 2026.
+> No es un manual vigente ni acredita capacidades actuales.
+> Consulta el [índice de documentación actual](../README.md).
+
 > Encargo histórico de la primera versión. No son instrucciones actuales ni autorización de operaciones externas.
 
 # Prompt para Codex

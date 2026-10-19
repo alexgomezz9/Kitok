@@ -1,3 +1,7 @@
+> ARCHIVO HISTÓRICO — conservado el 19 de octubre de 2026.
+> No es un manual vigente ni acredita capacidades actuales.
+> Consulta el [índice de documentación actual](../../README.md).
+
 # Kitok — Catálogo de herramientas y arquitectura de director audiovisual autónomo
 
 **Investigación y handoff para Codex Work — 15 octubre 2026.**

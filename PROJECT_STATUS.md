@@ -34,7 +34,7 @@ Main intacto; sin publicación ni merge. Manual: [GUIA.md](GUIA.md).
 - Foto Hamilton: Gene Bromberg, CC BY-SA 2.0; cambios/licencia en CREDITS.md y vídeo.
   Algunas fuentes se reescalan: salida 1080p no implica fuentes 1080p.
 - Mezcla musical separada 18 s: -16,24LUFS/-1,8dBTP; 15 tests/revisión correctos.
-- Gate final: **649 Python, 13 React, build y 5 E2E** correctos, reejecutados el 19/10; studio-check correcto.
+- Gate de reorganización del 19/10: **654 Python, 13 React, build y 5 E2E** correctos; studio-check correcto.
   136 tests afectados repetidos por revisor independiente, sin P1/P2 pendientes.
 - Promoción exclusiva conserva archivos concurrentes. SHA aprobado bloquea cambios
   antes/durante render. Probes Chromium normal y congelado cierran procesos propios
@@ -42,23 +42,22 @@ Main intacto; sin publicación ni merge. Manual: [GUIA.md](GUIA.md).
 
 ## Git, límites y siguiente paso
 
-Código y documentación subidos en checkpoints coherentes. Compilador 5c591f3:
-SHA local/remoto iguales y árbol limpio comprobados el 19/10. Su
-[CI 39286768070](https://github.com/alexgomezz9/Kitok/actions/runs/39286768070)
-seguía en cola al cerrar; no hay resultado remoto todavía. La CI del motor 3D
-ef5c164 (39138920635) sí terminó correctamente. No hay código pendiente de este
-incremento; la ejecución de GitHub requiere una comprobación posterior.
-PR1 histórica sigue en borrador sin merge; esta rama tampoco se fusiona a main.
+La CI de código5c591f3 (39286768070) y cierre f4c46aa (39287175505) terminó
+correctamente, comprobado el19/10. Reorganización eef9d88 subida y CI39289440617
+correcta: lógica largos en
+paquete, raíz con entradas finas, ejemplos/scripts separados;100tests afectados
+correctos. Documentación actual centralizada en docs/README.md y capabilities.md;
+archivo histórico aislado y nuevo gate docs-check integrado en verify/CI. La revisión
+independiente no deja hallazgos abiertos; pytest también recoge las654pruebas
+desde su ejecutable, tras corregir la ruta de importación de los helpers.
+
+El operador ha autorizado expresamente integrar todo en main el19/10. Se hará
+tras el gate y la revisión de esta reorganización. No se autoriza publicar vídeos.
 
 La mejora es real, pero sigue habiendo stock genérico, contraste stock/3D y un
 diagrama plano. Sin audición subjetiva ni reproducción audiovisual continua.
 No se ha mejorado el episodio completo ni creado un director general multicanal.
 Content ID permanece desconocido. No prometer monetización, CTR o retención.
-
-Reorganización en curso (19/10): CLI de largos en el paquete, entradas finas en
-raíz, panel opcional en scripts y ejemplos en examples.100 pruebas afectadas y
-studio-check correctos; guías e inventario de automatización en preparación.
-El operador ha autorizado explícitamente integrar esta entrega en main tras el gate.
 
 Siguiente trabajo editorial: reunir recursos específicos adicionales y unificar aspecto de
 stock/3D antes de ampliar al episodio entero. Google requiere intervención de

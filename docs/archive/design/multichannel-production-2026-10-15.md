@@ -1,3 +1,7 @@
+> ARCHIVO HISTÓRICO — conservado el 19 de octubre de 2026.
+> No es un manual vigente ni acredita capacidades actuales.
+> Consulta el [índice de documentación actual](../../README.md).
+
 # Propuesta: Kitok multicanal y director de producción
 
 Estado: diseño para fases futuras; no añade configuración, endpoints, agentes ni automatismos al producto actual. La operación vigente sigue en [GUIA.md](../../GUIA.md). El [roadmap](../roadmap.md) delimita las entregas y sus pruebas.

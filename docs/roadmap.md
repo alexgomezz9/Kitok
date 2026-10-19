@@ -1,64 +1,51 @@
-# Roadmap verificable
+# Pendientes reales de Kitok
 
-Estado: roadmap pendiente; base nativa, C editorial, compilador de briefs y CLI YouTube de lectura implementados; sin director general ni autorización Google real. Estado comprobado en [PROJECT_STATUS.md](../PROJECT_STATUS.md). Riesgos en [la auditoría](audit/2026-10-15.md); contratos en [multicanal y producción](design/multichannel-production.md).
+El estado implementado está en [capacidades](capabilities.md) y la evidencia en
+[PROJECT_STATUS.md](../PROJECT_STATUS.md). Esta lista contiene trabajo pendiente.
+No se activa instalando otra skill y no es un contrato aceptado por las APIs actuales.
 
-## 0. Base reproducible y operación sencilla
+## 1. Mejorar calidad antes de aumentar volumen
 
-Mantener estudio Short/Largo, guía única, salida local, datos privados fuera de Git y código completo. Usar `make verify` y `make verify-browser`. Conservar el historial y los medios originales; MPT sólo permanece para recuperar tareas antiguas.
+- Más archivos/fotografías específicos por episodio, con identidad y derechos.
+- Tratamiento coherente de color entre stock luminoso y reconstrucciones oscuras.
+- Escuchar y revisar de forma continua; los contactos sólo muestrean imágenes.
+- Mejorar el diagrama plano del piloto y validar ritmo antes de extender los652,6s.
 
-Aceptación: copia Git sin `.env`, cola ni vídeos privados pasa las verificaciones; reconoce ausencia de claves sin generarlas; un dry-run no consume proveedores. Las pruebas con mocks no prueban generación real ni autonomía audiovisual.
+Aceptación: muestra corregida y revisión audiovisual con problemas concretos
+cerrados; después ampliación del episodio, reutilizando voz y recursos aprobados.
 
-## 1. Recuperación segura de operaciones de pago — prioridad máxima
+## 2. Director editorial y perfiles reutilizables
 
-Implementado: registro Fish por payload, caché validada/compartida entre modos, bloqueo de resultados ambiguos y cero retry de POST de voz. Integrado en nativo y diálogos, con regresiones offline y revisión independiente. Pendiente: ampliar reconciliación operativa de casos ambiguos que el proveedor no permite consultar; conservar IDs históricos y un solo ejecutor.
+- Investigación y guion con fuentes, checkpoints de revisión y espera persistente.
+- Perfil de canal versionado con voz, idioma, estilo y snapshot por trabajo.
+- Parametrizar escenarios de póker; actualmente Paredes/NioNio están fijados.
+- Extender adquisición de recursos específicos y gestionar faltantes en la interfaz.
 
-Aceptación offline: fallos simulados antes de enviar, después de enviar, tras escribir audio y antes de confirmar estado; reinicio en cada punto; dos procesos intentando el mismo ID. Un resultado incierto queda visible y produce cero POST adicionales al reiniciar, abrir UI o repetir una consulta. Un audio confirmado evita nueva síntesis. Una reparación local no toca proveedores. Probar también disco lleno, JSON/registro corrupto y fallo de manifest sin perder resultados completos.
+Aceptación: dos temas/canales distintos producen configuraciones independientes;
+un reinicio no duplica voz, recursos ni decisiones. El brief actual es explícito,
+no un intérprete semántico de cualquier guion.
 
-Validación real separada: sólo con autorización expresa, texto mínimo, límite de gasto y una llamada observada. Si el proveedor no permite reconciliar una solicitud incierta, documentar la intervención manual; no simular una garantía de cobro exactamente una vez.
+## 3. Paquete editorial
 
-## 2. Canales versionados y compatibilidad
+Miniaturas editoriales, variantes de título y portada, capítulos, adaptación a
+shorts y evaluación de retención necesitan componentes y revisión propios.
+Las miniaturas técnicas de previsualización ya existentes no cumplen esa función.
+Doblar/traducir tampoco conserva automáticamente la sincronización.
 
-Añadir esquema validado de perfil, selector sencillo y snapshot por trabajo. Extraer reglas Loose Thread a su perfil y mantener adaptador legacy para contenido sin canal. Compartir renderizador, catálogo de voces y servicios; no duplicar el pipeline por canal.
+## 4. Cuenta y métricas YouTube
 
-Aceptación: dos perfiles de prueba con distintos idiomas/formatos resuelven configuraciones independientes; editar uno no cambia trabajos ya creados ni el otro canal. Cola histórica, IDs, rutas y referencias Buffer conservan sus valores, incluida música 0.06. La migración ofrece preview y rollback; no genera ni publica. Los JSON históricos siguen siendo legibles; la generación nueva usa native y MPT sólo admite recuperación explícita. Verificar separación de configuraciones con pruebas de CLI y API.
+El CLI de lectura ya está implementado. Falta autorización Google real del titular,
+comprobar datos de su canal, importar CSV reach/CTR, dashboard y políticas de purga
+antes de operar un histórico desatendido. Consultar [la integración actual](integrations/youtube-readonly.md).
+Nunca inventar métricas ausentes ni pedir permisos de escritura para simplificar OAuth.
 
-## 3. Director editorial y espera duradera
+## 5. Entrega y operación ampliadas
 
-Implementado: compilación determinista de un brief explícito a EditorialPlan, con recursos/licencias/SHA y faltantes que bloquean. No hay investigación ni guion autónomos.
+Publicación YouTube sigue fuera de la implementación. Cualquier adaptador necesita
+aprobación ligada al bundle, scopes mínimos, idempotencia y reconciliación tras
+fallos ambiguos. Largos siguen fuera del publicador/calendario Buffer de shorts.
+No habilitar paralelismo multicanal sin probar límites de memoria, locks y cachés.
 
-Pendiente el recorrido completo sin proveedores pagados: elegir canal, guardar investigación con fuentes, presentar candidatos, esperar selección, revisar guion y producir un `EditPlan` validado. La generación automática de guion será una capacidad futura habilitada expresamente. Reutilizar `VisualSection`. Añadir eventos persistidos y suscripción recuperable para UI/director; reservar el worker existente para ejecutar, sin un agente por etapa.
-
-Aceptación: ninguna selección por silencio; cancelar investigación no produce voz; un candidato sin evidencia identifica sus lagunas. Reiniciar mantiene selección, revisiones y cursor; el consumidor recupera los eventos perdidos sin duplicar trabajo. Contratos de investigación, guion y ejecución se prueban con fixtures y una integración local completa. Probar también instrucciones maliciosas en páginas/transcripciones: no amplían herramientas, gasto ni autorizaciones. No se necesita vidIQ para operar; su falta de conexión se declara.
-
-## 4. Montaje semántico, QA y reparación localizada
-
-Implementado: montaje básico por secciones y planes explícitos por escena, tres gráficos reutilizables, render incremental, informes y contactos, CLI/Montaje y A/B UltimateBet76s corregido tras revisión visual. C añade escenas 3D, foto licenciada, biblioteca Commons/Pexels, música con ducking y preparación desde brief explícito. El brief requiere decisiones editoriales. Pendiente: selección mejor de recursos específicos, QA perceptual/semántico y paquete editorial con miniaturas. No se ha reeditado el episodio completo.
-
-Aceptación: fixtures audiovisuales con negro, silencio, clipping, duración errónea y escena ausente producen hallazgos con evidencia; una muestra válida no dispara bloqueos injustificados. Cambiar texto gráfico recompone sólo nodos dependientes y hace cero síntesis. Alineación desconocida se muestra como tal. Antes de paralelizar: locks de caché entre procesos, temporales únicos, recuperación de descargas y límites de recursos probados. Una comparación real autorizada evaluará ritmo y calidad; los tests no sustituyen esa revisión.
-
-## 5. YouTube oficial en lectura
-
-Implementado: [CLI oficial de lectura](integrations/youtube-readonly.md), OAuth Desktop PKCE, identidad, catálogo, consultas Analytics y enumeración Reporting. Consentimiento real pendiente.
-
-Pendiente del [diseño completo](design/youtube.md): ingestión CSV reach a1, CTR, dashboard histórico y retención/purga automática conforme a políticas. El operador debe crear su cliente Desktop y consentir; no incorporar upload.
-
-Aceptación offline: CSV y respuestas versionadas prueban backfill, duplicados, periodos, expiración, revocación, borrado y aislamiento de canales. Con autorización real, demostrar identidad y acceso a un canal; comprobar disponibilidad y unidades de los informes antes de mostrar CTR. Datos ausentes se muestran como pendientes, nunca como cero. La retención sigue las políticas documentadas y se revalida antes de implementar.
-
-## 6. Publicación separada y expansión controlada
-
-Sólo después de una entrega fiable, diseñar un adaptador YouTube con aprobación ligada al bundle, scopes mínimos y reconciliación de resultados ambiguos. No alterar Buffer ni incorporar largos a su calendario sin un contrato específico.
-
-Aceptación: modificar MP4, metadatos, destino o fecha invalida aprobación; reiniciar no publica; timeout de mutación no dispara otra. Las pruebas reales de subida requieren autorización independiente y comprobación del resultado remoto. Paralelismo multicanal sólo tras superar las pruebas de recursos y recuperación anteriores.
-
-## Cierre de compatibilidad MPT
-
-Nuevos shorts locales/Pexels y largos usan generación nativa. CLI largo y estudio
-ya seleccionan native; el CLI permite únicamente recuperar MPT con --resume.
-Las tareas antiguas no se convierten ni reenvían y el guard bajo lock impide
-consumir otra voz sobre un marcador MPT pendiente.
-
-Pendiente operativo: inventariar con el operador las tareas/medios que quiera
-recuperar antes de desinstalar MPT. No se borra su instalación automáticamente.
-Los tests de shorts usan FFmpeg real y proveedores simulados; una generación
-nueva de cada estilo contra APIs reales sigue sin comprobarse. La reedición
-UltimateBet reutiliza audio/stock reales y no equivale a esa matriz completa.
+La recuperación MPT se conserva para datos históricos; nuevos vídeos son nativos.
+Los diseños anteriores están aislados en el [archivo](archive/README.md), sin
+instrucciones de operación vigentes duplicadas.
