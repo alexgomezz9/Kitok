@@ -1,7 +1,7 @@
 # Estado vigente de Kitok
 
-Actualizado: 2026-10-19. Rama **feat/documentary-director**, base f9549b7.
-Main intacto; sin publicación ni merge. Manual: [GUIA.md](GUIA.md).
+Actualizado: 2026-10-19. Entrega integrada en **main** por autorización expresa.
+Código y guías: **18e6031**, SHA local/remoto comprobado. Manual: [GUIA.md](GUIA.md).
 
 ## Disponible y comprobado
 
@@ -42,17 +42,23 @@ Main intacto; sin publicación ni merge. Manual: [GUIA.md](GUIA.md).
 
 ## Git, límites y siguiente paso
 
-La CI de código5c591f3 (39286768070) y cierre f4c46aa (39287175505) terminó
-correctamente, comprobado el19/10. Reorganización eef9d88 subida y CI39289440617
-correcta: lógica largos en
-paquete, raíz con entradas finas, ejemplos/scripts separados;100tests afectados
-correctos. Documentación actual centralizada en docs/README.md y capabilities.md;
-archivo histórico aislado y nuevo gate docs-check integrado en verify/CI. La revisión
-independiente no deja hallazgos abiertos; pytest también recoge las654pruebas
-desde su ejecutable, tras corregir la ruta de importación de los helpers.
+Integración fast-forward conservando el historial local y remoto; sin force-push.
+CI de 5c591f3, f4c46aa y eef9d88 correcta, comprobada el 19/10. CI de 18e6031
+en main (39290708250) y en la rama de trabajo (39290651451) en ejecución al consultar;
+no se atribuye éxito remoto todavía. No se ha publicado ningún vídeo.
 
-El operador ha autorizado expresamente integrar todo en main el19/10. Se hará
-tras el gate y la revisión de esta reorganización. No se autoriza publicar vídeos.
+Raíz con 11 archivos públicos necesarios y datos privados locales. Lógica larga en
+el paquete, herramientas en scripts/ y ejemplos en examples/. Manuales actuales en
+docs/README.md; inventario de automatización en docs/capabilities.md. Historia aislada.
+docs-check verifica enlaces, estructura y contratos de ejemplos dentro de verify/CI;
+no verifica verdad editorial. Revisión independiente sin hallazgos pendientes.
+También make test pasa: 654 pruebas desde el ejecutable pytest.
+
+Incidencia local al pasar por main antigua: Git retiró content_queue.json, entonces
+versionado. Restaurado desde 7ff1e8b^:content_queue.json (30 entradas), con copia y
+recibo en local/backups/. Sin hash previo no puede acreditarse que no hubiera
+cambios locales posteriores. Estado de publicación conservado; no reintentar envíos.
+El contrato exige ahora switch --no-overwrite-ignore para evitar esa sobrescritura.
 
 La mejora es real, pero sigue habiendo stock genérico, contraste stock/3D y un
 diagrama plano. Sin audición subjetiva ni reproducción audiovisual continua.

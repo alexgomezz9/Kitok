@@ -20,6 +20,9 @@ está en [GUIA.md](../GUIA.md), también servido en el frontend.
    Comparar SHA remoto y comprobar CI; indicar expresamente si sigue pendiente.
 6. Actualizar estado y siguiente paso al cerrar. Antes de integrar main, verificar
    autorización expresa y ascendencia remota. No forzar ni borrar cambios ajenos.
+   Usar `git switch --no-overwrite-ignore`: una rama antigua puede versionar datos
+   que hoy son privados. Comparar esas rutas antes del cambio y conservarlas;
+   un estado Git limpio no demuestra que los archivos ignorados estén protegidos.
 
 ## Fuentes de verdad y orden
 
