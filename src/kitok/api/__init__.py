@@ -23,7 +23,8 @@ from ..scheduling import ScheduleService
 from ..thumbnails import ThumbnailService
 from ..longform_studio import LongformStudio
 from ..editorial_studio import EditorialStudio
-from .schemas import LongformRequest
+from ..motion_studio import MotionStudio
+from .schemas import LongformRequest, VoiceFavoriteRequest, VoiceAssignmentRequest
 
 log = logging.getLogger('kitok.api')
 
@@ -34,6 +35,7 @@ def create_app(settings=None, *, catalog_path=None):
     calendar = ScheduleService(application)
     longform = LongformStudio(application)
     editorial = EditorialStudio(application)
+    motion = MotionStudio(application)
 
     @asynccontextmanager
     async def lifespan(app):
@@ -44,6 +46,7 @@ def create_app(settings=None, *, catalog_path=None):
     app.state.application = application
     app.state.longform = longform
     app.state.editorial = editorial
+    app.state.motion = motion
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=['127.0.0.1', 'localhost', 'testserver', '[::1]'])
     origins = ['http://127.0.0.1:5173', 'http://localhost:5173', 'http://127.0.0.1:8000', 'http://localhost:8000']
     app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=['*'], allow_headers=['Content-Type'])
@@ -117,6 +120,66 @@ def create_app(settings=None, *, catalog_path=None):
                 'uses_mpt': False, 'words': len(item.effective_script.split()),
                 'note': 'Motor nativo: voz Fish y ' + ('stock Pexels.' if uses_stock else 'fondo local.') + ' Las credenciales y conexiones remotas aún no están comprobadas.'}
 
+    def voice_library():
+        from ..voice_library import VoiceLibrary
+        from ..config import PROJECT_ROOT
+        catalog = (application.s.data_root or PROJECT_ROOT) / 'presets' / 'voice_sources.json'
+        if not catalog.is_file():
+            catalog = PROJECT_ROOT / 'presets' / 'voice_sources.json'
+        return VoiceLibrary(catalog, application.s.state_path.parent / 'voice-preferences.json')
+
+    def library_voices():
+        library = voice_library()
+        rows = []
+        for row in library.list():
+            samples = []
+            for index, sample in enumerate(row.get('samples', [])):
+                try:
+                    library.sample(row['id'], index, root=longform.root)
+                except RuntimeError:
+                    continue
+                samples.append({'url': f"/api/voices-library/{row['id']}/samples/{index}",
+                                'kind': sample.get('kind'), 'duration': sample.get('duration')})
+            rows.append({**row, 'samples': samples})
+        return rows
+
+    @app.get('/api/voices-library')
+    def voices_library():
+        return library_voices()
+
+    @app.post('/api/voices-library/assign')
+    def voice_assign(body: VoiceAssignmentRequest):
+        voice_library().assign(body.channel, body.voice_id)
+        return library_voices()
+
+    @app.post('/api/voices-library/{voice_id}/favorite')
+    def voice_favorite(voice_id: str, body: VoiceFavoriteRequest):
+        voice_library().favorite(voice_id, body.enabled)
+        return library_voices()
+
+    @app.get('/api/voices-library/{voice_id}/samples/{index}')
+    def voice_sample(voice_id: str, index: int):
+        return FileResponse(voice_library().sample(voice_id, index, root=longform.root), media_type='audio/mpeg')
+
+    @app.get('/api/longform-options')
+    def longform_options():
+        return {'music_tracks': [{**track, 'preview_url': f"/api/longform/music/{track['id']}/preview"}
+                                 for track in longform.music_options()]}
+
+    @app.get('/api/motion')
+    def motion_list():
+        return motion.list()
+
+    @app.get('/api/motion/{item_id}/files/{name}')
+    def motion_file(item_id: str, name: str):
+        path = motion.file(item_id, name)
+        media = {'.mp4': 'video/mp4', '.jpg': 'image/jpeg', '.md': 'text/plain'}.get(path.suffix, 'application/json')
+        return FileResponse(path, media_type=media)
+
+    @app.get('/api/longform/music/{track_id}/preview')
+    def longform_music_preview(track_id: str):
+        return FileResponse(longform.music_preview(track_id), media_type='audio/mpeg')
+
     @app.get('/api/longform')
     def longform_list():
         return longform.list()
@@ -145,6 +208,11 @@ def create_app(settings=None, *, catalog_path=None):
     def longform_download(cid: str):
         path = longform.video_path(cid)
         return FileResponse(path, media_type='video/mp4', filename=path.name)
+
+    @app.get('/api/longform/{cid}/credits')
+    def longform_credits(cid: str):
+        path = longform.credits_path(cid)
+        return FileResponse(path, media_type='text/plain', filename=path.name)
 
     @app.get('/api/editorial')
     def editorial_list():

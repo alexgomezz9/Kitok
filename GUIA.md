@@ -76,18 +76,19 @@ Los errores de fecha, cuota o publicación incierta se revisan antes de repetir 
 ## Crear un vídeo largo desde el frontend
 
 1. Abre «Vídeo largo». Pega el título, todo el guion y las búsquedas para Pexels separadas por comas. La última frase debe terminar con puntuación, normalmente un punto.
-2. Elige narrador. Loose Thread es el narrador original en inglés; también aparecen las voces Fish del catálogo. El texto se lee tal como está escrito.
-3. Deja la música desmarcada para empezar. Si la activas, tiene que existir assets/music/loose_thread/level.mp3.
-4. Comprueba sin generar y guarda el borrador. Se crean automáticamente un .txt y un .json en content/longform/studio/.
-5. Selecciona el borrador y pulsa «Generar vídeo largo». Espera a «Terminado», reproduce y descarga el MP4.
+2. Elige narrador. Loose Thread conserva su voz original en inglés. En «Biblioteca de voces y favoritos» puedes escuchar muestras existentes, guardar favoritas y asignarlas a un canal sin sintetizar. El texto se lee tal como está escrito.
+3. Elige música: «Desactivada», «Automática» o «Elegir manualmente». Automática elige pistas locales verificadas para inicio y cierre, rota entre trabajos y mezcla dos ambientes con crossfade y ducking bajo la voz. Usa una frontera de secciones cuando la alineación es válida; si falta, declara un cambio central estimado. En Manual aparece un reproductor de la pista; en Automática puedes desplegar la biblioteca para escucharla antes de generar. Manual conserva la pista seleccionada. Si faltan recursos, la comprobación lo indica; consulta [la biblioteca de audio](docs/audio.md).
+4. Elige «Montaje básico» o «Documental enriquecido». El segundo añade preguntas, cifras, fechas, presentaciones explícitas y conceptos técnicos cuando reconoce una intención compatible. Con música automática puede añadir puntuación sonora discreta; no hay un efecto en cada corte. Antes de lanzar el vídeo completo revisa las muestras de «Montaje → Galería documental».
+5. Comprueba sin generar y guarda el borrador. Se crean automáticamente un .txt y un .json en content/longform/studio/; no necesitas escribir un JSON ni preparar cada plano.
+6. Después de revisar la calidad de las muestras, selecciona el borrador y pulsa «Generar vídeo largo». Kitok ejecuta el montaje elegido para todo el guion. Espera a «Terminado», reproduce y descarga el MP4 y sus créditos. Esta fase no ha lanzado UltimateBet completo.
 
 La interfaz y el CLI usan el motor nativo: Fish + Pexels + FFmpeg. El largo nativo sigue siendo experimental; no necesita MPT. No se ofrecen nuevos trabajos MPT. Los trabajos históricos se conservan para consulta y recuperación explícita.
 
-La salida es horizontal 16:9, 1920×1080, sin subtítulos, en outputs/longform/. La duración depende del guion y de la voz; no se fija con un selector de minutos. Se admiten hasta 24.000 caracteres y 20 búsquedas. El montaje básico organiza el guion en secciones y usa esas búsquedas. Los tiempos de sección pueden ser estimados; esto no garantiza que cada plano ilustre exactamente la frase. Para control por escena usa «Montaje».
+La salida es horizontal 16:9, 1920×1080, sin subtítulos, en outputs/longform/. La duración depende del guion y de la voz; no se fija con un selector de minutos. Se admiten hasta 24.000 caracteres y 20 búsquedas. El montaje básico organiza el guion en secciones y usa esas búsquedas. Los tiempos de sección pueden ser estimados; esto no garantiza que cada plano ilustre exactamente la frase. El modo enriquecido sigue reglas conservadoras: no investiga, no entiende cualquier guion y no convierte automáticamente todas las frases en gráficos. Los tiempos sin alineación válida se declaran estimados. Para control por escena usa «Montaje».
 
 Los vídeos largos no entran en el calendario ni en el publicador Buffer de shorts. Descárgalos y súbelos a YouTube Studio. Los largos antiguos creados sólo por CLI siguen en outputs/longform/; la nueva lista muestra los borradores creados en este estudio.
 
-Si falla o se interrumpe, no se vuelve a generar automáticamente. Revisa logs/kitok-AAAAMMDD.log y los archivos antes de crear otra copia. Repetir una generación puede volver a consumir voz. El cliente Fish de Kitok no reintenta peticiones de voz tras un fallo; un resultado incierto requiere revisión. La caché nueva permite reutilizar audio confirmado sin pedir otra síntesis.
+Si falla o se interrumpe, no se vuelve a generar automáticamente. Revisa logs/kitok-AAAAMMDD.log y los archivos antes de crear otra copia. Repetir una generación puede volver a consumir voz. El cliente Fish de Kitok no reintenta peticiones de voz tras un fallo; un resultado incierto requiere revisión. La caché permite reutilizar audio confirmado sin pedir otra síntesis. El montaje documental y la música de biblioteca conservan salidas exclusivas: `--start-over` no las reemplaza; usa una revisión/ID nuevos después de revisar el trabajo. Los modos nuevos sólo se admiten con Native, no en recuperación MPT.
 
 ## Usar shorts desde el backend / terminal
 
@@ -192,7 +193,7 @@ rótulos y movimientos elegidos por escena. Cambiar un plano reutiliza el resto.
 En «Montaje», selecciona «UltimateBet — C» para comparar el montaje anterior
 (A) con la nueva versión (B). Conservamos también la comparación original.
 El enlace de fuentes y licencias acompaña a la muestra nueva.
-«Renderizar plan guardado» vuelve a montar los recursos sin sintetizar voz.
+La «Galería documental» ofrece efectos individuales y fragmentos con reproducción, descarga, referencia A/B y créditos. Revisa primero las tres muestras UltimateBet y la de otro tema. «Renderizar plan guardado» vuelve a montar los recursos sin sintetizar voz.
 Para otro vídeo prepara un brief o un plan local; no hay editor visual de timeline.
 Los planos 3D opcionales requieren `make cinema-setup` una sola vez.
 La nueva biblioteca de composiciones y sus comandos locales están en
@@ -260,7 +261,7 @@ El acceso real a las métricas sigue pendiente del consentimiento de tu cuenta.
 
 ## Desarrollo y siguientes fases
 
-Para verificar cambios usa make verify; para incluir navegador, make verify-browser. El compilador de briefs y el CLI de YouTube de lectura están implementados con los límites de este manual. La orquestación editorial general y el catálogo multicanal automático siguen siendo propuestas en docs/roadmap.md. Los ejemplos públicos están en examples/; los contenidos del operador no se suben a Git. Los pilotos, backups e importaciones antiguos se conservan en local/.
+Para verificar cambios usa make verify; para incluir navegador, make verify-browser. El compilador de briefs y el CLI de YouTube de lectura están implementados con los límites de este manual. La orquestación editorial general y los perfiles multicanal completos siguen siendo propuestas en docs/roadmap.md. Los ejemplos públicos están en examples/; los contenidos del operador no se suben a Git. Los pilotos, backups e importaciones antiguos se conservan en local/.
 
 ## Recursos específicos con licencia
 
@@ -297,8 +298,8 @@ la caché verificada. No es una suscripción ni un servicio de generación de pa
 Sustituye la ruta y usa un nombre de salida nuevo. La selección por trabajo queda
 estable; un nuevo trabajo rota la pista principal cuando hay alternativas. El
 mezclador enlaza dos pistas y baja la música mientras habla el narrador, conserva
-la voz hasta el final y mide sonoridad/pico. No reemplaza el audio original ni se
-activa por sí solo en los largos del formulario. Entrega un `.m4a.json` con fuentes,
+la voz hasta el final y mide sonoridad/pico. No reemplaza el audio original. En los largos del formulario puedes elegir la
+biblioteca mediante «Automática» o «Elegir manualmente». Entrega un `.m4a.json` con fuentes,
 créditos y cambios: inclúyelos cuando uses el resultado. Content ID es desconocido.
 
 Para un efecto original discreto sin muestras externas:

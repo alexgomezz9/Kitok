@@ -58,6 +58,9 @@ class LongformDefinition:
     audio_true_peak_target: float
     music_enabled: bool
     preserve_debug_audio: bool
+    music_mode: str | None = None
+    music_track: str | None = None
+    mounting_style: str = "basic"
 
 
 def _read_json_object(path: Path, label: str) -> dict[str, Any]:
@@ -193,6 +196,23 @@ def load_longform_config(
     )
     music_enabled = _boolean(raw, "music_enabled", True)
     preserve_debug_audio = _boolean(raw, "preserve_debug_audio", False)
+    music_mode = raw.get("music_mode")
+    if music_mode not in (None, "off", "auto", "manual"):
+        raise LongformError("music_mode must be off, auto or manual")
+    music_track = raw.get("music_track")
+    mounting_style = raw.get("mounting_style", "basic")
+    if mounting_style not in ("basic", "documentary"):
+        raise LongformError("mounting_style must be basic or documentary")
+    if music_mode == "manual":
+        from ..audio_library import ID
+        if not isinstance(music_track, str) or not ID.fullmatch(music_track):
+            raise LongformError("Manual music requires a catalog track ID")
+    elif music_track is not None:
+        raise LongformError("music_track requires music_mode manual")
+    if music_mode is not None:
+        music_enabled = music_mode != "off"
+    if mounting_style == "documentary" and music_mode is None and music_enabled:
+        raise LongformError("Documentary music requires explicit music_mode off, auto or manual")
 
     try:
         item = ContentItem(
@@ -227,6 +247,7 @@ def load_longform_config(
         audio_true_peak_target=audio_true_peak_target,
         music_enabled=music_enabled,
         preserve_debug_audio=preserve_debug_audio,
+        music_mode=music_mode, music_track=music_track, mounting_style=mounting_style,
     )
 
 
@@ -272,8 +293,27 @@ def longform_task_path(content_id: str, *, project_root: Path = PROJECT_ROOT) ->
     return project_root / "outputs" / "longform" / "tasks" / f"{content_id}.json"
 
 
+def longform_music_ready(definition: LongformDefinition, settings) -> bool:
+    if not definition.music_enabled:
+        return True
+    if definition.music_mode is None:
+        return definition.background_music_file.is_file()
+    from ..audio_library import AudioLibrary
+    root = settings.data_root or PROJECT_ROOT
+    catalog, cache = root / "presets" / "music_sources.json", root / "cache" / "audio-library"
+    if not catalog.is_file() or not cache.is_dir():
+        return False
+    library = AudioLibrary(catalog, cache, ffmpeg=settings.ffmpeg_binary, ffprobe=settings.ffprobe_binary)
+    try:
+        if definition.music_mode == "auto":
+            return library.narrative_options(definition.item.script, channel="loose_thread")['eligible']
+        return any(t["id"] == definition.music_track for t in library.available(channel="loose_thread"))
+    finally:
+        library.close()
+
+
 def _require_longform_music(definition: LongformDefinition) -> None:
-    if definition.music_enabled and not definition.background_music_file.is_file():
+    if definition.music_enabled and definition.music_mode is None and not definition.background_music_file.is_file():
         raise LongformError(
             "Loose Thread background music is enabled but the file does not exist: "
             f"{definition.background_music_file}"
@@ -649,7 +689,7 @@ def _parser() -> argparse.ArgumentParser:
     group.add_argument(
         "--start-over",
         action="store_true",
-        help="Explicitly render again with Native; may use paid providers. Unavailable for MPT.",
+        help="Explicitly render again with Native; may use paid providers. Existing documentary/library-music outputs require a new content ID. Unavailable for MPT.",
     )
     return parser
 
@@ -663,6 +703,8 @@ def main(argv: list[str] | None = None) -> int:
         if args.renderer == 'native' and args.resume:
             raise LongformError('--resume requires --renderer mpt and a known historical task ID')
         definition = load_longform_config(args.config)
+        if args.renderer == 'mpt' and (definition.mounting_style != 'basic' or definition.music_mode is not None):
+            raise LongformError('mounting_style and music_mode options are Native-only; historical MPT recovery requires basic mounting and legacy music configuration')
         settings = Settings()
         if args.dry_run:
             renderer = args.renderer
@@ -670,7 +712,7 @@ def main(argv: list[str] | None = None) -> int:
             checks = {
                 'ffmpeg': bool(shutil.which(settings.ffmpeg_binary)),
                 'ffprobe': bool(shutil.which(settings.ffprobe_binary)),
-                'music': not definition.music_enabled or definition.background_music_file.is_file(),
+                'music': longform_music_ready(definition, settings),
             }
             if renderer == 'native':
                 from kitok.rendering.native import fish_reference_id

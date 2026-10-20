@@ -5,6 +5,8 @@ import json
 import hashlib
 import random
 import time
+import os
+import tempfile
 from pathlib import Path
 
 from ..fish_voice import FishVoiceClient
@@ -73,6 +75,13 @@ class NativeLongformRenderer(LongformRenderer):
         self.keep_workspace = keep_workspace
         self.output = output
 
+    def _audio_library(self):
+        from ..audio_library import AudioLibrary
+        from ..config import PROJECT_ROOT
+        root = self.settings.data_root or PROJECT_ROOT
+        return AudioLibrary(root / "presets" / "music_sources.json", root / "cache" / "audio-library",
+                            ffmpeg=self.settings.ffmpeg_binary, ffprobe=self.settings.ffprobe_binary)
+
     def _stage(self, label: str, elapsed: float) -> None:
         log.info("%s end elapsed=%.2fs", label, elapsed)
         if self.output:
@@ -80,6 +89,16 @@ class NativeLongformRenderer(LongformRenderer):
 
     def render(self, definition, *, start_over: bool = False) -> RenderResult:
         started = time.monotonic()
+        music_mode = getattr(definition, "music_mode", None)
+        mounting_style = getattr(definition, "mounting_style", "basic")
+        uses_motion = mounting_style == "documentary" or music_mode in {"auto", "manual"}
+        editorial_receipt = self.output_path.with_suffix(".editorial.json")
+        if (editorial_receipt.exists() or editorial_receipt.is_symlink()
+                or uses_motion and (self.output_path.exists() or self.output_path.is_symlink())):
+            raise NativeRenderError(
+                "Motion output or receipt already exists; use a new content ID to preserve the previous cut. "
+                "--start-over cannot replace documentary or library-music outputs."
+            )
         if self.output_path.exists() and not start_over:
             raise NativeRenderError(
                 f"Output already exists: {self.output_path}. Use --start-over to replace it atomically."
@@ -89,10 +108,22 @@ class NativeLongformRenderer(LongformRenderer):
             "Native render start content_id=%s renderer=%s output=%s",
             content_id, self.name, self.output_path,
         )
-        if definition.music_enabled and not definition.background_music_file.is_file():
+        if mounting_style == "documentary" and music_mode is None and definition.music_enabled:
+            raise NativeRenderError("Documentary music requires explicit music_mode off, auto or manual")
+        if definition.music_enabled and music_mode is None and not definition.background_music_file.is_file():
             raise NativeRenderError(
                 f"Background music does not exist: {definition.background_music_file}"
             )
+        music_selection = None
+        if music_mode in {"auto", "manual"}:
+            library = self._audio_library()
+            try:
+                if music_mode == "auto":
+                    music_selection = library.select_narrative(content_id, definition.item.script, channel="loose_thread")
+                else:
+                    music_selection = library.select_manual(content_id, definition.music_track, channel="loose_thread")
+            finally:
+                library.close()
         reference_id = fish_reference_id(definition.voice_name)
         script = validate_native_script(definition.item.script)
         preflight = getattr(self.pexels, "preflight_searches", None)
@@ -139,6 +170,7 @@ class NativeLongformRenderer(LongformRenderer):
             stage = time.monotonic()
             timeline_seed = self.seed or definition.item.id
             editing = None
+            word_alignment = None
             edit_path = self.output_path.with_suffix(".edit.json")
             audio_fingerprint = hashlib.sha256(narration.read_bytes()).hexdigest()
             if getattr(definition, "editing_enabled", True):
@@ -256,20 +288,71 @@ class NativeLongformRenderer(LongformRenderer):
                 )
 
             stage = time.monotonic()
-            info = self.engine.render(
-                clips,
-                narration,
-                narration_duration,
-                self.output_path,
-                workspace,
-                music=definition.background_music_file if definition.music_enabled else None,
-                music_volume=definition.background_music_volume,
-                loudness_target=definition.audio_loudness_target,
-                lra_target=definition.audio_lra_target,
-                true_peak_target=definition.audio_true_peak_target,
-                on_stage=self.output,
-                editing=editing,
-            )
+            final_audio = narration
+            audio_is_final_mix = False
+            sfx_events = []
+            music_transition = None
+            if music_mode == "auto":
+                from ..audio_library import narrative_transition
+                sections = None
+                if editing:
+                    from ..editing.motion import provider_sections
+                    aligned_sections = provider_sections(editing.sections, word_alignment, narration_duration)
+                    if aligned_sections is None and editing.alignment.get('word_aligned') is True:
+                        aligned_sections = editing.sections
+                    if aligned_sections is not None:
+                        sections = [{'text': section.section, 'start': section.audio_start, 'end': section.audio_end}
+                                    for section in aligned_sections]
+                music_transition = narrative_transition(script, narration_duration, sections=sections, channel='loose_thread')
+            if mounting_style == "documentary" and music_mode == "auto":
+                from ..editing.motion import automatic_sfx
+                sfx_events = automatic_sfx(editing, narration_duration, word_alignment=word_alignment)
+            if music_mode in {"auto", "manual"}:
+                # AudioLibrary validates a separate normalized mix and keeps the
+                # raw Fish narration untouched. Reuse only a matching receipt.
+                mix_revision = hashlib.sha256(json.dumps({
+                    "selection": music_selection, "sfx_events": sfx_events, "transition": music_transition,
+                }, sort_keys=True).encode()).hexdigest()[:16]
+                final_audio = workspace / f"music-{audio_fingerprint}-{mix_revision}.wav"
+                library = self._audio_library()
+                try:
+                    receipt_path = final_audio.with_suffix(".wav.json")
+                    if final_audio.exists() and receipt_path.is_file():
+                        receipt = json.loads(receipt_path.read_text())
+                        if (receipt.get("narration_sha256") != audio_fingerprint
+                                or receipt.get("job_id") != content_id
+                                or receipt.get("output_sha256") != hashlib.sha256(final_audio.read_bytes()).hexdigest()):
+                            raise NativeRenderError("Cached music mix changed; preserve and review it")
+                    else:
+                        library.mix(content_id, narration, final_audio, duration=narration_duration, sfx_events=sfx_events,
+                                    transition_at=music_transition["transition_at"] if music_transition else None)
+                    audio_is_final_mix = True
+                finally:
+                    library.close()
+            if mounting_style == "documentary" or audio_is_final_mix:
+                from ..editing.motion import render_motion_longform
+                info = render_motion_longform(
+                    clips, final_audio, narration_duration, self.output_path, workspace,
+                    settings=self.settings, editing=editing,
+                    style="investigation" if mounting_style == "documentary" else "basic",
+                    audio_is_final_mix=audio_is_final_mix, word_alignment=word_alignment,
+                    width=self.engine.spec.width, height=self.engine.spec.height, fps=self.engine.spec.fps,
+                )
+            else:
+                info = self.engine.render(
+                    clips,
+                    narration,
+                    narration_duration,
+                    self.output_path,
+                    workspace,
+                    music=definition.background_music_file if definition.music_enabled else None,
+                    music_volume=definition.background_music_volume,
+                    loudness_target=definition.audio_loudness_target,
+                    lra_target=definition.audio_lra_target,
+                    true_peak_target=definition.audio_true_peak_target,
+                    on_stage=self.output,
+                    editing=editing,
+                )
             ffmpeg_seconds = time.monotonic() - stage
             self._stage("FFmpeg", ffmpeg_seconds)
 
@@ -288,6 +371,14 @@ class NativeLongformRenderer(LongformRenderer):
                 validation=validation_seconds,
                 total=total,
             )
+            stock_sources = list({choice.asset.asset_id: {
+                "provider": "Pexels", "asset_id": choice.asset.asset_id,
+                "source_url": choice.asset.page_url, "download_url": choice.variant.url,
+                "author": getattr(choice.asset, 'author', None),
+                "author_url": getattr(choice.asset, 'author_url', None),
+                "license": "Pexels License", "license_url": "https://www.pexels.com/license/",
+                "usage": "Illustrative stock; trimmed, cropped and edited for this video.",
+            } for choice in selected}.values())
             manifest = self.output_path.with_suffix(".native.json")
             write_render_manifest(
                 manifest,
@@ -296,6 +387,13 @@ class NativeLongformRenderer(LongformRenderer):
                 info=final_info,
                 extra={
                     "renderer": "native",
+                    "mounting_style": mounting_style,
+                    "music_mode": music_mode,
+                    "music_selection": music_selection,
+                    "stock_sources": stock_sources,
+                    "music_transition": music_transition,
+                    "sfx_events": sfx_events,
+                    "audio_is_final_mix": audio_is_final_mix,
                     "content_id": definition.item.id,
                     "narration_duration": narration_duration,
                     "edit_manifest": str(edit_path) if editing else None,
@@ -315,6 +413,29 @@ class NativeLongformRenderer(LongformRenderer):
                     ],
                 },
             )
+            credits_path = self.output_path.with_suffix(".credits.md")
+            text = "# Sources and credits\n\n## Illustrative stock\n\n"
+            text += "Stock illustrates the narration; it is not historical footage of the reported events.\n\n"
+            for source in stock_sources:
+                text += f"- Pexels asset {source['asset_id']}\n"
+                text += f"  - Author: {source['author'] or 'unknown (unverified legacy metadata)'}\n"
+                text += f"  - Author URL: {source['author_url'] or 'unknown'}\n"
+                text += f"  - Source: {source['source_url'] or 'unknown (legacy cache)'}\n"
+                text += f"  - Download: {source['download_url']}\n"
+                text += f"  - License: {source['license']} — {source['license_url']}\n"
+                text += f"  - Changes: {source['usage']}\n"
+            if music_selection:
+                text += "\n## Music\n\n" + "\n\n".join(music_selection['credits'])
+                text += "\n\n" + music_selection['changes_notice'] + "\n\nContent ID: unknown.\n"
+            fd, temporary = tempfile.mkstemp(prefix=".source-credits-", dir=self.output_path.parent)
+            try:
+                with os.fdopen(fd, "w", encoding="utf-8") as handle:
+                    handle.write(text)
+                    handle.flush()
+                    os.fsync(handle.fileno())
+                os.replace(temporary, credits_path)
+            finally:
+                Path(temporary).unlink(missing_ok=True)
             self._stage("TOTAL", total)
             log.info("Native final output path=%s", self.output_path.resolve())
             log.info(

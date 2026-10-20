@@ -165,9 +165,21 @@ class LongformRequest(Request):
     keywords: list[str] = Field(min_length=1, max_length=20)
     renderer: Literal['native', 'mpt'] = 'native'
     music_enabled: bool = False
+    music_mode: Literal['off', 'auto', 'manual'] | None = None
+    music_track: str | None = Field(default=None, pattern=r'^[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}$')
+    mounting_style: Literal['basic', 'documentary'] = 'basic'
     narrator_voice: str | None = Field(default=None, max_length=200)
 
     @field_validator('subject', 'script', mode='before')
     @classmethod
     def strip_text(cls, value):
         return value.strip() if isinstance(value, str) else value
+
+
+class VoiceFavoriteRequest(Request):
+    enabled: bool
+
+
+class VoiceAssignmentRequest(Request):
+    channel: str = Field(default='loose_thread', pattern=r'^[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}$')
+    voice_id: str = Field(pattern=r'^[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}$')

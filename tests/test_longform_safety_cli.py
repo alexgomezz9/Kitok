@@ -162,3 +162,51 @@ def test_native_cli_blocks_pending_mpt_under_lock_and_preserves_marker(studio, m
     message = capsys.readouterr().err
     assert '--renderer mpt --resume' in message
     assert ('pending-task' if marker_bytes.startswith(b'{') else 'TASK_ID') in message
+
+
+def test_cli_dry_run_rejects_documentary_legacy_music_before_settings_or_providers(studio, monkeypatch, capsys):
+    client, service = configured(studio, monkeypatch)
+    row = client.post('/api/longform', json=BODY).json()
+    config = service.folder / f"{row['id']}.json"
+    data = json.loads(config.read_text())
+    data.update(mounting_style='documentary', music_enabled=True)
+    config.write_text(json.dumps(data))
+    r = runner()
+    loader = r.load_longform_config
+    monkeypatch.setattr(r, 'load_longform_config', lambda path: loader(path, project_root=service.root))
+    monkeypatch.setattr(r, 'Settings', lambda: pytest.fail('Invalid mounting/music config must fail before providers or settings'))
+    assert r.main([str(config), '--dry-run']) == 1
+    assert 'explicit music_mode off, auto or manual' in capsys.readouterr().err
+
+
+@pytest.mark.parametrize('mode', ['off', 'auto', 'manual'])
+def test_documentary_accepts_explicit_music_modes_in_cli_config(studio, mode):
+    client, app, settings = studio
+    row = client.post('/api/longform', json=BODY).json()
+    config = app.s.data_root / 'content' / 'longform' / 'studio' / f"{row['id']}.json"
+    data = json.loads(config.read_text())
+    data.update(mounting_style='documentary', music_mode=mode,
+                music_track='long_note_two' if mode == 'manual' else None)
+    config.write_text(json.dumps(data))
+    definition = runner().load_longform_config(config, project_root=settings.data_root)
+    assert definition.music_mode == mode and definition.mounting_style == 'documentary'
+
+
+@pytest.mark.parametrize('options', [
+    {'mounting_style': 'documentary', 'music_mode': 'off'},
+    {'music_mode': 'auto'}, {'music_mode': 'manual', 'music_track': 'long_note_two'},
+    {'music_mode': 'off'},
+])
+def test_mpt_recovery_rejects_new_native_options_before_settings_or_download(studio, monkeypatch, capsys, options):
+    client, app, settings = studio
+    row = client.post('/api/longform', json=BODY).json()
+    config = settings.data_root / 'content' / 'longform' / 'studio' / f"{row['id']}.json"
+    data = json.loads(config.read_text())
+    data.update(options)
+    config.write_text(json.dumps(data))
+    r = runner()
+    loader = r.load_longform_config
+    monkeypatch.setattr(r, 'load_longform_config', lambda path: loader(path, project_root=settings.data_root))
+    monkeypatch.setattr(r, 'Settings', lambda: pytest.fail('New Native options must fail before any MPT work'))
+    assert r.main([str(config), '--renderer', 'mpt', '--resume', 'historical-task']) == 1
+    assert 'Native-only' in capsys.readouterr().err

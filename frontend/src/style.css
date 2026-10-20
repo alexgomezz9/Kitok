@@ -12,3 +12,7 @@
 .delivery-warning{background:#fff0d4;color:#735022;line-height:1.7}
 
 .editorial-comparison{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;margin:24px 0}.editorial-comparison article{min-width:0}.editorial-comparison video{width:100%;aspect-ratio:16/9;background:#101419}.editorial-contact{max-width:100%;height:auto;margin-top:16px}@media(max-width:900px){.editorial-comparison{grid-template-columns:1fr}}
+
+.motion-gallery{margin-bottom:24px}.motion-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:24px}.motion-grid article{min-width:0}.motion-grid video{aspect-ratio:16/9;object-fit:contain;background:#101318}
+
+.voice-choice{padding:16px 0;border-top:1px solid var(--border,#ddd)}.voice-choice audio{display:block;max-width:100%;margin:8px 0}.voice-choice .button-row{display:flex;gap:8px;flex-wrap:wrap}

@@ -21,11 +21,12 @@ revisa. Las claves se configuran en .env; nunca se guardan en el frontend.
 
 - Shorts con fondos locales: Fish + FFmpeg.
 - Shorts con Pexels: Fish + Pexels + FFmpeg nativos.
-- Vídeo largo: motor nativo experimental por defecto en CLI y estudio.
+- Vídeo largo: motor nativo experimental; Básico o Documental enriquecido desde el formulario, sin preparar un plan manual.
 - Montaje: compara A/B y renderiza planes por escena con audio/recursos locales;
-  gráficos, fotografía animada, reconstrucción 3D, caché y QA sobre el MP4 real.
+  galería de19composiciones, tres muestras UltimateBet, otro tema, fotografía y QA.
+  Three.js/póker se conserva opcional histórico.
 - Compilador de briefs: selección local por entidad/función, derechos y hashes;
-  biblioteca musical con crossfade/ducking. No interpreta guiones arbitrarios.
+  biblioteca de20músicas con crossfade/ducking,6SFX y11voces catalogadas. No interpreta guiones arbitrarios.
 - Guardado local: outputs/ready y outputs/longform. No requiere Google Drive.
 - Generar o asignar una fecha local no publica. Buffer requiere confirmación.
 - YouTube: CLI oficial de lectura preparado, consentimiento de Google pendiente.

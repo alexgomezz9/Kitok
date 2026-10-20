@@ -34,17 +34,19 @@ from kitok.media.ffmpeg import (
 from kitok.media.ffprobe import MediaInfo
 from kitok.providers.pexels import PexelsProvider
 from kitok.rendering.native import NativeLongformRenderer
+from kitok.editing.motion import provider_sections as validated_provider_sections
 from kitok.stock.cache import AssetCache, SearchCache
 from kitok.stock.models import SelectedStock, StockAsset, StockVariant
 from kitok.stock.selector import OutputGeometry, StockSelector
 
 
-def asset(asset_id=1, *, duration=20, variants=None, query="casino"):
+def asset(asset_id=1, *, duration=20, variants=None, query="casino", author=None, author_url=None, page_url=None):
     return StockAsset(
         asset_id=asset_id,
         query=query,
         duration=duration,
         variants=tuple(variants or [StockVariant("https://cdn.invalid/video.mp4", 1920, 1080, 30)]),
+        author=author, author_url=author_url, page_url=page_url,
     )
 
 
@@ -379,8 +381,9 @@ def test_longform_cli_defaults_to_native_and_preserves_explicit_mpt_recovery():
     assert historical.renderer == "mpt" and historical.resume == "known-task"
 
 
+@pytest.mark.parametrize("mounting,music_mode,aligned", [("basic", None, False), ("documentary", "off", False), ("basic", "auto", False), ("documentary", "manual", False), ("documentary", "auto", False), ("documentary", "auto", True)])
 def test_native_renderer_isolated_flow_reuses_fish_and_preserves_tags(
-    tmp_path, monkeypatch, caplog
+    tmp_path, monkeypatch, caplog, mounting, music_mode, aligned
 ):
     source = tmp_path / "cached.mp4"
     source.write_bytes(b"stock")
@@ -399,7 +402,10 @@ def test_native_renderer_isolated_flow_reuses_fish_and_preserves_tags(
 
     class Pexels:
         def search_videos(self, query, orientation):
-            return [asset(10, duration=90, query=query)]
+            return [asset(10, duration=90, query=query,
+                          author='Test videographer' if aligned else None,
+                          author_url='https://pexels.invalid/test-author' if aligned else None,
+                          page_url='https://pexels.invalid/video/10' if aligned else None)]
 
         def select_candidate(self, assets, **kwargs):
             return SelectedStock(assets[0], assets[0].variants[0])
@@ -446,6 +452,53 @@ def test_native_renderer_isolated_flow_reuses_fish_and_preserves_tags(
     destination = tmp_path / "outputs" / "longform" / "native_test.mp4"
     caplog.set_level(logging.DEBUG, logger="kitok.rendering.native")
 
+    definition.mounting_style = mounting
+    definition.music_mode = music_mode
+    definition.music_track = "long_note_two" if music_mode == "manual" else None
+    audio_calls = []
+    if aligned:
+        # Fish may emit a zero-length first token: legacy manifest projection
+        # falls back, while provider_sections validates the expanded transcript.
+        tokens = definition.item.script.split(']', 1)[1].strip().split()
+        words = [{'word': word, 'start': index*5., 'end': 0. if index == 0 else (index+1)*5.}
+                 for index, word in enumerate(tokens)]
+        monkeypatch.setattr('kitok.rendering.native.read_word_alignment', lambda path: {'words': words})
+    class Library:
+        def select_narrative(self, job_id, full_script, **kwargs):
+            audio_calls.append(("auto", job_id, kwargs))
+            mood_scripts.append(full_script)
+            assert full_script == definition.item.script and kwargs['channel'] == 'loose_thread'
+            return {"credits": ["Test attribution CC BY 4.0"], "changes_notice": "Mixed and ducked."}
+        def select_manual(self, job_id, track_id, **kwargs):
+            audio_calls.append(("manual", job_id, track_id))
+            return {"credits": ["Test attribution CC BY 4.0"], "changes_notice": "Mixed and ducked."}
+        def mix(self, job_id, narration, output, **kwargs):
+            audio_calls.append(("mix", job_id, narration.read_bytes()))
+            assert kwargs['sfx_events'] == ([{'time': 1.0, 'kind': 'soft_tick'}] if mounting == 'documentary' and music_mode == 'auto' else [])
+            assert kwargs['transition_at'] == (25.0 if music_mode == 'auto' else None)
+            output.write_bytes(b"final mix")
+        def close(self):
+            pass
+    monkeypatch.setattr(NativeLongformRenderer, "_audio_library", lambda self: Library())
+    mood_scripts = []
+    def transition(script, duration, *, sections, channel):
+        assert script == definition.item.script and duration == 65
+        if aligned:
+            assert sections == [{'text': script.split(']', 1)[1].strip(), 'start': 0., 'end': 35.}]
+        else:
+            assert sections is None
+        return {'transition_at': 25.0, 'method': 'fallback-central-estimated', 'reason': 'Test transition'}
+    monkeypatch.setattr('kitok.audio_library.narrative_transition', transition, raising=False)
+    motion_calls = []
+    def render_motion(clips, narration, duration, output, workspace, **kwargs):
+        motion_calls.append(kwargs)
+        assert narration.read_bytes() == (b"final mix" if music_mode in {"auto", "manual"} else b"audio")
+        assert kwargs["audio_is_final_mix"] == (music_mode in {"auto", "manual"})
+        assert kwargs["style"] == ("investigation" if mounting == "documentary" else "basic")
+        output.write_bytes(b"final")
+        return {}
+    monkeypatch.setitem(sys.modules, "kitok.editing.motion", SimpleNamespace(render_motion_longform=render_motion, automatic_sfx=lambda *args, **kwargs: [{"time": 1.0, "kind": "soft_tick"}], provider_sections=validated_provider_sections))
+
     result = NativeLongformRenderer(
         settings,
         Pexels(),
@@ -455,6 +508,11 @@ def test_native_renderer_isolated_flow_reuses_fish_and_preserves_tags(
         output=lambda _: None,
     ).render(definition)
 
+    assert bool(motion_calls) == (mounting == "documentary" or music_mode in {"auto", "manual"})
+    assert bool(audio_calls) == (music_mode in {"auto", "manual"})
+    assert bool(mood_scripts) == (music_mode == "auto")
+    if music_mode in {"auto", "manual"}:
+        assert "Test attribution CC BY 4.0" in destination.with_suffix(".credits.md").read_text()
     assert result.output.read_bytes() == b"final"
     assert result.renderer == "native"
     assert fish_calls == [(
@@ -463,6 +521,17 @@ def test_native_renderer_isolated_flow_reuses_fish_and_preserves_tags(
         {"speed": 0.98, "temperature": 0.8, "top_p": 0.7},
     )]
     manifest = json.loads(destination.with_suffix(".native.json").read_text())
+    assert len(manifest['stock_sources']) == 1
+    source = manifest['stock_sources'][0]
+    assert source['asset_id'] == 10 and source['author'] == ('Test videographer' if aligned else None)
+    assert source['author_url'] == ('https://pexels.invalid/test-author' if aligned else None)
+    assert source['source_url'] == ('https://pexels.invalid/video/10' if aligned else None)
+    assert source['license_url'] == 'https://www.pexels.com/license/'
+    assert source['download_url'] == 'https://cdn.invalid/video.mp4'
+    credits = destination.with_suffix('.credits.md').read_text()
+    assert credits.count('Pexels asset 10') == 1
+    assert ('Test videographer' if aligned else 'unknown (unverified legacy metadata)') in credits
+    assert 'Illustrative stock' in credits
     assert manifest["content_id"] == "native_test"
     assert manifest["narration_duration"] == 65
     assert not list((destination.parent / ".native-work").glob("native_test-*"))
@@ -555,3 +624,41 @@ def test_native_preflight_failure_happens_before_fish_and_creates_no_output(tmp_
     with pytest.raises(RuntimeError, match="missing Pexels key"):
         renderer.render(definition)
     assert not (tmp_path / "native.mp4").exists()
+
+
+@pytest.mark.parametrize("mounting,music_mode", [("documentary", "off"), ("basic", "auto"), ("basic", "manual")])
+@pytest.mark.parametrize("existing", ["output", "receipt"])
+def test_motion_start_over_rejects_existing_output_or_receipt_before_providers(tmp_path, monkeypatch, mounting, music_mode, existing):
+    destination = tmp_path / "preserved.mp4"
+    artifact = destination if existing == "output" else destination.with_suffix(".editorial.json")
+    artifact.write_bytes(b"approved previous result")
+    def forbidden(*args, **kwargs):
+        pytest.fail("Existing motion output must be rejected before paid work, searches or music selection")
+    renderer = NativeLongformRenderer(
+        Settings(_env_file=None), SimpleNamespace(preflight_searches=forbidden),
+        SimpleNamespace(), output_path=destination, fish_factory=forbidden,
+    )
+    monkeypatch.setattr(renderer, "_audio_library", forbidden)
+    definition = SimpleNamespace(mounting_style=mounting, music_mode=music_mode)
+    with pytest.raises(RuntimeError, match="new content ID"):
+        renderer.render(definition, start_over=True)
+    assert artifact.read_bytes() == b"approved previous result"
+    assert not (tmp_path / ".native-work").exists()
+
+
+@pytest.mark.parametrize('music_mode', [None, 'off'])
+def test_basic_start_over_cannot_overwrite_previous_editorial_result(tmp_path, monkeypatch, music_mode):
+    destination = tmp_path / 'previous-documentary.mp4'
+    destination.write_bytes(b'approved documentary')
+    receipt = destination.with_suffix('.editorial.json')
+    receipt.write_bytes(b'approved editorial receipt')
+    def forbidden(*args, **kwargs):
+        pytest.fail('Switching modes must not bypass previous editorial output protection')
+    renderer = NativeLongformRenderer(Settings(_env_file=None),
+        SimpleNamespace(preflight_searches=forbidden), SimpleNamespace(),
+        output_path=destination, fish_factory=forbidden)
+    monkeypatch.setattr(renderer, '_audio_library', forbidden)
+    with pytest.raises(RuntimeError, match='new content ID'):
+        renderer.render(SimpleNamespace(mounting_style='basic', music_mode=music_mode), start_over=True)
+    assert destination.read_bytes() == b'approved documentary'
+    assert receipt.read_bytes() == b'approved editorial receipt'

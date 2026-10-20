@@ -78,11 +78,23 @@ class LongformStudio:
         item = ContentItem(id=cid, subject=body.subject, script=body.script,
                            keywords=body.keywords, platforms=['youtube'], schedule_enabled=False)
         r.validate_tts_script(item.script)
-        return item, {
+        config = {
             'id': cid, 'subject': item.subject, 'keywords': item.keywords,
             'narrator_voice': body.narrator_voice or r.DEFAULT_NARRATOR_VOICE,
-            'music_enabled': body.music_enabled,
+            'music_enabled': body.music_enabled if body.music_mode is None else body.music_mode != 'off',
         }
+        # Keep historical draft configs byte-compatible for tamper detection.
+        if body.music_mode is not None:
+            config.update(music_mode=body.music_mode, music_track=body.music_track)
+        if body.mounting_style != 'basic':
+            config['mounting_style'] = body.mounting_style
+        if body.music_mode == 'manual' and not body.music_track:
+            raise ValueError('Selecciona una pista de la biblioteca para la música manual.')
+        if body.mounting_style == 'documentary' and body.music_mode is None and body.music_enabled:
+            raise ValueError('Para el montaje documental elige música automática, manual o desactivada.')
+        if body.music_mode != 'manual' and body.music_track is not None:
+            raise ValueError('La pista sólo se elige en modo de música manual.')
+        return item, config
 
     @staticmethod
     def _native_only(renderer):
@@ -103,7 +115,13 @@ class LongformStudio:
             {'label': 'FISH_API_KEY configurada en .env', 'ok': bool(self.s.fish_api_key.get_secret_value())},
             {'label': 'PEXELS_API_KEY configurada en .env', 'ok': bool(self.s.pexels_api_key.get_secret_value())},
         ]
-        if body.music_enabled:
+        if body.music_mode in {'auto', 'manual'}:
+            if body.music_mode == 'auto':
+                ready = self.music_narrative_options(item.script)['eligible']
+            else:
+                ready = any(row['id'] == body.music_track for row in self.music_options())
+            checks.append({'label': 'Música de biblioteca verificada en caché local', 'ok': ready})
+        elif body.music_mode is None and body.music_enabled:
             checks.append({'label': 'Música local disponible (assets/music/loose_thread/level.mp3)',
                            'ok': (self.root / r.DEFAULT_BACKGROUND_MUSIC_FILE).is_file()})
         return {'valid': True, 'can_generate': all(check['ok'] for check in checks),
@@ -111,6 +129,42 @@ class LongformStudio:
                 'checks': checks, 'format': '16:9 · 1920×1080 · sin subtítulos',
                 'note': 'Comprobación local: no verifica credenciales ni conexión. Generar usa Fish y Pexels; puede consumir saldo.',
                 'output_directory': str(self.root / 'outputs' / 'longform')}
+
+    def music_options(self):
+        from .audio_library import AudioLibrary
+        cache = self.root / 'cache' / 'audio-library'
+        catalog = self.root / 'presets' / 'music_sources.json'
+        if not cache.is_dir() or not catalog.is_file():
+            return []
+        library = AudioLibrary(catalog, cache, ffmpeg=self.s.ffmpeg_binary, ffprobe=self.s.ffprobe_binary)
+        try:
+            return library.available(channel='loose_thread')
+        finally:
+            library.close()
+
+    def music_narrative_options(self, script):
+        from .audio_library import AudioLibrary
+        cache = self.root / 'cache' / 'audio-library'
+        catalog = self.root / 'presets' / 'music_sources.json'
+        if not cache.is_dir() or not catalog.is_file():
+            return {'eligible': False, 'reason': 'No hay biblioteca musical local verificada.'}
+        library = AudioLibrary(catalog, cache, ffmpeg=self.s.ffmpeg_binary, ffprobe=self.s.ffprobe_binary)
+        try:
+            return library.narrative_options(script, channel='loose_thread')
+        finally:
+            library.close()
+
+    def music_preview(self, track_id):
+        from .audio_library import AudioLibrary
+        cache = self.root / 'cache' / 'audio-library'
+        catalog = self.root / 'presets' / 'music_sources.json'
+        if not cache.is_dir() or not catalog.is_file():
+            raise ValueError('Pista musical local no disponible')
+        library = AudioLibrary(catalog, cache, ffmpeg=self.s.ffmpeg_binary, ffprobe=self.s.ffprobe_binary)
+        try:
+            return library.preview(track_id)
+        finally:
+            library.close()
 
     def create(self, body):
         self.preview(body)  # Bad scripts never become stored jobs. Missing keys may be fixed later.
@@ -134,13 +188,17 @@ class LongformStudio:
         return {k: v for k, v in record.items() if k != 'request'} | {
             'preview_url': f'/api/longform/{cid}/video' if available else None,
             'download_url': f'/api/longform/{cid}/download' if available else None,
+            'credits_url': f'/api/longform/{cid}/credits' if available and path.with_suffix('.credits.md').is_file() else None,
             'config_path': str(self.folder / f'{cid}.json'),
             'script_path': str(self.folder / f'{cid}.txt'),
             'output_path': str(path),
             'script': record['request']['script'],
             'keywords': record['request']['keywords'],
             'narrator_voice': record['request']['narrator_voice'] or runner().DEFAULT_NARRATOR_VOICE,
-            'music_enabled': record['request']['music_enabled'],
+            'music_enabled': record['request'].get('music_mode') not in (None, 'off') or record['request'].get('music_mode') is None and record['request']['music_enabled'],
+            'music_mode': record['request'].get('music_mode'),
+            'music_track': record['request'].get('music_track'),
+            'mounting_style': record['request'].get('mounting_style', 'basic'),
         }
 
     def list(self):
@@ -154,6 +212,12 @@ class LongformStudio:
         if self._read(cid)['status'] != 'succeeded' or not self.output_path(cid).is_file():
             raise ValueError('El vídeo largo todavía no está disponible')
         return self.output_path(cid)
+
+    def credits_path(self, cid):
+        path = self.video_path(cid).with_suffix('.credits.md')
+        if not path.is_file() or path.is_symlink():
+            raise ValueError('Los créditos todavía no están disponibles')
+        return path
 
     def start(self, cid):
         with self.application._mutex:

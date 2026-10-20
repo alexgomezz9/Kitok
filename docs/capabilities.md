@@ -25,17 +25,18 @@ con las tareas editoriales; el operador también puede hacerlas sin agente.
 | Voz | Fish, caché por petición, conservación de audio confirmado y bloqueo de resultados inciertos; sin retry automático de POST de voz. | Revisar pronunciación, texto, tono e idioma antes de gastar; localizar audio/alineación existentes. | Escuchar y aprobar. Cambiar texto/voz/parámetros puede exigir nueva síntesis. No hay doblaje automático. |
 | Shorts | Narración Rick local, diálogo Rick/Morty con gameplay y narración Pexels; montaje nativo, personajes/subtítulos según el formato. | Elegir un formato y aportar guion, fondos/poses cuando correspondan. | Revisar el MP4. La suite con proveedores simulados no prueba una nueva generación real de todos los estilos. |
 | Largo básico | Fish + búsqueda/selección Pexels + FFmpeg; secciones, cortes y salida horizontal local. | Aportar guion completo y búsquedas pertinentes; revisar la relación frase/imagen. | Motor nativo experimental, 1080p, sin subtítulos. El stock puede ser genérico y el tiempo por sección estimado. |
+| Largo documental | MotionDirector conservador, 19 candidatos configurables, galería local y montaje Native por escenas. | Revisar preguntas/datos/intenciones, imágenes y muestras antes del episodio completo. | Automático: preguntas, cantidades, fechas, presentaciones explícitas y conceptos acotados. Diagramas/documentos complejos siguen necesitando un plan. |
 | Recursos específicos | Catálogo Commons, registro offline de Pexels ya cacheado, selección por entidad/rol, licencia y hash. | Comprobar identidad, contexto, derechos y utilidad; anotar entidad y función exactas. | Descargar/revisar los recursos faltantes. Buscar candidatos no verifica quién aparece en la imagen. |
 | Dirección por escenas | Compila un brief explícito, comprueba cobertura y recursos y produce un plan determinista. | Escribir beats con tiempos, afirmación, fuente, intención y recurso/composición. | Sin editor de timeline ni interpretación de un guion arbitrario. Un faltante bloquea la preparación. |
 | Montaje avanzado | Gráficos de identidad/cifra/información oculta, fotografía animada, rótulos, movimiento, render incremental y comparación A/B. | Elegir qué explica cada plano, legibilidad, ritmo y sincronía; reparar escenas concretas. | Los gráficos usan datos aportados. Los planos de mesa/informes tienen reparto UltimateBet fijo. |
-| Música y SFX | CLI con 20 pistas auditadas, elección reproducible por trabajo/canal/ambiente, rotación, crossfade, ducking, medidas y seis SFX sintéticos. | Elegir intención musical y escuchar la mezcla; conservar créditos. | Biblioteca separada del formulario y de la comparación aprobada. No hay compositor musical autónomo. |
+| Música y SFX | CLI con 20 pistas auditadas, elección reproducible por trabajo/canal/ambiente, rotación, crossfade, ducking, medidas y seis SFX sintéticos. | Elegir intención musical y escuchar la mezcla; conservar créditos. | Formulario largo con Automática/Desactivada/Manual; pistas cacheadas y créditos descargables. Cambia dos ambientes, no compone música nueva ni entiende el tono de cada frase. |
 | QA | Decodificación, geometría, duración, negros, sonoridad/pico, hashes, contacto visual y comparación del audio. | Ver el montaje y escuchar: semántica, continuidad, encuadre, contraste, pronunciación y ritmo. | Informe verde no acredita calidad narrativa ni ausencia de reclamaciones. |
 | Entrega | Descarga local; shorts con fecha local, preview, confirmación Buffer y reconciliación de IDs guardados. | Preparar metadatos y revisar destino. | Confirmar publicación. Largos fuera de Buffer; subida manual a YouTube Studio. |
 | Métricas | CLI YouTube oficial de lectura: OAuth, identidad/catálogo, consultas Analytics y enumeración Reporting. | Interpretar resultados cuando exista conexión real. | Consentimiento Google pendiente de comprobación real; CTR/CSV y dashboard no implementados. No hay optimización autónoma de retención. |
 
 Los agentes y skills que coordinan desarrollo, revisión o preparación editorial
-no son trabajos autónomos de Kitok. No se han instalado skills o MCP adicionales
-para convertirlo en un director; las capacidades descritas son las del repositorio.
+no son trabajos autónomos de Kitok. La skill local `kitok-audiovisual-qa` guía muestras y revisión; no instala un servicio
+ni amplía por sí sola el director. No se han instalado MCP adicionales; las capacidades descritas son las del repositorio.
 La aplicación no llama a un LLM por plano, fotograma o reintento de render.
 
 ## Un vídeo nuevo desde cero
@@ -178,7 +179,7 @@ aprobada. Si eliges esa mezcla para el vídeo, apruébala y úsala también en u
 nueva referencia A para exigir igualdad de audio. El formulario largo tiene
 su opción histórica de archivo de música local; no activa este selector.
 
-El catálogo musical conserva cuatro pistas de Kevin MacLeod bajo CC BY 4.0,
+El catálogo musical conserva 20 pistas de Kevin MacLeod bajo CC BY 4.0,
 con procedencia y créditos. Incluye las atribuciones y avisos de cambios de los
 recibos al distribuir el resultado. Content ID permanece `unknown`: licencia,
 hash y QA no garantizan ausencia de reclamaciones o monetización.

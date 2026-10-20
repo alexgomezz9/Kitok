@@ -18,3 +18,8 @@ export const send = <T>(path:string,body:unknown={},method='POST')=>api<T>(path,
 export const statusNames:Record<string,string>={pending:'Borrador',generating:'Generando',submitted:'Generando',generated:'Validando',ready:'Ready',failed:'Error',unscheduled:'Sin fecha',queued:'En cola',published:'Publicado',scheduled:'Programado',attention:'Revisar'}
 export function localInput(iso:string,zone:string){const parts=new Intl.DateTimeFormat('sv-SE',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(iso));return parts.replace(' ','T')}
 export type EditorialComparison = {id:string;title:string;status:string;stage:string;error:string|null;duration:number;scene_count:number;updated_at?:string;run_id?:string;media_revision?:string;qa_warning?:string|null;files:Record<string,string>;stats:null|{duration:number;geometry:number[];fps:number;full_decode:string;black_intervals:unknown[];loudness:Record<string,number|null>;comparison?:{audio_identical:boolean};manual_review_required?:string[]}}
+
+export type MusicTrack = {id:string; title:string; author:string; moods:string[]; attribution?:string; preview_url?:string}
+export type MotionItem = {id:string; title:string; family:string; duration:number; kind:"effect"|"sample"; files:Record<string,string>}
+
+export type LibraryVoice = {id:string;reference_id:string;display_name:string;languages:string[];tags:string[];selectable:boolean;favorite:boolean;assigned_channels:string[];samples:{url:string;kind:string;duration?:number}[]}
