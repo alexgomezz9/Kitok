@@ -71,9 +71,9 @@ visual de timeline. [Decisión tecnológica](docs/motion-research.md).
 
 ## Verificación y siguiente paso
 
-- Último checkpoint publicado previo: `a7eb776`; SHA remoto comprobado y
-  [CI 39451469106 correcto](https://github.com/alexgomezz9/Kitok/actions/runs/39451469106).
-  Gate anterior: 821 Python, 22 React, build y cinco E2E aislados.
+- Corrección publicada: `ecb1ac7`; SHA remoto comprobado, main intacta.
+  [CI del arreglo](https://github.com/alexgomezz9/Kitok/actions/runs/39457274652).
+  Checkpoint anterior `a7eb776`, CI 39451469106 correcto.
 - Corrección actual: `make verify` correcto: **826 Python (320,92 s), 22 React
   y build TypeScript/Vite**. `make docs-check` y `make studio-check` correctos.
   **Cinco E2E** aislados en puerto 18241 correctos (18,5 s), sin tocar el backend
@@ -84,5 +84,7 @@ visual de timeline. [Decisión tecnológica](docs/motion-research.md).
 - No nueva síntesis Fish, borrado de cachés/temporales, publicación ni merge a main.
   Trabajos anteriores, voz, alineación y cola se conservan. Buffer/OAuth intactos.
 
-Siguiente: commit/push de la corrección verificada y comprobar CI. El candidato se entrega por ruta local; el job conserva el
-fallo histórico. No lanzar otra generación completa automáticamente.
+Siguiente: el operador puede abrir el candidato completo y reiniciar su backend
+cuando esté inactivo para cargar la corrección. El job conserva el fallo histórico;
+el candidato está en la ruta local indicada. No lanzar otra generación completa
+automáticamente. Windows, escucha continua y aceptación siguen pendientes.
