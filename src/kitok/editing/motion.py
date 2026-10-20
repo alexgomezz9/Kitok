@@ -29,11 +29,21 @@ class MotionDecision:
                 'reason': self.reason, 'timing': self.timing, 'full_screen': self.full_screen}
 
 
-_AMOUNT = re.compile(r'(?:[$€£]\s*\d[\d,.]*(?:\s+(?:million|billion|thousand))?|\b\d[\d,.]*\s*(?:%|million|billion|thousand|dollars?|euros?|millones?|mil)\b)', re.I)
-_WORD_AMOUNT = re.compile(r'\b(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred)(?:[- ](?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|hundred|thousand|million|billion|and)){0,5}\s+(?:dollars?|euros?|pounds?)\b', re.I)
-_PERCENT = re.compile(r'\b\d+(?:[.,]\d+)?\s*%')
+_NUMBER = r'\d+(?:[.,]\d+)*'
+_SIGN = r'[+\-−]?\s*'
+_MAGNITUDE = r'(?:trillion|billion|million|thousand|billones?|millones?|mil|bn|[kmbt])'
+_UNIT = r'(?:dollars?|euros?|pounds?|por\s+ciento|%)'
+_RANGE = rf'(?:\s*[–—-]\s*{_SIGN}[$€£]?\s*{_NUMBER})?'
+_APPROX = r'(?:(?:about|roughly|approximately|more than|less than|at least|at most|up to|around)\s+)?'
+_AMOUNT = re.compile(
+    rf'(?<![\w.]){_APPROX}(?:{_SIGN}[$€£]\s*{_SIGN}{_NUMBER}{_RANGE}(?:\s*{_MAGNITUDE})?(?:\s*{_UNIT})?'
+    rf'|{_SIGN}{_NUMBER}{_RANGE}\s*(?:{_MAGNITUDE}(?:\s*{_UNIT})?|{_UNIT}))(?!\w)', re.I)
+_NUMBER_WORD = r'(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|million|billion|trillion|half|quarter|a)'
+_WORD_AMOUNT = re.compile(
+    rf'(?<![\w-]){_APPROX}(?:(?:minus|negative)\s+|[+−-]\s*)?{_NUMBER_WORD}(?:[\s-]+(?:and|point|{_NUMBER_WORD})){{0,22}}[\s-]+(?:dollars?|euros?|pounds?)(?!\w)', re.I)
 _CONCEPT = re.compile(r'\b(?:private cards|hidden cards|software code|source code|financial transfers|access control|private information|unfair advantage|información privada|acceso no autorizado|código fuente)\b', re.I)
-_DATE = re.compile(r'\b(?:(?:January|February|March|April|May|June|July|August|September|October|November|December|enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)\s+(?:de\s+)?)?(?:19|20)\d{2}\b',re.I)
+_MONTH = r'(?:January|February|March|April|May|June|July|August|September|October|November|December|enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)'
+_DATE = re.compile(rf'\b(?:(?P<month>{_MONTH}\s+(?:de\s+)?(?:19|20)\d{{2}})|(?:in|during|since|until|by|before|after|from|en|desde|hasta|durante|año|year)\s+(?P<year>(?:19|20)\d{{2}}))\b',re.I)
 _NAME = re.compile(r'\b(?:named|called|llamado|llamada)\s+([A-ZÀ-Ý][a-zà-ÿ]+(?:\s+[A-ZÀ-Ý][a-zà-ÿ]+){0,2})\b')
 
 
@@ -52,7 +62,7 @@ def provider_sections(sections, word_alignment, duration):
             start,end=float(word['start']),float(word['end'])
             if not math.isfinite(start+end) or start < previous-.02 or end < start or start<0 or end>duration+.05:
                 return None
-            previous=start
+            previous=end
             expanded.extend((token,start,end) for token in re.findall(r'\w+',str(word['word']).casefold()))
         expected=[token for section in sections for token in re.findall(r'\w+',section.section.casefold())]
         if expected != [token for token,_,_ in expanded]:
@@ -109,8 +119,10 @@ def direct_motion(editing, duration: float, *, preset='investigation', word_alig
             raise ValueError('Invalid motion section timing')
         text, effect, reason, full = '', '', '', False
         question = re.search(r'[^.!?]*\?', sentence)
-        amount = _AMOUNT.search(sentence) or _WORD_AMOUNT.search(sentence) or _PERCENT.search(sentence)
+        amount = _AMOUNT.search(sentence) or _WORD_AMOUNT.search(sentence)
         date = _DATE.search(sentence)
+        if date and re.match(r'\s+(?:rows|records|files|lines|filas|registros|archivos|líneas)\b',sentence[date.end():],re.I):
+            date = None
         name = _NAME.search(sentence)
         concept = _CONCEPT.search(sentence)
         if question and 12 <= len(question.group().strip()) <= 180:
@@ -118,13 +130,19 @@ def direct_motion(editing, duration: float, *, preset='investigation', word_alig
         elif amount:
             text, effect, reason = amount.group(), 'amount', 'Cantidad expresada literalmente, sin convertir unidades ni inferir cifras'
         elif date:
-            text, effect, reason = date.group(), 'date', 'Fecha explícita de contexto'
+            text, effect, reason = date.group('month') or date.group('year'), 'date', 'Fecha explícita de contexto'
         elif name:
             text, effect, reason = name[1], 'identity', 'Presentación explícita mediante named/called/llamado'
         elif concept and len(sentence)<=180:
             text, effect, reason = sentence, 'keyword', 'Concepto técnico explícito, mostrado dentro de su frase'
         if not effect:
             continue
+        if effect=='amount' and (len(text)>100 or re.search(r'[\w+−$€£–—-]$',sentence[:sentence.find(text)].rstrip())):
+            # An unrecognised prefix may be part of a larger quantity. Keep
+            # stock rather than highlight a smaller, factually different suffix.
+            prefix=sentence[:sentence.find(text)].rstrip().split()
+            if len(text)>100 or (prefix and re.fullmatch(r'(?:minus|negative|several|many|dozen|dozens|[\d.,]+|[+−$€£–—-])',prefix[-1],re.I)):
+                continue
         anchor, timing = left+.12, 'estimated-sentence'
         if usable_alignment and usable_alignment.get('words'):
             try:
@@ -279,7 +297,7 @@ def motion_plan(clips, narration: Path, duration: float, *, root: Path, episode_
                      asset=None if active and active.full_screen else f'clip_{i}',
                      source_start=0 if active and active.full_screen else max(0,clip.source_start+start-clip.slot.start),
                      motion_design=design,
-                     transition='dissolve' if style!='basic' and index>0 and index%5==0 else 'cut'))
+                     transition='dissolve' if active and active.full_screen and index>0 and abs(start-active_range[0])<1e-6 else 'cut'))
     return EditorialPlan(episode_id=episode_id,title='Documental enriquecido' if style!='basic' else 'Montaje básico',
                          audio_source=str(narration.relative_to(root)),audio_is_final_mix=audio_is_final_mix,
                          duration=duration,width=width,height=height,fps=fps,assets=assets,scenes=scenes,

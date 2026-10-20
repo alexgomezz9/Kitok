@@ -41,7 +41,7 @@ class MotionStudio:
                 data = json.loads(self._path(folder.name, 'item.json').read_text())
                 if data.get('id') != folder.name or data.get('kind') not in {'effect', 'sample'}:
                     continue
-                if (not isinstance(data.get('duration'), (int,float)) or not math.isfinite(data['duration'])
+                if (type(data.get('duration')) not in (int,float) or not math.isfinite(data['duration'])
                         or not 0 < data['duration'] <= 60 or not isinstance(data.get('title'), str)
                         or len(data['title']) > 180 or not isinstance(data.get('family'), str)):
                     continue

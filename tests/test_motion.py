@@ -205,3 +205,35 @@ def test_amount_context_only_trims_at_whole_words():
     for word in decision.design.label.replace('…','').split():
         assert word in text.split()
     assert len(decision.design.label)<=100
+
+
+@pytest.mark.parametrize('quantity',['$1.5 trillion','$20–30 million','-50%','−50%','-$20 million','$2.5bn','$22m','two hundred and fifty million dollars','one hundred twenty million dollars','one point five million dollars','one-and-a-half-million-dollar','more than twenty-two million dollars'])
+def test_literal_quantity_preserves_scale_sign_range_and_words(quantity):
+    edit=build_edit_manifest(f'The recorded quantity was {quantity} after the investigation.',40,['city'])
+    decisions=direct_motion(edit,40)
+    assert decisions[0].design.text==quantity
+
+
+def test_row_count_is_not_a_date_and_temporal_year_is():
+    assert not direct_motion(build_edit_manifest('The file contained 2020 rows of customer data.',20,['city']),20)
+    result=direct_motion(build_edit_manifest('In 2020 the rules changed for everybody.',20,['city']),20)
+    assert result[0].design.text=='2020'
+
+
+def test_contradictory_alignment_never_recovers_provider_precision():
+    edit=build_edit_manifest('Why did it happen?',20,['city'])
+    words=[{'word':w,'start':s,'end':e} for w,s,e in [('Why',0,9),('did',1,1.5),('it',2,2.5),('happen',3,3.5)]]
+    decision=direct_motion(edit,20,word_alignment={'words':words})[0]
+    assert decision.timing=='estimated-sentence'
+
+
+def test_gallery_rejects_boolean_duration(tmp_path):
+    folder=tmp_path/'outputs/motion-gallery/broken';folder.mkdir(parents=True)
+    (folder/'preview.mp4').write_bytes(b'preview')
+    (folder/'item.json').write_text(json.dumps({'id':'broken','kind':'effect','title':'Broken','family':'typography','duration':True}))
+    studio=MotionStudio(SimpleNamespace(s=SimpleNamespace(data_root=tmp_path)))
+    assert studio.list()==[]
+
+
+def test_comparison_rejects_blank_labels():
+    with pytest.raises(ValueError):MotionDesign(effect='comparison',text='Two outcomes',items=['A','   '],values=[10,40])

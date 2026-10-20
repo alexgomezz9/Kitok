@@ -62,7 +62,7 @@ class MotionDesign(BaseModel):
         if self.effect == 'keyword' and (not self.emphasis or self.emphasis not in self.text):
             raise ValueError('The highlighted phrase must occur verbatim in the text')
         if self.effect == 'comparison':
-            if len(self.items) != 2 or len(self.values) != 2 or not all(math.isfinite(v) and v >= 0 for v in self.values) or not max(self.values):
+            if len(self.items) != 2 or any(not x.strip() or len(x)>100 for x in self.items) or len(self.values) != 2 or not all(math.isfinite(v) and v >= 0 for v in self.values) or not max(self.values):
                 raise ValueError('A comparison needs two labelled, nonnegative, finite values')
         elif self.values:
             raise ValueError('Numeric chart values are only accepted for a comparison')
