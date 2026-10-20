@@ -343,6 +343,10 @@ def test_motion_gallery_api_serves_only_review_files_without_render(studio):
     row = response.json()[0]
     assert row['id'] == 'generic'
     assert client.get(row['files']['preview.mp4']).content == b'local preview'
+    partial = client.get(row['files']['preview.mp4'], headers={'Range': 'bytes=0-4'})
+    assert partial.status_code == 206 and partial.content == b'local'
+    assert partial.headers['content-type'] == 'video/mp4'
+    assert partial.headers['content-range'] == 'bytes 0-4/13'
     assert client.get(row['files']['CREDITS.md']).text == 'Local credits'
     assert client.get('/api/motion/generic/files/item.json').status_code == 422
     assert client.get('/api/motion/not_found/files/preview.mp4').status_code == 422

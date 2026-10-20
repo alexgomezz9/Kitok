@@ -59,7 +59,11 @@ selección automática de este modo.
 Las pruebas viven bajo `outputs/motion-gallery/ID/`: `preview.mp4`, `baseline.mp4`
 cuando corresponde, `contact.jpg`, `qa.json`, `CREDITS.md` y plan. Medios privados,
 no versionados. El estudio sirve sólo nombres permitidos por ID; rechaza traversal
-y symlinks. Consultar la galería no genera ni contacta proveedores.
+y symlinks. Consultar la galería no genera ni contacta proveedores. El vídeo se
+carga al pulsar «Reproducir muestra» o «Reproducir referencia básica»; sólo hay
+un reproductor activo. El contacto se ofrece como imagen estática en un desplegable,
+nunca como poster del vídeo. Un error de reproducción muestra la descarga del
+archivo afectado y no se presenta como prueba de corrupción del MP4.
 
 Para reconstruir efectos con stock existente y fuente/licencia revisadas:
 

@@ -139,11 +139,43 @@ describe('local editorial comparison',()=>{
    requests.push({path:String(path),body:null});
    return {ok:true,json:async()=>String(path)==='/api/motion'?[{id:'generic',title:'Documental de muestra',family:'investigation',duration:18,kind:'sample',files:{'preview.mp4':'/api/motion/generic/files/preview.mp4','CREDITS.md':'/api/motion/generic/files/CREDITS.md'}}]:[]} as Response
   });
+  vi.spyOn(HTMLMediaElement.prototype,'pause').mockImplementation(()=>{});
+  vi.spyOn(HTMLMediaElement.prototype,'load').mockImplementation(()=>{});
   render(<EditorialWorkbench onError={vi.fn()}/>);
-  await screen.findByLabelText('Muestra Documental de muestra');
+  await screen.findByRole('button',{name:'Reproducir muestra · Documental de muestra'});
+  expect(screen.queryByLabelText('Muestra Documental de muestra')).toBeNull();
+  fireEvent.click(screen.getByRole('button',{name:'Reproducir muestra · Documental de muestra'}));
+  expect(screen.getByLabelText('Muestra Documental de muestra')).toBeTruthy();
   expect(screen.getByRole('link',{name:'Descargar muestra'}).getAttribute('href')).toBe('/api/motion/generic/files/preview.mp4');
   expect(requests.every(r=>!r.path.includes('/jobs'))).toBe(true);
  })
+ it('loads a single gallery player on demand and exposes download after decode failure',async()=>{
+  const items=['one','two'].map(id=>({id,title:id,family:'investigation',duration:4,kind:id==='two'?'sample':'effect',files:{'preview.mp4':`/api/motion/${id}/files/preview.mp4`,'baseline.mp4':`/api/motion/${id}/files/baseline.mp4`,'contact.jpg':`/api/motion/${id}/files/contact.jpg`}}));
+  vi.mocked(fetch).mockImplementation(async(path)=>({ok:true,json:async()=>String(path)==='/api/motion'?items:[]}) as Response);
+  const pause=vi.spyOn(HTMLMediaElement.prototype,'pause').mockImplementation(()=>{});
+  const load=vi.spyOn(HTMLMediaElement.prototype,'load').mockImplementation(()=>{});
+  const {container}=render(<EditorialWorkbench onError={vi.fn()}/>);
+  await screen.findByRole('button',{name:'Reproducir muestra · one'});
+  expect(container.querySelectorAll('video')).toHaveLength(0);
+  expect(screen.getAllByRole('button',{name:/Reproducir muestra ·/})[0].getAttribute('aria-label')).toBe('Reproducir muestra · two');
+  fireEvent.click(screen.getByRole('button',{name:'Reproducir muestra · one'}));
+  const first=screen.getByLabelText('Muestra one');
+  expect(first.hasAttribute('poster')).toBe(false);
+  Object.defineProperty(first,'error',{value:{code:3}});fireEvent.error(first);
+  expect(screen.getByRole('alert').textContent).toContain('no pudo decodificar');
+  expect(screen.getByRole('link',{name:'Descargar este MP4'}).getAttribute('href')).toContain('/one/files/preview.mp4');
+  fireEvent.click(screen.getByRole('button',{name:'Reproducir muestra · one'}));
+  expect(screen.getByLabelText('Muestra one')).not.toBe(first);
+  expect(first.getAttribute('src')).toBeNull();
+  expect(pause).toHaveBeenCalled();expect(load).toHaveBeenCalled();
+  expect(screen.queryByRole('alert')).toBeNull();
+  fireEvent.click(screen.getByRole('button',{name:'Reproducir referencia · two'}));
+  expect(container.querySelectorAll('video')).toHaveLength(1);
+  expect(screen.queryByLabelText('Muestra one')).toBeNull();
+  expect(screen.getByLabelText('Referencia two').getAttribute('src')).toContain('/two/files/baseline.mp4');
+  expect(screen.queryByRole('alert')).toBeNull();
+  expect(screen.getByAltText('Fotogramas estáticos de revisión de one').getAttribute('src')).toContain('/one/files/contact.jpg');
+ });
  it('disables a second render while the shared worker is busy',async()=>{
   vi.mocked(fetch).mockImplementation(async(path)=>({ok:true,json:async()=>String(path)==='/api/motion'?[]:[{...row,status:'running'}]}) as Response);
   render(<EditorialWorkbench onError={vi.fn()}/>);

@@ -193,7 +193,7 @@ rótulos y movimientos elegidos por escena. Cambiar un plano reutiliza el resto.
 En «Montaje», selecciona «UltimateBet — C» para comparar el montaje anterior
 (A) con la nueva versión (B). Conservamos también la comparación original.
 El enlace de fuentes y licencias acompaña a la muestra nueva.
-La «Galería documental» ofrece efectos individuales y fragmentos con reproducción, descarga, referencia A/B y créditos. Revisa primero las tres muestras UltimateBet y la de otro tema. «Renderizar plan guardado» vuelve a montar los recursos sin sintetizar voz.
+La «Galería documental» ofrece efectos individuales y fragmentos con reproducción, descarga, referencia A/B y créditos. Pulsa «Reproducir muestra» o «Reproducir referencia básica»: se carga un vídeo cada vez. «Ver fotogramas de revisión» muestra un mosaico estático, no la animación. Si el navegador avisa de un error, conserva el enlace para descargar ese MP4 y probarlo en un reproductor local. Revisa primero las tres muestras UltimateBet y la de otro tema. «Renderizar plan guardado» vuelve a montar los recursos sin sintetizar voz.
 Para otro vídeo prepara un brief o un plan local; no hay editor visual de timeline.
 Los planos 3D opcionales requieren `make cinema-setup` una sola vez.
 La nueva biblioteca de composiciones y sus comandos locales están en

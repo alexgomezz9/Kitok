@@ -3,6 +3,19 @@
 Actualizado: 2026-10-20. Rama **feature/documentary-motion**, base **main bfd43c5**.
 Manual operativo: [GUIA.md](GUIA.md). Decisiones y licencias: [investigación](docs/motion-research.md).
 
+## Revisión abierta por feedback del operador
+
+El 20/10 el operador rechazó el lenguaje visual de las primeras muestras por
+parecer tarjetas/subtítulos estáticos. Su calidad editorial **no está aprobada**;
+se está revisando primero una prueba corta, sin render completo ni nueva Fish.
+El error «could not be decoded» se reportó al abrir enlaces del chat. No se
+reprodujo en Kitok: los 24 vídeos originales llegaron al final por HTTP en Chromium
+(en dos ejecuciones). Una muestra conserva audio PCM; se prepara entrega AAC
+para mejorar compatibilidad sin reemplazar el original.
+La galería ahora carga un único reproductor por clic, prioriza muestras y separa
+el mosaico estático del vídeo. Verificación: 21 React, build, API Range 206 y
+reproducción real; esto no explica ni resuelve por sí solo el error del chat.
+
 ## Capacidades comprobadas
 
 - Documental enriquecido integrado en Vídeo largo: Native/FFmpeg, ASS y Pillow;
@@ -65,6 +78,7 @@ licensed de Fish no acredita consentimiento universal.
   no leída. La restauración de cola del 19/10 y su límite siguen registrados en
   `local/backups`: sin hash previo que certifique cambios locales posteriores.
 
-Siguiente paso: escuchar y aprobar las muestras. Después, el operador podrá usar
+Siguiente paso: corregir y revisar el movimiento y composición de las muestras
+cortas antes de volver a pedir aceptación audiovisual. Después, el operador podrá usar
 **Vídeo largo → Documental enriquecido → Comprobar → Guardar → Generar** para un
 trabajo nuevo. No lanzar UltimateBet completo desde un agente durante esta fase.
