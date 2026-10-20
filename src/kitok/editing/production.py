@@ -19,7 +19,7 @@ from .ass import filter_path
 from .graphics import render_graphic
 from .storyboard import EditorialPlan, file_hash, project_file
 
-RENDER_VERSION = 2
+RENDER_VERSION = 3
 
 
 def _run(command: list[str], timeout: int = 900):
@@ -234,8 +234,14 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
                     _run([settings.ffmpeg_binary,'-nostdin','-v','error','-y',
                           '-loop','1','-framerate',str(plan.fps),'-t',f'{blend:.6f}','-i',str(still),'-i',str(temp),
                           '-filter_complex_threads','1','-filter_complex',
-                          f'[0:v]format=yuv420p,settb=AVTB[a];[1:v]format=yuv420p,settb=AVTB[b];[a][b]xfade=transition={mode}:duration={blend:.6f}:offset=0[v]',
-                          '-map','[v]','-an','-t',f'{duration:.6f}',*encoder_arguments(encoder),'-threads','2',str(transitioned)])
+                          # xfade negotiates a planar 4:4:4 working format even
+                          # when both inputs are 4:2:0. Convert AFTER the filter:
+                          # otherwise a concatenated avc1 MP4 can switch from
+                          # High/4:2:0 to High 4:4:4 midstream while ffprobe's
+                          # stream summary still reports its first frame only.
+                          f'[0:v]format=yuv420p,settb=AVTB[a];[1:v]format=yuv420p,settb=AVTB[b];[a][b]xfade=transition={mode}:duration={blend:.6f}:offset=0,format=yuv420p[v]',
+                          '-map','[v]','-an','-t',f'{duration:.6f}',*encoder_arguments(encoder),
+                          '-pix_fmt','yuv420p','-threads','2',str(transitioned)])
                     transitioned.replace(temp)
                 info = probe_media(temp,settings.ffprobe_binary)
                 if abs(info.duration-duration) > 1/plan.fps+.05:

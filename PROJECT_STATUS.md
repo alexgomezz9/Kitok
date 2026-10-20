@@ -14,12 +14,27 @@ solitario, tienda de apps y blackjack; el stock sigue siendo ilustrativo.
 La revisión independiente cerró los defectos visuales concretos y de continuidad;
 esto **no acredita aprobación profesional ni escucha continua**.
 
-La galería carga un único vídeo por clic, muestra primero las muestras y separa
-los contactos estáticos del reproductor. El error «could not be decoded» fue
-reportado en enlaces del chat: no se reprodujo desde Kitok en Chromium. No se
-atribuye una causa no comprobada ni se promete que ese error externo esté resuelto.
-Los nuevos MP4 usan H.264/yuv420p y AAC; el renderer convierte PCM una vez a AAC
-sin normalizar otra vez, conserva el máster y copia AAC ya aprobado sin recodificar.
+## Incidente real de audio y compatibilidad
+
+Trabajo `lf_cf5e16bb422547aabfb4f5b8b9ef131a` fallido: narración existente
+654,733 s, SHA `98c30397e5f542272d07cd757c443c1ffaf2568b09d37f1b540a18636f3d0106`.
+Decode completo, guion/voz/modelo/velocidad y recibo Fish coincidentes; 1.849 tokens
+alineados, incluidos 84 de duración cero. Ninguna nueva solicitud Fish.
+
+Reproducción offline exacta con músicas cacheadas y nueve SFX: la mezcla fallida
+mide 654,599 s (−134 ms frente a tolerancia 80 ms), −15,99 LUFS, LRA 3,50 y
+−1,80 dBTP. Sólo falla duración. La corrección del reloj de muestras ha producido
+654,733 s con las mismas medidas de sonoridad, sin padding ni límites ampliados.
+Recuperación estricta y regresión larga en verificación; no se retoma el episodio
+completo durante el diagnóstico. El trabajo original permanece fallido e intacto.
+
+La nueva evidencia del operador incluye fallo en Kitok y Windows descargado.
+Auditoría de todos los fotogramas encontró seis MP4 con cambio intermedio de
+High/4:2:0 a High 4:4:4 en transiciones; la cabecera inicial no lo revelaba.
+Renderer corregido después de `xfade`, formato de salida fijado y caché invalidada.
+23 copias nuevas `_compat1`: 5.640 frames uniformes 4:2:0, decode completo y AAC
+idéntico; originales y metadatos preservados con respaldo. Windows real no está
+verificado en este host Linux. [Detalles y reparación](docs/motion.md).
 
 ## Muestras vigentes
 
@@ -27,12 +42,12 @@ En `outputs/motion-gallery/`, **Montaje → Galería documental → Reproducir m
 
 | ID | Duración | LUFS / dBTP |
 | --- | --- | --- |
-| `ub_opening_v7` | 31 s, 1080p | −16,09 / −1,83 |
-| `ub_development_v7` | 31,5 s, 1080p | −15,96 / −1,79 |
-| `ub_revelation_v7` | 29,5 s, 1080p | −16,10 / −1,85 |
-| `generalization_mfa_v3` | 20 s, 1080p | −15,74 / −1,78 |
+| `ub_opening_v7_compat1` | 31 s, 1080p | −16,09 / −1,83 |
+| `ub_development_v7_compat1` | 31,5 s, 1080p | −15,96 / −1,79 |
+| `ub_revelation_v7_compat1` | 29,5 s, 1080p | −16,10 / −1,85 |
+| `generalization_mfa_v3_compat1` | 20 s, 1080p | −15,74 / −1,78 |
 
-Además, 19 efectos individuales `effect_r2_*` de cuatro segundos: 23 ítems activos.
+Además, 19 efectos individuales `effect_r2_*_compat1` de cuatro segundos: 23 ítems activos.
 Las tres UB conservan voz/música anteriores y referencia A/B con audio idéntico.
 MFA demuestra reutilización visual sin narración nueva. Versiones anteriores
 archivadas en metadata, sin eliminar MP4; 28 hashes de originales comprobados
@@ -73,6 +88,8 @@ como prueba técnica histórica, fuera de la selección visual vigente.
   no se modificaron. El límite histórico de restauración de cola del 19/10 sigue
   registrado en `local/backups`; no hay hash previo que certifique cambios posteriores.
 
-Siguiente: revisar movimiento y escuchar las muestras nuevas en el estudio. Tras
+Siguiente: cerrar pruebas y revisión de recuperación segura sin Fish, comprobar
+mezcla y MP4 corto reales, publicar checkpoints y verificar CI. Después revisar
+las copias compatibles en el navegador y reproductor Windows del operador. Tras
 aprobar calidad, el operador podrá usar **Vídeo largo → Documental enriquecido →
 Comprobar → Guardar → Generar**. No lanzar UltimateBet completo desde un agente.
