@@ -14,8 +14,9 @@ UltimateBet completo en esta fase. Entrega anterior integrada por autorización.
   correctos20/10; demo20s -16.00LUFS/-1.99dBTP. Audición humana pendiente.
 - [Investigación](docs/motion-research.md): conservarFFmpeg/ASS/Pillow; alternativas
   revisadas, sin instalar otro motor. Three.js queda opcional histórico.
-- Compositor/galería/frontend están en implementación y revisión; todavía no
-  se consideran entregados. Próximo checkpoint: muestras y controles integrados.
+- Compositor local19candidatos y MotionDirector con intenciones acotadas:46tests
+  de montaje/estudio y14motion correctos20/10; revisión independiente cerrada. Galería19MP4 de4s renderizada e inspeccionada
+  por contacto. Frontend/muestras aún en revisión; siguiente: controles integrados.
 - CI anterior bfd43c5 comprobado20/10: main39291059237 y feature39291054745 success.
 
 Código y guías: **18e6031**, SHA local/remoto comprobado. Manual: [GUIA.md](GUIA.md).

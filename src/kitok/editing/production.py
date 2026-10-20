@@ -19,7 +19,7 @@ from .ass import filter_path
 from .graphics import render_graphic
 from .storyboard import EditorialPlan, file_hash, project_file
 
-RENDER_VERSION = 1
+RENDER_VERSION = 2
 
 
 def _run(command: list[str], timeout: int = 900):
@@ -146,6 +146,11 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
                               fps=plan.fps, output=source, settings=settings, encoder=encoder,
                               photo=assets[scene.asset] if scene.asset else None)
                 source_identity = file_hash(source)
+            elif scene.graphic == 'motion':
+                from .motion_components import background_plate
+                source = workspace / f'{scene.id}.png'
+                background_plate(scene.motion_design, source, plan.width, plan.height)
+                source_identity = file_hash(source)
             elif image:
                 source = workspace / f"{scene.id}.png"
                 render_graphic(scene.graphic, scene.graphic_data, source,
@@ -171,6 +176,15 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
             elif scene.motion == "pan":
                 sw, sh = round(plan.width*1.035/2)*2, round(plan.height*1.035/2)*2
                 filters.extend([f"scale={sw}:{sh}",f"crop={plan.width}:{plan.height}:x='(iw-ow)*min(t/{duration:.6f},1)':y='(ih-oh)/2'"])
+            if scene.motion_design:
+                from .motion_components import write_motion_ass, treatment_filters
+                motion_ass = workspace / f'{scene.id}.motion.ass'
+                has_text = write_motion_ass(scene.motion_design, motion_ass, duration=duration,
+                                            width=plan.width, height=plan.height, over_stock=bool(scene.asset))
+                filters.extend(treatment_filters(scene.motion_design, duration=duration,
+                                                 width=plan.width, height=plan.height, fps=plan.fps))
+                if has_text:
+                    filters.append(f"ass='{filter_path(motion_ass)}'")
             if scene.headline or scene.kicker:
                 filters.append(f"ass='{filter_path(caption)}'")
             if scene.transition == "fade":
@@ -179,7 +193,10 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
             receipt = workspace / f"{scene.id}.json"
             scene_key = scene.model_dump(exclude={"palette", "headline_style"})
             key_data = {"version":RENDER_VERSION, "scene":scene_key, "source_hash":source_identity,
-                        "filters":filters,"encoder":encoder.__dict__,"caption":caption.read_text()}
+                        "filters":filters,"encoder":encoder.__dict__,"caption":caption.read_text(),
+                        "motion_ass":motion_ass.read_text() if scene.motion_design else None,
+                        "motion_code":file_hash(Path(__file__).with_name('motion_components.py')) if scene.motion_design else None,
+                        "previous":file_hash(clips[-1].source) if clips and scene.transition in {'dissolve','wipe'} else None}
             import hashlib
             fingerprint = hashlib.sha256(json.dumps(key_data,sort_keys=True).encode()).hexdigest()
             hit = False
@@ -200,6 +217,23 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
                 command += ["-i",str(source),"-an","-t",f"{duration:.6f}","-vf",",".join(filters),
                             "-filter_threads","1",*encoder_arguments(encoder),"-pix_fmt","yuv420p","-threads","2",str(temp)]
                 _run(command)
+                if clips and scene.transition in {'dissolve', 'wipe'}:
+                    # Borrow only the preceding final frame. Incoming frames keep their
+                    # timestamps, so a transition never shifts narration or shot boundaries.
+                    prior = clips[-1]
+                    still = workspace / f'{scene.id}.previous.png'
+                    _run([settings.ffmpeg_binary,'-nostdin','-v','error','-y',
+                          '-ss',str(max(0, prior.slot.duration-1/plan.fps)), '-i',str(prior.source),
+                          '-frames:v','1',str(still)])
+                    transitioned = temp.with_name(temp.stem+'.transition.mp4')
+                    blend = min(.28, duration/3)
+                    mode = 'fade' if scene.transition == 'dissolve' else 'wipeleft'
+                    _run([settings.ffmpeg_binary,'-nostdin','-v','error','-y',
+                          '-loop','1','-framerate',str(plan.fps),'-t',f'{blend:.6f}','-i',str(still),'-i',str(temp),
+                          '-filter_complex_threads','1','-filter_complex',
+                          f'[0:v]format=yuv420p,settb=AVTB[a];[1:v]format=yuv420p,settb=AVTB[b];[a][b]xfade=transition={mode}:duration={blend:.6f}:offset=0[v]',
+                          '-map','[v]','-an','-t',f'{duration:.6f}',*encoder_arguments(encoder),'-threads','2',str(transitioned)])
+                    transitioned.replace(temp)
                 info = probe_media(temp,settings.ffprobe_binary)
                 if abs(info.duration-duration) > 1/plan.fps+.05:
                     raise RuntimeError(f"Scene duration mismatch: {scene.id}")
@@ -213,8 +247,21 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
         engine = FFmpegNativeEngine(ffmpeg=settings.ffmpeg_binary,ffprobe=settings.ffprobe_binary,
                                    encoder=encoder,spec=spec)
         assembled = workspace / "assembled.mp4"
-        engine.render(clips,audio,plan.duration,assembled,workspace/"assembly",
-                      music=None,music_volume=0,loudness_target=-16,lra_target=20,true_peak_target=-1.5)
+        if plan.audio_is_final_mix:
+            # All scene files already share geometry/codec/timebase. Joining them
+            # by stream copy avoids a redundant encode and never normalizes an
+            # approved mix (including intentionally silent gallery audio).
+            concat_file = workspace / 'scenes.ffconcat'
+            lines = ['ffconcat version 1.0']
+            for clip in clips:
+                escaped = str(clip.source.resolve()).replace("'", "'\\''")
+                lines.append(f"file '{escaped}'")
+            concat_file.write_text('\n'.join(lines)+'\n',encoding='utf-8')
+            _run([settings.ffmpeg_binary,'-nostdin','-v','error','-y','-f','concat','-safe','0',
+                  '-i',str(concat_file),'-map','0:v:0','-c:v','copy','-an',str(assembled)])
+        else:
+            engine.render(clips,audio,plan.duration,assembled,workspace/"assembly",
+                          music=None,music_volume=0,loudness_target=-16,lra_target=20,true_peak_target=-1.5)
         pending = output.with_name(f".{output.stem}.{uuid4().hex}.part.mp4")
         if plan.audio_is_final_mix:
             # Exactly the approved mix. Rendering visuals must not alter its gain/music.

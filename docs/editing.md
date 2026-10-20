@@ -3,7 +3,9 @@
 El montaje básico de largos usa búsquedas y secciones del guion. El montaje por
 escenas añade decisiones explícitas sobre una narración ya aprobada: qué explica
 cada plano, qué fuente respalda el dato, qué recurso muestra y cuándo cambia.
-No investiga ni inventa esas decisiones automáticamente.
+No investiga hechos ni inventa esas decisiones. El modo automático documental
+elige un subconjunto conservador de intenciones del guion; su repertorio, galería
+y límites están en [Documental enriquecido](motion.md).
 
 ## Preparar un montaje
 
@@ -47,7 +49,7 @@ insuficiente ni se cambia por otra silenciosamente.
 
 `headline` y `kicker` son rótulos breves deliberados; no se extraen palabras sueltas
 mediante regex. Movimiento: ninguno, acercamiento o desplazamiento suave.
-Transición: corte o entrada breve desde negro. `palette` marfil/verde y `accent`
+Transición: corte, entrada breve desde negro, disolución o barrido breve sin desplazar la voz. `palette` marfil/verde y `accent`
 fijan el estilo del plan; una escena puede cambiar la paleta. `channel_id` registra
 el canal y permite conservar planes de estilos distintos, pero no resuelve un
 catálogo multicanal ni abre canales de YouTube.
@@ -68,7 +70,8 @@ secuenciales usan NVENC cuando la comprobación real funciona y libx264 como
 alternativa; no necesitan modelos de vídeo ni descargas CUDA.
 
 La integración del estudio ofrece reproducción A/B y render explícito del plan
-local. No hay editor visual de timeline ni generación autónoma de planes.
+local. No hay editor visual de timeline. El modo documental automático de largos
+produce un plan acotado; no sustituye un brief investigado.
 
 ## Planos con acción y fotografía
 

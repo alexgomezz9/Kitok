@@ -195,6 +195,8 @@ El enlace de fuentes y licencias acompaña a la muestra nueva.
 «Renderizar plan guardado» vuelve a montar los recursos sin sintetizar voz.
 Para otro vídeo prepara un brief o un plan local; no hay editor visual de timeline.
 Los planos 3D opcionales requieren `make cinema-setup` una sola vez.
+La nueva biblioteca de composiciones y sus comandos locales están en
+[docs/motion.md](docs/motion.md).
 
 La preparación y el comando están en [docs/editing.md](docs/editing.md), con una
 plantilla en examples/editorial/plan.json. No genera guion ni hace llamadas a

@@ -24,6 +24,9 @@ class EditorialAsset(PlanModel):
     sha256: str | None = Field(default=None, pattern=r'^[a-f0-9]{64}$')
 
 
+from .motion_components import MotionDesign
+
+
 class EditorialScene(PlanModel):
     id: str = Field(pattern=r"^[A-Za-z0-9_-]{1,70}$")
     start: float = Field(ge=0, allow_inf_nan=False)
@@ -33,12 +36,13 @@ class EditorialScene(PlanModel):
     evidence_url: str | None = Field(default=None, max_length=2000)
     asset: str | None = None
     source_start: float = Field(default=0, ge=0, allow_inf_nan=False)
-    graphic: Literal["identity", "metric", "hidden_information"] | None = None
+    graphic: Literal["identity", "metric", "hidden_information", "motion"] | None = None
     graphic_data: dict = Field(default_factory=dict)
     composition: Literal['table', 'records', 'photo'] | None = None
     composition_data: dict = Field(default_factory=dict)
     motion: Literal["none", "push", "pan"] = "none"
-    transition: Literal["cut", "fade"] = "cut"
+    transition: Literal["cut", "fade", "dissolve", "wipe"] = "cut"
+    motion_design: MotionDesign | None = None
     headline: str | None = Field(default=None, max_length=95)
     kicker: str | None = Field(default=None, max_length=80)
     palette: Literal["ivory", "green"] | None = None
@@ -48,6 +52,12 @@ class EditorialScene(PlanModel):
     def valid_scene(self):
         if self.end - self.start < .4 - 1e-6:
             raise ValueError("A scene needs at least 0.4 seconds")
+        if self.graphic == 'motion' and self.motion_design is None:
+            raise ValueError('A motion plate needs an explicit motion design')
+        if self.motion_design and (self.motion_design.delay >= self.end-self.start-.3):
+            raise ValueError('Motion delay must leave a readable interval')
+        if self.motion_design and self.composition:
+            raise ValueError('Motion design uses stock or a motion plate, not legacy 3D')
         if self.composition:
             from .cinema import CinemaData
             data = CinemaData.model_validate(self.composition_data)
