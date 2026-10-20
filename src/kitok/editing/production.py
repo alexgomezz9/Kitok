@@ -112,6 +112,9 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
     # Validate every local input before creating outputs.
     assets = {key: project_file(root, asset.path) for key, asset in plan.assets.items()}
     inputs = {audio: file_hash(audio)}
+    if any(scene.motion_design for scene in plan.scenes):
+        for code in (Path(__file__),Path(__file__).with_name('motion_components.py')):
+            inputs[code]=file_hash(code)
     if plan.alignment.get('audio_sha256', inputs[audio]) != inputs[audio]:
         raise ValueError('Approved audio changed after preparing the plan')
     for key, source in assets.items():
@@ -195,7 +198,7 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
             key_data = {"version":RENDER_VERSION, "scene":scene_key, "source_hash":source_identity,
                         "filters":filters,"encoder":encoder.__dict__,"caption":caption.read_text(),
                         "motion_ass":motion_ass.read_text() if scene.motion_design else None,
-                        "motion_code":file_hash(Path(__file__).with_name('motion_components.py')) if scene.motion_design else None,
+                        "motion_code":inputs[Path(__file__).with_name('motion_components.py')] if scene.motion_design else None,
                         "previous":file_hash(clips[-1].source) if clips and scene.transition in {'dissolve','wipe'} else None}
             import hashlib
             fingerprint = hashlib.sha256(json.dumps(key_data,sort_keys=True).encode()).hexdigest()

@@ -154,3 +154,54 @@ def test_automatic_sfx_is_sparse_and_contextual():
     assert len(events)<=4
     assert all(b['time']-a['time']>=15 for a,b in zip(events,events[1:]))
     assert automatic_sfx(build_edit_manifest('A quiet landscape continues without any claim.',20,['city']),20)==[]
+
+
+def test_keyword_keeps_global_clock_across_stock_cuts(tmp_path):
+    audio=tmp_path/'voice.wav';audio.write_bytes(b'voice')
+    stock=tmp_path/'stock.mp4';stock.write_bytes(b'stock')
+    clips=[TimelineClip(TimelineSlot(0,'city',0,5),1,stock,0),TimelineClip(TimelineSlot(1,'city',5,25),1,stock,0)]
+    edit=SimpleNamespace(sections=[SimpleNamespace(section='The software code changed the hidden information boundary.',audio_start=3,audio_end=9)])
+    plan=motion_plan(clips,audio,30,root=tmp_path,episode_id='keyword_continuity',editing=edit)
+    highlights=[s for s in plan.scenes if s.motion_design]
+    assert len(highlights)==2
+    assert highlights[1].motion_design.elapsed==pytest.approx(2)
+    path=tmp_path/'continuation.ass'
+    write_motion_ass(highlights[1].motion_design,path,duration=highlights[1].end-highlights[1].start,width=1920,height=1080,over_stock=True)
+    assert r'\move' not in path.read_text()
+    assert r'\fade(0,0,' in path.read_text()
+
+
+def test_long_question_uses_available_budget_instead_of_disappearing():
+    edit=SimpleNamespace(sections=[SimpleNamespace(section='Why is this important?',audio_start=0,audio_end=8)])
+    decisions=direct_motion(edit,20)
+    assert decisions[0].design.effect=='question'
+    assert decisions[0].end==pytest.approx(7.6)
+
+
+def test_keyword_entry_continues_position_and_alpha_mid_animation(tmp_path):
+    design=MotionDesign(effect='keyword',text='This information is private.',emphasis='private',delay=0,emphasis_delay=1.9,elapsed=2,hold=4)
+    path=tmp_path/'entry.ass'
+    write_motion_ass(design,path,duration=2,width=1920,height=1080,over_stock=True)
+    emphasis=next(line for line in path.read_text().splitlines() if line.endswith('private'))
+    assert r'\move' in emphasis and ',0,200)' in emphasis
+    assert r'\fade(113,0,255,0,80,' in emphasis
+
+
+def test_revelation_survives_overlay_boundary_via_plate(tmp_path):
+    audio=tmp_path/'voice.wav';audio.write_bytes(b'voice')
+    stock=tmp_path/'stock.mp4';stock.write_bytes(b'stock')
+    clips=[TimelineClip(TimelineSlot(0,'city',0,3.8),1,stock,0),TimelineClip(TimelineSlot(1,'city',3.8,26.2),1,stock,0)]
+    edit=SimpleNamespace(sections=[SimpleNamespace(section='It cost $22 million.',audio_start=0,audio_end=7)])
+    plan=motion_plan(clips,audio,30,root=tmp_path,episode_id='revelation',editing=edit)
+    assert any(s.motion_design and s.motion_design.effect=='amount' and s.graphic=='motion' for s in plan.scenes)
+
+
+def test_amount_context_only_trims_at_whole_words():
+    text="The regulator's final decision in September 2009 said more than twenty-two million dollars had been refunded to affected players."
+    edit=build_edit_manifest(text,20,['city'])
+    decision=direct_motion(edit,20)[0]
+    assert decision.design.effect=='amount'
+    assert 'refunded' in decision.design.label
+    for word in decision.design.label.replace('…','').split():
+        assert word in text.split()
+    assert len(decision.design.label)<=100

@@ -19,7 +19,7 @@ por qué Remotion, Motion Canvas, MotionCraft, MLT y frei0r se aplazan.
 | Transiciones | Disolución y barrido breves |
 
 `MotionDesign` valida `effect`, `text`, `label`, `detail`, `emphasis`, `items`,
-`values`, `preset`, `delay` y `hold`. `investigation`, `archive` y `signal` cambian
+`values`, `preset`, `delay`, `hold` y reloj `elapsed`/`emphasis_delay`. `investigation`, `archive` y `signal` cambian
 paleta y jerarquía. Los datos son aportados: no hay nombres ni cantidades históricas
 por defecto. Las comparaciones necesitan valores finitos no negativos y etiquetas;
 el editor debe comprobar unidad, fuente y significado. Los diagramas/citas no se
@@ -43,10 +43,11 @@ lugares y comparaciones complejas requieren decisiones explícitas en un plan.
 Busca las frases en timestamps Fish sólo si la alineación coincide con el transcript
 expandido completo (incluidos guiones divididos y tokens de duración cero). Si no,
 conserva tiempos estimados declarados. Cada decisión registra razón y método.
-Máximo38% de tiempo con énfasis, separación mínima3s y memoria de las dos familias
+Preguntas y cantidades tienen prioridad sobre contexto opcional. Máximo38% de tiempo con énfasis, separación mínima3s y memoria de las dos familias
 recientes en45s. Una pregunta ocupa una placa continua; no reinicia animación por
-cada corte de stock. Los efectos sobre stock no cruzan un corte si no pueden
-mantenerse legibles. Una falta de cobertura bloquea el render.
+cada corte de stock. Los efectos sobre stock conservan un reloj global al cruzar cortes, incluidos
+entrada/salida y énfasis anclado a Fish; un fragmento demasiado corto puede
+convertirse en placa continua sin extender ni agotar el stock. Una falta de cobertura bloquea el render.
 
 El modo básico mantiene su recorrido anterior. El puente `render_motion_longform`
 produce un plan y reutiliza la ejecución por escenas. No altera Buffer, shorts,

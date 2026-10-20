@@ -71,6 +71,22 @@ def provider_sections(sections, word_alignment, duration):
         return None
 
 
+def _context_excerpt(sentence,phrase,limit=100):
+    if len(sentence)<=limit:
+        return sentence
+    before,after=sentence.split(phrase,1)
+    prefix,suffix=before.split()[-5:],after.split()[:8]
+    def value():
+        body=' '.join([*prefix,phrase,*suffix])
+        return ('… ' if len(before.split())>len(prefix) else '')+body+(' …' if len(after.split())>len(suffix) else '')
+    while len(value())>limit and (prefix or suffix):
+        if prefix:
+            prefix.pop(0)
+        else:
+            suffix.pop()
+    return value()
+
+
 def direct_motion(editing, duration: float, *, preset='investigation', word_alignment: dict | None = None) -> list[MotionDecision]:
     """Select only supported semantic intentions; density/recent history constrain variety."""
     if preset not in {'investigation', 'archive', 'signal'}:
@@ -81,8 +97,6 @@ def direct_motion(editing, duration: float, *, preset='investigation', word_alig
         return []
     decisions = []
     occupied = 0.
-    last_end = -6.
-    recent: list[str] = []
     projected = provider_sections(editing.sections,word_alignment,duration)
     usable_alignment = word_alignment if projected is not None else None
     # Input sections are persisted transcript decisions; never call a model here.
@@ -111,14 +125,6 @@ def direct_motion(editing, duration: float, *, preset='investigation', word_alig
             text, effect, reason = sentence, 'keyword', 'Concepto técnico explícito, mostrado dentro de su frase'
         if not effect:
             continue
-        recent = [d.design.effect for d in decisions if left-d.end < 45][-2:]
-        # Questions may alternate hierarchy, never arbitrary content or numbers.
-        if effect in recent[-2:] and effect == 'question':
-            effect = 'quote'
-            if effect in recent:
-                continue
-        elif effect in recent[-2:]:
-            continue
         anchor, timing = left+.12, 'estimated-sentence'
         if usable_alignment and usable_alignment.get('words'):
             try:
@@ -138,21 +144,72 @@ def direct_motion(editing, duration: float, *, preset='investigation', word_alig
             anchor = left + (right-left)*len(prefix.split())/max(1,len(sentence.split()))
         # Never slide an anchored highlight away from the spoken phrase to fit a budget.
         start = max(0, anchor)
-        hold = min(5.5 if full else 4.0, max(2.2,len(text)/22))
+        hold = min(8.,right-start+.12) if full else min(4.0,max(2.2,len(text)/22))
         end = min(duration, right+.12, start+hold)
-        if start < last_end+3 or end-start < 1.5 or occupied+end-start > duration*.38:
+        if end-start < 1.5:
             continue
         label = ''
         if effect == 'amount':
             # A compact exact context excerpt gives the amount a meaning.
-            label = sentence if len(sentence) <= 100 else sentence[max(0,sentence.find(text)-35):sentence.find(text)+len(text)+32].strip()
+            label = _context_excerpt(sentence,text)
+        emphasis_delay = .35
+        if effect=='keyword' and usable_alignment:
+            try:
+                occurrence=0
+                while True:
+                    at,_=phrase_time(usable_alignment['words'],concept.group(),occurrence=occurrence)
+                    if start<=at<=right:
+                        emphasis_delay=at-start
+                        break
+                    occurrence+=1
+            except ValueError:
+                pass
+        if effect=='keyword':
+            end=min(duration,right+.8,start+max(hold,emphasis_delay+1.4))
         design = MotionDesign(effect=effect,text=text,label=label,preset=preset,delay=0,
-                              detail='', emphasis=concept.group() if effect=='keyword' else '')
+                              detail='', emphasis_delay=emphasis_delay, emphasis=concept.group() if effect=='keyword' else '')
         decisions.append(MotionDecision(start,end,design,reason,timing,full))
-        occupied += end-start
-        last_end = end
-        recent.append(effect)
-    return decisions
+    # Narrative questions and literal quantities get first claim on the budget;
+    # a long optional keyword must not crowd out the revelation later in a clip.
+    priorities={'question':3,'amount':3,'date':2,'identity':2,'keyword':1}
+    selected=[]
+    occupied=0.
+    for decision in sorted(decisions,key=lambda d:(-priorities.get(d.design.effect,0),d.start)):
+        available=duration*.38-occupied
+        if decision.end-decision.start>available:
+            if not decision.full_screen or available<1.5:
+                continue
+            decision=replace(decision,end=decision.start+available)
+        if any(not (decision.start>=other.end+3 or decision.end+3<=other.start) for other in selected):
+            continue
+        recent=[d.design.effect for d in sorted(selected,key=lambda d:d.start)
+                if 0 <= decision.start-d.end < 45][-2:]
+        effect=decision.design.effect
+        if effect in recent and effect=='question':
+            effect='quote'
+            if effect in recent:
+                continue
+            decision=replace(decision,design=decision.design.model_copy(update={'effect':effect}))
+        elif effect in recent:
+            continue
+        selected.append(decision)
+        occupied+=decision.end-decision.start
+    return sorted(selected,key=lambda d:d.start)
+
+
+def _plate_interval(a,b,decision,boundaries,duration):
+    candidate=set(boundaries)
+    prior=max((t for t in candidate if t<=a),default=a)
+    after=min((t for t in candidate if t>=b),default=b)
+    original_a,original_b=a,b
+    if a-prior<.4:
+        a=prior
+    if after-b<.4:
+        b=after
+    design=decision.design.model_copy(update={'delay':max(0,original_a-a),'hold':original_b-original_a})
+    decision=replace(decision,design=design,full_screen=True)
+    candidate={t for t in candidate if not a<t<b}
+    return a,b,decision,candidate
 
 
 def motion_plan(clips, narration: Path, duration: float, *, root: Path, episode_id: str,
@@ -186,27 +243,20 @@ def motion_plan(clips, narration: Path, duration: float, *, root: Path, episode_
         # replace several source shots; overlays stop at the next stock boundary.
         candidate = set(boundaries)
         if decision.full_screen:
-            # Absorb tiny neighbouring fragments into the generated plate, not
-            # into stock. Keep text anchored with a local delay; no source is
-            # read beyond its selected coverage.
-            prior=max((t for t in candidate if t<=a),default=a)
-            after=min((t for t in candidate if t>=b),default=b)
-            original_a,original_b=a,b
-            if a-prior<.4:
-                a=prior
-            if after-b<.4:
-                b=after
-            design=decision.design.model_copy(update={'delay':max(0,original_a-a),'hold':original_b-original_a})
-            decision=replace(decision,design=design)
-            candidate = {t for t in candidate if not a < t < b}
+            a,b,decision,candidate=_plate_interval(a,b,decision,boundaries,duration)
         else:
-            b = min(b, next((t for t in sorted(candidate) if t>a), b))
-            if b-a < 1.5:
-                continue
+            decision=replace(decision,design=decision.design.model_copy(update={'hold':b-a}))
         # Keep shot fragments renderable; fewer effects are better than damaged timing.
         proposed = sorted(candidate|{a,b})
         if any(right-left < .4-1e-6 for left,right in zip(proposed,proposed[1:])):
-            continue
+            if decision.full_screen:
+                continue
+            # Preserve an important anchored datum using a plate when a tiny
+            # stock fragment would otherwise make the overlay unrenderable.
+            a,b,decision,candidate=_plate_interval(a,b,decision,boundaries,duration)
+            proposed=sorted(candidate|{a,b})
+            if any(right-left < .4-1e-6 for left,right in zip(proposed,proposed[1:])):
+                continue
         boundaries = candidate | {a,b}
         admitted.append((a,b,decision))
     points = sorted(t for t in boundaries if 0 <= t <= duration)
@@ -219,8 +269,9 @@ def motion_plan(clips, narration: Path, duration: float, *, root: Path, episode_
         if choice is None:
             raise ValueError('Stock timeline does not cover motion plan')
         i,clip = choice
-        active = next((d for a,b,d in admitted if a-1e-6<=start and end<=b+1e-6), None)
-        design = active.design.model_copy(deep=True) if active else None
+        active_range = next(((a,b,d) for a,b,d in admitted if a-1e-6<=start and end<=b+1e-6), None)
+        active = active_range[2] if active_range else None
+        design = active.design.model_copy(update={'elapsed':start-active_range[0]},deep=True) if active else None
         scenes.append(EditorialScene(id=f'shot_{index:04}',start=start,end=end,
                      intention=active.reason if active else 'Narración ambiental: mantener stock sin rótulos',
                      spoken_claim=design.text if design else 'Stock ilustrativo',

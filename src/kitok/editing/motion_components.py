@@ -48,6 +48,8 @@ class MotionDesign(BaseModel):
     values: list[float] = Field(default_factory=list, max_length=2)
     preset: Literal['investigation', 'archive', 'signal'] = 'investigation'
     delay: float = Field(default=.12, ge=0, le=15, allow_inf_nan=False)
+    elapsed: float = Field(default=0, ge=0, le=7200, allow_inf_nan=False)
+    emphasis_delay: float = Field(default=.35, ge=0, le=30, allow_inf_nan=False)
     hold: float | None = Field(default=None, ge=.4, le=30, allow_inf_nan=False)
 
     @model_validator(mode='after')
@@ -85,23 +87,28 @@ def background_plate(design: MotionDesign, output: Path, width: int, height: int
 def write_motion_ass(design: MotionDesign, output: Path, *, duration: float, width: int, height: int, over_stock: bool = False):
     style = PRESETS[design.preset]
     scale = height / 1080
-    start = design.delay
-    end = min(duration - .08, start + (design.hold or duration))
-    if end - start < .25:
+    start = design.delay-design.elapsed
+    global_end = design.delay + (design.hold or duration)
+    end = min(duration, global_end-design.elapsed)
+    entering = design.elapsed <= design.delay+1e-6
+    leaving = global_end-design.elapsed <= duration+1e-6
+    fade_in,fade_out = (150 if entering else 0),(180 if leaving else 0)
+    if end - max(0,start) < .25:
         raise ValueError('The composition delay/hold leaves no readable interval')
     events = []
     ink, accent, muted, bg = (_color(style[k]) for k in ('text', 'accent', 'muted', 'background'))
     x = width * .075
 
     def rect(left, top, w, h, color=accent, layer=1, at=start, until=end, grow=False):
-        tags = rf'\an7\pos({left:.1f},{top:.1f})\bord0\shad0\1c{color}\fad(150,180)'
+        tags = rf'\an7\pos({left:.1f},{top:.1f})\bord0\shad0\1c{color}\fad({fade_in},{fade_out})'
         if grow:
-            tags += r'\fscx0\t(0,550,\fscx100)'
+            progress=min(1,max(0,-start/.55))
+            tags += rf'\fscx{100*progress:.2f}' + (rf'\t(0,{round(550*(1-progress))},\fscx100)' if progress<1 else '')
         shape = f'm 0 0 l {w:.1f} 0 l {w:.1f} {h:.1f} l 0 {h:.1f}'
-        events.append(_event(layer, at, until, '{'+tags+r'\p1}'+shape))
+        events.append(_event(layer, max(0,at), until, '{'+tags+r'\p1}'+shape))
 
     def text(value, box, size, *, color=ink, bold=False, serif=False, layer=3, at=start, move=True, max_lines=4):
-        if not value:
+        if not value or at >= end:
             return
         # The same installed fonts are used to measure and render the text.
         draw = ImageDraw.Draw(Image.new('RGB', (1, 1)))
@@ -110,9 +117,19 @@ def write_motion_ass(design: MotionDesign, output: Path, *, duration: float, wid
         family = 'DejaVu Serif' if serif else 'DejaVu Sans'
         for i, line in enumerate(wrapped.split("\n")):
             tx, ty = box[0], box[1] + i*(font.size + spacing)
-            position = rf'\move({tx:.1f},{ty+12*scale:.1f},{tx:.1f},{ty:.1f},0,300)' if move else rf'\pos({tx:.1f},{ty:.1f})'
-            tags = rf'\an7{position}\fn{family}\fs{font.size}\b{int(bold)}\1c{color}\bord0\shad0\fad(180,180)'
-            events.append(_event(layer, at, end, '{'+tags+'}'+line))
+            age=max(0,-at)
+            move_left=max(0,round(300-age*1000))
+            initial_y=ty+12*scale*max(0,1-age/.3)
+            position = (rf'\move({tx:.1f},{initial_y:.1f},{tx:.1f},{ty:.1f},0,{move_left})'
+                        if move and move_left else rf'\pos({tx:.1f},{ty:.1f})')
+            fade_left=max(0,round(180-age*1000))
+            initial_alpha=round(255*max(0,1-age/.18))
+            visible_ms=round((end-max(0,at))*1000)
+            fade_end=max(fade_left,visible_ms)
+            fade_begin=max(fade_left,visible_ms-fade_out)
+            opacity=rf'\fade({initial_alpha},0,{255 if leaving else 0},0,{fade_left},{fade_begin},{fade_end})'
+            tags = rf'\an7{position}\fn{family}\fs{font.size}\b{int(bold)}\1c{color}\bord0\shad0{opacity}'
+            events.append(_event(layer, max(0,at), end, '{'+tags+'}'+line))
 
     def box(ax, ay, bx, by):
         return (width*ax, height*ay, width*bx, height*by)
@@ -139,7 +156,7 @@ def write_motion_ass(design: MotionDesign, output: Path, *, duration: float, wid
         text(design.label,box(.075,.79,.90,.87),26,color=muted)
     elif e == 'keyword':
         text(design.text,box(.075,.25,.90,.54),67,max_lines=3)
-        text(design.emphasis,box(.075,.59,.90,.73),72,color=accent,bold=True,at=start+min(.35,(end-start)/4),max_lines=1)
+        text(design.emphasis,box(.075,.59,.90,.73),72,color=accent,bold=True,at=start+design.emphasis_delay,max_lines=1)
         text(design.label,box(.075,.78,.90,.85),25,color=muted)
     elif e == 'amount':
         text(design.label,box(.075,.23,.90,.31),30,color=muted)
