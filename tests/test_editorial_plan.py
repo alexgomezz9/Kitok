@@ -211,3 +211,26 @@ def test_quantized_minimum_scenes_render_without_float_drift(tmp_path):
     assert len(result['rendered_scenes']) == 15
     assert abs(video - plan.duration) < 1 / plan.fps + .02
     assert audio >= plan.duration - .05
+
+
+@pytest.mark.parametrize('suffix,codec', [('.wav','pcm_s16le'),('.m4a','aac')])
+def test_approved_audio_has_browser_aac_delivery_without_changing_master(tmp_path,suffix,codec):
+    source=tmp_path/f'approved{suffix}'
+    subprocess.run(['ffmpeg','-v','error','-f','lavfi','-i','sine=frequency=230:duration=2',
+                    '-c:a',codec,str(source)],check=True,timeout=30)
+    original=source.read_bytes()
+    plan=EditorialPlan.model_validate(dict(episode_id='browser',title='Browser delivery',
+        audio_source=source.name,audio_is_final_mix=True,duration=2,width=640,height=480,
+        scenes=[dict(id='one',start=0,end=2,intention='Known identity',spoken_claim='A test name',
+                     graphic='identity',graphic_data={'name':'Test'})]))
+    output=tmp_path/'delivery.mp4'
+    result=render_editorial_plan(plan,root=tmp_path,output=output,
+        settings=Settings(_env_file=None,data_root=tmp_path),encoder_name='libx264')
+    from kitok.media.ffprobe import probe_media
+    assert probe_media(output,'ffprobe').audio_codec=='aac'
+    assert source.read_bytes()==original
+    if codec=='aac':
+        assert decoded_audio_hash(source)==decoded_audio_hash(output)
+        assert result['audio_delivery']=='copied-aac'
+    else:
+        assert result['audio_delivery']=='encoded-aac-without-normalization'

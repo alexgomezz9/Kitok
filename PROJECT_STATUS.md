@@ -10,8 +10,9 @@ parecer tarjetas/subtítulos estáticos. Su calidad editorial **no está aprobad
 se está revisando primero una prueba corta, sin render completo ni nueva Fish.
 El error «could not be decoded» se reportó al abrir enlaces del chat. No se
 reprodujo en Kitok: los 24 vídeos originales llegaron al final por HTTP en Chromium
-(en dos ejecuciones). Una muestra conserva audio PCM; se prepara entrega AAC
-para mejorar compatibilidad sin reemplazar el original.
+(en dos ejecuciones). Una muestra histórica conserva audio PCM; el renderer entrega AAC cuando el
+máster no es AAC, sin normalizar de nuevo ni reemplazar el original. Pruebas
+reales PCM/AAC correctas; AAC conserva su audio decodificado idéntico.
 La galería ahora carga un único reproductor por clic, prioriza muestras y separa
 el mosaico estático del vídeo. Verificación: 21 React, build, API Range 206 y
 reproducción real; esto no explica ni resuelve por sí solo el error del chat.

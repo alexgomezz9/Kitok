@@ -34,7 +34,8 @@ y límites están en [Documental enriquecido](motion.md).
 
 `--compare-to` exige que el audio decodificado sea idéntico. Para comparar un
 fragmento, utiliza A con ese mismo fragmento, no el episodio completo. El audio
-final se copia sin volver a normalizarlo. El CLI también admite narración sin
+final AAC se copia sin volver a normalizarlo. Un máster PCM se codifica una vez
+a AAC para entregar un MP4 compatible, conservando el original y su nivel. El CLI también admite narración sin
 mezclar con `audio_is_final_mix=false`, actualmente con offset cero.
 
 ## Opciones del plan

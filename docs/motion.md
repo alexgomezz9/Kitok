@@ -83,7 +83,9 @@ Fish y stock, mezcla música cacheada y prepara A/B con audio idéntico para com
 imagen. La referencia original permanece intacta. No se solicitan proveedores.
 
 Caché por escena, datos, hash de recursos, ASS, código del compositor y encoder.
-El ensamblado de mezclas aprobadas copia vídeo/audio, sin normalizar de nuevo.
+El ensamblado de mezclas aprobadas copia vídeo y audio AAC sin normalizar de nuevo.
+Si el máster es WAV/PCM u otro códec, codifica el audio una vez a AAC para la
+entrega MP4 y conserva el original; el recibo identifica esta conversión.
 Las salidas nuevas son exclusivas; conserva originales y usa ID/revisión nueva.
 El informe mide decodificación, geometría, duración, negros, LUFS/pico y audio A/B;
 la hoja de contacto muestrea imágenes. No acredita audición subjetiva ni aprobación.

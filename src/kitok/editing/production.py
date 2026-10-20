@@ -267,11 +267,15 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
                           music=None,music_volume=0,loudness_target=-16,lra_target=20,true_peak_target=-1.5)
         pending = output.with_name(f".{output.stem}.{uuid4().hex}.part.mp4")
         if plan.audio_is_final_mix:
-            # Exactly the approved mix. Rendering visuals must not alter its gain/music.
+            # Preserve approved AAC bit-for-bit. PCM is a valid production master,
+            # but an MP4 delivery needs broadly supported AAC instead of copying
+            # the WAV codec into an MP4. Never normalize an approved mix twice.
             seek = ["-ss",str(plan.audio_offset)] if plan.audio_offset else []
+            audio_encoding = (["-c:a","copy"] if audio_info.audio_codec == 'aac' else
+                              ["-c:a","aac","-b:a","192k"])
             _run([settings.ffmpeg_binary,"-nostdin","-v","error","-y","-i",str(assembled),
                   *seek,"-i",str(audio),"-map","0:v:0","-map","1:a:0",
-                  "-t",str(plan.duration),"-c","copy","-movflags","+faststart",str(pending)])
+                  "-t",str(plan.duration),"-c:v","copy",*audio_encoding,"-movflags","+faststart",str(pending)])
         else:
             if plan.audio_offset:
                 raise ValueError("An unmixed narration plan currently requires audio_offset=0")
@@ -288,6 +292,8 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
                   "encoder":encoder.codec,"elapsed_seconds":time.monotonic()-started,
                   "rendered_scenes":rendered,"reused_scenes":reused,"audio_source":plan.audio_source,
                   "audio_source_sha256":file_hash(audio),"audio_is_final_mix":plan.audio_is_final_mix,
+                  "audio_delivery": 'copied-aac' if plan.audio_is_final_mix and audio_info.audio_codec=='aac' else
+                                    'encoded-aac-without-normalization' if plan.audio_is_final_mix else 'engine-mix',
                   "alignment":plan.alignment,"provider_requests":0,"scenes":[s.model_dump() for s in plan.scenes],
                   "assets":{key:asset.model_dump() for key,asset in plan.assets.items()}}
         if any(file_hash(path) != digest for path, digest in inputs.items()):
