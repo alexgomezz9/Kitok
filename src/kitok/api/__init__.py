@@ -24,7 +24,7 @@ from ..thumbnails import ThumbnailService
 from ..longform_studio import LongformStudio
 from ..editorial_studio import EditorialStudio
 from ..motion_studio import MotionStudio
-from .schemas import LongformRequest, VoiceFavoriteRequest, VoiceAssignmentRequest
+from .schemas import LongformRequest, LongformRecoveryRequest, VoiceFavoriteRequest, VoiceAssignmentRequest
 
 log = logging.getLogger('kitok.api')
 
@@ -199,6 +199,14 @@ def create_app(settings=None, *, catalog_path=None):
     @app.post('/api/longform/{cid}/jobs', status_code=202)
     def longform_start(cid: str):
         return longform.start(cid)
+
+    @app.get('/api/longform/{cid}/recovery')
+    def longform_recovery_audit(cid: str):
+        return longform.recovery_audit(cid)
+
+    @app.post('/api/longform/{cid}/recovery', status_code=202)
+    def longform_recover(cid: str, body: LongformRecoveryRequest):
+        return longform.recover(cid, body.narration_sha256, body.audit_fingerprint)
 
     @app.get('/api/longform/{cid}/video')
     def longform_video(cid: str):

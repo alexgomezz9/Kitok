@@ -27,6 +27,26 @@ function fillShort(){fireEvent.change(screen.getByLabelText('Título'),{target:{
 function fillLong(){fireEvent.change(screen.getByLabelText('Título'),{target:{value:'Mi documental'}});fireEvent.change(screen.getByLabelText('Guion completo'),{target:{value:'Un guion completo y suficientemente largo para este documental.'}});fireEvent.change(screen.getByLabelText('Qué imágenes buscar (separadas por comas)'),{target:{value:'city, science'}})}
 
 describe('guided studio',()=>{
+ it('audits a failed long video before explicitly confirming reuse of paid narration',async()=>{
+  longRows=[{id:'lf_failed',subject:'Paid narration',status:'failed',renderer:'native',stage:'Needs review',created_at:'2026-10-20',config_path:'/tmp/job.json',script_path:'/tmp/job.txt',output_path:'/tmp/job.mp4',script:'An existing paid narration.',keywords:['city'],narrator_voice:'fish_audio:voice:Original',music_enabled:false,error:'Original failure'}];
+  const original=vi.mocked(fetch).getMockImplementation()!;
+  vi.mocked(fetch).mockImplementation(async(path,options)=>{
+   if(String(path).endsWith('/recovery')){
+    requests.push({path:String(path),body:options?.body?JSON.parse(String(options.body)):null});
+    return {ok:true,json:async()=>({narration_sha256:'a'.repeat(64),audit_fingerprint:'b'.repeat(64),duration:654.733,note:'Sólo caché local.'})} as Response;
+   }
+   return original(path,options)
+  });
+  render(<Workbench {...props} mode="long"/>);
+  fireEvent.click(await screen.findByRole('button',{name:/Paid narration/}));
+  fireEvent.click(screen.getByRole('button',{name:'Revisar recuperación sin generar'}));
+  await screen.findByText(/Narración confirmada: 654.733/);
+  expect(requests.filter(r=>r.path.endsWith('/recovery')).map(r=>r.body)).toEqual([null]);
+  fireEvent.click(screen.getByRole('button',{name:'Recuperar montaje usando esta voz · sin Fish ni red'}));
+  await waitFor(()=>expect(requests.filter(r=>r.path.endsWith('/recovery'))).toHaveLength(2));
+  expect(requests.filter(r=>r.path.endsWith('/recovery'))[1].body).toEqual({narration_sha256:'a'.repeat(64),audit_fingerprint:'b'.repeat(64)});
+  expect(requests.some(r=>r.path.includes('/jobs'))).toBe(false);
+ })
  it('offers the two modes and keeps advanced controls folded',()=>{render(<Workbench {...props}/>);fireEvent.click(screen.getByRole('button',{name:/Vídeo largo/}));expect(props.onMode).toHaveBeenCalledWith('long');expect(screen.getByText('Opciones avanzadas').closest('details')?.open).toBe(false)})
  it('checks shorts without creating content or starting a job',async()=>{render(<Workbench {...props}/>);fillShort();fireEvent.click(screen.getByRole('button',{name:'Comprobar sin generar'}));await screen.findByText('Comprobación sin generar');expect(requests.map(r=>r.path)).toEqual(['/api/content-preview']);expect(requests[0].body).toMatchObject({visual_profile:'random',voice_profile:'rick_es'});fireEvent.click(screen.getByRole('button',{name:/Guardar borrador y continuar/}));await waitFor(()=>expect(props.onCreated).toHaveBeenCalledWith('new_short'));expect(requests.some(r=>r.path.includes('/jobs'))).toBe(false)})
  it('invalidates the preview when the script changes',async()=>{render(<Workbench {...props}/>);fillShort();fireEvent.click(screen.getByRole('button',{name:'Comprobar sin generar'}));await screen.findByText('Comprobación sin generar');fireEvent.change(screen.getByLabelText('Guion completo'),{target:{value:'Un guion diferente que necesita una nueva revisión.'}});expect(screen.queryByText('Guardar borrador y continuar')).toBeNull()})

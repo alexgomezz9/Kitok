@@ -28,8 +28,12 @@ mide 654,599 s (−134 ms frente a tolerancia 80 ms), −15,99 LUFS, LRA 3,50 y
 Regresión de seis minutos con MP3 sin Xing, música automática, crossfade y SFX:
 pasa con el arreglo y falla con el código anterior. MP4 real de 22 s alrededor del
 cambio musical: 660 frames 4:2:0, AAC y decode completos; −15,28 LUFS / −2,11 dBTP.
-Recuperación estricta en verificación; el trabajo original permanece fallido e intacto
-y no se retoma el episodio completo durante el diagnóstico.
+Recuperación estricta disponible en UI/API/CLI: auditoría de sólo lectura y
+confirmación explícita de SHA/fingerprint, mismo ID, bloqueo y workspace nuevo.
+No construye cliente Fish ni proveedor de stock con red; detiene recursos ausentes.
+58 pruebas de recuperación/estudio correctas y revisión independiente sin bloqueos.
+El trabajo original permanece fallido e intacto; no se retomó el episodio completo.
+[Procedimiento de recuperación](GUIA.md#recuperar-un-largo-fallido-conservando-la-voz-pagada).
 
 La nueva evidencia del operador incluye fallo en Kitok y Windows descargado.
 Auditoría de todos los fotogramas encontró seis MP4 con cambio intermedio de
@@ -91,8 +95,9 @@ como prueba técnica histórica, fuera de la selección visual vigente.
   no se modificaron. El límite histórico de restauración de cola del 19/10 sigue
   registrado en `local/backups`; no hay hash previo que certifique cambios posteriores.
 
-Siguiente: cerrar pruebas y revisión de recuperación segura sin Fish, comprobar
-mezcla y MP4 corto reales, publicar checkpoints y verificar CI. Después revisar
-las copias compatibles en el navegador y reproductor Windows del operador. Tras
-aprobar calidad, el operador podrá usar **Vídeo largo → Documental enriquecido →
-Comprobar → Guardar → Generar**. No lanzar UltimateBet completo desde un agente.
+En curso: gate completo y CI de los checkpoints del incidente. Siguiente operación
+del titular para este trabajo: **Vídeo largo → ficha fallida → Revisar recuperación
+sin generar → Recuperar montaje usando esta voz · sin Fish ni red**. La segunda
+acción monta el episodio completo; no usar «Generar» ni crear otro borrador para
+recuperar esta narración. Revisar además las copias `_compat1` en Windows y
+escuchar antes de aprobar la calidad. No lanzar UltimateBet completo desde un agente.

@@ -274,27 +274,114 @@ class LongformStudio:
             if not self.output_path(record['id']).is_file():
                 raise RuntimeError('El motor terminó sin crear un vídeo')
             record.update(status='succeeded', stage='Vídeo terminado. Reprodúcelo y descárgalo.')
-        except Exception:
+        except Exception as exc:
             log.exception('Long-form job failed: %s', record['id'])
             record.update(status='failed', error='No se pudo terminar el vídeo. Revisa logs/kitok-AAAAMMDD.log. No se reintenta automáticamente; Fish puede haber consumido saldo.',
                           stage='Necesita revisión')
+            from .audio_library import AudioLibraryError
+            if isinstance(exc, AudioLibraryError):
+                record['error'] = f'Mezcla de audio detenida: {exc}. La narración se conserva; revisa la recuperación sin Fish.'
         finally:
             try:
                 self._write(record)
             finally:
                 lease.close()
 
-    def _render(self, record, definition, stage):
+    def _recovery_inputs(self, cid):
+        """Validate the saved studio request before following any on-disk path."""
+        from .api.schemas import LongformRequest
+        from .native_recovery import regular, inspect_narration
+        regular(self.records / f'{self._valid_id(cid)}.json', self.root)
+        record = self._read(cid)
+        self._native_only(record['renderer'])
+        if record['status'] not in {'failed', 'interrupted'}:
+            raise ValueError('Sólo se recuperan trabajos nativos fallidos o interrumpidos.')
+        body = LongformRequest.model_validate(record['request'])
+        config_path = regular(self.folder / f'{cid}.json', self.root)
+        script_path = regular(self.folder / f'{cid}.txt', self.root)
+        expected = self._definition_values(body, cid)[1]
+        expected['script_file'] = str(script_path.relative_to(self.root))
+        if json.loads(config_path.read_text()) != expected:
+            raise ValueError('La configuración cambió; la recuperación no volverá a sintetizar voz.')
+        definition = runner().load_longform_config(config_path, project_root=self.root)
+        if definition.item.script != body.script:
+            raise ValueError('El guion cambió; la recuperación no volverá a sintetizar voz.')
+        task_path = runner().longform_task_path(cid, project_root=self.root)
+        if task_path.exists() or task_path.is_symlink():
+            raise ValueError('Existe una tarea MPT histórica; no corresponde a recuperación Native.')
+        confirmed = inspect_narration(self.s, definition, self.output_path(cid),
+                                      source_files=(config_path, script_path))
+        return record, definition, confirmed
+
+    def recovery_audit(self, cid):
+        # The audit itself has no writes or lock-file creation.
+        return self._recovery_inputs(cid)[2].public()
+
+    def recover(self, cid, expected_sha256, audit_fingerprint):
+        """Explicit start, sharing the one executor and the full-life content lock."""
+        with self.application._mutex:
+            lease = ExitStack()
+            submitted = False
+            try:
+                lease.enter_context(generation_lock(self.s, f'longform-{self._valid_id(cid)}'))
+                record, definition, confirmed = self._recovery_inputs(cid)
+                if expected_sha256 != confirmed.sha256 or audit_fingerprint != confirmed.fingerprint:
+                    raise ValueError('La confirmación no coincide con la auditoría actual; revisa de nuevo.')
+                previous = json.loads(json.dumps(record))
+                attempts = record.setdefault('recovery_attempts', [])
+                attempts.append({'started_at': datetime.now(timezone.utc).isoformat(),
+                                 'previous_status': record['status'], 'previous_error': record.get('error'),
+                                 'previous_stage': record.get('stage'), **confirmed.public()})
+                record.update(status='queued', error=None,
+                              stage='Recuperación local en cola; reutiliza narración Fish confirmada.')
+                self._write(record)
+                try:
+                    self.application._executor.submit(self._run_recovery, record, definition, confirmed, lease)
+                    submitted = True
+                except Exception:
+                    self._write(previous)
+                    raise
+                return self.detail(cid)
+            finally:
+                if not submitted:
+                    lease.close()
+
+    def _run_recovery(self, record, definition, confirmed, lease):
+        def stage(message):
+            record.update(status='running', stage=message)
+            self._write(record)
+        try:
+            stage('Recuperando montaje sin Fish ni red; sólo recursos confirmados locales.')
+            self._render(record, definition, stage, confirmed_narration=confirmed)
+            if not self.output_path(record['id']).is_file():
+                raise RuntimeError('El motor terminó sin crear un vídeo')
+            record.update(status='succeeded', error=None, stage='Vídeo recuperado reutilizando la narración confirmada.')
+            record['recovery_attempts'][-1].update(status='succeeded')
+        except Exception as exc:
+            log.exception('Offline long-form recovery failed: %s', record['id'])
+            record.update(status='failed', error=f'Recuperación local detenida: {exc}. No se solicitó voz nueva.', stage='Necesita revisión')
+            record['recovery_attempts'][-1].update(status='failed', error=str(exc))
+        finally:
+            try:
+                self._write(record)
+            finally:
+                lease.close()
+
+    def _render(self, record, definition, stage, *, confirmed_narration=None):
         self._native_only(record['renderer'])
         from .providers.pexels import PexelsProvider
         from .media.ffmpeg import FFmpegNativeEngine, choose_encoder
         from .rendering.native import NativeLongformRenderer
-        provider = PexelsProvider(self.s.pexels_api_key.get_secret_value(), self.s.native_cache_dir,
-                                  ffprobe=self.s.ffprobe_binary, attempts=self.s.http_retry_attempts)
+        if confirmed_narration is not None:
+            from .native_recovery import CachedStock
+            provider = CachedStock(self.s.native_cache_dir, ffprobe=self.s.ffprobe_binary)
+        else:
+            provider = PexelsProvider(self.s.pexels_api_key.get_secret_value(), self.s.native_cache_dir,
+                                      ffprobe=self.s.ffprobe_binary, attempts=self.s.http_retry_attempts)
         try:
             encoder = choose_encoder(self.s.ffmpeg_binary, requested='auto', nvenc_preset='p5')
             engine = FFmpegNativeEngine(ffmpeg=self.s.ffmpeg_binary, ffprobe=self.s.ffprobe_binary, encoder=encoder)
             NativeLongformRenderer(self.s, provider, engine, output_path=self.output_path(record['id']),
-                                   output=stage).render(definition)
+                                   output=stage, confirmed_narration=confirmed_narration).render(definition)
         finally:
             provider.close()

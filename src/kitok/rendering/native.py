@@ -65,6 +65,7 @@ class NativeLongformRenderer(LongformRenderer):
         seed: str | None = None,
         keep_workspace: bool = False,
         output=None,
+        confirmed_narration=None,
     ):
         self.settings = settings
         self.pexels = pexels
@@ -74,6 +75,7 @@ class NativeLongformRenderer(LongformRenderer):
         self.seed = seed
         self.keep_workspace = keep_workspace
         self.output = output
+        self.confirmed_narration = confirmed_narration
 
     def _audio_library(self):
         from ..audio_library import AudioLibrary
@@ -89,6 +91,11 @@ class NativeLongformRenderer(LongformRenderer):
 
     def render(self, definition, *, start_over: bool = False) -> RenderResult:
         started = time.monotonic()
+        if self.confirmed_narration is not None:
+            self.confirmed_narration.verify(definition, self.output_path)
+            from ..native_recovery import CachedStock
+            if not isinstance(self.pexels, CachedStock):
+                raise NativeRenderError("Recovery requires the offline-only stock adapter")
         music_mode = getattr(definition, "music_mode", None)
         mounting_style = getattr(definition, "mounting_style", "basic")
         uses_motion = mounting_style == "documentary" or music_mode in {"auto", "manual"}
@@ -134,36 +141,44 @@ class NativeLongformRenderer(LongformRenderer):
         # The caller holds the content-ID generation lock. Stable workspaces preserve
         # completed audio and chunk receipts when changing only text/effects.
         workspace = work_root / definition.item.id
+        if self.confirmed_narration is not None:
+            from uuid import uuid4
+            # Preserve every earlier failed mix/chunk/temporary artifact.
+            workspace = workspace / f"recovery-{uuid4().hex}"
         workspace.mkdir(parents=True, exist_ok=True)
         success = False
         fish_seconds = search_seconds = download_seconds = timeline_seconds = 0.0
         ffmpeg_seconds = validation_seconds = 0.0
         try:
-            narration = workspace / "narration.mp3"
+            narration = self.confirmed_narration.narration if self.confirmed_narration else workspace / "narration.mp3"
             stage = time.monotonic()
-            log.info("Fish start content_id=%s", definition.item.id)
-            fish = self.fish_factory(
-                self.settings.fish_api_key.get_secret_value(),
-                self.settings.fish_model,
-                timeout=self.settings.fish_tts_timeout_seconds,
-                cache_dir=self.settings.audio_cache_dir,
-                ffprobe=self.settings.ffprobe_binary,
-                timestamps=True,
-            )
-            try:
-                # One coherent call: direction tags are forwarded verbatim.
-                fish.synthesize(
-                    script,
-                    reference_id,
-                    narration,
-                    speed=definition.voice_rate,
-                    temperature=0.8,
-                    top_p=0.7,
+            if self.confirmed_narration is not None:
+                self.confirmed_narration.verify(definition, self.output_path)
+                self._stage("Confirmed narration reused offline; no Fish client", 0)
+            else:
+                log.info("Fish start content_id=%s", definition.item.id)
+                fish = self.fish_factory(
+                    self.settings.fish_api_key.get_secret_value(),
+                    self.settings.fish_model,
+                    timeout=self.settings.fish_tts_timeout_seconds,
+                    cache_dir=self.settings.audio_cache_dir,
+                    ffprobe=self.settings.ffprobe_binary,
+                    timestamps=True,
                 )
-            finally:
-                fish.close()
-            fish_seconds = time.monotonic() - stage
-            self._stage("Fish", fish_seconds)
+                try:
+                    # One coherent call: direction tags are forwarded verbatim.
+                    fish.synthesize(
+                        script,
+                        reference_id,
+                        narration,
+                        speed=definition.voice_rate,
+                        temperature=0.8,
+                        top_p=0.7,
+                    )
+                finally:
+                    fish.close()
+                fish_seconds = time.monotonic() - stage
+                self._stage("Fish", fish_seconds)
             narration_duration = probe_media(narration, self.settings.ffprobe_binary).duration
             log.info("Narration duration=%.3fs", narration_duration)
 
@@ -310,7 +325,9 @@ class NativeLongformRenderer(LongformRenderer):
             if music_mode in {"auto", "manual"}:
                 # AudioLibrary validates a separate normalized mix and keeps the
                 # raw Fish narration untouched. Reuse only a matching receipt.
+                from ..audio_library import MIXER_REVISION
                 mix_revision = hashlib.sha256(json.dumps({
+                    "mixer_revision": MIXER_REVISION,
                     "selection": music_selection, "sfx_events": sfx_events, "transition": music_transition,
                 }, sort_keys=True).encode()).hexdigest()[:16]
                 final_audio = workspace / f"music-{audio_fingerprint}-{mix_revision}.wav"
@@ -319,7 +336,8 @@ class NativeLongformRenderer(LongformRenderer):
                     receipt_path = final_audio.with_suffix(".wav.json")
                     if final_audio.exists() and receipt_path.is_file():
                         receipt = json.loads(receipt_path.read_text())
-                        if (receipt.get("narration_sha256") != audio_fingerprint
+                        if (receipt.get("mixer_revision") != MIXER_REVISION
+                                or receipt.get("narration_sha256") != audio_fingerprint
                                 or receipt.get("job_id") != content_id
                                 or receipt.get("output_sha256") != hashlib.sha256(final_audio.read_bytes()).hexdigest()):
                             raise NativeRenderError("Cached music mix changed; preserve and review it")
@@ -337,6 +355,7 @@ class NativeLongformRenderer(LongformRenderer):
                     style="investigation" if mounting_style == "documentary" else "basic",
                     audio_is_final_mix=audio_is_final_mix, word_alignment=word_alignment,
                     width=self.engine.spec.width, height=self.engine.spec.height, fps=self.engine.spec.fps,
+                    **({'workspace_id': f'{content_id}-{workspace.name}'} if self.confirmed_narration else {}),
                 )
             else:
                 info = self.engine.render(

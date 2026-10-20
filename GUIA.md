@@ -90,6 +90,26 @@ Los vídeos largos no entran en el calendario ni en el publicador Buffer de shor
 
 Si falla o se interrumpe, no se vuelve a generar automáticamente. Revisa logs/kitok-AAAAMMDD.log y los archivos antes de crear otra copia. Repetir una generación puede volver a consumir voz. El cliente Fish de Kitok no reintenta peticiones de voz tras un fallo; un resultado incierto requiere revisión. La caché permite reutilizar audio confirmado sin pedir otra síntesis. El montaje documental y la música de biblioteca conservan salidas exclusivas: `--start-over` no las reemplaza; usa una revisión/ID nuevos después de revisar el trabajo. Los modos nuevos sólo se admiten con Native, no en recuperación MPT.
 
+### Recuperar un largo fallido conservando la voz pagada
+
+En la ficha de un trabajo Native fallido o interrumpido, pulsa **«Revisar recuperación sin generar»**. La auditoría sólo lee: comprueba guion/configuración guardados, MP3 y alineación, manifiesto de montaje y recibo Fish confirmado para esa voz, modelo y velocidad. Muestra duración y SHA-256. Si algo falta, cambió, no coincide o ya existe una salida, se detiene. No llama a Fish ni a Pexels.
+
+Sólo después de revisar esa información, **«Recuperar montaje usando esta voz · sin Fish ni red»** retoma el mismo trabajo con el mismo ID. Esta acción sí monta el vídeo completo. Usa el ejecutor y bloqueo compartidos; conserva el error previo y trabaja en una nueva subcarpeta `recovery-*`, sin borrar el audio, cachés ni temporales anteriores. Si falta stock o música local, falla sin descargar ni sintetizar. No crees otro borrador ni uses el comando normal de generación para esta recuperación.
+
+Desde terminal, la auditoría es el comportamiento predeterminado y no inicia ningún montaje:
+
+```bash
+.venv/bin/python scripts/recover_longform.py lf_cf5e16bb422547aabfb4f5b8b9ef131a
+```
+
+Para iniciar explícitamente la recuperación, usa los dos valores completos que devuelve la auditoría actual:
+
+```bash
+.venv/bin/python scripts/recover_longform.py MI_ID --recover --narration-sha256 SHA256_NARRACION --audit-fingerprint HUELLA_AUDITORIA
+```
+
+La confirmación se vuelve a validar bajo bloqueo antes de poner el montaje en cola. Si cambian los archivos, se rechaza; no hay alternativa automática que vuelva a generar voz. La auditoría acredita la identidad de la narración; el resultado del montaje se verifica cuando termina la recuperación.
+
 ## Usar shorts desde el backend / terminal
 
 No necesitas activar el entorno si usas .venv/bin/python. Todos los comandos siguientes se lanzan desde la raíz del proyecto.

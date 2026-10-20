@@ -76,6 +76,11 @@ class ConfirmRequest(Request):
     queue_after: bool = False
 
 
+class LongformRecoveryRequest(Request):
+    narration_sha256: str = Field(pattern=r'^[0-9a-f]{64}$')
+    audit_fingerprint: str = Field(pattern=r'^[0-9a-f]{64}$')
+
+
 class CharacterRequest(Request):
     id: str
     display_name: str = Field(min_length=1, max_length=80)

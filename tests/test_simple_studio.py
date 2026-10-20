@@ -136,6 +136,22 @@ def test_failed_and_interrupted_jobs_never_restart(studio, monkeypatch):
     assert client.get(f'/api/longform/{cid}/download').status_code == 422
 
 
+def test_failed_audio_mix_exposes_measurements_and_recovery_needs_confirmed_inputs(studio, monkeypatch):
+    from kitok.audio_library import AudioLibraryError
+    client, service = configured(studio, monkeypatch)
+    def fail(*args):
+        raise AudioLibraryError('Audio validation failed: duration=654.599000s expected=654.733000s delta=-0.134000s; measured LUFS=-15.99, LRA=3.5, true_peak_dbtp=-1.8')
+    monkeypatch.setattr(service, '_render', fail)
+    cid = client.post('/api/longform', json=BODY).json()['id']
+    assert client.post(f'/api/longform/{cid}/jobs').status_code == 202
+    result = wait(service, cid)
+    assert 'duration=654.599000s' in result['error'] and 'LUFS=-15.99' in result['error']
+    assert client.get(f'/api/longform/{cid}/recovery').status_code == 422
+    assert client.post(f'/api/longform/{cid}/recovery', json={}).status_code == 422
+    assert client.post(f'/api/longform/{cid}/recovery', json={'narration_sha256':'a'*64,'audit_fingerprint':'b'*64}).status_code == 422
+    assert service._read(cid)['status'] == 'failed'
+
+
 def test_start_respects_cli_lock_and_existing_output(studio, monkeypatch):
     client, service = configured(studio, monkeypatch)
     row = client.post('/api/longform', json=BODY).json()
