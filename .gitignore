@@ -1,5 +1,6 @@
 # Secrets, machine configuration and private agent state.
 .env
+client_secret_*.json
 .env.*
 !.env.example
 .codex-work/

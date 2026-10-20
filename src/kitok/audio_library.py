@@ -1,6 +1,6 @@
 """Small licensed music library and local speech-first audio production.
 
-Only four audited Incompetech sources can be downloaded. Licenses, source
+Only audited Incompetech sources can be downloaded. Licenses, source
 evidence, hashes, selection receipts and mix measurements remain traceable.
 Nothing in this module synthesizes speech or contacts generation APIs.
 """
@@ -19,6 +19,7 @@ import shutil
 import subprocess
 import tempfile
 from urllib.parse import quote
+from typing import Literal
 import wave
 
 import httpx
@@ -39,6 +40,22 @@ AUDITED = {
     "echoes_of_time_v2": ("USUAN1300030", "Echoes of Time v2"),
     "dreams_become_real": ("USUAN1500027", "Dreams Become Real"),
     "darkest_child": ("USUAN1100783", "Darkest Child"),
+    "night_vigil": ("USUAN1900047", "Night Vigil"),
+    "floating_cities": ("USUAN1600018", "Floating Cities"),
+    "crypto": ("USUAN1600013", "Crypto"),
+    "despair_and_triumph": ("USUAN1400012", "Despair and Triumph"),
+    "ghost_story": ("USUAN1300034", "Ghost Story"),
+    "the_descent": ("USUAN1200094", "The Descent"),
+    "deep_haze": ("USUAN1100886", "Deep Haze"),
+    "lightless_dawn": ("USUAN1100655", "Lightless Dawn"),
+    "dark_walk": ("USUAN1100468", "Dark Walk"),
+    "anxiety": ("USUAN1100328", "Anxiety"),
+    "immersed": ("USUAN1600010", "Immersed"),
+    "mesmerize": ("USUAN1500005", "Mesmerize"),
+    "anguish": ("USUAN1400047", "Anguish"),
+    "clean_soul": ("USUAN1300033", "Clean Soul"),
+    "on_the_ground": ("USUAN1400030", "On the Ground"),
+    "deliberate_thought": ("USUAN1100261", "Deliberate Thought"),
 }
 ID = re.compile(r"[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}\Z")
 
@@ -60,11 +77,13 @@ class MusicSource(BaseModel):
     channels: list[str] = Field(min_length=1)
     content_id: str = "unknown"
     verified_on: str
+    source_feel: str | None = None
+    instruments: str | None = None
 
     @model_validator(mode="after")
     def audited_source(self):
         if self.id not in AUDITED or AUDITED[self.id] != (self.isrc, self.title):
-            raise ValueError("Source must be one of the four audited tracks")
+            raise ValueError("Source must be one of the audited tracks")
         if self.author != "Kevin MacLeod" or self.filename != self.title + ".mp3":
             raise ValueError("Unexpected author or filename")
         if self.download_url != BASE + "mp3-royaltyfree/" + quote(self.filename):
@@ -76,6 +95,13 @@ class MusicSource(BaseModel):
         if not self.attribution or self.title not in self.attribution or self.author not in self.attribution or LICENSE not in self.attribution:
             raise ValueError("Missing attribution or license reference")
         return self
+
+
+class SoundEvent(BaseModel):
+    """A deliberate editorial cue; timing is relative to the requested mix."""
+    model_config = ConfigDict(extra="forbid", frozen=True, allow_inf_nan=False)
+    time: float = Field(ge=0)
+    kind: Literal["soft_tick", "low_pulse"] = "soft_tick"
 
 
 def _hash(path: Path) -> str:
@@ -180,11 +206,13 @@ class AudioLibrary:
             raise AudioLibraryError("Music download failed; no automatic retry") from None
 
     def _cached(self, track_id: str) -> dict | None:
+        if not (self.cache / track_id).exists():
+            return None
         directory, source = self._directory(track_id), self.sources[track_id]
         try:
             receipt = json.loads((directory / "receipt.json").read_text())
             valid = receipt.get("sha256") == source.sha256 and _hash(directory / "music.mp3") == source.sha256
-            valid = valid and receipt.get("source") == source.model_dump()
+            valid = valid and receipt.get("source") == source.model_dump(exclude_none=True)
             valid = valid and _hash(directory / "license.html") == receipt.get("license_evidence_sha256")
             valid = valid and _hash(directory / "source.json") == receipt.get("track_evidence_sha256")
             if valid:
@@ -192,6 +220,37 @@ class AudioLibrary:
         except (OSError, ValueError, AttributeError):
             pass
         return None
+
+    def available(self, *, channel: str | None = None, mood: str | None = None) -> list[dict]:
+        """Read verified local choices without downloading or changing selections."""
+        return [source.model_dump(exclude_none=True) for source in self.sources.values()
+                if (channel is None or channel in source.channels)
+                and (mood is None or mood in source.moods) and self._cached(source.id)]
+
+    def select_manual(self, job_id: str, track_id: str, *, channel: str = "loose_thread") -> dict:
+        """Persist an explicit cached choice with the same revision/lock rules as auto."""
+        if not all(isinstance(value, str) and ID.fullmatch(value) for value in (job_id, track_id, channel)):
+            raise AudioLibraryError("Expected validated job/channel/track IDs")
+        if track_id not in self.sources or channel not in self.sources[track_id].channels:
+            raise AudioLibraryError("Unknown track or incompatible channel")
+        with self._lock():
+            state = self._state()
+            if not self._cached(track_id):
+                raise AudioLibraryError("The selected track is missing or corrupted")
+            if job_id in state["jobs"]:
+                selection = self._selection(state, job_id)
+                if selection.get("channel") != channel or selection.get("mood") != "manual" or selection["tracks"] != [track_id]:
+                    raise AudioLibraryError("This job already has a different audio selection; use a new revision ID")
+                return selection
+            selection = {"job_id": job_id, "channel": channel, "mood": "manual", "count": 1,
+                         "tracks": [track_id], "selected_at": datetime.now(timezone.utc).isoformat(),
+                         "credits": [self.sources[track_id].attribution],
+                         "changes_notice": "Music trimmed, mixed and dynamically ducked under narration.",
+                         "content_id": "unknown"}
+            state["jobs"][job_id] = selection
+            state["last"][channel] = track_id
+            _atomic_json(self.cache / "selection.json", state)
+            return selection
 
     def fetch(self, track_id: str, *, local_file: Path | None = None) -> dict:
         """Download or import a hash-pinned file, verifying current per-track evidence.
@@ -236,7 +295,7 @@ class AudioLibrary:
                 (directory / "license.html").write_bytes(html)
                 (directory / "source.json").write_bytes(evidence)
                 temporary.replace(directory / "music.mp3")
-                receipt = {"version": 1, "source": source.model_dump(), "sha256": source.sha256,
+                receipt = {"version": 1, "source": source.model_dump(exclude_none=True), "sha256": source.sha256,
                            "duration": media.duration, "bytes": (directory / "music.mp3").stat().st_size,
                            "fetched_at": datetime.now(timezone.utc).isoformat(),
                            "license_evidence_sha256": hashlib.sha256(html).hexdigest(),
@@ -302,12 +361,21 @@ class AudioLibrary:
         return selection
 
     def mix(self, job_id: str, narration: Path, output: Path, *, duration: float,
-            offset: float = 0, crossfade: float = 1.5) -> dict:
+            offset: float = 0, crossfade: float = 1.5, sfx_events: list[dict] | None = None) -> dict:
         """Render a separate mix; narration and existing outputs are never overwritten."""
         if not ID.fullmatch(job_id) or not all(math.isfinite(value) for value in (duration, offset, crossfade)):
             raise AudioLibraryError("Invalid audio request")
         if not 3 <= duration <= 7200 or offset < 0 or not .1 <= crossfade <= min(5, duration / 2):
             raise AudioLibraryError("Invalid duration, offset or crossfade")
+        try:
+            events = [SoundEvent.model_validate(event).model_dump() for event in (sfx_events or [])]
+        except (ValidationError, TypeError):
+            raise AudioLibraryError("Invalid sound effect event") from None
+        if len(events) > 24 or any(event["time"] + .22 > duration for event in events):
+            raise AudioLibraryError("Sound effect events must fit inside the mix; maximum 24")
+        times = sorted(event["time"] for event in events)
+        if any(right - left < 1.5 for left, right in zip(times, times[1:])):
+            raise AudioLibraryError("Keep at least 1.5 seconds between discreet sound cues")
         narration, output = Path(narration).resolve(), Path(output).absolute()
         if not narration.is_file() or output.exists() or output.is_symlink() or output.resolve() == narration:
             raise AudioLibraryError("Narration must exist and output must be a new separate file")
@@ -328,7 +396,12 @@ class AudioLibrary:
             inputs = [self.ffmpeg, "-nostdin", "-hide_banner", "-y", "-ss", f"{offset:.6f}", "-i", str(narration)]
             for track_id in selection["tracks"]:
                 inputs += ["-stream_loop", "-1", "-i", str(self._directory(track_id) / "music.mp3")]
-            chain = self._mix_filter(duration, crossfade, len(selection["tracks"]))
+            effect_receipts = []
+            for index, event in enumerate(events):
+                path = Path(workspace) / f"sfx-{index}.wav"
+                effect_receipts.append({**synthesize_sfx(path, kind=event["kind"]), "time": event["time"]})
+                inputs += ["-i", str(path)]
+            chain = self._mix_filter(duration, crossfade, len(selection["tracks"]), events)
             analysis_filter = chain + ";[mixed]loudnorm=I=-16:LRA=7:TP=-1.8:print_format=json[analysis]"
             analysis = self._run(inputs + ["-filter_complex", analysis_filter, "-map", "[analysis]", "-vn", "-t", str(duration), "-f", "null", "-"], "mix analysis")
             measured = parse_loudnorm_measurement(analysis.stderr)
@@ -359,6 +432,7 @@ class AudioLibrary:
                        "target_lufs": -16, "target_true_peak_dbtp": -1.5, "encoding_headroom_db": .3,
                        "measured": loudness, "output_sha256": _hash(temporary),
                        "sources": source_receipts,
+                       "sound_effects": effect_receipts,
                        "filter": chain, "created_at": datetime.now(timezone.utc).isoformat()}
             owned_receipt = _atomic_json(receipt_path, receipt, replace=False)
             try:
@@ -375,7 +449,7 @@ class AudioLibrary:
             return receipt
 
     @staticmethod
-    def _mix_filter(duration: float, crossfade: float, count: int) -> str:
+    def _mix_filter(duration: float, crossfade: float, count: int, events: list[dict] | None = None) -> str:
         filters = [f"[0:a]atrim=duration={duration:.6f},asetpts=PTS-STARTPTS,aformat=sample_rates=48000:channel_layouts=stereo,"
                    "loudnorm=I=-19:LRA=7:TP=-3,aresample=48000,asplit=2[voice][key]"]
         segment = (duration + crossfade) / 2 if count == 2 else duration
@@ -385,8 +459,13 @@ class AudioLibrary:
                            f"loudnorm=I=-29:LRA=11:TP=-8,aresample=48000[m{index}]")
         filters.append(f"[m0][m1]acrossfade=d={crossfade:.6f}:c1=tri:c2=tri[bed]" if count == 2 else "[m0]anull[bed]")
         filters += ["[bed][key]sidechaincompress=threshold=0.012:ratio=8:attack=15:release=300:makeup=1[ducked]",
-                    f"[ducked]afade=t=in:d=0.08,afade=t=out:st={duration-.4:.6f}:d=0.4[bedfaded]",
-                    "[voice][bedfaded]amix=inputs=2:duration=first:normalize=0[mixed]"]
+                    f"[ducked]afade=t=in:d=0.08,afade=t=out:st={duration-.4:.6f}:d=0.4[bedfaded]"]
+        labels = "[voice][bedfaded]"
+        for index, event in enumerate(events or []):
+            filters.append(f"[{count+index+1}:a]aformat=sample_rates=48000:channel_layouts=stereo,"
+                           f"volume=0.65,adelay={round(event['time']*1000)}:all=1[sfx{index}]")
+            labels += f"[sfx{index}]"
+        filters.append(labels + f"amix=inputs={2+len(events or [])}:duration=first:normalize=0[mixed]")
         return ";".join(filters)
 
     @staticmethod

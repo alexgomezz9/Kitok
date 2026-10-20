@@ -280,9 +280,9 @@ como desconocido: la licencia no garantiza ausencia de reclamaciones automática
 
 ## Música y efectos locales
 
-La biblioteca incluye cuatro pistas auditadas de Kevin MacLeod (CC BY4.0), con
+La biblioteca incluye 20 pistas auditadas de Kevin MacLeod (CC BY4.0), con
 fuente oficial, autor, licencia, hash y créditos por archivo. Las búsquedas y las
-mezclas no generan voz. La primera descarga usa Internet; las siguientes reutilizan
+mezclas no generan voz. El catálogo, licencias y voces se explican en [docs/audio.md](docs/audio.md). La primera descarga usa Internet; las siguientes reutilizan
 la caché verificada. No es una suscripción ni un servicio de generación de pago.
 
 ```bash

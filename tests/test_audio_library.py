@@ -31,6 +31,8 @@ def tone_bytes(frequency=220, seconds=8):
 @pytest.fixture
 def audio_library(tmp_path):
     catalog = json.loads(CATALOG.read_text())
+    # Four contrasting fixtures cover the algorithm; real catalog identity is checked separately.
+    catalog["sources"] = catalog["sources"][:4]
     audio = {item["id"]: tone_bytes(180 + index * 130) for index, item in enumerate(catalog["sources"])}
     for item in catalog["sources"]:
         item["sha256"] = hashlib.sha256(audio[item["id"]]).hexdigest()
@@ -57,7 +59,7 @@ def audio_library(tmp_path):
 
 def test_catalog_exact_sources_and_noncommercial_rejected(tmp_path):
     catalog = json.loads(CATALOG.read_text())
-    assert len(catalog["sources"]) == 4
+    assert len(catalog["sources"]) == 20
     assert all(item["content_id"] == "unknown" for item in catalog["sources"])
     for field, value in [("download_url", "https://attacker.invalid/song.mp3"), ("license_id", "CC-BY-NC-4.0"),
                          ("source_url", "https://incompetech.com/other"), ("title", "Unreviewed title")]:
@@ -132,6 +134,49 @@ def test_corrupt_cache_is_not_selected(audio_library):
     (library.cache / "long_note_two/music.mp3").write_bytes(b"corrupt")
     with pytest.raises(AudioLibraryError, match="Not enough"):
         library.select("episode-1", channel="loose_thread", mood="investigation", count=1)
+
+
+def test_available_is_local_non_mutating_and_manual_selection_is_stable(audio_library):
+    library, _, _, calls = audio_library
+    assert library.available() == []
+    assert not (library.cache / "selection.json").exists()
+    assert not (library.cache / "long_note_two").exists()
+    library.fetch("long_note_two")
+    before = len(calls)
+    assert [row["id"] for row in library.available(channel="loose_thread", mood="investigation")] == ["long_note_two"]
+    assert library.available(channel="horror") == []
+    choice = library.select_manual("manual", "long_note_two")
+    assert choice["tracks"] == ["long_note_two"]
+    assert library.select_manual("manual", "long_note_two") == choice
+    assert len(calls) == before
+    with pytest.raises(AudioLibraryError, match="different audio selection"):
+        library.select("manual", channel="loose_thread", mood="investigation", count=1)
+    with pytest.raises(AudioLibraryError, match="missing or corrupted"):
+        library.select_manual("another", "echoes_of_time_v2")
+
+
+def test_mix_rejects_invalid_or_overlapping_cues_before_writing(audio_library, tmp_path):
+    library, *_ = audio_library
+    for events in [[{"time": float("nan")}], [{"time": 2, "kind": "explosion"}],
+                   [{"time": 3.9}], [{"time": 1}, {"time": 1.2}],
+                   [{"time": 1, "path": "/untrusted/sample.wav"}]]:
+        with pytest.raises(AudioLibraryError):
+            library.mix("cue", tmp_path / "missing.wav", tmp_path / "new.wav", duration=4, sfx_events=events)
+    assert not (tmp_path / "new.wav").exists()
+
+
+def test_real_mix_contains_original_cues_with_measured_levels(audio_library, tmp_path):
+    library, *_ = audio_library
+    library.fetch("long_note_two")
+    library.select_manual("sfx", "long_note_two")
+    voice = tmp_path / "voice.wav"
+    voice.write_bytes(tone_bytes(seconds=4))
+    receipt = library.mix("sfx", voice, tmp_path / "sfx.wav", duration=4,
+                          sfx_events=[{"time": .5}, {"time": 2.5, "kind": "low_pulse"}])
+    assert [event["kind"] for event in receipt["sound_effects"]] == ["soft_tick", "low_pulse"]
+    assert all(event["external_samples"] is False for event in receipt["sound_effects"])
+    assert "adelay=500:all=1" in receipt["filter"]
+    assert receipt["measured"]["true_peak_dbtp"] <= -1.5
 
 
 def test_selection_corruption_is_rejected_without_rewriting_state(audio_library):

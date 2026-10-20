@@ -97,6 +97,434 @@
       ],
       "content_id": "unknown",
       "verified_on": "2026-10-18"
+    },
+    {
+      "id": "night_vigil",
+      "isrc": "USUAN1900047",
+      "title": "Night Vigil",
+      "author": "Kevin MacLeod",
+      "filename": "Night Vigil.mp3",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1900047",
+      "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Night%20Vigil.mp3",
+      "license_id": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution": "\"Night Vigil\" — Kevin MacLeod (incompetech.com). Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/ Source: https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1900047",
+      "sha256": "315009fda5154a093570b9f49c1d98202ab5ba4906078713380d130710ada442",
+      "moods": [
+        "reflective",
+        "resolution"
+      ],
+      "channels": [
+        "loose_thread",
+        "documentary",
+        "lore",
+        "science"
+      ],
+      "content_id": "unknown",
+      "verified_on": "2026-10-20",
+      "source_feel": "Mystical, Somber",
+      "instruments": "Choir, Flute, Basses, Cellos"
+    },
+    {
+      "id": "floating_cities",
+      "isrc": "USUAN1600018",
+      "title": "Floating Cities",
+      "author": "Kevin MacLeod",
+      "filename": "Floating Cities.mp3",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1600018",
+      "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Floating%20Cities.mp3",
+      "license_id": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution": "\"Floating Cities\" — Kevin MacLeod (incompetech.com). Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/ Source: https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1600018",
+      "sha256": "e7365652410d1fbc8a14d87537855d625c1a5fa8b7de8c626f47c13256ef2ddd",
+      "moods": [
+        "ambient",
+        "reflective"
+      ],
+      "channels": [
+        "loose_thread",
+        "documentary",
+        "lore",
+        "science"
+      ],
+      "content_id": "unknown",
+      "verified_on": "2026-10-20",
+      "source_feel": "Somber, Relaxed, Mystical, Calming",
+      "instruments": "Synths, Percussion"
+    },
+    {
+      "id": "crypto",
+      "isrc": "USUAN1600013",
+      "title": "Crypto",
+      "author": "Kevin MacLeod",
+      "filename": "Crypto.mp3",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1600013",
+      "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Crypto.mp3",
+      "license_id": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution": "\"Crypto\" — Kevin MacLeod (incompetech.com). Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/ Source: https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1600013",
+      "sha256": "f09ba8bff00baca85fcdcde3b7f5d6b34a09c2c0b44b007a9123ee42f7d1bcf2",
+      "moods": [
+        "investigation",
+        "suspense"
+      ],
+      "channels": [
+        "loose_thread",
+        "documentary",
+        "lore",
+        "science"
+      ],
+      "content_id": "unknown",
+      "verified_on": "2026-10-20",
+      "source_feel": "Dark, Eerie, Unnerving, Suspenseful",
+      "instruments": "Flute, Percussion, Synths"
+    },
+    {
+      "id": "despair_and_triumph",
+      "isrc": "USUAN1400012",
+      "title": "Despair and Triumph",
+      "author": "Kevin MacLeod",
+      "filename": "Despair and Triumph.mp3",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1400012",
+      "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Despair%20and%20Triumph.mp3",
+      "license_id": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution": "\"Despair and Triumph\" — Kevin MacLeod (incompetech.com). Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/ Source: https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1400012",
+      "sha256": "957526b21ae4859557c5b1082a81ace57c6d01cac7055c0a0f63e4f3ea82c46c",
+      "moods": [
+        "reflective",
+        "mystery"
+      ],
+      "channels": [
+        "loose_thread",
+        "documentary",
+        "lore",
+        "science"
+      ],
+      "content_id": "unknown",
+      "verified_on": "2026-10-20",
+      "source_feel": "Dark, Mysterious, Somber",
+      "instruments": "Piano"
+    },
+    {
+      "id": "ghost_story",
+      "isrc": "USUAN1300034",
+      "title": "Ghost Story",
+      "author": "Kevin MacLeod",
+      "filename": "Ghost Story.mp3",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1300034",
+      "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Ghost%20Story.mp3",
+      "license_id": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution": "\"Ghost Story\" — Kevin MacLeod (incompetech.com). Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/ Source: https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1300034",
+      "sha256": "b5d9aac3bcb3f4fab46bc049eeec60cbd56d8a8a7676b2d167dbc7002ad7869a",
+      "moods": [
+        "mystery",
+        "horror"
+      ],
+      "channels": [
+        "lore",
+        "horror"
+      ],
+      "content_id": "unknown",
+      "verified_on": "2026-10-20",
+      "source_feel": "Calming, Mysterious, Relaxed",
+      "instruments": "Vibraphone, Waterphone, Piano, Percussion"
+    },
+    {
+      "id": "the_descent",
+      "isrc": "USUAN1200094",
+      "title": "The Descent",
+      "author": "Kevin MacLeod",
+      "filename": "The Descent.mp3",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1200094",
+      "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/The%20Descent.mp3",
+      "license_id": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution": "\"The Descent\" — Kevin MacLeod (incompetech.com). Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/ Source: https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1200094",
+      "sha256": "f097d51700b970efffc62499473ea3a31e09aad4172e787978bc9c2a644d53a2",
+      "moods": [
+        "revelation",
+        "tension"
+      ],
+      "channels": [
+        "loose_thread",
+        "documentary",
+        "lore",
+        "science"
+      ],
+      "content_id": "unknown",
+      "verified_on": "2026-10-20",
+      "source_feel": "Action, Dark, Driving, Epic, Intense",
+      "instruments": "French Horns, Trombones, Tuba, Violins, Percussion, Trumpet"
+    },
+    {
+      "id": "deep_haze",
+      "isrc": "USUAN1100886",
+      "title": "Deep Haze",
+      "author": "Kevin MacLeod",
+      "filename": "Deep Haze.mp3",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1100886",
+      "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Deep%20Haze.mp3",
+      "license_id": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution": "\"Deep Haze\" — Kevin MacLeod (incompetech.com). Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/ Source: https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1100886",
+      "sha256": "3773f35d30769b56d83e5b86767e0a77cd721f2b35c564ebddde49d0bdac81dc",
+      "moods": [
+        "investigation",
+        "momentum"
+      ],
+      "channels": [
+        "loose_thread",
+        "documentary",
+        "lore",
+        "science"
+      ],
+      "content_id": "unknown",
+      "verified_on": "2026-10-20",
+      "source_feel": "Action, Driving, Grooving",
+      "instruments": "Percussion, Guitar, Synths"
+    },
+    {
+      "id": "lightless_dawn",
+      "isrc": "USUAN1100655",
+      "title": "Lightless Dawn",
+      "author": "Kevin MacLeod",
+      "filename": "Lightless Dawn.mp3",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1100655",
+      "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Lightless%20Dawn.mp3",
+      "license_id": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution": "\"Lightless Dawn\" — Kevin MacLeod (incompetech.com). Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/ Source: https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1100655",
+      "sha256": "59fd69e4432c95887d626e8055113da8fb0da9a8ccac85c6b7da6a6031c4f325",
+      "moods": [
+        "investigation",
+        "mystery",
+        "tension"
+      ],
+      "channels": [
+        "loose_thread",
+        "documentary",
+        "lore",
+        "science"
+      ],
+      "content_id": "unknown",
+      "verified_on": "2026-10-20",
+      "source_feel": "Dark, Eerie, Mysterious, Mystical, Somber, Unnerving",
+      "instruments": "Synths, Percussion, Strings, Bells"
+    },
+    {
+      "id": "dark_walk",
+      "isrc": "USUAN1100468",
+      "title": "Dark Walk",
+      "author": "Kevin MacLeod",
+      "filename": "Dark Walk.mp3",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1100468",
+      "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Dark%20Walk.mp3",
+      "license_id": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution": "\"Dark Walk\" — Kevin MacLeod (incompetech.com). Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/ Source: https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1100468",
+      "sha256": "9844d103a492b51e02cb89daeabb6da02d0d15f2568f887913690a051a3fdec6",
+      "moods": [
+        "horror",
+        "tension"
+      ],
+      "channels": [
+        "lore",
+        "horror"
+      ],
+      "content_id": "unknown",
+      "verified_on": "2026-10-20",
+      "source_feel": "Dark, Eerie, Somber, Unnerving",
+      "instruments": "Piano, Organ, Strings, Synths"
+    },
+    {
+      "id": "anxiety",
+      "isrc": "USUAN1100328",
+      "title": "Anxiety",
+      "author": "Kevin MacLeod",
+      "filename": "Anxiety.mp3",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1100328",
+      "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Anxiety.mp3",
+      "license_id": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution": "\"Anxiety\" — Kevin MacLeod (incompetech.com). Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/ Source: https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1100328",
+      "sha256": "87f1ca3f47dc6ae178e8dc2e2b3e88e824ba6fab690c1399d3117aa1d9a582db",
+      "moods": [
+        "horror",
+        "suspense"
+      ],
+      "channels": [
+        "lore",
+        "horror"
+      ],
+      "content_id": "unknown",
+      "verified_on": "2026-10-20",
+      "source_feel": "Dark, Intense, Suspenseful",
+      "instruments": "Synth"
+    },
+    {
+      "id": "immersed",
+      "isrc": "USUAN1600010",
+      "title": "Immersed",
+      "author": "Kevin MacLeod",
+      "filename": "Immersed.mp3",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1600010",
+      "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Immersed.mp3",
+      "license_id": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution": "\"Immersed\" — Kevin MacLeod (incompetech.com). Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/ Source: https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1600010",
+      "sha256": "870fa4f642816b2207cf74e48c36cbbbd147df99be24f08f29aa26ac0597a44b",
+      "moods": [
+        "ambient",
+        "reflective",
+        "resolution"
+      ],
+      "channels": [
+        "loose_thread",
+        "documentary",
+        "lore",
+        "science"
+      ],
+      "content_id": "unknown",
+      "verified_on": "2026-10-20",
+      "source_feel": "Calming, Mystical, Relaxed, Somber",
+      "instruments": "Piano, Strings"
+    },
+    {
+      "id": "mesmerize",
+      "isrc": "USUAN1500005",
+      "title": "Mesmerize",
+      "author": "Kevin MacLeod",
+      "filename": "Mesmerize.mp3",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1500005",
+      "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Mesmerize.mp3",
+      "license_id": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution": "\"Mesmerize\" — Kevin MacLeod (incompetech.com). Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/ Source: https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1500005",
+      "sha256": "fd6a372b816bb9117cbd81167f258e71add16fec072b711aa7bdb89aa9acc277",
+      "moods": [
+        "reflective",
+        "investigation"
+      ],
+      "channels": [
+        "loose_thread",
+        "documentary",
+        "lore",
+        "science"
+      ],
+      "content_id": "unknown",
+      "verified_on": "2026-10-20",
+      "source_feel": "Somber, Calming",
+      "instruments": "Piano"
+    },
+    {
+      "id": "anguish",
+      "isrc": "USUAN1400047",
+      "title": "Anguish",
+      "author": "Kevin MacLeod",
+      "filename": "Anguish.mp3",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1400047",
+      "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Anguish.mp3",
+      "license_id": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution": "\"Anguish\" — Kevin MacLeod (incompetech.com). Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/ Source: https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1400047",
+      "sha256": "b1750903a90c2cfe88445196e78181a9093c0a3bc08f8bed39993d969fe0d268",
+      "moods": [
+        "reflective",
+        "resolution"
+      ],
+      "channels": [
+        "loose_thread",
+        "documentary",
+        "lore",
+        "science"
+      ],
+      "content_id": "unknown",
+      "verified_on": "2026-10-20",
+      "source_feel": "Calming, Dark, Somber",
+      "instruments": "Harp, Guitar, Percussion"
+    },
+    {
+      "id": "clean_soul",
+      "isrc": "USUAN1300033",
+      "title": "Clean Soul",
+      "author": "Kevin MacLeod",
+      "filename": "Clean Soul.mp3",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1300033",
+      "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Clean%20Soul.mp3",
+      "license_id": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution": "\"Clean Soul\" — Kevin MacLeod (incompetech.com). Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/ Source: https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1300033",
+      "sha256": "458868c225cf8f6dbaf17300aa2e0839386991be8581d0218554699297d7581c",
+      "moods": [
+        "ambient",
+        "reflective"
+      ],
+      "channels": [
+        "loose_thread",
+        "documentary",
+        "lore",
+        "science"
+      ],
+      "content_id": "unknown",
+      "verified_on": "2026-10-20",
+      "source_feel": "Calming, Mysterious, Relaxed",
+      "instruments": "Electric Piano, Bass"
+    },
+    {
+      "id": "on_the_ground",
+      "isrc": "USUAN1400030",
+      "title": "On the Ground",
+      "author": "Kevin MacLeod",
+      "filename": "On the Ground.mp3",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1400030",
+      "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/On%20the%20Ground.mp3",
+      "license_id": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution": "\"On the Ground\" — Kevin MacLeod (incompetech.com). Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/ Source: https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1400030",
+      "sha256": "df899848714328fd6264153457488308f8d5160d76cc2e16f6a79510e33e86cb",
+      "moods": [
+        "investigation",
+        "momentum"
+      ],
+      "channels": [
+        "loose_thread",
+        "documentary",
+        "lore",
+        "science"
+      ],
+      "content_id": "unknown",
+      "verified_on": "2026-10-20",
+      "source_feel": "Grooving, Mysterious",
+      "instruments": "Bass, Electric Piano, Drums"
+    },
+    {
+      "id": "deliberate_thought",
+      "isrc": "USUAN1100261",
+      "title": "Deliberate Thought",
+      "author": "Kevin MacLeod",
+      "filename": "Deliberate Thought.mp3",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1100261",
+      "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Deliberate%20Thought.mp3",
+      "license_id": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution": "\"Deliberate Thought\" — Kevin MacLeod (incompetech.com). Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/ Source: https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1100261",
+      "sha256": "243d5543c930bf54e95868bab9da860e67ce8835e3698881fda287bc58cc343f",
+      "moods": [
+        "ambient",
+        "resolution"
+      ],
+      "channels": [
+        "loose_thread",
+        "documentary",
+        "lore",
+        "science"
+      ],
+      "content_id": "unknown",
+      "verified_on": "2026-10-20",
+      "source_feel": "Calming, Relaxed",
+      "instruments": "Synths, Choir"
     }
   ]
 }

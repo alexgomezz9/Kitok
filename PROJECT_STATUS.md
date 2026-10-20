@@ -1,6 +1,23 @@
 # Estado vigente de Kitok
 
-Actualizado: 2026-10-19. Entrega integrada en **main** por autorización expresa.
+Actualizado: 2026-10-20. Fase **Documental enriquecido** en rama
+**feature/documentary-motion**, base main bfd43c5. No integrar main ni renderizar
+UltimateBet completo en esta fase. Entrega anterior integrada por autorización.
+
+## Fase en curso: audio e investigación
+
+- Catálogo ampliado a20 músicas Incompetech CC BY4.0, archivos locales, hashes,
+  páginas/licencias y recibos verificados. 9 voces catalogadas y13 muestras de
+  escucha históricas/proveedor; ninguna síntesis nueva. DefaultLooseThread intacto.
+- CLI audio selección automática/manual, crossfade/ducking/SFX temporizados;
+  preferencias locales de voces y consulta Fish GET. Evidencia: 27tests afectados
+  correctos20/10; demo20s -16.00LUFS/-1.99dBTP. Audición humana pendiente.
+- [Investigación](docs/motion-research.md): conservarFFmpeg/ASS/Pillow; alternativas
+  revisadas, sin instalar otro motor. Three.js queda opcional histórico.
+- Compositor/galería/frontend están en implementación y revisión; todavía no
+  se consideran entregados. Próximo checkpoint: muestras y controles integrados.
+- CI anterior bfd43c5 comprobado20/10: main39291059237 y feature39291054745 success.
+
 Código y guías: **18e6031**, SHA local/remoto comprobado. Manual: [GUIA.md](GUIA.md).
 
 ## Disponible y comprobado

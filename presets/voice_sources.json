@@ -1,0 +1,365 @@
+{
+  "version": 1,
+  "default_reference_id": "e686ae649ee44f219a108aacba206c1a",
+  "terms_url": "https://fish.audio/terms/",
+  "voices": [
+    {
+      "id": "baseline",
+      "reference_id": "e686ae649ee44f219a108aacba206c1a",
+      "display_name": "Loose Thread Narrator",
+      "languages": [
+        "en"
+      ],
+      "tags": [
+        "male",
+        "middle-aged",
+        "narration",
+        "educational",
+        "deep",
+        "calm",
+        "professional",
+        "measured",
+        "documentary"
+      ],
+      "api_licensed": false,
+      "selectable": true,
+      "rights_status": "existing_operator_default",
+      "source_url": "https://api.fish.audio/model/e686ae649ee44f219a108aacba206c1a",
+      "verified_on": "2026-10-20",
+      "samples": [
+        {
+          "path": "outputs/voice-tests/baseline_plain.mp3",
+          "sha256": "3a84b50529acc99feada9d6abcca21b06bc724e3f6bdf502bac5fa3e9965938d",
+          "kind": "existing_plain",
+          "duration": 27.297875
+        },
+        {
+          "path": "outputs/voice-tests/baseline_tags.mp3",
+          "sha256": "19086b87424d029687b06a628cad7c1364606af6ef25166bce601c9a4f370e28",
+          "kind": "existing_tags",
+          "duration": 27.402375
+        }
+      ]
+    },
+    {
+      "id": "adrian",
+      "reference_id": "bf322df2096a46f18c579d0baa36f41d",
+      "display_name": "Adrian",
+      "languages": [
+        "en"
+      ],
+      "tags": [
+        "male",
+        "middle-aged",
+        "narration",
+        "deep",
+        "slow",
+        "measured",
+        "serious",
+        "dramatic",
+        "storytelling"
+      ],
+      "api_licensed": false,
+      "selectable": false,
+      "rights_status": "unverified_existing_sample",
+      "source_url": "https://api.fish.audio/model/bf322df2096a46f18c579d0baa36f41d",
+      "verified_on": "2026-10-20",
+      "samples": [
+        {
+          "path": "outputs/voice-tests/adrian_plain.mp3",
+          "sha256": "1540509b098c3fe3544eb308209201ca3652918e21febf12026e196933a9cad8",
+          "kind": "existing_plain",
+          "duration": 29.9885
+        },
+        {
+          "path": "outputs/voice-tests/adrian_tags.mp3",
+          "sha256": "da9e6e79c519bd18700b8ef0ed772afd194bfd811dba0ba58588dbf7356e886d",
+          "kind": "existing_tags",
+          "duration": 30.014625
+        }
+      ]
+    },
+    {
+      "id": "ethan",
+      "reference_id": "536d3a5e000945adb7038665781a4aca",
+      "display_name": "Ethan",
+      "languages": [
+        "en"
+      ],
+      "tags": [
+        "male",
+        "middle-aged",
+        "educational",
+        "narration",
+        "professional",
+        "clear",
+        "calm",
+        "authoritative",
+        "documentary"
+      ],
+      "api_licensed": false,
+      "selectable": false,
+      "rights_status": "unverified_existing_sample",
+      "source_url": "https://api.fish.audio/model/536d3a5e000945adb7038665781a4aca",
+      "verified_on": "2026-10-20",
+      "samples": [
+        {
+          "path": "outputs/voice-tests/ethan_plain.mp3",
+          "sha256": "70bc4156a396c5fb1a1cf5171073cad08002aa5069ff50c14e8e429f29ce8b28",
+          "kind": "existing_plain",
+          "duration": 27.898688
+        },
+        {
+          "path": "outputs/voice-tests/ethan_tags.mp3",
+          "sha256": "0b575409e4870b504c8732293fe8999f538bfe698be60a8193946fb612053a7c",
+          "kind": "existing_tags",
+          "duration": 26.827688
+        }
+      ]
+    },
+    {
+      "id": "narrator",
+      "reference_id": "0327fdb5da9e4fd782899a8058c8ae2b",
+      "display_name": "Narrator",
+      "languages": [
+        "en"
+      ],
+      "tags": [
+        "male",
+        "young",
+        "narration",
+        "educational",
+        "documentary",
+        "calm",
+        "measured",
+        "authoritative",
+        "deep"
+      ],
+      "api_licensed": false,
+      "selectable": false,
+      "rights_status": "unverified_existing_sample",
+      "source_url": "https://api.fish.audio/model/0327fdb5da9e4fd782899a8058c8ae2b",
+      "verified_on": "2026-10-20",
+      "samples": [
+        {
+          "path": "outputs/voice-tests/narrator_plain.mp3",
+          "sha256": "40afef88f15880c004d81846d77cd007a50b86f6921c8ed4a148fd6669823d1e",
+          "kind": "existing_plain",
+          "duration": 27.402375
+        },
+        {
+          "path": "outputs/voice-tests/narrator_tags.mp3",
+          "sha256": "f7e009f8c90d33ed4188c4293c841396ef8c9fcf6270bb03583ce4a1c7afa785",
+          "kind": "existing_tags",
+          "duration": 28.786875
+        }
+      ]
+    },
+    {
+      "id": "dave",
+      "reference_id": "a754ca8729d642d9a918a42b5b6a77d1",
+      "display_name": "Dave - Australian Male",
+      "languages": [
+        "en"
+      ],
+      "tags": [
+        "male",
+        "middle-aged",
+        "narration",
+        "conversational",
+        "calm",
+        "relaxed",
+        "measured",
+        "clear",
+        "warm",
+        "confident",
+        "storytelling",
+        "narrative",
+        "documentary"
+      ],
+      "api_licensed": true,
+      "selectable": true,
+      "rights_status": "fish_licensed_api",
+      "source_url": "https://api.fish.audio/model/a754ca8729d642d9a918a42b5b6a77d1",
+      "verified_on": "2026-10-20",
+      "samples": [
+        {
+          "path": "cache/voice-library/dave/preview.mp3",
+          "sha256": "d32624150e644d67330754154c957994b6d95baa0a127e93e79347c3765390be",
+          "kind": "existing_provider_preview",
+          "duration": 13.897063
+        }
+      ],
+      "preview_source": "https://platform.r2.fish.audio/tasks/2026-08-06/fe8056a322c444a6b7be2c217cf41ff4.mp3"
+    },
+    {
+      "id": "calm_narrator",
+      "reference_id": "6d71c24e892b467ebef21f3dd3f4810a",
+      "display_name": "Calm Narrator Voice",
+      "languages": [
+        "en"
+      ],
+      "tags": [
+        "male",
+        "middle-aged",
+        "narration",
+        "educational",
+        "entertainment",
+        "character-voice",
+        "social-media",
+        "conversational",
+        "advertisement",
+        "calm",
+        "relaxed",
+        "measured",
+        "warm",
+        "smooth",
+        "professional",
+        "confident",
+        "clear",
+        "crisp",
+        "neutral-tone",
+        "storytelling"
+      ],
+      "api_licensed": true,
+      "selectable": true,
+      "rights_status": "fish_licensed_api",
+      "source_url": "https://api.fish.audio/model/6d71c24e892b467ebef21f3dd3f4810a",
+      "verified_on": "2026-10-20",
+      "samples": [
+        {
+          "path": "cache/voice-library/calm_narrator/preview.mp3",
+          "sha256": "877ff77960ecb5752aedfb1f1ac286694168b034c3e1f5b1bd9ea61cf47cacee",
+          "kind": "existing_provider_preview",
+          "duration": 14.837438
+        }
+      ],
+      "preview_source": "https://platform.r2.fish.audio/tasks/2026-08-28/d653b6cee47f43b19e534899726646b3.mp3"
+    },
+    {
+      "id": "reflective_male",
+      "reference_id": "afe69eaecd7b49d1b564b06421ce3706",
+      "display_name": "Calm Reflective Male",
+      "languages": [
+        "en"
+      ],
+      "tags": [
+        "male",
+        "middle-aged",
+        "narration",
+        "educational",
+        "entertainment",
+        "deep",
+        "low",
+        "calm",
+        "relaxed",
+        "measured",
+        "smooth",
+        "friendly",
+        "professional",
+        "storytelling",
+        "narrative"
+      ],
+      "api_licensed": true,
+      "selectable": true,
+      "rights_status": "fish_licensed_api",
+      "source_url": "https://api.fish.audio/model/afe69eaecd7b49d1b564b06421ce3706",
+      "verified_on": "2026-10-20",
+      "samples": [
+        {
+          "path": "cache/voice-library/reflective_male/preview.mp3",
+          "sha256": "6e9025babe23739a4e2cbea4e905c5eff7832e25c8086d4f35d619dfd86476e5",
+          "kind": "existing_provider_preview",
+          "duration": 13.844813
+        }
+      ],
+      "preview_source": "https://platform.r2.fish.audio/tasks/2026-07-24/10d87a057a5d41d0b959818b52cad0fa.mp3"
+    },
+    {
+      "id": "kevon",
+      "reference_id": "bf4a01bacf1b43b188c2c13ebdc77166",
+      "display_name": "kevon",
+      "languages": [
+        "en"
+      ],
+      "tags": [
+        "male",
+        "middle-aged",
+        "narration",
+        "educational",
+        "medium",
+        "calm",
+        "relaxed",
+        "measured",
+        "smooth",
+        "clear",
+        "neutral-tone",
+        "storytelling",
+        "narrative",
+        "professional",
+        "confident",
+        "authoritative",
+        "high",
+        "bright",
+        "warm",
+        "conversational",
+        "advertisement",
+        "teacher",
+        "podcast"
+      ],
+      "api_licensed": true,
+      "selectable": true,
+      "rights_status": "fish_licensed_api",
+      "source_url": "https://api.fish.audio/model/bf4a01bacf1b43b188c2c13ebdc77166",
+      "verified_on": "2026-10-20",
+      "samples": [
+        {
+          "path": "cache/voice-library/kevon/preview.mp3",
+          "sha256": "183c64ca2b92558c71e52c34cc93d5e5c500d9b129ce32dfb39dd4b878fdcd30",
+          "kind": "existing_provider_preview",
+          "duration": 14.132125
+        }
+      ],
+      "preview_source": "https://platform.r2.fish.audio/tasks/2026-08-18/5f994122acdb42849954b302da5917c6.mp3"
+    },
+    {
+      "id": "calm_observer",
+      "reference_id": "0b2331767e7244218e1043a1b44ec6ea",
+      "display_name": "Calm Observer",
+      "languages": [
+        "en"
+      ],
+      "tags": [
+        "male",
+        "middle-aged",
+        "narration",
+        "educational",
+        "medium",
+        "warm",
+        "calm",
+        "relaxed",
+        "measured",
+        "smooth",
+        "clear",
+        "neutral-tone",
+        "professional",
+        "storytelling",
+        "narrative"
+      ],
+      "api_licensed": true,
+      "selectable": true,
+      "rights_status": "fish_licensed_api",
+      "source_url": "https://api.fish.audio/model/0b2331767e7244218e1043a1b44ec6ea",
+      "verified_on": "2026-10-20",
+      "samples": [
+        {
+          "path": "cache/voice-library/calm_observer/preview.mp3",
+          "sha256": "ffeee79646a4215e23ffb77c1511dcf5c4572cd0ed08b963154167370e91cd27",
+          "kind": "existing_provider_preview",
+          "duration": 14.4195
+        }
+      ],
+      "preview_source": "https://platform.r2.fish.audio/task/74d80b455a0347dbba1613ba96697d6b.mp3"
+    }
+  ]
+}
