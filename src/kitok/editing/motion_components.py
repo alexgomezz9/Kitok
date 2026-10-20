@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Literal
 import math
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageOps
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from .ass import _color, _event, _text
@@ -41,10 +41,12 @@ class MotionDesign(BaseModel):
     model_config = ConfigDict(extra='forbid')
     effect: Effect
     text: str = Field(default='', max_length=180)
+    display_text: str = Field(default='', max_length=120)
     label: str = Field(default='', max_length=100)
     detail: str = Field(default='', max_length=180)
     emphasis: str = Field(default='', max_length=80)
     items: list[str] = Field(default_factory=list, max_length=3)
+    symbols: list[Literal['key', 'device', 'shield', 'database', 'lock', 'person']] = Field(default_factory=list, max_length=3)
     values: list[float] = Field(default_factory=list, max_length=2)
     preset: Literal['investigation', 'archive', 'signal'] = 'investigation'
     delay: float = Field(default=.12, ge=0, le=15, allow_inf_nan=False)
@@ -54,7 +56,7 @@ class MotionDesign(BaseModel):
 
     @model_validator(mode='after')
     def coherent(self):
-        for text in [self.text, self.label, self.detail, self.emphasis, *self.items]:
+        for text in [self.text, self.display_text, self.label, self.detail, self.emphasis, *self.items]:
             if any(ord(c) < 32 and c not in '\n\t' for c in text):
                 raise ValueError('Motion text contains control characters')
         if self.effect not in {'freeze', 'push', 'pan', 'focus', 'grade', 'dissolve', 'wipe'} and not self.text.strip():
@@ -68,18 +70,16 @@ class MotionDesign(BaseModel):
             raise ValueError('Numeric chart values are only accepted for a comparison')
         if self.effect == 'flow' and (len(self.items) != 3 or any(not x.strip() or len(x) > 42 for x in self.items)):
             raise ValueError('A flow needs three short approved labels')
+        if self.symbols and (self.effect != 'flow' or len(self.symbols) != 3):
+            raise ValueError('Flow symbols must describe all three approved nodes')
         return self
 
 
 def background_plate(design: MotionDesign, output: Path, width: int, height: int):
-    """Restrained, deliberately empty plate; text remains sharp libass vectors."""
+    """A quiet stage for animated objects, with no repeated slide furniture."""
     style = PRESETS[design.preset]
-    image = Image.new('RGB', (width, height), style['background'])
-    draw = ImageDraw.Draw(image)
-    # One editorial rule and a quiet margin provide hierarchy without faux data.
-    x, y = round(width * .075), round(height * .10)
-    draw.line((x, y, round(width*.18), y), fill=style['accent'], width=max(2, round(height/270)))
-    draw.line((x, round(height*.90), round(width*.925), round(height*.90)), fill=style['muted'], width=1)
+    gradient = Image.radial_gradient('L').resize((width, height))
+    image = ImageOps.colorize(gradient, style['background'], '#06090E' if design.preset != 'archive' else '#CFC5AF')
     output.parent.mkdir(parents=True, exist_ok=True)
     image.save(output)
 
@@ -99,15 +99,26 @@ def write_motion_ass(design: MotionDesign, output: Path, *, duration: float, wid
     ink, accent, muted, bg = (_color(style[k]) for k in ('text', 'accent', 'muted', 'background'))
     x = width * .075
 
-    def rect(left, top, w, h, color=accent, layer=1, at=start, until=end, grow=False):
-        tags = rf'\an7\pos({left:.1f},{top:.1f})\bord0\shad0\1c{color}\fad({fade_in},{fade_out})'
+    def shape_opacity(at, entrance=100):
+        age=max(0,-at)*1000
+        remaining=max(0,round(entrance-age))
+        alpha=round(255*max(0,1-age/entrance))
+        visible=round((end-max(0,at))*1000)
+        out_begin=max(remaining,visible-fade_out)
+        return rf'\fade({alpha},0,{255 if leaving else 0},0,{remaining},{out_begin},{max(remaining,visible)})'
+
+    def rect(left, top, w, h, color=accent, layer=1, at=start, until=end, grow=False, alpha='00'):
+        if at >= until:
+            return
+        tags = rf'\an7\pos({left:.1f},{top:.1f})\bord0\shad0\1c{color}'+shape_opacity(at,150)
+        tags += rf'\1a&H{alpha}&'
         if grow:
-            progress=min(1,max(0,-start/.55))
-            tags += rf'\fscx{100*progress:.2f}' + (rf'\t(0,{round(550*(1-progress))},\fscx100)' if progress<1 else '')
+            progress=min(1,max(0,-at/.85))
+            tags += rf'\fscx{100*progress:.2f}' + (rf'\t(0,{round(850*(1-progress))},\fscx100)' if progress<1 else '')
         shape = f'm 0 0 l {w:.1f} 0 l {w:.1f} {h:.1f} l 0 {h:.1f}'
         events.append(_event(layer, max(0,at), until, '{'+tags+r'\p1}'+shape))
 
-    def text(value, box, size, *, color=ink, bold=False, serif=False, layer=3, at=start, move=True, max_lines=4):
+    def text(value, box, size, *, color=ink, bold=False, serif=False, layer=3, at=start, move=True, max_lines=4, center=False, reveal=False, stagger=0):
         if not value or at >= end:
             return
         # The same installed fonts are used to measure and render the text.
@@ -116,63 +127,120 @@ def write_motion_ass(design: MotionDesign, output: Path, *, duration: float, wid
                                      minimum=min(max(12, round(size*scale)), max(12, round(30*scale))), bold=bold, serif=serif, max_lines=max_lines)
         family = 'DejaVu Serif' if serif else 'DejaVu Sans'
         for i, line in enumerate(wrapped.split("\n")):
-            tx, ty = box[0], box[1] + i*(font.size + spacing)
-            age=max(0,-at)
+            line_at = at+i*stagger
+            if line_at >= end:
+                continue
+            tx = box[0]+((box[2]-box[0]-draw.textlength(line,font=font))/2 if center else 0)
+            ty = box[1] + i*(font.size + spacing)
+            age=max(0,-line_at)
             move_left=max(0,round(300-age*1000))
-            initial_y=ty+12*scale*max(0,1-age/.3)
+            initial_y=ty+(60 if reveal else 12)*scale*max(0,1-age/.3)
             position = (rf'\move({tx:.1f},{initial_y:.1f},{tx:.1f},{ty:.1f},0,{move_left})'
                         if move and move_left else rf'\pos({tx:.1f},{ty:.1f})')
             fade_left=max(0,round(180-age*1000))
             initial_alpha=round(255*max(0,1-age/.18))
-            visible_ms=round((end-max(0,at))*1000)
+            visible_ms=round((end-max(0,line_at))*1000)
             fade_end=max(fade_left,visible_ms)
             fade_begin=max(fade_left,visible_ms-fade_out)
             opacity=rf'\fade({initial_alpha},0,{255 if leaving else 0},0,{fade_left},{fade_begin},{fade_end})'
             tags = rf'\an7{position}\fn{family}\fs{font.size}\b{int(bold)}\1c{color}\bord0\shad0{opacity}'
-            events.append(_event(layer, max(0,at), end, '{'+tags+'}'+line))
+            if reveal:
+                # Fixed mask: glyphs physically rise into place rather than fade
+                # in like captions. Global elapsed also preserves a partial entry.
+                tags += rf'\clip({round(box[0]-2)},{round(ty)},{round(box[2]+2)},{round(ty+font.size*1.25)})'
+            events.append(_event(layer, max(0,line_at), end, '{'+tags+'}'+line))
+
+    def circle(cx, cy, radius, color, *, at=start, outline=False):
+        if at >= end:
+            return
+        # Cubic circle in local coordinates. Scaling has a stable centre.
+        r=radius; k=.55228475*r
+        shape=f'm {2*r} {r} b {2*r} {r+k} {r+k} {2*r} {r} {2*r} b {r-k} {2*r} 0 {r+k} 0 {r} b 0 {r-k} {r-k} 0 {r} 0 b {r+k} 0 {2*r} {r-k} {2*r} {r}'
+        age=max(0,-at); p=min(1,age/.55)
+        tags=rf'\an5\pos({cx:.1f},{cy:.1f})\1c{color}\3c{color}\bord{3*scale if outline else 0}\shad0'+shape_opacity(at)
+        if outline: tags+=r'\1a&HFF&'
+        tags+=rf'\fscx{100*p:.2f}\fscy{100*p:.2f}'
+        if p<1:tags+=rf'\t(0,{round(550*(1-p))},\fscx100\fscy100)'
+        events.append(_event(1,max(0,at),end,'{'+tags+r'\p1}'+shape))
+
+    def symbol(kind, cx, cy, *, at):
+        if at >= end:
+            return
+        # Original vector symbols. Their meaning is explicit plan data, never
+        # guessed from an arbitrary label or fetched from an icon service.
+        paths={
+            'key': 'm 24 15 b 4 15 4 47 24 47 b 44 47 44 15 24 15 m 38 41 l 78 81 l 87 72 l 77 62 l 68 71 l 61 64 l 70 55',
+            'device': 'm 27 7 l 73 7 b 78 7 80 10 80 15 l 80 85 b 80 91 77 93 73 93 l 27 93 b 22 93 20 90 20 85 l 20 15 b 20 10 23 7 27 7 m 35 18 l 65 18 m 43 82 l 57 82',
+            'shield': 'm 50 6 l 84 20 l 80 59 b 77 75 64 86 50 95 b 36 86 23 75 20 59 l 16 20 l 50 6 m 32 49 l 46 63 l 70 37',
+            'database': 'm 15 22 b 15 5 85 5 85 22 b 85 39 15 39 15 22 l 15 76 b 15 93 85 93 85 76 l 85 22 m 15 49 b 15 66 85 66 85 49',
+            'lock': 'm 29 45 l 29 29 b 29 0 71 0 71 29 l 71 45 m 16 45 l 84 45 l 84 90 l 16 90 l 16 45 m 50 62 l 50 77',
+            'person': 'm 50 9 b 24 9 24 49 50 49 b 76 49 76 9 50 9 m 16 92 b 16 46 84 46 84 92 l 16 92',
+        }
+        side=height*.115
+        p=min(1,max(0,-at/.5));left=cx-side/2;top=cy-side/2
+        # Clip reveals strokes in reading order. Coordinates refer to the final
+        # frame, so a stock split can resume the same reveal without restarting.
+        tags=rf'\an7\pos({left:.1f},{top:.1f})\fscx{side}\fscy{side}\1a&HFF&\3c{accent}\bord{3*scale}\shad0'+shape_opacity(at)
+        tags+=rf'\clip({round(left-5*scale)},{round(top-5*scale)},{round(left+side+5*scale)},{round(top+side*p+5*scale)})'
+        if p<1:tags+=rf'\t(0,{round(500*(1-p))},\clip({round(left-5*scale)},{round(top-5*scale)},{round(left+side+5*scale)},{round(top+side+5*scale)}))'
+        events.append(_event(3,max(0,at),end,'{'+tags+r'\p1}'+paths[kind]))
 
     def box(ax, ay, bx, by):
         return (width*ax, height*ay, width*bx, height*by)
 
     e = design.effect
+    headline = design.display_text or design.text
     if over_stock and e in {'identity', 'location', 'date', 'keyword', 'amount', 'kinetic'}:
         # A bounded opaque panel guarantees contrast on arbitrary stock.
         if e in {'identity', 'location'}:
             rect(x-20*scale, height*.66, width*.73, height*.24, bg, layer=0)
         else:
-            rect(x-20*scale, height*.16, width*.85, height*.65, bg, layer=0)
+            # Leave the image legible. Only the lower narrative emphasis gets
+            # a graduated scrim; no opaque rectangle covers the entire shot.
+            for band in range(24):
+                alpha=round(245-(245-28)*band/23)
+                rect(0,height*(.43+.57*band/24),width,height*.57/24+1,bg,layer=0,alpha=f'{alpha:02X}')
     if e in {'question', 'chapter', 'quote'}:
-        text(design.label, box(.075,.18,.90,.25), 27, color=accent)
-        text(design.text, box(.075,.32,.90,.68), 100 if e=='chapter' else 83, bold=e=='chapter', serif=e=='quote', max_lines=3)
-        text(design.detail, box(.075,.78,.90,.86), 28, color=muted)
-        rect(x,height*.73,width*.16,4*scale,grow=True)
+        text(design.label, box(.10,.12,.90,.19), 30, color=accent, center=True)
+        text(headline, box(.10,.28,.90,.76), 150 if e!='quote' else 115,
+             bold=e!='quote', serif=e=='quote', max_lines=3, center=True,reveal=True,stagger=.16)
+        text(design.detail, box(.12,.86,.88,.94), 29, color=muted,center=True,at=start+.65)
+        if e=='chapter':rect(width*.43,height*.22,width*.14,7*scale,grow=True)
     elif e == 'kinetic':
         words = design.text.split()
         n = max(1, math.ceil(len(words)/3))
         phrases = [' '.join(words[i:i+n]) for i in range(0,len(words),n)]
         for i, phrase in enumerate(phrases):
-            at = start + min(i*.38, (end-start)*.20*i)
-            text(phrase,box(.075,.25+i*.14,.91,.38+i*.14),78,color=accent if i==len(phrases)-1 else ink,bold=True,at=at,max_lines=1)
-        text(design.label,box(.075,.79,.90,.87),26,color=muted)
+            at = start + min(i*.45, (end-start)*.20*i)
+            text(phrase,box(.08,.18+i*.21,.92,.37+i*.21),132,color=accent if i==len(phrases)-1 else ink,bold=True,at=at,max_lines=1,reveal=True)
+        text(design.label,box(.08,.88,.90,.95),29,color=muted)
     elif e == 'keyword':
-        text(design.text,box(.075,.25,.90,.54),67,max_lines=3)
-        text(design.emphasis,box(.075,.59,.90,.73),72,color=accent,bold=True,at=start+design.emphasis_delay,max_lines=1)
-        text(design.label,box(.075,.78,.90,.85),25,color=muted)
+        # The narration provides context. Repeating its full sentence on top of
+        # stock merely creates a subtitle card and competes with the key phrase.
+        if over_stock:
+            text(design.label,box(.075,.52,.90,.61),32,color=muted,max_lines=2)
+            text(design.emphasis,box(.075,.65,.91,.84),125,color=accent,bold=True,at=start+design.emphasis_delay,max_lines=1,reveal=True)
+            rect(x,height*.88,width*.27,7*scale,at=start+design.emphasis_delay,grow=True)
+        else:
+            # An overlay promoted to a full-screen plate needs a title layout,
+            # not an isolated lower third floating in an empty frame.
+            text(design.emphasis,box(.10,.32,.90,.69),178,color=accent,bold=True,at=start+design.emphasis_delay,max_lines=2,center=True,reveal=True)
+            text(design.label,box(.10,.78,.90,.87),32,color=muted,center=True)
     elif e == 'amount':
-        text(design.label,box(.075,.23,.90,.31),30,color=muted)
-        text(design.text,box(.075,.36,.92,.60),132,color=accent,bold=True,max_lines=2)
-        rect(x,height*.67,width*.22,4*scale,grow=True)
-        text(design.detail,box(.075,.74,.90,.85),32)
+        text(headline,box(.075,.46 if over_stock else .30,.925,.72 if over_stock else .69),230,color=accent,bold=True,max_lines=2,reveal=True,stagger=.12)
+        rect(x,height*.75,width*.85,3*scale,color=muted,grow=True,at=start+.25)
+        text(design.label,box(.075,.79,.925,.91),43,max_lines=2,at=start+.5)
+        text(design.detail,box(.075,.16,.925,.25),29,color=muted)
     elif e in {'identity','location'}:
         rect(x,height*.69,5*scale,height*.16,grow=False)
         text(design.label,box(.10,.68,.86,.74),27,color=accent)
         text(design.text,box(.10,.76,.87,.85),54,bold=True,max_lines=1)
     elif e == 'date':
-        text(design.label,box(.075,.22,.89,.30),28,color=muted)
-        text(design.text,box(.075,.37,.90,.57),126,color=accent,serif=design.preset=='archive',max_lines=1)
-        rect(x,height*.68,width*.75,3*scale,grow=True)
-        rect(x,height*.66,3*scale,height*.045)
-        text(design.detail,box(.075,.75,.90,.85),30)
+        text(design.label,box(.075,.16,.89,.24),31,color=muted)
+        text(design.text,box(.075,.29,.90,.58),210,color=accent,serif=design.preset=='archive',bold=design.preset!='archive',max_lines=1,reveal=True)
+        rect(x,height*.69,width*.85,4*scale,grow=True)
+        for j in range(13):rect(x+width*.85*j/12,height*.675,2*scale,height*(.05 if j%3==0 else .025),muted,at=start+j*.045)
+        text(design.detail,box(.075,.79,.90,.89),34,at=start+.55)
     elif e == 'document':
         rect(width*.075,height*.21,width*.85,height*.57,ink,layer=0)
         text(design.label,box(.105,.25,.86,.32),25,color=bg)
@@ -181,22 +249,25 @@ def write_motion_ass(design: MotionDesign, output: Path, *, duration: float, wid
         text(design.text,box(.12,.415,.87,.61),55,color=bg,serif=True,max_lines=3)
         text(design.detail,box(.105,.68,.86,.75),25,color=bg)
     elif e == 'comparison':
-        text(design.text,box(.075,.20,.90,.32),54,bold=True,max_lines=2)
+        text(design.text,box(.075,.12,.90,.30),87,bold=True,max_lines=2,reveal=True)
         for i,(label,value) in enumerate(zip(design.items,design.values,strict=True)):
             y=.43+i*.20
-            text(label,box(.075,y,.89,y+.085),38,color=ink,max_lines=1)
-            rect(x,height*(y+.11),width*.72*value/max(design.values),height*.034,accent if i else muted,grow=True)
-        text(design.label,box(.075,.83,.90,.89),23,color=muted)
+            text(label,box(.075,y,.89,y+.085),45,color=ink,max_lines=1,at=start+i*.35)
+            rect(x,height*(y+.105),width*.82*value/max(design.values),height*.065,accent if i else muted,grow=True,at=start+.2+i*.35)
+        text(design.label,box(.075,.88,.90,.95),29,color=muted)
     elif e == 'flow':
-        text(design.text,box(.075,.20,.91,.33),55,bold=True,max_lines=2)
+        text(design.text,box(.075,.10,.91,.28),87,bold=True,max_lines=2,reveal=True)
         for i,label in enumerate(design.items):
-            left=.075+i*.30
-            rect(width*left,height*.49,width*.25,height*.18,bg,layer=0)
-            rect(width*left,height*.49,width*.25,3*scale,accent,grow=True)
-            text(label,box(left+.012,.53,left+.24,.65),35,max_lines=3,at=start+i*.25)
+            cx=width*(.18+i*.32);cy=height*.53;at=start+i*.55
+            circle(cx,cy,height*.115,accent if i==2 else muted,at=at,outline=True)
+            if design.symbols:
+                symbol(design.symbols[i],cx,cy,at=at+.12)
+            else:
+                text(f'{i+1:02d}',(cx-width*.065,cy-height*.046,cx+width*.065,cy+height*.065),68,color=accent,bold=True,center=True,at=at+.12,max_lines=1)
+            text(label,(cx-width*.135,height*.72,cx+width*.135,height*.85),48,bold=True,center=True,max_lines=2,at=at+.22,reveal=True)
             if i<2:
-                text('→',box(left+.26,.53,left+.30,.65),42,color=accent,at=start+i*.25)
-        text(design.label,box(.075,.79,.90,.87),25,color=muted)
+                rect(cx+height*.13,cy-2*scale,width*.32-height*.26,4*scale,accent,at=at+.30,grow=True)
+        text(design.label,box(.075,.90,.90,.96),26,color=muted)
     # Footage effects deliberately do not produce gratuitous captions.
     header = f'''[Script Info]
 ScriptType: v4.00+

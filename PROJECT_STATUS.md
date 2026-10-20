@@ -13,6 +13,12 @@ reprodujo en Kitok: los 24 vídeos originales llegaron al final por HTTP en Chro
 (en dos ejecuciones). Una muestra histórica conserva audio PCM; el renderer entrega AAC cuando el
 máster no es AAC, sin normalizar de nuevo ni reemplazar el original. Pruebas
 reales PCM/AAC correctas; AAC conserva su audio decodificado idéntico.
+La biblioteca revisada usa títulos grandes enmascarados, símbolos vectoriales
+escalonados y énfasis sobre stock sin repetir la frase completa. El texto breve
+de preguntas exige decisión editorial explícita; cantidades sencillas en
+dólares/euros admiten dígitos sin cambiar escala/calificador. 51 pruebas
+específicas correctas y revisión independiente sin pendientes de corrección;
+la revisión visual de los nuevos MP4 continúa.
 La galería ahora carga un único reproductor por clic, prioriza muestras y separa
 el mosaico estático del vídeo. Verificación: 21 React, build, API Range 206 y
 reproducción real; esto no explica ni resuelve por sí solo el error del chat.

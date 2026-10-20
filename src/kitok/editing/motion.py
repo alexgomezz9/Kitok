@@ -97,6 +97,30 @@ def _context_excerpt(sentence,phrase,limit=100):
     return value()
 
 
+def display_headline(text, effect):
+    """Short display copy with its original source retained in MotionDesign.text.
+
+    A short question requires explicit editorial copy, never a regex truncation.
+    Monetary amounts spelled as whole numbers below 100 can use digits; qualifiers
+    and scale stay literal. Pounds remain literal because they can mean weight.
+    Other formats are deliberately left intact, including ranges and fractions.
+    """
+    if effect=='amount':
+        ones='zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen'.split()
+        tens={'twenty':20,'thirty':30,'forty':40,'fifty':50,'sixty':60,'seventy':70,'eighty':80,'ninety':90}
+        match=re.fullmatch(r'(?P<q>more than |less than |at least |at most |about |roughly |approximately |up to |around )?(?P<n>[a-z]+(?:[ -][a-z]+)?) (?P<scale>thousand|million|billion|trillion) (?P<unit>dollars?|euros?)',text,re.I)
+        if match:
+            parts=match['n'].lower().replace('-',' ').split()
+            number=None
+            if len(parts)==1 and parts[0] in ones:number=ones.index(parts[0])
+            elif parts[0] in tens and (len(parts)==1 or parts[1] in ones[1:10]):
+                number=tens[parts[0]]+(ones.index(parts[1]) if len(parts)==2 else 0)
+            if number is not None:
+                currency='$' if match['unit'].lower().startswith('dollar') else '€'
+                return f"{match['q'] or ''}{currency}{number} {match['scale']}"
+    return ''
+
+
 def direct_motion(editing, duration: float, *, preset='investigation', word_alignment: dict | None = None) -> list[MotionDecision]:
     """Select only supported semantic intentions; density/recent history constrain variety."""
     if preset not in {'investigation', 'archive', 'signal'}:
@@ -184,7 +208,7 @@ def direct_motion(editing, duration: float, *, preset='investigation', word_alig
                 pass
         if effect=='keyword':
             end=min(duration,right+.8,start+max(hold,emphasis_delay+1.4))
-        design = MotionDesign(effect=effect,text=text,label=label,preset=preset,delay=0,
+        design = MotionDesign(effect=effect,text=text,display_text=display_headline(text,effect),label=label,preset=preset,delay=0,
                               detail='', emphasis_delay=emphasis_delay, emphasis=concept.group() if effect=='keyword' else '')
         decisions.append(MotionDecision(start,end,design,reason,timing,full))
     # Narrative questions and literal quantities get first claim on the budget;

@@ -19,11 +19,23 @@ por qué Remotion, Motion Canvas, MotionCraft, MLT y frei0r se aplazan.
 | Transiciones | Disolución y barrido breves |
 
 `MotionDesign` valida `effect`, `text`, `label`, `detail`, `emphasis`, `items`,
-`values`, `preset`, `delay`, `hold` y reloj `elapsed`/`emphasis_delay`. `investigation`, `archive` y `signal` cambian
+`values`, `symbols`, `display_text`, `preset`, `delay`, `hold` y reloj `elapsed`/`emphasis_delay`. `investigation`, `archive` y `signal` cambian
 paleta y jerarquía. Los datos son aportados: no hay nombres ni cantidades históricas
-por defecto. Las comparaciones necesitan valores finitos no negativos y etiquetas;
+por defecto. `display_text` permite un titular editorial breve explícito y conserva
+`text` como fuente. No se recortan preguntas con regex: una cláusula puede ser
+esencial. Sólo cantidades enteras sencillas en dólares/euros escritas con palabras
+pueden mostrarse en dígitos, conservando calificador y escala; pounds, rangos y
+fracciones quedan literales. Las comparaciones necesitan valores finitos no negativos y etiquetas;
 el editor debe comprobar unidad, fuente y significado. Los diagramas/citas no se
 convierten en evidencia documental por su apariencia.
+
+La revisión visual añade títulos grandes con máscaras y aparición escalonada,
+subrayados progresivos y diagramas de tres nodos con símbolos vectoriales
+(`key`, `device`, `shield`, `database`, `lock`, `person`). Los símbolos son
+decisiones explícitas del plan, no interpretación automática de cualquier guion.
+El énfasis sobre stock usa un degradado y evita repetir la frase entera como
+subtítulo. Si se convierte en placa completa, centra el concepto como título.
+El reloj de crecimiento es lineal para conservar el mismo estado entre cortes.
 
 Una escena del plan usa `graphic="motion"` y `motion_design` para una placa o
 `asset` más `motion_design` para componer sobre stock. El render valida texto medido,
@@ -68,8 +80,11 @@ archivo afectado y no se presenta como prueba de corrupción del MP4.
 Para reconstruir efectos con stock existente y fuente/licencia revisadas:
 
 ```bash
-.venv/bin/python scripts/motion_gallery.py effects --stock cache/pexels/videos/ID.mp4 --source-url https://www.pexels.com/video/ID/ --credit "Autor y procedencia comprobados"
+.venv/bin/python scripts/motion_gallery.py effects --stock cache/pexels/videos/ID.mp4 --source-url https://www.pexels.com/video/ID/ --credit "Autor y procedencia comprobados" --revision r2
 ```
+
+`--revision` crea IDs nuevos y conserva las pruebas anteriores; sin revisión,
+los archivos ya existentes se omiten.
 
 Para un fragmento preparado localmente:
 

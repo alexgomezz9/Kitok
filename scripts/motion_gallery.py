@@ -8,6 +8,7 @@ from pathlib import Path
 import argparse
 import json
 import math
+import re
 import subprocess
 from types import SimpleNamespace
 
@@ -50,6 +51,9 @@ def review(plan, folder, settings, *, title, family, kind, credits, baseline=Non
 
 def effects(args, settings):
     root=PROJECT_ROOT
+    revision=getattr(args,'revision',None)
+    if revision and not re.fullmatch(r'[a-z0-9][a-z0-9_-]{0,23}',revision):
+        raise ValueError('Revision must be a short lowercase ID')
     stock=project_file(root,str(args.stock))
     info=probe_media(stock,settings.ffprobe_binary)
     if info.duration < 4:
@@ -71,10 +75,10 @@ def effects(args, settings):
       'quote':{'text':'The software knew. The players did not.','label':'EDITORIAL DEMONSTRATION','detail':'An original line, not a sourced quotation.'},
       'document':{'text':'Access was limited to authorised accounts.','label':'DEMONSTRATION / ORIGINAL TEXT','detail':'Illustrative excerpt, not an archival document.'},
       'comparison':{'text':'Two possible outcomes','items':['Before — 10','After — 40'],'values':[10,40],'label':'ILLUSTRATIVE DATA / SAME UNIT'},
-      'flow':{'text':'Where information travels','items':['Source','Permission','Account'],'label':'ILLUSTRATIVE SYSTEM DIAGRAM'},
+      'flow':{'text':'Where information travels','items':['Source','Permission','Account'],'symbols':['database','lock','person'],'label':'ILLUSTRATIVE SYSTEM DIAGRAM'},
     }
     for i,(effect,title,family) in enumerate(CATALOG):
-        folder=parent/f'effect_{effect}'
+        folder=parent/f'effect_{revision+"_" if revision else ""}{effect}'
         if (folder/'preview.mp4').exists():
             print(f'{folder.name}: existing; preserved',flush=True)
             continue
@@ -183,6 +187,7 @@ def main():
     parser.add_argument('--height',type=int,default=1080)
     sub=parser.add_subparsers(dest='command',required=True)
     e=sub.add_parser('effects');e.add_argument('--stock',type=Path,required=True);e.add_argument('--source-url',required=True);e.add_argument('--credit',required=True)
+    e.add_argument('--revision',help='New revision ID; preserves all earlier gallery files')
     s=sub.add_parser('sample');s.add_argument('config',type=Path)
     args=parser.parse_args()
     settings=Settings(_env_file=None)
