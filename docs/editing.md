@@ -48,6 +48,16 @@ Las imágenes y vídeos aportados también sirven como recursos. En vídeo,
 `source_start` y la duración deben caber en el archivo; no se estira una toma
 insuficiente ni se cambia por otra silenciosamente.
 
+Native mide el stream de vídeo del archivo descargado para elegir el punto de
+entrada, reservando el consumo que introduce el redondeo global a fotogramas.
+Los segundos anunciados por Pexels y la duración del contenedor no determinan ese
+límite: el audio del stock puede durar más que su imagen. Si no puede medirse el
+stream de vídeo, se detiene. El recibo Native conserva duración anunciada y medida.
+El render editorial comprueba todas las ventanas de stock antes de crear workspace,
+arrancar encoder o renderizar escenas; el error incluye escena, entrada, fin
+solicitado y duración real. No se amplió el margen de validación de 50 ms.
+
+
 `headline` y `kicker` son rótulos breves deliberados; no se extraen palabras sueltas
 mediante regex. Movimiento: ninguno, acercamiento o desplazamiento suave.
 Transición: corte, entrada breve desde negro, disolución o barrido breve sin desplazar la voz. `palette` marfil/verde y `accent`

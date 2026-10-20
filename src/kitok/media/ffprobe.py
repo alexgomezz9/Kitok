@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import re
 import subprocess
 from dataclasses import dataclass
@@ -142,3 +143,12 @@ def measure_loudness(path: Path, ffmpeg: str = "ffmpeg") -> dict[str, float | No
         "loudness_range_lu": number("input_lra"),
         "true_peak_dbtp": number("input_tp"),
     }
+
+
+def measured_video_duration(path: Path, ffprobe: str = "ffprobe") -> float:
+    """Use the video stream, never an audio tail or a provider's rounded duration."""
+    info = probe_media(path, ffprobe)
+    video, _ = stream_durations(path, ffprobe)
+    if not info.video_codec or video is None or not math.isfinite(video) or video <= 0:
+        raise ProbeError(f"Media file has no measurable video stream duration: {path}")
+    return video

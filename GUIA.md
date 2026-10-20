@@ -82,6 +82,8 @@ Los errores de fecha, cuota o publicación incierta se revisan antes de repetir 
 5. Comprueba sin generar y guarda el borrador. Se crean automáticamente un .txt y un .json en content/longform/studio/; no necesitas escribir un JSON ni preparar cada plano.
 6. Después de revisar la calidad de las muestras, selecciona el borrador y pulsa «Generar vídeo largo». Kitok ejecuta el montaje elegido para todo el guion. Espera a «Terminado», reproduce y descarga el MP4 y sus créditos. Esta fase no ha lanzado UltimateBet completo.
 
+En generación nueva y recuperación, Kitok calcula los tramos de stock con la duración real del vídeo local, no con los segundos redondeados de Pexels. Comprueba todos los planos antes de renderizar el primero. Si un archivo completo no alcanza la duración necesaria, se detiene antes de mezclar y conserva la narración; no estira ni congela el plano.
+
 La interfaz y el CLI usan el motor nativo: Fish + Pexels + FFmpeg. El largo nativo sigue siendo experimental; no necesita MPT. No se ofrecen nuevos trabajos MPT. Los trabajos históricos se conservan para consulta y recuperación explícita.
 
 La salida es horizontal 16:9, 1920×1080, sin subtítulos, en outputs/longform/. La duración depende del guion y de la voz; no se fija con un selector de minutos. Se admiten hasta 24.000 caracteres y 20 búsquedas. El montaje básico organiza el guion en secciones y usa esas búsquedas. Los tiempos de sección pueden ser estimados; esto no garantiza que cada plano ilustre exactamente la frase. El modo enriquecido sigue reglas conservadoras: no investiga, no entiende cualquier guion y no convierte automáticamente todas las frases en gráficos. Los tiempos sin alineación válida se declaran estimados. Para control por escena usa «Montaje».

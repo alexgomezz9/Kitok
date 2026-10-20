@@ -56,6 +56,28 @@ Renderer corregido después de `xfade`, formato de salida fijado y caché invali
 idéntico; originales y metadatos preservados con respaldo. Windows real no está
 verificado en este host Linux. [Detalles y reparación](docs/motion.md).
 
+## Generación nueva: cobertura real de stock
+
+Tras el reintento del operador, la mezcla pasó pero el montaje falló a las 17:30
+por `shot_0068`. Había dos ventanas inválidas: Pexels declaraba 10/8 s, pero los
+streams de vídeo miden 9,566667/7,48 s. El cálculo aleatorio pedía fines
+9,620250/7,801471 s. El segundo contenedor dura 7,53 s: tampoco sirve como límite.
+Native calcula ahora las entradas con vídeo real y redondeo a FPS, para generación
+nueva y recuperación. Un recurso entero insuficiente se rechaza antes de mezclar.
+El render valida todos los planos antes de iniciar el primero, con valores medidos.
+
+Prueba desde cero: voz/Pexels simulados, música automática, crossfade, SFX,
+gráficos, render/mux reales y MP4 4:2:0/AAC decodificado completo. Pasa con el arreglo
+y falla con el cálculo anterior. Regresión de una escena 68 inválida se detiene
+antes de encoder/workspace. Plan real de 120 escenas: 114 ventanas de stock y seis
+placas verificadas sin render completo, sin Fish/red y sin modificar el estado.
+Evidencia: `local/audio-failure/stock-window-followup-1792510735414464988/`.
+El operador prioriza crear de nuevo desde cero; el agente no ha generado voz nueva
+ni lanzado el episodio. Gate local: **821 Python, 22 React, build y cinco E2E**
+correctos; docs/studio correctos y revisión independiente sin hallazgos. Backend
+local reiniciado inactivo y salud HTTP 200 comprobada. Fuentes compartidas por
+vídeos nuevos y recuperación; no hace falta reiniciar de nuevo para usar el cambio.
+
 ## Muestras vigentes
 
 En `outputs/motion-gallery/`, **Montaje → Galería documental → Reproducir muestra**:
@@ -93,11 +115,10 @@ como prueba técnica histórica, fuera de la selección visual vigente.
 
 ## Verificación y siguiente paso
 
-- 2026-10-20: **805 Python, 22 React y build TypeScript/Vite**, correctos.
-  `make verify-browser` pasó esos pasos; E2E se detuvo por el puerto 8000 ocupado.
-  Los **cinco E2E** pasaron después en fixture temporal, puerto 18241 y traducción
-  de Origin exclusiva de ese fixture; aplicación e instancia real sin modificar.
-  Logs `/tmp/kitok-incident-release.log` y `/tmp/kitok-incident-e2e-v3.log`.
+- 2026-10-20, cobertura stock: `make verify` pasó **821 Python, 22 React y build
+  TypeScript/Vite**. Los **cinco E2E** pasaron en fixture temporal, puerto 18241
+  y traducción de Origin exclusiva del fixture, preservando el backend del operador.
+  Logs `/tmp/kitok-stock-final-verify.log` y `/tmp/kitok-stock-e2e.log`.
   `make studio-check`, `make docs-check` y revisiones independientes correctos.
 - Prueba real de mezcla con código final `sample-clock-v2`: 654,733 s,
   −15,99 LUFS / LRA 3,50 / −1,80 dBTP. WAV idéntico al usado en el MP4 corto;
@@ -119,10 +140,8 @@ como prueba técnica histórica, fuera de la selección visual vigente.
   del 19/10 sigue registrado en `local/backups`; no hay hash previo que certifique
   cambios posteriores.
 
-Siguiente operación del titular para este trabajo: `make studio` → **Vídeo largo →
-ficha fallida → Revisar recuperación sin generar → Recuperar montaje usando esta
-voz · sin Fish ni red**. La segunda acción monta el episodio completo; no usar
-«Generar» ni crear otro borrador para recuperar esta narración. Revisar además
-las copias `_compat1` en Windows y escuchar antes de aprobar la calidad.
-Tras actualizar código, reiniciar el backend detenido/cerrado antes de repetir
-la recuperación. No se lanzó UltimateBet completo desde el agente.
+Siguiente: el operador puede actualizar la página, crear un borrador nuevo y usar
+**Comprobar → Guardar → Generar vídeo largo**. La recuperación del trabajo anterior sigue disponible,
+pero no es necesaria para probar un vídeo nuevo. Los originales se conservan.
+No se lanzó UltimateBet completo desde el agente. Windows y aprobación audiovisual
+siguen pendientes del operador.

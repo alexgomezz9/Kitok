@@ -430,6 +430,7 @@ def test_native_renderer_isolated_flow_reuses_fish_and_preserves_tags(
         lambda *args, **kwargs: MediaInfo(65 if Path(args[0]).suffix == ".mp3" else 66.25,
                                           1920, 1080, 30, "h264", "aac", "yuv420p"),
     )
+    monkeypatch.setattr("kitok.rendering.native.measured_video_duration", lambda *a: 90.)
     settings = Settings(_env_file=None, fish_api_key=SecretStr("fish-secret"))
     item = SimpleNamespace(
         id="native_test",

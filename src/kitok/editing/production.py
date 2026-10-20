@@ -13,13 +13,33 @@ from uuid import uuid4
 
 from ..longform.models import TimelineClip, TimelineSlot
 from ..media.ffmpeg import FFmpegNativeEngine, RenderSpec, choose_encoder, encoder_arguments
-from ..media.ffprobe import probe_media, stream_durations
+from ..media.ffprobe import probe_media, stream_durations, measured_video_duration
 from ..state import write_json_atomic
 from .ass import filter_path
 from .graphics import render_graphic
 from .storyboard import EditorialPlan, file_hash, project_file
 
 RENDER_VERSION = 3
+
+
+def validate_stock_coverage(plan, assets: dict[str, Path], *, ffprobe="ffprobe") -> dict[Path, float]:
+    """Check every stock window before rendering even the first scene."""
+    durations = {}
+    for scene in plan.scenes:
+        if scene.graphic or scene.composition:
+            continue
+        source = assets[scene.asset]
+        if source.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp"}:
+            continue
+        if source not in durations:
+            durations[source] = measured_video_duration(source, ffprobe)
+        end = scene.source_start + scene.end - scene.start
+        if end > durations[source] + .05:
+            raise ValueError(
+                f"Stock does not cover scene {scene.id}: asset={scene.asset} "
+                f"source_start={scene.source_start:.6f}s required_end={end:.6f}s "
+                f"video_duration={durations[source]:.6f}s; choose another asset or shorten the scene")
+    return durations
 
 
 def _run(command: list[str], timeout: int = 900):
@@ -127,6 +147,7 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
     manifest = output.with_suffix('.editorial.json')
     if output.exists() or manifest.exists() or manifest.is_symlink():
         raise ValueError("Editorial output or receipt exists; choose a new output to preserve the previous cut")
+    validate_stock_coverage(plan, assets, ffprobe=settings.ffprobe_binary)
     output.parent.mkdir(parents=True, exist_ok=True)
     workspace = output.parent / ".editorial-work" / plan.episode_id
     workspace.mkdir(parents=True, exist_ok=True)
@@ -163,9 +184,6 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
             else:
                 source = assets[scene.asset]
                 image = source.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp"}
-                info = None if image else probe_media(source, settings.ffprobe_binary)
-                if not image and (not info.video_codec or info.duration + .05 < scene.source_start + duration):
-                    raise ValueError(f"Stock does not cover scene {scene.id}; choose another asset or shorten the scene")
                 source_identity = file_hash(source)
             caption = workspace / f"{scene.id}.ass"
             _caption(scene, caption, plan)

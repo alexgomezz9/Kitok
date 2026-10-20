@@ -587,3 +587,90 @@ def test_mix_validation_reports_measurements_and_preserves_failed_master(
     if expected == "duration=":
         assert "delta=-0.134000s" in str(caught.value)
         assert validation["actual_duration"] == 3.866
+
+
+@pytest.mark.parametrize('too_short', [False, True])
+def test_new_documentary_from_scratch_uses_real_stock_lengths_and_auto_music(audio_library, tmp_path, monkeypatch, too_short):
+    """Cold Native flow, mocked providers, real mixing/scenes/MP4 and rounded API metadata."""
+    from types import SimpleNamespace
+    from kitok.config import Settings
+    from kitok.media.ffmpeg import FFmpegNativeEngine, EncoderSettings, RenderSpec
+    from kitok.media.ffprobe import measured_video_duration
+    from kitok.rendering.native import NativeLongformRenderer
+    from kitok.stock.models import StockAsset, StockVariant
+    from kitok.stock.selector import StockSelector
+
+    library, _, _, requests = audio_library
+    for track in ('long_note_two', 'echoes_of_time_v2'):
+        library.fetch(track)
+    requests_before = len(requests)
+    stocks = []
+    for index, (seconds, fps, declared) in enumerate(((9.566667, 30, 10.), (7.48, 25, 8.))):
+        path = tmp_path / f'stock-{index}.mp4'
+        cmd = ['ffmpeg', '-nostdin', '-v', 'error', '-f', 'lavfi', '-i',
+               f'testsrc2=s=640x360:r={fps}:d={2 if too_short and index == 0 else seconds}']
+        if index == 1:
+            cmd += ['-f', 'lavfi', '-i', 'sine=frequency=300:duration=7.53']
+        cmd += ['-c:v', 'libx264', '-preset', 'ultrafast', '-c:a', 'aac', str(path)]
+        subprocess.run(cmd, check=True, capture_output=True)
+        stocks.append((path, StockAsset(index+1, 'city', declared,
+                       (StockVariant(f'https://unreachable.invalid/{index}.mp4', 640, 360, fps),))))
+    voice = tmp_path / 'new-synthetic-test-voice.mp3'
+    subprocess.run(['ffmpeg', '-nostdin', '-v', 'error', '-f', 'lavfi', '-i',
+                    'sine=frequency=180:sample_rate=44100:duration=12.1', '-c:a', 'libmp3lame',
+                    '-write_xing', '0', str(voice)], check=True, capture_output=True)
+    speech_calls = []
+    class Fish:
+        def __init__(self, *a, **kw): pass
+        def synthesize(self, script, reference, destination, **kw):
+            speech_calls.append((script, reference))
+            shutil.copyfile(voice, destination)
+        def close(self): pass
+    class Stock:
+        def preflight_searches(self, queries, **kw): assert queries == ['city']
+        def search_videos(self, query, **kw): return [row[1] for row in stocks]
+        def select_candidate(self, assets, **kw): return StockSelector().select_candidate(assets, **kw)
+        def download_asset(self, choice): return stocks[choice.asset.asset_id-1][0]
+    item = SimpleNamespace(id='cold_coverage', script='Why did the city change? These recorded images illustrate the discussion.', keywords=['city'])
+    definition = SimpleNamespace(item=item, voice_name='fish_audio:test:Synthetic test', voice_rate=1.,
+            video_clip_duration_min=5.5, video_clip_duration_max=8.5, mounting_style='documentary',
+            music_mode='auto', music_track=None, music_enabled=True, background_music_file=tmp_path/'unused.mp3')
+    monkeypatch.setattr(NativeLongformRenderer, '_audio_library', lambda self: library)
+    settings = Settings(_env_file=None, data_root=tmp_path)
+    engine = FFmpegNativeEngine(encoder=EncoderSettings('libx264', 'ultrafast'),
+                                spec=RenderSpec(width=640, height=360, fps=30))
+    output = tmp_path/'outputs/longform/cold_coverage.mp4'
+    renderer = NativeLongformRenderer(settings, Stock(), engine, output_path=output,
+                                       fish_factory=Fish, seed='coverage_metadata_81')
+    if too_short:
+        from kitok.rendering.native import NativeRenderError
+        with pytest.raises(NativeRenderError, match=r'video_duration=2.000000s.*stopped before audio mixing'):
+            renderer.render(definition)
+        assert len(speech_calls) == 1
+        assert not output.exists()
+        assert not list(output.parent.rglob('music-*.wav'))
+        assert (output.parent/'.native-work'/item.id/'narration.mp3').is_file()
+        return
+    result = renderer.render(definition)
+    assert speech_calls == [(item.script, 'test')]
+    assert len(requests) == requests_before
+    assert result.output.is_file() and probe_media(output).audio_codec == 'aac'
+    workspace = output.parent/'.native-work'/item.id
+    plan = json.loads((workspace/'motion-plan.json').read_text())
+    assert len(plan['scenes']) >= 2
+    lengths = {str(path.relative_to(tmp_path)): measured_video_duration(path) for path, _ in stocks}
+    for scene in plan['scenes']:
+        if scene['asset']:
+            source = plan['assets'][scene['asset']]['path']
+            assert scene['source_start'] + scene['end']-scene['start'] <= lengths[source] + 1e-6
+    mix = json.loads(next(workspace.glob('music-*.wav.json')).read_text())
+    assert mix['mixer_revision'] == 'sample-clock-v2'
+    assert abs(mix['duration']-probe_media(voice).duration) <= .08
+    assert len(mix['selection']['tracks']) == 2
+    assert mix['sound_effects']
+    subprocess.run(['ffmpeg', '-nostdin', '-v', 'error', '-xerror', '-i', str(output), '-f', 'null', '-'],
+                   check=True, capture_output=True)
+    frames = subprocess.run(['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries',
+                             'frame=pix_fmt', '-of', 'csv=p=0', str(output)],
+                            check=True, capture_output=True, text=True).stdout
+    assert {row.strip(',') for row in frames.splitlines() if row.strip(',')} == {'yuv420p'}

@@ -15,7 +15,7 @@ from ..longform.timeline import build_timeline, build_semantic_timeline
 from ..editing.alignment import detect_pauses, read_word_alignment
 from ..editing.manifest import load_or_create_manifest, script_hash
 from ..media.ffmpeg import FFmpegNativeEngine, write_render_manifest
-from ..media.ffprobe import probe_media
+from ..media.ffprobe import probe_media, measured_video_duration
 from ..stock.selector import OutputGeometry
 from .base import LongformRenderer, RenderResult, RenderTimings
 
@@ -47,6 +47,15 @@ def fish_reference_id(voice_name: str) -> str:
             "choose a Fish narrator; legacy Edge voices are read-only history"
         )
     return parts[1]
+
+
+def source_window_duration(slot, *, fps: int, motion: bool) -> float:
+    """Bound the source consumed after global timeline boundaries snap to frames."""
+    if not motion:
+        return slot.duration
+    start, end = round(slot.start * fps) / fps, round(slot.end * fps) / fps
+    # source_start is clamped at zero when the first boundary rounds backwards.
+    return max(slot.duration, end - slot.start, end - start)
 
 
 class NativeLongformRenderer(LongformRenderer):
@@ -282,16 +291,26 @@ class NativeLongformRenderer(LongformRenderer):
             stage = time.monotonic()
             log.info("Asset download/cache start unique_assets=%d", len(used_ids))
             local_by_id = {}
+            video_durations = {}
             for choice in selected:
                 if choice.asset.asset_id not in local_by_id:
                     local_by_id[choice.asset.asset_id] = self.pexels.download_asset(choice)
+                    video_durations[choice.asset.asset_id] = measured_video_duration(
+                        local_by_id[choice.asset.asset_id], self.settings.ffprobe_binary)
             download_seconds = time.monotonic() - stage
             self._stage("Asset download/cache", download_seconds)
 
             source_rng = random.Random(f"{timeline_seed}:source-offsets")
             clips = []
             for slot, choice in zip(slots, selected, strict=True):
-                available = max(0.0, choice.asset.duration - slot.duration)
+                actual_duration = video_durations[choice.asset.asset_id]
+                required = source_window_duration(slot, fps=self.engine.spec.fps, motion=uses_motion)
+                if actual_duration + 1e-6 < required:
+                    raise NativeRenderError(
+                        f"Stock video is too short: asset={choice.asset.asset_id} slot={slot.index + 1} "
+                        f"video_duration={actual_duration:.6f}s required={required:.6f}s "
+                        f"provider_duration={choice.asset.duration:.6f}s; stopped before audio mixing")
+                available = max(0.0, actual_duration - required)
                 source_start = source_rng.uniform(0, available) if available else 0.0
                 log.debug(
                     "Timeline clip=%d asset_id=%s source_offset=%.3fs duration=%.3fs path=%s",
@@ -397,6 +416,8 @@ class NativeLongformRenderer(LongformRenderer):
             )
             stock_sources = list({choice.asset.asset_id: {
                 "provider": "Pexels", "asset_id": choice.asset.asset_id,
+                "provider_duration_seconds": choice.asset.duration,
+                "video_duration_seconds": video_durations[choice.asset.asset_id],
                 "source_url": choice.asset.page_url, "download_url": choice.variant.url,
                 "author": getattr(choice.asset, 'author', None),
                 "author_url": getattr(choice.asset, 'author_url', None),

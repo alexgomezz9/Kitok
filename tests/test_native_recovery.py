@@ -50,6 +50,7 @@ def failed_job(tmp_path, monkeypatch, request):
     info = SimpleNamespace(duration=12., audio_codec='mp3')
     monkeypatch.setattr('kitok.native_recovery.probe_media', lambda *a: info)
     monkeypatch.setattr('kitok.rendering.native.probe_media', lambda *a: info)
+    monkeypatch.setattr('kitok.rendering.native.measured_video_duration', lambda *a: 30.)
     try:
         yield studio, definition, narration, info
     finally:
