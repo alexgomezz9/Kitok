@@ -80,24 +80,35 @@ como prueba técnica histórica, fuera de la selección visual vigente.
 
 ## Verificación y siguiente paso
 
-- `make verify-browser`: **781 Python, 21 React, build TypeScript/Vite y cinco E2E**,
-  correctos. `make studio-check`, `make docs-check` y revisión independiente correctos.
-  Evidencia local de gate: `/tmp/kitok-motion-revision-final.log`.
-- QA de los nuevos MP4: decode completo, geometría, duración, LUFS/pico y A/B;
-  contactos y entradas/salidas inspeccionados. Reproducción por HTTP en Chromium,
-  Range 206 y créditos comprobados. El entorno de navegador registró fotogramas
-  perdidos: no acredita rendimiento sostenido en el equipo del operador.
-- Checkpoints correctivos publicados: `a7088ac` (galería), `ecd84c6` (AAC),
-  `9b7ce83` (compositor). SHA remoto comprobado y
-  [CI del compositor correcto](https://github.com/alexgomezz9/Kitok/actions/runs/39421185950).
+- 2026-10-20: **805 Python, 22 React y build TypeScript/Vite**, correctos.
+  `make verify-browser` pasó esos pasos; E2E se detuvo por el puerto 8000 ocupado.
+  Los **cinco E2E** pasaron después en fixture temporal, puerto 18241 y traducción
+  de Origin exclusiva de ese fixture; aplicación e instancia real sin modificar.
+  Logs `/tmp/kitok-incident-release.log` y `/tmp/kitok-incident-e2e-v3.log`.
+  `make studio-check`, `make docs-check` y revisiones independientes correctos.
+- Prueba real de mezcla con código final `sample-clock-v2`: 654,733 s,
+  −15,99 LUFS / LRA 3,50 / −1,80 dBTP. WAV idéntico al usado en el MP4 corto;
+  voz, alineación y selección intactas, cero intentos de red. Recibo local:
+  `local/audio-failure/final-1792507776156545090/confirmed.wav.json`.
+  MP4 y QA en `outputs/evaluation/lf_cf5e16bb422547aabfb4f5b8b9ef131a_recovery_check/`.
+- Muestra compatible de desarrollo completada en Chromium silenciado a 2×:
+  945 frames, dos perdidos, sin error de decode/página, Range 206 y créditos 200.
+  El intento con sonido se detuvo en 5 s sin error bajo carga del host: **no acredita
+  reproducción audible continua ni Windows real**. Decodificación completa y
+  formato uniforme comprobados por separado en las 23 copias.
+- Checkpoints publicados: `6d9a62f` (vídeo), `c8d12aa` (mezclador), `5176130`
+  (recuperación); SHA remoto comprobado. [CI de vídeo correcto](https://github.com/alexgomezz9/Kitok/actions/runs/39442296453)
+  y [CI de audio correcto](https://github.com/alexgomezz9/Kitok/actions/runs/39442817758).
+  [CI de recuperación](https://github.com/alexgomezz9/Kitok/actions/runs/39443108621).
 - Sin nueva síntesis Fish, render completo UltimateBet, publicación ni merge a main.
-  Original de 652,6 s, piloto de 76 s, cola y credenciales conservados. Buffer y OAuth
-  no se modificaron. El límite histórico de restauración de cola del 19/10 sigue
-  registrado en `local/backups`; no hay hash previo que certifique cambios posteriores.
+  Job fallido, voz, alineación, cachés, temporales, cola y credenciales conservados.
+  Buffer y OAuth no se modificaron. El límite histórico de restauración de cola
+  del 19/10 sigue registrado en `local/backups`; no hay hash previo que certifique
+  cambios posteriores.
 
-En curso: gate completo y CI de los checkpoints del incidente. Siguiente operación
-del titular para este trabajo: **Vídeo largo → ficha fallida → Revisar recuperación
-sin generar → Recuperar montaje usando esta voz · sin Fish ni red**. La segunda
-acción monta el episodio completo; no usar «Generar» ni crear otro borrador para
-recuperar esta narración. Revisar además las copias `_compat1` en Windows y
-escuchar antes de aprobar la calidad. No lanzar UltimateBet completo desde un agente.
+Siguiente operación del titular para este trabajo: `make studio` → **Vídeo largo →
+ficha fallida → Revisar recuperación sin generar → Recuperar montaje usando esta
+voz · sin Fish ni red**. La segunda acción monta el episodio completo; no usar
+«Generar» ni crear otro borrador para recuperar esta narración. Revisar además
+las copias `_compat1` en Windows y escuchar antes de aprobar la calidad.
+No se lanzó UltimateBet completo desde el agente.
