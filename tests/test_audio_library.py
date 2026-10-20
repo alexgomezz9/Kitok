@@ -12,7 +12,7 @@ import wave
 import httpx
 import pytest
 
-from kitok.audio_library import AudioLibrary, AudioLibraryError, BASE, synthesize_sfx
+from kitok.audio_library import AudioLibrary, AudioLibraryError, BASE, SFX_KINDS, infer_audio_mood, synthesize_sfx
 from kitok.media.ffprobe import probe_media
 
 
@@ -343,9 +343,10 @@ def test_reject_excess_duration_and_input_overwrite(audio_library, tmp_path):
     assert not (tmp_path / "new.wav").exists()
 
 
-def test_original_sfx_deterministic_quiet_and_non_destructive(tmp_path):
+@pytest.mark.parametrize("kind", SFX_KINDS)
+def test_original_sfx_deterministic_quiet_and_non_destructive(tmp_path, kind):
     first, second = tmp_path / "first.wav", tmp_path / "second.wav"
-    one, two = synthesize_sfx(first), synthesize_sfx(second)
+    one, two = synthesize_sfx(first, kind=kind), synthesize_sfx(second, kind=kind)
     assert one["sha256"] == two["sha256"]
     assert not one["external_samples"]
     with wave.open(str(first)) as source:
@@ -353,3 +354,59 @@ def test_original_sfx_deterministic_quiet_and_non_destructive(tmp_path):
     assert max(abs(value) for value in samples) < .08 * 32768
     with pytest.raises(FileExistsError):
         synthesize_sfx(first)
+
+
+def test_sfx_families_have_distinct_original_waveforms_and_fit_events(tmp_path):
+    from kitok.audio_library import SoundEvent
+    hashes = set()
+    for kind in SFX_KINDS:
+        assert SoundEvent.model_validate({"time": 1, "kind": kind}).kind == kind
+        hashes.add(synthesize_sfx(tmp_path / f"{kind}.wav", kind=kind)["sha256"])
+    assert len(hashes) == 6
+
+
+@pytest.mark.parametrize("script,channel,expected", [
+    ("A quiet beginning. We examine the evidence in the records and reveal how the fraud survived the audit.", "loose_thread", "investigation"),
+    ("The opening is not the whole story. We explore grief and loss through the memories and legacy of the survivors.", "loose_thread", "reflective"),
+    ("The film begins years earlier. Now rebuilding and recovery bring healing and reconciliation to the entire community.", "loose_thread", "resolution"),
+    ("Today we travel through the forest to study the ocean and its species, ecosystems and biodiversity together.", "science", "ambient"),
+    ("A cold evening begins our tale. The haunted house hides a ghost and a supernatural curse in every corridor.", "lore", "horror"),
+    ("A cold evening begins our tale. The haunted house hides a ghost and a supernatural curse in every corridor.", "loose_thread", "investigation"),
+    ("The recovery and rebuilding continue, while this long and unremarkable paragraph quietly describes the local landscape.", "horror", "horror"),
+    ("The word fraud appears only once while this ordinary narration describes a long journey across the country.", "loose_thread", "investigation"),
+    ("A short text.", "science", "ambient"),
+    ("The evidence and fraud are described alongside grief and loss, with no clear narrative emphasis to choose between them.", "science", "ambient"),
+    ("We follow the story in full. The hacker used software to reach the server through the network and its encryption.", "loose_thread", "technology"),
+    ("The next chapter tells the story of investors and shares, as debt and revenue reshape the entire corporate market.", "loose_thread", "business"),
+    ("This film follows an ancient empire through a century of revolution, with historical archives explaining what changed.", "documentary", "history"),
+    ("Everything changes in the final chapter. A revelation exposed what the breakthrough uncovered about the disputed event.", "loose_thread", "revelation"),
+])
+def test_mood_uses_full_script_conservatively_and_respects_profile(script, channel, expected):
+    assert infer_audio_mood(script, channel=channel) == expected
+
+
+def test_inferred_moods_have_two_catalog_choices_for_supported_channels():
+    from kitok.audio_library import AudioLibrary, MusicSource
+    catalog = json.loads(CATALOG.read_text())["sources"]
+    ordinary = ["investigation", "reflective", "resolution", "ambient", "technology", "business", "history", "revelation"]
+    for channel, moods in {"loose_thread": ordinary, "documentary": ordinary, "science": ordinary,
+                           "lore": [*ordinary, "horror"],
+                           "horror": ["horror"]}.items():
+        for mood in moods:
+            assert sum(channel in source["channels"] and AudioLibrary._matches_mood(MusicSource.model_validate(source), mood)
+                       for source in catalog) >= 2
+
+
+def test_editorial_affinities_are_selectable_without_changing_source_receipts(audio_library):
+    library, *_ = audio_library
+    library.fetch("echoes_of_time_v2")
+    receipt_path = library.cache / "echoes_of_time_v2/receipt.json"
+    before = receipt_path.read_bytes()
+    rows = library.available(channel="loose_thread", mood="history")
+    assert [row["id"] for row in rows] == ["echoes_of_time_v2"]
+    assert "history" in rows[0]["editorial_affinities"]
+    choice = library.select("history-job", channel="loose_thread", mood="history", count=1)
+    assert choice["tracks"] == ["echoes_of_time_v2"]
+    assert "editorial affinity" in choice["mood_basis"]
+    assert "history" not in library.sources["echoes_of_time_v2"].moods
+    assert receipt_path.read_bytes() == before

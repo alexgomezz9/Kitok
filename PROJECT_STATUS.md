@@ -9,8 +9,8 @@ UltimateBet completo en esta fase. Entrega anterior integrada por autorización.
 - Catálogo ampliado a20 músicas Incompetech CC BY4.0, archivos locales, hashes,
   páginas/licencias y recibos verificados. 9 voces catalogadas y13 muestras de
   escucha históricas/proveedor; ninguna síntesis nueva. DefaultLooseThread intacto.
-- CLI audio selección automática/manual, crossfade/ducking/SFX temporizados;
-  preferencias locales de voces y consulta Fish GET. Evidencia: 27tests afectados
+- CLI audio selección automática/manual, crossfade/ducking/seis SFX temporizados;
+  preferencias locales de voces y consulta Fish GET. Evidencia: 49tests afectados
   correctos20/10; demo20s -16.00LUFS/-1.99dBTP. Audición humana pendiente.
 - [Investigación](docs/motion-research.md): conservarFFmpeg/ASS/Pillow; alternativas
   revisadas, sin instalar otro motor. Three.js queda opcional histórico.

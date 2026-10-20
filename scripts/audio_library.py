@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 import sys
 
-from kitok.audio_library import AudioLibrary, AudioLibraryError, synthesize_sfx
+from kitok.audio_library import AudioLibrary, AudioLibraryError, SFX_KINDS, synthesize_sfx
 
 
 def main() -> int:
@@ -33,7 +33,7 @@ def main() -> int:
     mix.add_argument("--sfx-events", type=Path, help="JSON list of editorial cues: [{\"time\":2,\"kind\":\"soft_tick\"}]")
     sfx = sub.add_parser("sfx", help="Synthesize a quiet original Kitok sound, no external samples")
     sfx.add_argument("--output", type=Path, required=True)
-    sfx.add_argument("--kind", choices=("soft_tick", "low_pulse"), default="soft_tick")
+    sfx.add_argument("--kind", choices=SFX_KINDS, default="soft_tick")
     args = parser.parse_args()
     library = None
     try:
@@ -43,7 +43,8 @@ def main() -> int:
             library = AudioLibrary(args.catalog, args.cache)
             if args.command == "list":
                 result = [{"id": source.id, "title": source.title, "channels": source.channels,
-                           "moods": source.moods, "license": source.license_id, "attribution": source.attribution,
+                           "moods": library.describe(source)["moods"], "license": source.license_id, "attribution": source.attribution,
+                           "editorial_affinities": library.describe(source)["editorial_affinities"],
                            "content_id": source.content_id} for source in library.sources.values()]
             elif args.command == "available":
                 result = library.available()

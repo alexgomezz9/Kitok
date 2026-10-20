@@ -31,7 +31,14 @@ de reclamaciones automáticas son cuestiones diferentes.
 | Ambiente tranquilo | Floating Cities, Clean Soul, Deliberate Thought |
 | Horror y tensión | Darkest Child, Ghost Story, Dark Walk, Anxiety |
 
-Las categorías se solapan; el JSON es la fuente de combinaciones canal/ambiente.
+Las categorías se solapan; el JSON conserva ambientes base y canales. Las afinidades
+adicionales viven en `AUDIO_AFFINITIES`, separadas de la evidencia de licencia:
+`technology` (Floating Cities, Deep Haze, Deliberate Thought), `business` (Crypto,
+On the Ground, Deep Haze), `history` (Night Vigil, Despair and Triumph, Anguish,
+Echoes of Time v2), `revelation` (The Descent, Lightless Dawn, Crypto). Se basan en
+instrumentos y descriptores del autor; son decisiones editoriales de Kitok sin
+audición humana acreditada. La API/CLI las expone junto a los ambientes base, pero
+no modifica los recibos originales ni acepta discrepancias de procedencia.
 Horror queda fuera de la selección de Loose Thread. No se elige música únicamente
 por una palabra en el título del vídeo.
 
@@ -63,6 +70,16 @@ revisión conserva la selección; cambiar canal/ambiente/pista exige un ID nuevo
 La elección manual conserva exactamente la pista indicada. Se requieren dos pistas
 cacheadas para la selección automática predeterminada y una para la manual.
 
+`infer_audio_mood` examina el guion completo y el perfil del canal; nunca el título.
+Usa vocabularios acotados, exige dos términos distintos, limita el peso de las
+repeticiones y mantiene el ambiente predeterminado cuando hay empate o ambigüedad.
+Para Loose Thread devuelve `investigation`, `reflective`, `resolution`, `ambient`,
+`technology`, `business`, `history` o `revelation`; cada uno tiene al menos dos
+pistas compatibles. `science` parte de `ambient`;
+`horror` y `lore` pueden usar `horror`. Es una heurística conservadora, no comprensión
+general del tono ni garantía de idoneidad musical. La caché/licencias se validan
+después; inferir un ambiente nunca descarga pistas ni sintetiza voz.
+
 El mezclador hace crossfade, filtra el fondo y baja su nivel bajo la narración.
 Normaliza en dos pasos a −16 LUFS y comprueba un pico verdadero máximo de −1,5 dBTP,
 con margen de codificación. El recibo `.m4a.json` o `.wav.json` conserva medidas,
@@ -71,8 +88,20 @@ narración ni un resultado anterior. Incluir los créditos del recibo en la entr
 
 ## Efectos discretos originales
 
-Hay dos efectos procedurales sin grabaciones externas: `soft_tick` y `low_pulse`.
-No contienen voces ni muestras de terceros. Se pueden producir por separado:
+Hay seis familias procedurales sin voces ni grabaciones externas:
+
+| ID | Uso discreto |
+| --- | --- |
+| `soft_tick` | Aparición puntual de una cifra o marca |
+| `low_pulse` | Dato relevante o cambio de peso narrativo |
+| `air_swish` | Paso de una composición, con ruido filtrado breve |
+| `paper_texture` | Resaltado de documento, textura de ruido en ráfagas |
+| `key_click` | Interfaz o escritura, transitorio sintetizado |
+| `ui_ping` | Confirmación o pequeño énfasis, parciales senoidales |
+
+Son texturas originales, no Foley grabado ni recreaciones verificadas de objetos
+reales. El ruido usa una semilla fija, sin dependencias ni modelos adicionales.
+No se añaden indiscriminadamente a todos los planos. Se producen por separado:
 
 ```bash
 .venv/bin/python scripts/audio_library.py sfx --kind soft_tick --output outputs/tick_v1.wav
@@ -164,3 +193,8 @@ Demostración real de 20 s:
 sin nueva síntesis, Mesmerize, tick a 3 s y pulso a 13 s. Medición del archivo:
 −16,00 LUFS / −1,99 dBTP. No se modificó el audio original ni se generó el episodio
 completo. La aprobación auditiva del operador sigue pendiente.
+
+La ampliación de efectos añade `outputs/evaluation/audio_library/sfx_families/`:
+seis WAV individuales, `six_families.wav` para comparar las texturas y
+`narration_six_families_20s.m4a` para escucharlas bajo la misma narración existente.
+El orden es tick, pulse, swish, paper, key, ping. Estos archivos no requieren Fish.

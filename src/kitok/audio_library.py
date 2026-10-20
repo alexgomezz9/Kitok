@@ -7,6 +7,7 @@ Nothing in this module synthesizes speech or contacts generation APIs.
 from __future__ import annotations
 
 from contextlib import closing, contextmanager
+from collections import Counter
 from datetime import datetime, timezone
 import fcntl
 import hashlib
@@ -15,6 +16,7 @@ import math
 import os
 from pathlib import Path
 import re
+import random
 import shutil
 import subprocess
 import tempfile
@@ -58,6 +60,66 @@ AUDITED = {
     "deliberate_thought": ("USUAN1100261", "Deliberate Thought"),
 }
 ID = re.compile(r"[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}\Z")
+SFX_KINDS = ("soft_tick", "low_pulse", "air_swish", "paper_texture", "key_click", "ui_ping")
+# Editorial affinities are separate from the source/license receipt. They are
+# judgments based on the author's stored instrument/feel descriptions, not claims
+# that the author assigned a business/history genre or that Kitok auditioned them.
+AUDIO_AFFINITIES = {
+    "technology": {"floating_cities", "deep_haze", "deliberate_thought"},
+    "business": {"crypto", "on_the_ground", "deep_haze"},
+    "history": {"night_vigil", "despair_and_triumph", "anguish", "echoes_of_time_v2"},
+    "revelation": {"the_descent", "lightless_dawn", "crypto"},
+}
+
+
+def infer_audio_mood(script: str, *, channel: str = "loose_thread") -> str:
+    """Conservative whole-transcript heuristic; never reads the video title.
+
+    Two distinct supporting terms are required. Profiles constrain horror;
+    ambiguous prose keeps the channel's neutral documentary/ambient bed.
+    These are editorial hints, not semantic understanding or emotion detection.
+    Each returned mood has at least two catalog choices in its supported profile.
+    """
+    default = "horror" if channel == "horror" else "ambient" if channel == "science" else "investigation"
+    if not isinstance(script, str):
+        raise AudioLibraryError("Audio mood requires the full narration text")
+    words = re.findall(r"\w+", script.casefold())
+    if len(words) < 12:
+        return default
+    vocabulary = {
+        "investigation": {"evidence", "investigation", "fraud", "scandal", "audit", "records", "cheating", "stolen",
+                          "pruebas", "investigación", "fraude", "escándalo", "auditoría", "registros"},
+        "reflective": {"aftermath", "grief", "legacy", "survivors", "mourning", "remembrance", "memories", "loss",
+                       "consecuencias", "duelo", "legado", "supervivientes", "recuerdos", "pérdida"},
+        "resolution": {"rebuilding", "recovery", "restored", "reconciliation", "healing", "renewal", "recovered",
+                       "reconstrucción", "recuperación", "restaurado", "reconciliación", "sanación"},
+        "ambient": {"galaxies", "orbit", "planets", "forest", "ocean", "ecosystem", "species", "biodiversity",
+                    "galaxias", "órbita", "planetas", "bosque", "océano", "ecosistema", "especies", "biodiversidad"},
+        "horror": {"haunted", "ghost", "nightmare", "supernatural", "apparition", "curse", "dread",
+                   "embrujado", "fantasma", "pesadilla", "sobrenatural", "aparición", "maldición"},
+        "technology": {"software", "server", "network", "encryption", "cyber", "digital", "hacker", "exploit",
+                       "servidor", "redes", "cifrado", "cibernético", "informático", "hackeo"},
+        "business": {"profit", "market", "investors", "revenue", "debt", "bank", "shares", "corporate",
+                     "beneficio", "mercado", "inversores", "ingresos", "deuda", "banco", "acciones", "empresa"},
+        "history": {"historical", "century", "empire", "archaeology", "medieval", "ancient", "archives", "revolution",
+                    "histórico", "siglo", "imperio", "arqueología", "antiguo", "archivos", "revolución"},
+        "revelation": {"revelation", "exposed", "unmasked", "uncovered", "breakthrough", "revelación", "desenmascarado", "revelado"},
+    }
+    counts = {word: min(2, count) for word, count in Counter(words).items()}
+    scores = {}
+    for mood, terms in vocabulary.items():
+        if channel == "horror" and mood != "horror":
+            continue
+        if mood == "horror" and channel not in {"horror", "lore"}:
+            continue
+        matched = terms & counts.keys()
+        if len(matched) >= 2:
+            scores[mood] = sum(counts[word] for word in matched)
+    if not scores:
+        return default
+    highest = max(scores.values())
+    winners = [mood for mood, score in scores.items() if score == highest]
+    return winners[0] if len(winners) == 1 else default
 
 
 class MusicSource(BaseModel):
@@ -101,7 +163,7 @@ class SoundEvent(BaseModel):
     """A deliberate editorial cue; timing is relative to the requested mix."""
     model_config = ConfigDict(extra="forbid", frozen=True, allow_inf_nan=False)
     time: float = Field(ge=0)
-    kind: Literal["soft_tick", "low_pulse"] = "soft_tick"
+    kind: Literal["soft_tick", "low_pulse", "air_swish", "paper_texture", "key_click", "ui_ping"] = "soft_tick"
 
 
 def _hash(path: Path) -> str:
@@ -223,9 +285,19 @@ class AudioLibrary:
 
     def available(self, *, channel: str | None = None, mood: str | None = None) -> list[dict]:
         """Read verified local choices without downloading or changing selections."""
-        return [source.model_dump(exclude_none=True) for source in self.sources.values()
+        return [self.describe(source) for source in self.sources.values()
                 if (channel is None or channel in source.channels)
-                and (mood is None or mood in source.moods) and self._cached(source.id)]
+                and (mood is None or self._matches_mood(source, mood)) and self._cached(source.id)]
+
+    @staticmethod
+    def _matches_mood(source: MusicSource, mood: str) -> bool:
+        return mood in source.moods or source.id in AUDIO_AFFINITIES.get(mood, set())
+
+    @staticmethod
+    def describe(source: MusicSource) -> dict:
+        affinities = [mood for mood, tracks in AUDIO_AFFINITIES.items() if source.id in tracks]
+        return {**source.model_dump(exclude_none=True), "moods": list(dict.fromkeys([*source.moods, *affinities])),
+                "editorial_affinities": affinities}
 
     def select_manual(self, job_id: str, track_id: str, *, channel: str = "loose_thread") -> dict:
         """Persist an explicit cached choice with the same revision/lock rules as auto."""
@@ -332,7 +404,7 @@ class AudioLibrary:
                     raise AudioLibraryError("A selected track is missing or corrupted")
                 return selection
             candidates = [source.id for source in self.sources.values()
-                          if channel in source.channels and mood in source.moods and self._cached(source.id)]
+                          if channel in source.channels and self._matches_mood(source, mood) and self._cached(source.id)]
             if len(candidates) < count:
                 raise AudioLibraryError("Not enough cached licensed tracks for this channel and mood; fetch matching tracks first")
             previous = state["last"].get(channel)
@@ -345,6 +417,8 @@ class AudioLibrary:
                          "credits": [self.sources[track].attribution for track in ordered[:count]],
                          "changes_notice": "Music trimmed, crossfaded, mixed and dynamically ducked under narration.",
                          "content_id": "unknown"}
+            if mood in AUDIO_AFFINITIES:
+                selection["mood_basis"] = "Kitok editorial affinity based on the author's instrument/feel descriptions; audition pending."
             state["jobs"][job_id] = selection
             state["last"][channel] = ordered[0]
             _atomic_json(self.cache / "selection.json", state)
@@ -479,11 +553,13 @@ class AudioLibrary:
 def synthesize_sfx(output: Path, *, kind: str = "soft_tick", duration: float = .22) -> dict:
     """A quiet original Kitok sound, independent of external recordings/models."""
     import struct
-    if kind not in {"soft_tick", "low_pulse"} or not math.isfinite(duration) or not .05 <= duration <= 1:
+    if kind not in SFX_KINDS or not math.isfinite(duration) or not .05 <= duration <= 1:
         raise AudioLibraryError("Unknown or excessive sound effect")
     output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)
     rate, frequency = 48000, (900 if kind == "soft_tick" else 90)
+    noise = random.Random(76129)
+    low = 0.0
     fd = os.open(output, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
     with os.fdopen(fd, "wb") as raw, wave.open(raw, "wb") as writer:
         writer.setparams((1, 2, rate, 0, "NONE", "not compressed"))
@@ -491,7 +567,26 @@ def synthesize_sfx(output: Path, *, kind: str = "soft_tick", duration: float = .
         for index in range(round(duration * rate)):
             t = index / rate
             envelope = math.sin(math.pi * min(1, t / .008) / 2) ** 2 * math.exp(-7 * t / duration)
-            value = .07 * envelope * math.sin(2 * math.pi * frequency * t)
+            if kind in {"soft_tick", "low_pulse"}:
+                value = .07 * envelope * math.sin(2 * math.pi * frequency * t)
+            elif kind == "ui_ping":
+                value = .055 * envelope * (.65 * math.sin(2*math.pi*660*t) + .25*math.sin(2*math.pi*990*t)
+                                            + .1*math.sin(2*math.pi*1320*t))
+            else:
+                sample = noise.uniform(-1, 1)
+                low += .12 * (sample - low)
+                high = sample - low
+                if kind == "air_swish":
+                    value = .045 * math.sin(math.pi*t/duration)**2 * (.65*high + .35*low)
+                elif kind == "paper_texture":
+                    bursts = sum(math.exp(-((t/duration-center)/.085)**2) for center in (.2,.5,.78))
+                    value = .04 * min(1,bursts) * high
+                else:  # key_click: a quiet contact transient, not a recording of a keyboard.
+                    value = .055 * envelope * (.55*high + .3*math.sin(2*math.pi*700*t)
+                                               + .15*math.sin(2*math.pi*1800*t))
+            # All families finish at zero; the historical tick/pulse waveforms stay unchanged.
+            if kind not in {"soft_tick", "low_pulse"}:
+                value *= min(1, max(0, (duration-t)/.008))
             frames.extend(struct.pack("<h", round(value * 32767)))
         writer.writeframes(frames)
     return {"author": "Kitok", "origin": "original procedural synthesis", "kind": kind,
