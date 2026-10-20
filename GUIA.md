@@ -80,7 +80,7 @@ Los errores de fecha, cuota o publicación incierta se revisan antes de repetir 
 3. Elige música: «Desactivada», «Automática» o «Elegir manualmente». Automática elige pistas locales verificadas para inicio y cierre, rota entre trabajos y mezcla dos ambientes con crossfade y ducking bajo la voz. Usa una frontera de secciones cuando la alineación es válida; si falta, declara un cambio central estimado. En Manual aparece un reproductor de la pista; en Automática puedes desplegar la biblioteca para escucharla antes de generar. Manual conserva la pista seleccionada. Si faltan recursos, la comprobación lo indica; consulta [la biblioteca de audio](docs/audio.md).
 4. Elige «Montaje básico» o «Documental enriquecido». El segundo añade preguntas, cifras, fechas, presentaciones explícitas y conceptos técnicos cuando reconoce una intención compatible. Con música automática puede añadir puntuación sonora discreta; no hay un efecto en cada corte. Antes de lanzar el vídeo completo revisa las muestras de «Montaje → Galería documental».
 5. Comprueba sin generar y guarda el borrador. Se crean automáticamente un .txt y un .json en content/longform/studio/; no necesitas escribir un JSON ni preparar cada plano.
-6. Después de revisar la calidad de las muestras, selecciona el borrador y pulsa «Generar vídeo largo». Kitok ejecuta el montaje elegido para todo el guion. Espera a «Terminado», reproduce y descarga el MP4 y sus créditos. Esta fase no ha lanzado UltimateBet completo.
+6. Después de revisar la calidad de las muestras, selecciona el borrador y pulsa «Generar vídeo largo». Kitok ejecuta el montaje elegido para todo el guion. Espera a «Terminado», reproduce y descarga el MP4 y sus créditos. Durante el montaje documental muestra el plano actual y el total.
 
 En generación nueva y recuperación, Kitok calcula los tramos de stock con la duración real del vídeo local, no con los segundos redondeados de Pexels. Comprueba todos los planos antes de renderizar el primero. Si un archivo completo no alcanza la duración necesaria, se detiene antes de mezclar y conserva la narración; no estira ni congela el plano.
 
@@ -91,6 +91,14 @@ La salida es horizontal 16:9, 1920×1080, sin subtítulos, en outputs/longform/.
 Los vídeos largos no entran en el calendario ni en el publicador Buffer de shorts. Descárgalos y súbelos a YouTube Studio. Los largos antiguos creados sólo por CLI siguen en outputs/longform/; la nueva lista muestra los borradores creados en este estudio.
 
 Si falla o se interrumpe, no se vuelve a generar automáticamente. Revisa logs/kitok-AAAAMMDD.log y los archivos antes de crear otra copia. Repetir una generación puede volver a consumir voz. El cliente Fish de Kitok no reintenta peticiones de voz tras un fallo; un resultado incierto requiere revisión. La caché permite reutilizar audio confirmado sin pedir otra síntesis. El montaje documental y la música de biblioteca conservan salidas exclusivas: `--start-over` no las reemplaza; usa una revisión/ID nuevos después de revisar el trabajo. Los modos nuevos sólo se admiten con Native, no en recuperación MPT.
+
+CLI y web comparten Native. Un JSON antiguo con montaje básico y música manual
+puede usar una rama distinta de uno con montaje documental o música de biblioteca;
+usa la misma configuración al compararlos. El montaje documental comprueba ahora
+los fotogramas exactos por plano y al unirlos. Un rechazo muestra valores medidos
+y conserva los diagnósticos, planos y narración. Tras actualizar el código,
+reinicia tu backend cuando esté inactivo para cargar la corrección; actualizar
+la página no reinicia ni cancela el trabajo del servidor.
 
 ### Recuperar un largo fallido conservando la voz pagada
 

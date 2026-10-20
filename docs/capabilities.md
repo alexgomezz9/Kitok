@@ -68,6 +68,12 @@ autenticación remota. El largo acepta hasta 24.000 caracteres y 20 búsquedas e
 el estudio. `native` es el motor nuevo; MPT conserva únicamente diagnóstico y
 recuperación explícita de tareas históricas ya enviadas.
 
+La web y el CLI comparten Native; montaje y música seleccionados determinan la
+rama de ejecución. El montaje documental reinicia el reloj tras recortar stock y
+exige fotogramas exactos, inicio cero y duración de planos/caché/ensamblado/MP4.
+Los errores incluyen mediciones y conservan diagnósticos y medios. El estudio
+recibe progreso por plano; guardar o recargar la página no inicia generación.
+
 ## Un vídeo con audio ya aprobado
 
 Este recorrido puede hacerse sin agente cuando sabes qué mostrar y cuándo.
@@ -219,14 +225,15 @@ terminados. Los servidores se abren sólo en `127.0.0.1`.
 
 ## Brecha entre la autonomía deseada y lo entregado
 
-La mejora audiovisual demostrada es el piloto UltimateBet C de **76 segundos**,
-con 17 escenas, audio existente conservado y revisión visual independiente. El
-episodio original de **652,6 segundos no se ha reeditado completo**. La evidencia
-y las mediciones de esa muestra están fechadas en
-[PROJECT_STATUS.md](../PROJECT_STATUS.md); no son una garantía de igual rendimiento
-o calidad en otro vídeo. Siguen pendientes recursos más específicos y una estética
-más uniforme entre stock/3D; no consta audición subjetiva ni reproducción audiovisual
-continua del episodio final completo.
+La revisión visual se concentra en pilotos y muestras, incluidas las candidatas
+actuales de [la galería documental](motion.md). El 20/10 se reparó además un intento
+completo del operador: 120 escenas y 654,733 s, reutilizando 113 clips y la mezcla,
+y corrigiendo siete relojes defectuosos. El candidato pasó decodificación completa,
+19.642 frames 4:2:0 y medición de audio; conserva el error histórico del trabajo.
+La evidencia técnica está en [PROJECT_STATUS.md](../PROJECT_STATUS.md).
+Esto no acredita aceptación audiovisual del episodio. Siguen pendientes recursos
+más específicos y una estética más uniforme entre stock/3D; no consta audición
+subjetiva ni reproducción audiovisual continua del episodio final completo.
 
 Falta convertir la preparación editorial en un recorrido persistente de producto:
 investigación con fuentes, selección y espera de aprobación, guion revisado,
@@ -237,8 +244,8 @@ real del titular y una comprobación remota posterior. El código de lectura y s
 tests offline no prueban que el canal esté conectado.
 
 Puedes producir y reeditar con lo implementado si aportas las decisiones y
-revisiones que señala la matriz. Ampliar la muestra al episodio completo y
-alcanzar un director multicanal autónomo son trabajos pendientes, descritos como
+revisiones que señala la matriz. Alcanzar una calidad editorial aceptada para el
+episodio completo y un director multicanal autónomo son trabajos pendientes, descritos como
 propuestas en [el roadmap](roadmap.md), no capacidades ocultas que se activen
 instalando una skill.
 

@@ -333,7 +333,7 @@ def motion_plan(clips, narration: Path, duration: float, *, root: Path, episode_
 
 def render_motion_longform(clips, narration, duration, output, workspace, *, settings, editing=None,
                            style='investigation', audio_is_final_mix=False, width=1920,height=1080,fps=30,
-                           word_alignment=None, workspace_id=None):
+                           word_alignment=None, workspace_id=None, on_stage=None):
     from .production import render_editorial_plan
     root = (settings.data_root or PROJECT_ROOT).resolve()
     episode_id = re.sub(r'[^A-Za-z0-9_-]','_',workspace_id or Path(output).stem)[:100]
@@ -342,7 +342,7 @@ def render_motion_longform(clips, narration, duration, output, workspace, *, set
                        width=width,height=height,fps=fps,word_alignment=word_alignment)
     plan_path = Path(workspace)/'motion-plan.json'
     plan.write(plan_path)
-    return render_editorial_plan(plan,root=root,output=Path(output),settings=settings)
+    return render_editorial_plan(plan,root=root,output=Path(output),settings=settings,on_stage=on_stage)
 
 
 def automatic_sfx(editing, duration, *, word_alignment=None):

@@ -379,6 +379,7 @@ class NativeLongformRenderer(LongformRenderer):
                     style="investigation" if mounting_style == "documentary" else "basic",
                     audio_is_final_mix=audio_is_final_mix, word_alignment=word_alignment,
                     width=self.engine.spec.width, height=self.engine.spec.height, fps=self.engine.spec.fps,
+                    on_stage=self.output,
                     **({'workspace_id': f'{content_id}-{workspace.name}'} if self.confirmed_narration else {}),
                 )
             else:

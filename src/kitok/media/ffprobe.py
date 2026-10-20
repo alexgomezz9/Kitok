@@ -152,3 +152,25 @@ def measured_video_duration(path: Path, ffprobe: str = "ffprobe") -> float:
     if not info.video_codec or video is None or not math.isfinite(video) or video <= 0:
         raise ProbeError(f"Media file has no measurable video stream duration: {path}")
     return video
+
+
+@dataclass(frozen=True)
+class VideoClock:
+    frames: int
+    start_time: float
+    duration: float
+
+
+def probe_video_clock(path: Path, ffprobe: str = "ffprobe") -> VideoClock:
+    """Inspect the counted MP4 video timeline, separately from its audio/container."""
+    try:
+        result = subprocess.run([ffprobe, "-v", "error", "-select_streams", "v:0",
+                                 "-show_entries", "stream=nb_frames,start_time,duration",
+                                 "-of", "json", str(path)], capture_output=True, text=True, check=True, timeout=60)
+        stream = json.loads(result.stdout)["streams"][0]
+        clock = VideoClock(int(stream["nb_frames"]), float(stream["start_time"]), float(stream["duration"]))
+        if clock.frames <= 0 or not math.isfinite(clock.start_time) or not math.isfinite(clock.duration) or clock.duration <= 0:
+            raise ValueError("Invalid video timeline")
+        return clock
+    except (OSError, subprocess.SubprocessError, ValueError, TypeError, KeyError, IndexError) as exc:
+        raise ProbeError(f"Could not inspect exact video frame clock: {path}") from exc

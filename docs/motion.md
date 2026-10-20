@@ -127,7 +127,10 @@ revisión; el stock sigue siendo ilustrativo, no imágenes históricas. Las preg
 breves y etiquetas de estas pruebas fueron decisiones editoriales explícitas;
 no se prometen esas mismas decisiones mediante recortes automáticos de frases.
 El recorrido Native anterior se conserva como prueba técnica histórica, fuera
-de esta selección visual; no se renderizó un episodio completo.
+de esta selección visual; en esa fase no se renderizó un episodio completo.
+La reparación técnica posterior de un intento completo del operador se registra
+en [el estado vigente](../PROJECT_STATUS.md); no cambia la selección de muestras
+ni acredita aceptación audiovisual del episodio.
 
 Autores consultados mediante GET oficial de Pexels el 20/10 y guardados en
 `cache/pexels-credits/`; los créditos de la revisión identifican las sustituciones.

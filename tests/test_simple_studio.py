@@ -152,6 +152,27 @@ def test_failed_audio_mix_exposes_measurements_and_recovery_needs_confirmed_inpu
     assert service._read(cid)['status'] == 'failed'
 
 
+def test_failed_editorial_validation_exposes_frame_measurements_without_retry(studio, monkeypatch):
+    from kitok.editing.production import EditorialValidationError
+    client, service = configured(studio, monkeypatch)
+    calls = []
+
+    def fail(*args):
+        calls.append('render')
+        raise EditorialValidationError('Editorial frame validation failed: video_frames=209 expected=210; video_start=0.033008s expected=0')
+
+    monkeypatch.setattr(service, '_render', fail)
+    cid = client.post('/api/longform', json=BODY).json()['id']
+    assert client.post(f'/api/longform/{cid}/jobs').status_code == 202
+    result = wait(service, cid)
+    assert result['status'] == 'failed'
+    assert 'video_frames=209 expected=210' in result['error']
+    assert 'video_start=0.033008s' in result['error']
+    assert client.post(f'/api/longform/{cid}/jobs').status_code == 422
+    assert client.get(f'/api/longform/{cid}/download').status_code == 422
+    assert calls == ['render']
+
+
 def test_start_respects_cli_lock_and_existing_output(studio, monkeypatch):
     client, service = configured(studio, monkeypatch)
     row = client.post('/api/longform', json=BODY).json()

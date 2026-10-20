@@ -57,6 +57,14 @@ El render editorial comprueba todas las ventanas de stock antes de crear workspa
 arrancar encoder o renderizar escenas; el error incluye escena, entrada, fin
 solicitado y duración real. No se amplió el margen de validación de 50 ms.
 
+Cada plano reinicia sus timestamps antes de convertir a FPS y produce el número
+exacto de fotogramas entre sus límites globales. Esto evita pérdidas acumuladas
+al recortar stock de 29,97/23,976 FPS con entradas fraccionales. Se comprueban
+fotogramas, inicio cero y duración de cada plano, caché, ensamblado y entrega.
+Los diagnósticos `*.validation.json` conservan valores esperados y medidos;
+un archivo rechazado se conserva. La duración del audio/contenedor no sustituye
+la del vídeo. La versión de caché anterior queda invalidada.
+
 
 `headline` y `kicker` son rótulos breves deliberados; no se extraen palabras sueltas
 mediante regex. Movimiento: ninguno, acercamiento o desplazamiento suave.

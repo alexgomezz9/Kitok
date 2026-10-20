@@ -13,13 +13,37 @@ from uuid import uuid4
 
 from ..longform.models import TimelineClip, TimelineSlot
 from ..media.ffmpeg import FFmpegNativeEngine, RenderSpec, choose_encoder, encoder_arguments
-from ..media.ffprobe import probe_media, stream_durations, measured_video_duration
+from ..media.ffprobe import probe_media, stream_durations, measured_video_duration, probe_video_clock
 from ..state import write_json_atomic
 from .ass import filter_path
 from .graphics import render_graphic
 from .storyboard import EditorialPlan, file_hash, project_file
 
-RENDER_VERSION = 3
+RENDER_VERSION = 4
+
+
+class EditorialValidationError(RuntimeError):
+    pass
+
+
+def _clock_matches(clock, frames: int, fps: int) -> bool:
+    return (clock.frames == frames and abs(clock.start_time) <= 1e-6
+            and abs(clock.duration - frames / fps) <= 1e-5)
+
+
+def _require_clock(path, frames, fps, diagnostics, *, ffprobe="ffprobe"):
+    clock = probe_video_clock(path, ffprobe)
+    report = {"media": str(path), "expected_frames": frames, "actual_frames": clock.frames,
+              "expected_duration": frames / fps, "video_duration": clock.duration,
+              "video_start_time": clock.start_time,
+              "status": "validated" if _clock_matches(clock, frames, fps) else "rejected"}
+    write_json_atomic(diagnostics, report)
+    if report["status"] != "validated":
+        raise EditorialValidationError(
+            f"Editorial frame validation failed: {Path(path).name}; video_frames={clock.frames} expected={frames}; "
+            f"video_start={clock.start_time:.6f}s expected=0; video_duration={clock.duration:.6f}s "
+            f"expected={frames / fps:.6f}s; diagnostics preserved: {diagnostics}")
+    return clock
 
 
 def validate_stock_coverage(plan, assets: dict[str, Path], *, ffprobe="ffprobe") -> dict[Path, float]:
@@ -161,6 +185,7 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
                 on_stage(f"Scene {index+1}/{len(plan.scenes)}: {scene.intention}")
             scene_start = time.monotonic()
             duration = scene.end - scene.start
+            frames = round(scene.end * plan.fps) - round(scene.start * plan.fps)
             image = bool(scene.graphic)
             if scene.composition:
                 from .cinema import CinemaData, render_cinema
@@ -187,11 +212,14 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
                 source_identity = file_hash(source)
             caption = workspace / f"{scene.id}.ass"
             _caption(scene, caption, plan)
+            # Fractional input seeks can leave the first source PTS above zero.
+            # Reset it before fps; otherwise per-scene time limits silently lose
+            # frames, accumulating a short video beneath the full-length audio.
             filters = [
+                "setpts=PTS-STARTPTS",
                 f"scale={plan.width}:{plan.height}:force_original_aspect_ratio=increase:force_divisible_by=2",
                 f"crop={plan.width}:{plan.height}", f"fps={plan.fps}", "setsar=1", "format=yuv420p",
             ]
-            frames = max(1, round(duration * plan.fps))
             if scene.motion == "push":
                 filters.append(f"zoompan=z='1+0.035*min(on/{frames},1)':x='iw/2-iw/zoom/2':y='ih/2-ih/zoom/2':d=1:s={plan.width}x{plan.height}:fps={plan.fps}")
             elif scene.motion == "pan":
@@ -227,7 +255,8 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
                     info = probe_media(target,settings.ffprobe_binary)
                     hit = (abs(info.duration-duration) <= 1/plan.fps+.02
                            and (info.width,info.height)==(plan.width,plan.height)
-                           and prior.get("media_sha256")==file_hash(target))
+                           and prior.get("media_sha256")==file_hash(target)
+                           and _clock_matches(probe_video_clock(target, settings.ffprobe_binary), frames, plan.fps))
             if not hit:
                 temp = target.with_name(f".{target.stem}.part.mp4")
                 command = [settings.ffmpeg_binary,"-nostdin","-v","error","-y","-threads","2"]
@@ -235,7 +264,7 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
                     command += ["-loop","1","-framerate",str(plan.fps)]
                 else:
                     command += ["-ss",f"{scene.source_start:.6f}"]
-                command += ["-i",str(source),"-an","-t",f"{duration:.6f}","-vf",",".join(filters),
+                command += ["-i",str(source),"-an","-frames:v",str(frames),"-vf",",".join(filters),
                             "-filter_threads","1",*encoder_arguments(encoder),"-pix_fmt","yuv420p","-threads","2",str(temp)]
                 _run(command)
                 if clips and scene.transition in {'dissolve', 'wipe'}:
@@ -257,13 +286,13 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
                           # otherwise a concatenated avc1 MP4 can switch from
                           # High/4:2:0 to High 4:4:4 midstream while ffprobe's
                           # stream summary still reports its first frame only.
-                          f'[0:v]format=yuv420p,settb=AVTB[a];[1:v]format=yuv420p,settb=AVTB[b];[a][b]xfade=transition={mode}:duration={blend:.6f}:offset=0,format=yuv420p[v]',
-                          '-map','[v]','-an','-t',f'{duration:.6f}',*encoder_arguments(encoder),
+                          f'[0:v]format=yuv420p,setpts=PTS-STARTPTS,settb=AVTB[a];[1:v]format=yuv420p,setpts=PTS-STARTPTS,settb=AVTB[b];[a][b]xfade=transition={mode}:duration={blend:.6f}:offset=0,format=yuv420p[v]',
+                          '-map','[v]','-an','-frames:v',str(frames),*encoder_arguments(encoder),
                           '-pix_fmt','yuv420p','-threads','2',str(transitioned)])
                     transitioned.replace(temp)
                 info = probe_media(temp,settings.ffprobe_binary)
-                if abs(info.duration-duration) > 1/plan.fps+.05:
-                    raise RuntimeError(f"Scene duration mismatch: {scene.id}")
+                _require_clock(temp, frames, plan.fps, workspace / f"{scene.id}.validation.json",
+                               ffprobe=settings.ffprobe_binary)
                 temp.replace(target)
                 write_json_atomic(receipt,{"fingerprint":fingerprint,"media_sha256":file_hash(target)})
             (reused if hit else rendered).append(scene.id)
@@ -289,6 +318,9 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
         else:
             engine.render(clips,audio,plan.duration,assembled,workspace/"assembly",
                           music=None,music_volume=0,loudness_target=-16,lra_target=20,true_peak_target=-1.5)
+        if plan.audio_is_final_mix:
+            _require_clock(assembled, round(plan.duration * plan.fps), plan.fps,
+                           workspace / "assembly-validation.json", ffprobe=settings.ffprobe_binary)
         pending = output.with_name(f".{output.stem}.{uuid4().hex}.part.mp4")
         if plan.audio_is_final_mix:
             # Preserve approved AAC bit-for-bit. PCM is a valid production master,
@@ -306,13 +338,32 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
             assembled.replace(pending)
         final = probe_media(pending,settings.ffprobe_binary)
         video_duration, audio_duration = stream_durations(pending,settings.ffprobe_binary)
-        if (abs(final.duration-plan.duration)>.15 or not final.audio_codec
-                or video_duration is None or abs(video_duration-plan.duration)>1/plan.fps+.02
-                or audio_duration is None or audio_duration<plan.duration-.05):
-            raise RuntimeError("Editorial final validation failed")
+        final_clock = probe_video_clock(pending, settings.ffprobe_binary)
+        failures = []
+        if abs(final.duration-plan.duration)>.15:
+            failures.append(f"container_duration={final.duration:.6f}s expected={plan.duration:.6f}s tolerance=0.15s")
+        if not final.audio_codec:
+            failures.append("missing audio codec")
+        if video_duration is None or abs(video_duration-plan.duration)>1/plan.fps+.02:
+            failures.append(f"video_duration={video_duration!r}s expected={plan.duration:.6f}s")
+        if not _clock_matches(final_clock, round(plan.duration * plan.fps), plan.fps):
+            failures.append(f"video_frames={final_clock.frames} expected={round(plan.duration * plan.fps)} "
+                            f"video_start={final_clock.start_time:.6f}s expected=0")
+        if audio_duration is None or audio_duration<plan.duration-.05:
+            failures.append(f"audio_duration={audio_duration!r}s minimum={plan.duration-.05:.6f}s")
+        diagnostics = workspace / f"{pending.stem}.validation.json"
+        write_json_atomic(diagnostics, {"media": str(pending), "expected_duration": plan.duration,
+                          "expected_frames": round(plan.duration * plan.fps), "video_frames": final_clock.frames,
+                          "video_start_time": final_clock.start_time, "container_duration": final.duration,
+                          "video_duration": video_duration, "audio_duration": audio_duration,
+                          "failures": failures, "status": "rejected" if failures else "validated"})
+        if failures:
+            raise EditorialValidationError("Editorial final validation failed: " + "; ".join(failures)
+                                           + f"; diagnostics preserved: {diagnostics}")
         result = {"version":1,"episode_id":plan.episode_id,"channel_id":plan.channel_id,
                   "output":str(output.relative_to(root)),"duration":final.duration,
                   "audio_stream_duration":audio_duration,"video_stream_duration":video_duration,
+                  "video_frames":final_clock.frames,"validation_report":str(diagnostics.relative_to(root)),
                   "encoder":encoder.codec,"elapsed_seconds":time.monotonic()-started,
                   "rendered_scenes":rendered,"reused_scenes":reused,"audio_source":plan.audio_source,
                   "audio_source_sha256":file_hash(audio),"audio_is_final_mix":plan.audio_is_final_mix,

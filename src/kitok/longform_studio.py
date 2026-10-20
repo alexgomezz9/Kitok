@@ -281,6 +281,9 @@ class LongformStudio:
             from .audio_library import AudioLibraryError
             if isinstance(exc, AudioLibraryError):
                 record['error'] = f'Mezcla de audio detenida: {exc}. La narración se conserva; revisa la recuperación sin Fish.'
+            from .editing.production import EditorialValidationError
+            if isinstance(exc, EditorialValidationError):
+                record['error'] = f'Montaje de vídeo detenido: {exc}. La narración y los planos se conservan.'
         finally:
             try:
                 self._write(record)
