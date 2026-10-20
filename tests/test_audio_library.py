@@ -494,3 +494,96 @@ def test_real_mix_crossfade_can_follow_an_off_center_boundary(audio_library, tmp
     for at in [float("nan"), -.5, .1, 5.9]:
         with pytest.raises(AudioLibraryError, match="transition"):
             library.mix("boundary", narration, tmp_path / "invalid.m4a", duration=6, transition_at=at)
+
+
+def test_long_documentary_automatic_mix_has_continuous_sample_clock(audio_library, tmp_path):
+    """A six-minute MP3 voice and looped beds exercise loudnorm's rate changes.
+
+    This is entirely local synthesized test audio, not a paid voice. Keep the
+    native renderer's PCM output, a noncentral crossfade and sparse SFX together.
+    """
+    library, catalog, audio, calls = audio_library
+    for index, track in enumerate(("long_note_two", "echoes_of_time_v2")):
+        # No Xing/gapless metadata, as in the confirmed Fish MP3. Ordinary LAME
+        # files with skip metadata hide this defect even with long narration.
+        # Loop boundaries and 44.1 -> 48 -> 192 -> 48 kHz exercise all branches.
+        music = tmp_path / f"bed-{index}.mp3"
+        subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-f", "lavfi", "-i",
+                        f"sine=frequency={220+index*130}:sample_rate=44100:duration=8.13",
+                        "-af", "volume='0.6+0.35*sin(t)':eval=frame", "-c:a", "libmp3lame", "-write_xing", "0", str(music)],
+                       check=True, capture_output=True)
+        data = music.read_bytes()
+        audio[track] = data
+        source = library.sources[track]
+        sha = hashlib.sha256(data).hexdigest()
+        library.sources[track] = source.model_copy(update={"sha256": sha})
+        next(row for row in catalog["sources"] if row["id"] == track)["sha256"] = sha
+        library.fetch(track)
+    script = "The evidence in the records explains the fraud. " * 80
+    selection = library.select_narrative("long-documentary", script)
+    assert len(selection["tracks"]) == 2
+    narration = tmp_path / "voice.mp3"
+    # Sparse transients force the final normalizer into true-peak-limited dynamic
+    # mode; a low-crest sine would normalize linearly and miss the actual defect.
+    subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-f", "lavfi", "-i",
+                    "aevalsrc=(0.13*sin(2*PI*180*t)+0.035*sin(2*PI*450*t))*(0.45+0.55*abs(sin(2*PI*3*t)))*if(lt(mod(t\\,17)\\,1)\\,0\\,1)+0.8*sin(2*PI*950*t)*lt(mod(t\\,53)\\,0.008):s=44100:d=360.70",
+                    "-c:a", "libmp3lame", "-b:a", "128k", "-write_xing", "0", str(narration)], check=True, capture_output=True)
+    duration = probe_media(narration).duration
+    original = hashlib.sha256(narration.read_bytes()).hexdigest()
+    calls_before = len(calls)
+    events = [{"time": 23.5324, "kind": "soft_tick"}, {"time": 47.2509, "kind": "low_pulse"},
+              {"time": 227.3727, "kind": "soft_tick"}, {"time": 301.8549, "kind": "low_pulse"}]
+    receipt = library.mix("long-documentary", narration, tmp_path / "documentary.wav", duration=duration,
+                          transition_at=223.1457, sfx_events=events)
+    assert len(calls) == calls_before
+    assert hashlib.sha256(narration.read_bytes()).hexdigest() == original
+    assert abs(receipt["duration"] - duration) <= .08
+    assert abs(receipt["measured"]["integrated_lufs"] + 16) <= 1
+    assert receipt["measured"]["true_peak_dbtp"] <= -1.5
+    assert math.isfinite(receipt["measured"]["loudness_range_lu"])
+    assert receipt["transition_at"] == 223.1457
+    assert len(receipt["sound_effects"]) == 4
+    assert receipt["mixer_revision"] == "sample-clock-v2"
+    diagnostics = Path(receipt["diagnostics_directory"])
+    assert (diagnostics / "mixed.wav").is_file()
+    assert json.loads((diagnostics / "validation.json").read_text())["status"] == "validated"
+
+
+@pytest.mark.parametrize("measurement,expected", [
+    ({"integrated_lufs": -16., "true_peak_dbtp": -1.8, "loudness_range_lu": 3.5}, "duration="),
+    ({"integrated_lufs": -20., "true_peak_dbtp": -1.8, "loudness_range_lu": 3.5}, "integrated_lufs=-20.0"),
+    ({"integrated_lufs": -16., "true_peak_dbtp": -1.2, "loudness_range_lu": 3.5}, "true_peak_dbtp=-1.2"),
+    ({"integrated_lufs": -16., "true_peak_dbtp": -1.8, "loudness_range_lu": float("nan")}, "loudness_range_lu=nan"),
+])
+def test_mix_validation_reports_measurements_and_preserves_failed_master(
+        audio_library, tmp_path, monkeypatch, measurement, expected):
+    from dataclasses import replace
+    import kitok.audio_library as audio_module
+    library, *_ = audio_library
+    library.fetch("long_note_two")
+    library.select_manual("rejected", "long_note_two")
+    narration = tmp_path / "voice.wav"
+    narration.write_bytes(tone_bytes(seconds=4))
+    original_probe = audio_module.probe_media
+    def probe(path, *args):
+        info = original_probe(path, *args)
+        return replace(info, duration=3.866) if Path(path).name == "mixed.wav" and expected == "duration=" else info
+    monkeypatch.setattr(audio_module, "probe_media", probe)
+    monkeypatch.setattr(audio_module, "measure_loudness", lambda *args: measurement)
+    output = tmp_path / "rejected.wav"
+    with pytest.raises(AudioLibraryError, match=expected) as caught:
+        library.mix("rejected", narration, output, duration=4)
+    assert "measured LUFS=" in str(caught.value)
+    assert "LRA=" in str(caught.value) and "true_peak_dbtp=" in str(caught.value)
+    assert not output.exists() and not output.with_suffix(".wav.json").exists()
+    workspaces = list(tmp_path.glob(".audio-mix-*"))
+    assert len(workspaces) == 1
+    workspace = workspaces[0]
+    assert (workspace / "mixed.wav").is_file()
+    assert (workspace / "analysis.log").is_file() and (workspace / "encode.log").is_file()
+    assert json.loads((workspace / "failure.json").read_text())["status"] == "failed"
+    validation = json.loads((workspace / "validation.json").read_text())
+    assert validation["status"] == "rejected"
+    if expected == "duration=":
+        assert "delta=-0.134000s" in str(caught.value)
+        assert validation["actual_duration"] == 3.866

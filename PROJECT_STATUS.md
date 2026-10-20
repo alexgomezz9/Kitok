@@ -25,8 +25,11 @@ Reproducción offline exacta con músicas cacheadas y nueve SFX: la mezcla falli
 mide 654,599 s (−134 ms frente a tolerancia 80 ms), −15,99 LUFS, LRA 3,50 y
 −1,80 dBTP. Sólo falla duración. La corrección del reloj de muestras ha producido
 654,733 s con las mismas medidas de sonoridad, sin padding ni límites ampliados.
-Recuperación estricta y regresión larga en verificación; no se retoma el episodio
-completo durante el diagnóstico. El trabajo original permanece fallido e intacto.
+Regresión de seis minutos con MP3 sin Xing, música automática, crossfade y SFX:
+pasa con el arreglo y falla con el código anterior. MP4 real de 22 s alrededor del
+cambio musical: 660 frames 4:2:0, AAC y decode completos; −15,28 LUFS / −2,11 dBTP.
+Recuperación estricta en verificación; el trabajo original permanece fallido e intacto
+y no se retoma el episodio completo durante el diagnóstico.
 
 La nueva evidencia del operador incluye fallo en Kitok y Windows descargado.
 Auditoría de todos los fotogramas encontró seis MP4 con cambio intermedio de

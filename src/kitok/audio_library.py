@@ -61,6 +61,7 @@ AUDITED = {
 }
 ID = re.compile(r"[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}\Z")
 SFX_KINDS = ("soft_tick", "low_pulse", "air_swish", "paper_texture", "key_click", "ui_ping")
+MIXER_REVISION = "sample-clock-v2"
 # Editorial affinities are separate from the source/license receipt. They are
 # judgments based on the author's stored instrument/feel descriptions, not claims
 # that the author assigned a business/history genre or that Kitok auditioned them.
@@ -251,6 +252,26 @@ def _atomic_json(path: Path, value: dict, *, replace: bool = True) -> tuple[int,
         return identity.st_dev, identity.st_ino
     finally:
         Path(temporary).unlink(missing_ok=True)
+
+
+@contextmanager
+def _mix_attempt(output: Path, request: dict):
+    """Keep every attempt and its evidence; a failed normalization is recoverable.
+
+    The validated output is hard-linked from this directory, so preserving the
+    successful PCM master does not duplicate its audio storage. Attempts never
+    reuse or remove an earlier workspace, including failed FFmpeg intermediates.
+    """
+    workspace = Path(tempfile.mkdtemp(prefix=".audio-mix-", dir=output.parent))
+    _atomic_json(workspace / "request.json", request)
+    try:
+        yield workspace
+    except Exception as exc:
+        error = {"status": "failed", "error_type": type(exc).__name__, "error": str(exc)}
+        if isinstance(exc.__cause__, subprocess.CalledProcessError):
+            error["ffmpeg_stderr"] = exc.__cause__.stderr
+        _atomic_json(workspace / "failure.json", error)
+        raise AudioLibraryError(f"{exc}; diagnostics preserved: {workspace}") from exc
 
 
 class AudioLibrary:
@@ -575,8 +596,13 @@ class AudioLibrary:
         if receipt_path.exists() or receipt_path.is_symlink():
             raise AudioLibraryError("Output receipt already exists")
         narration_sha256 = _hash(narration)
-        with self._lock(), tempfile.TemporaryDirectory(prefix=".audio-mix-", dir=output.parent) as workspace:
+        request = {"version": 1, "mixer_revision": MIXER_REVISION, "job_id": job_id, "narration": str(narration),
+                   "narration_sha256": narration_sha256, "output": str(output),
+                   "duration": duration, "offset": offset, "crossfade": crossfade,
+                   "transition_at": transition_at, "sfx_events": events}
+        with self._lock(), _mix_attempt(output, request) as workspace:
             selection = self._selection(self._state(), job_id)
+            _atomic_json(workspace / "selection.json", selection)
             if not all(self._cached(track_id) for track_id in selection["tracks"]):
                 raise AudioLibraryError("Select verified cached tracks before mixing")
             inputs = [self.ffmpeg, "-nostdin", "-hide_banner", "-y", "-ss", f"{offset:.6f}", "-i", str(narration)]
@@ -590,38 +616,66 @@ class AudioLibrary:
             if transition_at is not None and len(selection["tracks"]) != 2:
                 raise AudioLibraryError("A narrative transition requires two selected tracks")
             chain = self._mix_filter(duration, crossfade, len(selection["tracks"]), events, transition_at)
-            analysis_filter = chain + ";[mixed]loudnorm=I=-16:LRA=7:TP=-1.8:print_format=json[analysis]"
+            analysis_filter = chain + (";[mixed]loudnorm=I=-16:LRA=7:TP=-1.8:print_format=json,"
+                                       "aresample=48000,asetpts=N/SR/TB[analysis]")
             analysis = self._run(inputs + ["-filter_complex", analysis_filter, "-map", "[analysis]", "-vn", "-t", str(duration), "-f", "null", "-"], "mix analysis")
+            (workspace / "analysis.log").write_text(analysis.stderr)
             measured = parse_loudnorm_measurement(analysis.stderr)
             if not all(math.isfinite(value) for value in (measured.input_i, measured.input_lra, measured.input_tp, measured.input_thresh, measured.target_offset)):
                 raise AudioLibraryError("Cannot normalize silent or non-finite audio")
             normalize = (f"loudnorm=I=-16:LRA=7:TP=-1.8:measured_I={measured.input_i}:"
                          f"measured_LRA={measured.input_lra}:measured_TP={measured.input_tp}:"
-                         f"measured_thresh={measured.input_thresh}:offset={measured.target_offset}:linear=true")
+                         f"measured_thresh={measured.input_thresh}:offset={measured.target_offset}:linear=true:print_format=json,"
+                         "aresample=48000,asetpts=N/SR/TB")
+            _atomic_json(workspace / "filters.json", {"mix": chain, "analysis": analysis_filter,
+                                                     "normalize": normalize})
             temporary = Path(workspace) / ("mixed" + output.suffix.lower())
             codec = ["-c:a", "aac", "-b:a", "192k"] if output.suffix.lower() == ".m4a" else ["-c:a", "pcm_s16le"]
-            self._run(inputs + ["-filter_complex", chain + ";[mixed]" + normalize + "[out]", "-map", "[out]", "-vn", "-t", str(duration),
+            encoded = self._run(inputs + ["-filter_complex", chain + ";[mixed]" + normalize + "[out]", "-map", "[out]", "-vn", "-t", str(duration),
                                 "-ar", "48000", "-ac", "2", *codec, str(temporary)], "audio mix")
+            (workspace / "encode.log").write_text(encoded.stderr)
             final_info, loudness = probe_media(temporary, self.ffprobe), measure_loudness(temporary, self.ffmpeg)
-            if abs(final_info.duration - duration) > .08 or not all(isinstance(loudness.get(key), (int, float)) and math.isfinite(loudness[key])
-                    for key in ("integrated_lufs", "true_peak_dbtp", "loudness_range_lu")):
-                raise AudioLibraryError("Audio duration or loudness validation failed")
-            if abs(loudness["integrated_lufs"] + 16) > 1 or loudness["true_peak_dbtp"] > -1.5:
-                raise AudioLibraryError("Measured mix does not meet -16 LUFS / -1.5 dBTP")
+            failures = []
+            if abs(final_info.duration - duration) > .08:
+                failures.append(f"duration={final_info.duration:.6f}s expected={duration:.6f}s "
+                                f"delta={final_info.duration-duration:+.6f}s tolerance=0.080000s")
+            for key in ("integrated_lufs", "true_peak_dbtp", "loudness_range_lu"):
+                value = loudness.get(key)
+                if not isinstance(value, (int, float)) or not math.isfinite(value):
+                    failures.append(f"{key}={value!r} must be finite")
+            integrated, peak = loudness.get("integrated_lufs"), loudness.get("true_peak_dbtp")
+            if isinstance(integrated, (int, float)) and math.isfinite(integrated) and abs(integrated + 16) > 1:
+                failures.append(f"integrated_lufs={integrated} target=-16 tolerance=1")
+            if isinstance(peak, (int, float)) and math.isfinite(peak) and peak > -1.5:
+                failures.append(f"true_peak_dbtp={peak} maximum=-1.5")
+            diagnostics = {"requested_duration": duration, "actual_duration": final_info.duration,
+                           "measured": {key: value if value is None or (isinstance(value, (int, float)) and math.isfinite(value)) else str(value)
+                                        for key, value in loudness.items()},
+                           "failures": failures, "status": "rejected" if failures else "validated"}
+            _atomic_json(workspace / "validation.json", diagnostics)
+            if failures:
+                raise AudioLibraryError("Audio validation failed: " + "; ".join(failures)
+                                        + f"; measured LUFS={loudness.get('integrated_lufs')}, "
+                                        f"LRA={loudness.get('loudness_range_lu')}, "
+                                        f"true_peak_dbtp={loudness.get('true_peak_dbtp')}")
             if _hash(narration) != narration_sha256:
                 raise AudioLibraryError("Narration changed during mixing; no output was promoted")
             source_receipts = [self._cached(track_id) for track_id in selection["tracks"]]
             if not all(source_receipts):
                 raise AudioLibraryError("A music source changed during mixing; no output was promoted")
-            receipt = {"version": 1, "job_id": job_id, "selection": selection,
+            receipt = {"version": 1, "mixer_revision": MIXER_REVISION, "job_id": job_id, "selection": selection,
                        "narration_sha256": narration_sha256, "narration_offset": offset,
                        "duration": final_info.duration, "crossfade_seconds": crossfade if len(selection["tracks"]) == 2 else 0,
                        "transition_at": (duration/2 if transition_at is None else transition_at) if len(selection["tracks"]) == 2 else None,
                        "ducking": {"threshold": .012, "ratio": 8, "attack_ms": 15, "release_ms": 300},
                        "target_lufs": -16, "target_true_peak_dbtp": -1.5, "encoding_headroom_db": .3,
+                       "normalization_input": {"integrated_lufs": measured.input_i,
+                                               "loudness_range_lu": measured.input_lra,
+                                               "true_peak_dbtp": measured.input_tp},
                        "measured": loudness, "output_sha256": _hash(temporary),
                        "sources": source_receipts,
                        "sound_effects": effect_receipts,
+                       "diagnostics_directory": str(workspace),
                        "filter": chain, "created_at": datetime.now(timezone.utc).isoformat()}
             owned_receipt = _atomic_json(receipt_path, receipt, replace=False)
             try:
@@ -640,14 +694,17 @@ class AudioLibrary:
     @staticmethod
     def _mix_filter(duration: float, crossfade: float, count: int, events: list[dict] | None = None,
                     transition_at: float | None = None) -> str:
+        # loudnorm can negotiate 192 kHz internally. Rebuild each 48 kHz branch's
+        # clock from emitted samples before acrossfade/sidechain/amix. Keeping
+        # inherited frame timestamps can shorten long output at the final -t.
         filters = [f"[0:a]atrim=duration={duration:.6f},asetpts=PTS-STARTPTS,aformat=sample_rates=48000:channel_layouts=stereo,"
-                   "loudnorm=I=-19:LRA=7:TP=-3,aresample=48000,asplit=2[voice][key]"]
+                   "loudnorm=I=-19:LRA=7:TP=-3,aresample=48000,asetpts=N/SR/TB,asplit=2[voice][key]"]
         for index in range(count):
             center = duration/2 if transition_at is None else transition_at
             segment = (center if index == 0 else duration-center) + crossfade/2 if count == 2 else duration
             filters.append(f"[{index+1}:a]atrim=duration={segment:.6f},asetpts=PTS-STARTPTS,"
                            "aformat=sample_rates=48000:channel_layouts=stereo,highpass=f=60,lowpass=f=6500,"
-                           f"loudnorm=I=-29:LRA=11:TP=-8,aresample=48000[m{index}]")
+                           f"loudnorm=I=-29:LRA=11:TP=-8,aresample=48000,asetpts=N/SR/TB[m{index}]")
         filters.append(f"[m0][m1]acrossfade=d={crossfade:.6f}:c1=tri:c2=tri[bed]" if count == 2 else "[m0]anull[bed]")
         filters += ["[bed][key]sidechaincompress=threshold=0.012:ratio=8:attack=15:release=300:makeup=1[ducked]",
                     f"[ducked]afade=t=in:d=0.08,afade=t=out:st={duration-.4:.6f}:d=0.4[bedfaded]"]

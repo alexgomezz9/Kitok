@@ -103,6 +103,32 @@ con margen de codificación. El recibo `.m4a.json` o `.wav.json` conserva medida
 créditos, hashes, cambios y eventos. La salida debe ser nueva; nunca sustituye la
 narración ni un resultado anterior. Incluir los créditos del recibo en la entrega.
 
+### Duración y diagnóstico de una mezcla fallida
+
+El mezclador conserva los límites: duración solicitada ±80 ms, −16 LUFS ±1 LU,
+pico verdadero ≤−1,5 dBTP y mediciones finitas de LUFS, LRA y pico. LRA=7 es el
+objetivo del normalizador; la validación no impone una nueva frontera rígida de LRA.
+Después de cada normalización/remuestreo reconstruye los timestamps desde el número
+de muestras (`asetpts=N/SR/TB`); así los cambios de frecuencia del modo dinámico de
+`loudnorm` no acortan el archivo al aplicar el límite temporal de salida.
+La regresión usa seis minutos de MP3 sin metadatos Xing/gapless, transitorios que
+activan la normalización dinámica, dos músicas automáticas, crossfade y SFX. La
+ausencia de esos metadatos es válida; no requiere sustituir la voz de Fish.
+
+Cada intento crea un directorio exclusivo `.audio-mix-*` junto a la salida. Conserva
+la petición, selección, SFX, máster PCM/AAC, logs de análisis/codificación y
+`validation.json`; un fallo añade `failure.json`. No se eliminan al lanzar una
+excepción. La salida validada se enlaza al máster sin duplicar sus bytes y el recibo
+indica `mixer_revision` y `diagnostics_directory`. Un error de validación identifica
+el límite incumplido y muestra duración esperada/real, LUFS, LRA y pico medidos.
+
+El fallo del trabajo `lf_cf5e16bb422547aabfb4f5b8b9ef131a` se reprodujo sólo con su
+voz existente y dos músicas cacheadas, sin red: la mezcla duraba **654,599 s** frente
+a **654,733 s** solicitados (−134 ms). Sus **−15,99 LUFS / 3,50 LU LRA / −1,80 dBTP**
+eran válidos. Con el reloj de muestras corregido, la misma mezcla conserva esos
+niveles y mide **654,733 s**. No fue necesario volver a sintetizar voz ni renderizar
+todo el documental para comprobar la corrección.
+
 ## Efectos discretos originales
 
 Hay seis familias procedurales sin voces ni grabaciones externas:
