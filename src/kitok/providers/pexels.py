@@ -133,6 +133,8 @@ class PexelsProvider:
             duration=float(item["duration"]),
             variants=variants,
             page_url=item.get("url"),
+            author=(item.get("user") or {}).get("name"),
+            author_url=(item.get("user") or {}).get("url"),
         )
 
     def select_candidate(

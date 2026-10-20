@@ -31,6 +31,8 @@ class StockAsset:
     duration: float
     variants: tuple[StockVariant, ...]
     page_url: str | None = None
+    author: str | None = None
+    author_url: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -43,6 +45,8 @@ class StockAsset:
             duration=float(value["duration"]),
             variants=tuple(StockVariant.from_dict(item) for item in value["variants"]),
             page_url=value.get("page_url"),
+            author=value.get("author"),
+            author_url=value.get("author_url"),
         )
 
 
