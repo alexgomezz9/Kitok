@@ -94,7 +94,7 @@ Si falla o se interrumpe, no se vuelve a generar automáticamente. Revisa logs/k
 
 En la ficha de un trabajo Native fallido o interrumpido, pulsa **«Revisar recuperación sin generar»**. La auditoría sólo lee: comprueba guion/configuración guardados, MP3 y alineación, manifiesto de montaje y recibo Fish confirmado para esa voz, modelo y velocidad. Muestra duración y SHA-256. Si algo falta, cambió, no coincide o ya existe una salida, se detiene. No llama a Fish ni a Pexels.
 
-Sólo después de revisar esa información, **«Recuperar montaje usando esta voz · sin Fish ni red»** retoma el mismo trabajo con el mismo ID. Esta acción sí monta el vídeo completo. Usa el ejecutor y bloqueo compartidos; conserva el error previo y trabaja en una nueva subcarpeta `recovery-*`, sin borrar el audio, cachés ni temporales anteriores. Si falta stock o música local, falla sin descargar ni sintetizar. No crees otro borrador ni uses el comando normal de generación para esta recuperación.
+Sólo después de revisar esa información, **«Recuperar montaje usando esta voz · sin Fish ni red»** retoma el mismo trabajo con el mismo ID. Esta acción sí monta el vídeo completo. Usa el ejecutor y bloqueo compartidos; conserva el error previo y trabaja en una nueva subcarpeta `recovery-*`, sin borrar el audio, cachés ni temporales anteriores. Comprueba las búsquedas que usa el montaje, no las palabras de búsqueda descartadas del borrador. Si falta stock o música local necesarios, falla sin descargar ni sintetizar. No crees otro borrador ni uses el comando normal de generación para esta recuperación.
 
 Desde terminal, la auditoría es el comportamiento predeterminado y no inicia ningún montaje:
 

@@ -134,7 +134,7 @@ class NativeLongformRenderer(LongformRenderer):
         reference_id = fish_reference_id(definition.voice_name)
         script = validate_native_script(definition.item.script)
         preflight = getattr(self.pexels, "preflight_searches", None)
-        if preflight:
+        if preflight and self.confirmed_narration is None:
             preflight(definition.item.keywords, orientation="landscape")
         work_root = self.output_path.parent / ".native-work"
         work_root.mkdir(parents=True, exist_ok=True)
@@ -231,6 +231,11 @@ class NativeLongformRenderer(LongformRenderer):
 
             stage = time.monotonic()
             ordered_queries = list(dict.fromkeys(slot.query for slot in slots))
+            if preflight and self.confirmed_narration is not None:
+                # The original montage may use only a subset of draft keywords.
+                # Recovery needs cached searches for the actual timeline only;
+                # unlike new generation, it never needs a pre-Fish network check.
+                preflight(ordered_queries, orientation="landscape")
             log.info("Pexels search start queries=%d", len(ordered_queries))
             log.debug("Pexels search queries=%r", ordered_queries)
             searches = {

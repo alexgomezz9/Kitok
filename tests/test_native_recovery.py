@@ -19,12 +19,12 @@ from kitok.stock.models import StockAsset, StockVariant, SelectedStock
 
 
 @pytest.fixture
-def failed_job(tmp_path, monkeypatch):
+def failed_job(tmp_path, monkeypatch, request):
     settings = Settings(_env_file=None, data_root=tmp_path, native_cache_dir=tmp_path / 'cache' / 'pexels')
     app = SimpleNamespace(s=settings, _mutex=threading.Lock(), _executor=ThreadPoolExecutor(max_workers=1))
     studio = LongformStudio(app)
-    row = studio.create(LongformRequest(subject='Recovery test', script='The narrator describes this important event.',
-                                       keywords=['city'], music_enabled=False, music_mode='off'))
+    row = studio.create(LongformRequest(subject='Recovery test', script='The narrator describes this important city.',
+                                       keywords=getattr(request, 'param', ['city']), music_enabled=False, music_mode='off'))
     cid = row['id']
     record = studio._read(cid)
     record.update(status='failed', error='Original paid operation failed after narration', stage='Original stage')
@@ -133,6 +133,7 @@ def test_explicit_recovery_preserves_failure_and_holds_lock_through_worker(faile
     assert digest(narration) == audit['narration_sha256']
 
 
+@pytest.mark.parametrize('failed_job', [['city'], ['city', 'unused original keyword']], indirect=True)
 def test_offline_renderer_never_constructs_fish_and_preserves_workspace(failed_job, monkeypatch):
     studio, definition, narration, info = failed_job
     confirmed = studio._recovery_inputs(definition.item.id)[2]
@@ -158,9 +159,17 @@ def test_offline_renderer_never_constructs_fish_and_preserves_workspace(failed_j
             output.write_bytes(b'assembled-video')
             return info
     monkeypatch.setattr('kitok.rendering.native.write_render_manifest', lambda *a, **kw: None)
-    result = NativeLongformRenderer(settings, CachedStock(root), Engine(), output_path=studio.output_path(definition.item.id),
+    stock = CachedStock(root)
+    preflight_calls = []
+    original_preflight = stock.preflight_searches
+    def preflight(queries, **kwargs):
+        preflight_calls.append(list(queries))
+        original_preflight(queries, **kwargs)
+    monkeypatch.setattr(stock, 'preflight_searches', preflight)
+    result = NativeLongformRenderer(settings, stock, Engine(), output_path=studio.output_path(definition.item.id),
                                     fish_factory=forbidden, confirmed_narration=confirmed).render(definition)
     assert result.output.is_file()
+    assert preflight_calls == [['city']]
     assert result.timings.fish == 0
     assert previous.read_bytes() == b'preserve'
     assert digest(narration) == confirmed.sha256
@@ -187,3 +196,25 @@ def test_cache_only_miss_preserves_part_and_never_opens_http(tmp_path):
     with pytest.raises(ValueError, match='missing'):
         stock.search_videos('missing', orientation='landscape')
     assert part.read_bytes() == b'existing download'
+
+
+@pytest.mark.parametrize('editing_enabled', [True, False])
+def test_offline_renderer_still_rejects_missing_used_search_without_fish(failed_job, editing_enabled):
+    studio, definition, narration, _ = failed_job
+    confirmed = studio._recovery_inputs(definition.item.id)[2]
+    before = digest(narration)
+    definition = SimpleNamespace(**vars(definition), editing_enabled=editing_enabled)
+    part = narration.parent / 'previous-download.part'
+    part.write_bytes(b'preserve previous attempt')
+    def forbidden(*args, **kwargs):
+        pytest.fail('Offline recovery must not synthesize or render after a required cache miss')
+    engine = SimpleNamespace(spec=RenderSpec(), encoder=EncoderSettings('libx264', 'veryfast'), render=forbidden)
+    renderer = NativeLongformRenderer(studio.s, CachedStock(studio.s.native_cache_dir), engine,
+                                      output_path=studio.output_path(definition.item.id),
+                                      fish_factory=forbidden, confirmed_narration=confirmed)
+    with pytest.raises(ValueError, match='missing'):
+        renderer.render(definition)
+    assert digest(narration) == before
+    assert part.read_bytes() == b'preserve previous attempt'
+    assert not studio.output_path(definition.item.id).exists()
+    assert studio._read(definition.item.id)['status'] == 'failed'

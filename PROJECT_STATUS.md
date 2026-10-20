@@ -32,8 +32,21 @@ Recuperación estricta disponible en UI/API/CLI: auditoría de sólo lectura y
 confirmación explícita de SHA/fingerprint, mismo ID, bloqueo y workspace nuevo.
 No construye cliente Fish ni proveedor de stock con red; detiene recursos ausentes.
 58 pruebas de recuperación/estudio correctas y revisión independiente sin bloqueos.
-El trabajo original permanece fallido e intacto; no se retomó el episodio completo.
+El diagnóstico inicial conservó el trabajo fallido; después el operador inició
+dos recuperaciones que se detuvieron en el preflight descrito a continuación.
 [Procedimiento de recuperación](GUIA.md#recuperar-un-largo-fallido-conservando-la-voz-pagada).
+
+Reintentos del operador a las 17:07 y 17:08: fallo distinto, antes de mezcla o Fish.
+El preflight exigía 20 búsquedas originales aunque el montaje utiliza 17; faltaban
+`computer security code` y `empty poker table`, ninguna usada. Corregido para
+validar sólo las consultas del timeline durante recuperación, conservando el
+preflight anterior a Fish en generación nueva. Regresión reproduce el fallo con
+código anterior; **104 pruebas de Native/recuperación/estudio/shorts** correctas
+y revisión independiente sin hallazgos. Prueba del renderer real hasta el límite previo a mezclar: 17
+consultas y 94 assets locales válidos, cero red/Fish, estado y hashes originales
+intactos. Evidencia `local/audio-failure/preflight-followup-1792509093486690083/`.
+No se relanzó el episodio ni se alteraron los dos errores de recuperación guardados.
+
 
 La nueva evidencia del operador incluye fallo en Kitok y Windows descargado.
 Auditoría de todos los fotogramas encontró seis MP4 con cambio intermedio de
@@ -111,4 +124,5 @@ ficha fallida → Revisar recuperación sin generar → Recuperar montaje usando
 voz · sin Fish ni red**. La segunda acción monta el episodio completo; no usar
 «Generar» ni crear otro borrador para recuperar esta narración. Revisar además
 las copias `_compat1` en Windows y escuchar antes de aprobar la calidad.
-No se lanzó UltimateBet completo desde el agente.
+Tras actualizar código, reiniciar el backend detenido/cerrado antes de repetir
+la recuperación. No se lanzó UltimateBet completo desde el agente.
