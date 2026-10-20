@@ -105,25 +105,45 @@ Las salidas nuevas son exclusivas; conserva originales y usa ID/revisión nueva.
 El informe mide decodificación, geometría, duración, negros, LUFS/pico y audio A/B;
 la hoja de contacto muestrea imágenes. No acredita audición subjetiva ni aprobación.
 
-## Muestras y recursos comprobados en esta fase
+## Muestras revisadas tras el feedback visual
 
-Las demostraciones finales están bajo `outputs/motion-gallery/`: efectos
-individuales `effect_*`, `ub_opening_v5` (31 s), `ub_development_v5` (31,5 s),
-`ub_revelation_v5` (29,5 s), `generalization_mfa_v1` (20 s, sin voz nueva)
-y `native_roundtrip_v2` (31 s, 720p, proveedores simulados/sockets bloqueados).
-Las revisiones locales anteriores se conservan; la galería muestra sólo las
-candidatas vigentes. Las muestras UB comparan imagen con audio A/B idéntico.
-La muestra técnica sustituye mesas de casino poco pertinentes por servidores
-y ordenadores vistos directamente; siguen siendo ilustrativos.
+El operador rechazó la primera presentación por parecer tarjetas/subtítulos.
+El mosaico enviado era `contact.jpg`, una imagen estática; no se utiliza ahora
+como portada del vídeo. Ese hecho no convierte la calidad inicial en aceptada.
+La revisión conserva los MP4 anteriores y los retira de la galería vigente.
 
-Autores de stock consultados mediante GET oficial de Pexels el 20/10, guardados
-en `cache/pexels-credits/`, incluidos en los créditos de las muestras. Búsquedas
-nuevas conservan autor y perfil en caché; las antiguas pueden carecer de ellos
-y se declaran desconocidos hasta verificarlos.
+Las candidatas actuales están bajo `outputs/motion-gallery/`:
+
+- `effect_r2_*`: 19 demostraciones individuales de cuatro segundos.
+- `ub_opening_v7`: 31 s; pregunta con titular editorial explícito y cifra grande.
+- `ub_development_v7`: 31,5 s; flujo de información con objetos/conexiones animados.
+- `ub_revelation_v7`: 29,5 s; dato de reembolso y contexto financiero.
+- `generalization_mfa_v3`: 20 s; tipografía y diagrama llave/dispositivo/escudo,
+  sin narración nueva.
+
+Las tres UB conservan la mezcla de voz y música de las versiones anteriores, con referencia A/B de audio decodificado idéntico. Se retiraron los
+planos de solitario, pantallas de compras y mesas de blackjack señalados en la
+revisión; el stock sigue siendo ilustrativo, no imágenes históricas. Las preguntas
+breves y etiquetas de estas pruebas fueron decisiones editoriales explícitas;
+no se prometen esas mismas decisiones mediante recortes automáticos de frases.
+El recorrido Native anterior se conserva como prueba técnica histórica, fuera
+de esta selección visual; no se renderizó un episodio completo.
+
+Autores consultados mediante GET oficial de Pexels el 20/10 y guardados en
+`cache/pexels-credits/`; los créditos de la revisión identifican las sustituciones.
+Las búsquedas nuevas conservan autor/perfil; cachés antiguas pueden carecer de
+ellos y se declaran desconocidos hasta verificarlos.
+
+El error «could not be decoded» fue reportado al abrir enlaces del chat. No se
+reprodujo mediante la entrega HTTP de Kitok en Chromium; esa comprobación no
+explica ni resuelve el fallo del chat ni acredita todos los navegadores. Los MP4
+nuevos usan H.264/yuv420p y AAC, con entrega parcial HTTP comprobada. Para revisar
+el movimiento, abre el estudio y pulsa «Reproducir muestra»; los contactos sirven
+para revisar encuadre y legibilidad, no para juzgar una animación continua.
 
 La música utiliza dos pistas para inicio/cierre, con una frontera de secciones
 validada o cambio central estimado declarado. No compone una banda sonora para
 cada escena. Las voces nuevas tienen previews del proveedor de textos distintos;
 las históricas plain/tags sí comparten texto. No se sintetizó voz en esta fase.
-La inspección visual y medidas técnicas permiten revisar estas candidatas;
-la escucha subjetiva y la aprobación editorial siguen pendientes del operador.
+La escucha subjetiva, sincronía audiovisual continua y aprobación editorial
+siguen pendientes del operador, aunque se revisen frames y reproducción técnica.

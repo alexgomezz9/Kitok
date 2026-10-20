@@ -100,3 +100,6 @@ make verify-browser
 - Repertorio y límites actuales: docs/motion.md; música/voces/licencias: docs/audio.md. No confundir 19 candidatos con 19 intenciones seleccionadas automáticamente.
 - Skills de desarrollo ya disponibles más kitok-audiovisual-qa local para QA visual/audio. No son agentes de producción. Registrar qué MP4/fotogramas se inspeccionaron y qué no se escuchó.
 - Mantener el reloj de los rótulos al cruzar stock y anclar énfasis sólo a alineación de transcript validada. Revisión técnica/sonoridad no equivalen a aprobación audiovisual.
+
+- Tras el feedback del 20/10, las muestras anteriores no acreditan calidad aceptada. Los mosaicos son imágenes estáticas; la galería carga un solo vídeo por clic. Verificar reproducción completa y entradas/salidas, además de contactos; distinguir fallos del chat de errores reproducidos por HTTP local.
+- No abreviar preguntas por regex ni inferir acciones de una cifra buscando verbos sueltos: puede perderse negación o atribuirse otra cantidad. El copy breve requiere decisión editorial explícita. No convertir pounds a £ sin evidencia monetaria; conservar contexto y calificador.
