@@ -16,10 +16,20 @@ def test_baseline_preserved_and_new_alternatives_are_licensed(tmp_path):
     library = VoiceLibrary(CATALOG, tmp_path / "prefs.json")
     assert library.assigned("loose_thread")["reference_id"] == DEFAULT_REFERENCE
     choices = library.list()
-    assert len(choices) == 9
+    assert len(choices) == 11
     assert all(voice["api_licensed"] for voice in choices if voice["selectable"] and voice["id"] != "baseline")
     assert all(len(voice["samples"]) == 2 for voice in choices if voice["id"] in ("baseline", "adrian", "ethan", "narrator"))
     assert not (tmp_path / "prefs.json").exists()
+
+
+def test_spanish_alternatives_have_licensed_metadata_and_existing_previews(tmp_path):
+    library = VoiceLibrary(CATALOG, tmp_path / "prefs.json")
+    spanish = [voice for voice in library.list() if "es" in voice["languages"]]
+    assert {voice["id"] for voice in spanish} == {"gabriel_es", "brian_es"}
+    for voice in spanish:
+        assert voice["selectable"] and voice["api_licensed"] and voice["rights_status"] == "fish_licensed_api"
+        assert voice["samples"][0]["kind"] == "existing_provider_preview"
+        assert "?" not in voice["preview_source"]  # Never persist signed preview access URLs.
 
 
 def test_favorites_assignments_survive_new_instance_without_changing_other_channels(tmp_path):

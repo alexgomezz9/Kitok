@@ -24,12 +24,14 @@ def main() -> int:
     select.add_argument("--mood", default="investigation")
     select.add_argument("--count", type=int, choices=(1, 2), default=2)
     select.add_argument("--track", help="Choose one cached track manually instead of mood rotation")
+    select.add_argument("--script", type=Path, help="Choose distinct opening/closing tracks from a full existing narration text")
     mix = sub.add_parser("mix", help="Create a separate ducked, crossfaded, measured audio mix")
     mix.add_argument("--job", required=True)
     mix.add_argument("--narration", type=Path, required=True)
     mix.add_argument("--output", type=Path, required=True)
     mix.add_argument("--duration", type=float, required=True)
     mix.add_argument("--offset", type=float, default=0)
+    mix.add_argument("--transition-at", type=float, help="Center the two-track crossfade on this narrative boundary (seconds)")
     mix.add_argument("--sfx-events", type=Path, help="JSON list of editorial cues: [{\"time\":2,\"kind\":\"soft_tick\"}]")
     sfx = sub.add_parser("sfx", help="Synthesize a quiet original Kitok sound, no external samples")
     sfx.add_argument("--output", type=Path, required=True)
@@ -53,12 +55,15 @@ def main() -> int:
                 result = [{"track": track, "sha256": receipt["sha256"], "cache_hit": receipt["cache_hit"],
                            "duration": receipt["duration"]} for track in ids for receipt in [library.fetch(track)]]
             elif args.command == "select":
+                if args.track and args.script:
+                    raise AudioLibraryError("Choose either a manual track or narrative script")
                 result = (library.select_manual(args.job, args.track, channel=args.channel) if args.track else
+                          library.select_narrative(args.job, args.script.read_text(), channel=args.channel) if args.script else
                           library.select(args.job, channel=args.channel, mood=args.mood, count=args.count))
             else:
                 events = json.loads(args.sfx_events.read_text()) if args.sfx_events else None
                 receipt = library.mix(args.job, args.narration, args.output, duration=args.duration,
-                                      offset=args.offset, sfx_events=events)
+                                      offset=args.offset, sfx_events=events, transition_at=args.transition_at)
                 result = {"output": str(args.output), "duration": receipt["duration"], "measured": receipt["measured"],
                           "credits": receipt["selection"]["credits"], "changes_notice": receipt["selection"]["changes_notice"]}
         print(json.dumps(result, ensure_ascii=False, indent=2))

@@ -59,6 +59,7 @@ Fuentes evaluadas para esta fase:
 .venv/bin/python scripts/audio_library.py available
 .venv/bin/python scripts/audio_library.py fetch all
 .venv/bin/python scripts/audio_library.py select --job episodio_v1 --channel loose_thread --mood investigation
+.venv/bin/python scripts/audio_library.py select --job episodio_narrativo_v1 --script RUTA_GUION_EXISTENTE.txt
 .venv/bin/python scripts/audio_library.py select --job episodio_manual_v1 --track mesmerize
 .venv/bin/python scripts/audio_library.py mix --job episodio_v1 --narration RUTA_AUDIO_EXISTENTE.mp3 --duration 30 --output outputs/mi_mezcla_v1.m4a
 ```
@@ -79,6 +80,22 @@ pistas compatibles. `science` parte de `ambient`;
 `horror` y `lore` pueden usar `horror`. Es una heurística conservadora, no comprensión
 general del tono ni garantía de idoneidad musical. La caché/licencias se validan
 después; inferir un ambiente nunca descarga pistas ni sintetiza voz.
+
+La selección narrativa `select_narrative` analiza por separado el inicio (45% de
+palabras) y el cierre (35%), conserva sus razones y el hash del guion, y fija dos
+pistas distintas compatibles con esos ambientes. En guiones de menos de 36 palabras
+usa el ambiente del texto completo. `narrative_options` comprueba que existe una
+pareja elegible sin escribir selección ni contactar proveedores. Un cambio de
+guion o selección exige una revisión/ID nuevo; se mantienen los contratos del
+selector por ambiente y de la elección manual.
+
+`narrative_transition` busca un límite de secciones de transcript validado, con
+preferencia por un cambio entre ambientes de inicio/cierre. Comprueba palabras,
+orden y tiempos antes de usarlo. Si no hay una alineación válida, declara
+`fallback-central-estimated`: un crossfade central estimado, sin afirmar sincronía
+semántica. `mix(...,transition_at=segundos)` centra el crossfade en ese instante;
+la duración de ambas pistas se adapta para mantener toda la narración. El CLI
+equivalente admite `--transition-at`. Omitirlo conserva el centro anterior.
 
 El mezclador hace crossfade, filtra el fondo y baja su nivel bajo la narración.
 Normaliza en dos pasos a −16 LUFS y comprueba un pico verdadero máximo de −1,5 dBTP,
@@ -142,6 +159,8 @@ no representan una evaluación auditiva de Kitok.
 | Calm Reflective Male | `afe69eaecd7b49d1b564b06421ce3706` | Inglés; API `licensed=true`, publicada. |
 | kevon | `bf4a01bacf1b43b188c2c13ebdc77166` | Inglés; API `licensed=true`, publicada. |
 | Calm Observer | `0b2331767e7244218e1043a1b44ec6ea` | Inglés; API `licensed=true`, publicada. |
+| GABRIEL VO — Professional Spanish Narrator | `53ac6dc4ad314fed88aa28732ad9c87d` | Español castellano según descriptor; API `licensed=true`, publicada. |
+| BRIAN — Voz Tranquila y Reflexiva | `f40c5dc43e7e4e3ba641b6e8b53ad7c2` | Español, tono tranquilo/reflexivo declarado; API `licensed=true`, publicada. |
 
 Según la [documentación de listado Fish](https://docs.fish.audio/api-reference/endpoint/model/list-models),
 `licensed=true` filtra voces cuyos derechos Fish indica haber obtenido de su titular.
@@ -153,9 +172,15 @@ solicitada por el operador, sin presentarla como una licencia comprobada.
 
 Hay ocho muestras históricas en `outputs/voice-tests/`: plain/tags para cada una
 de las cuatro voces anteriores. El runner usa un texto común, pero aquí no se
-regeneró ni realineó ese audio. Las cinco alternativas nuevas tienen previews
+regeneró ni realineó ese audio. Las siete alternativas nuevas tienen previews
 preexistentes del proveedor en `cache/voice-library/`; sus textos difieren y no
 constituyen una comparación controlada del mismo guion. Escuchar antes de elegir.
+Son **11 voces y 15 muestras** en este checkpoint. Las dos españolas se comprobaron
+con GET individual: entrenadas, publicadas, sin retirada DMCA declarada y con
+`licensed=true`; no se incorporó la candidata con nombre de una personalidad.
+Esto acredita los metadatos del proveedor, no una comprobación independiente de
+la identidad ni el contrato privado de consentimiento. Sus previews descargados
+conservan hash y procedencia por modelo/task; no se guardan URLs de acceso firmadas.
 
 ```bash
 .venv/bin/python scripts/voice_library.py list
@@ -179,8 +204,11 @@ o la predeterminada existente. Un catálogo no garantiza disponibilidad futura.
 `AudioLibrary.available(channel=None,mood=None)` consulta caché;
 `select(job_id,channel=...,mood=...,count=2)` y
 `select_manual(job_id,track_id,channel=...)` fijan selección;
-`mix(job_id,narration,output,duration=...,offset=...,sfx_events=[...])` entrega una
-mezcla separada. `VoiceLibrary.list/favorite/assign/assigned/sample` resuelven
+`select_narrative(job_id,script,channel=...)` fija inicio/cierre;
+`narrative_options(script,channel=...)` es el preflight sin mutación y
+`preview(track_id)` resuelve un MP3 cacheado con hash y symlinks comprobados.
+`mix(job_id,narration,output,duration=...,offset=...,sfx_events=[...],transition_at=...)`
+entrega una mezcla separada. `VoiceLibrary.list/favorite/assign/assigned/sample` resuelven
 preferencias y previews locales por ID; `sample` comprueba hash y rutas controladas.
 
 Pruebas del módulo: procedencia, hash, licencia cambiada, redirecciones, descarga
@@ -198,3 +226,10 @@ La ampliación de efectos añade `outputs/evaluation/audio_library/sfx_families/
 seis WAV individuales, `six_families.wav` para comparar las texturas y
 `narration_six_families_20s.m4a` para escucharlas bajo la misma narración existente.
 El orden es tick, pulse, swish, paper, key, ping. Estos archivos no requieren Fish.
+
+`outputs/evaluation/audio_library/narrative_boundary_22s.m4a` reutiliza las primeras
+cuatro secciones de UltimateBet: 21,805 s, dos pistas y crossfade fuera del centro,
+con límite obtenido de la alineación Fish existente tras validar el transcript
+completo. El archivo `.narrative.json` guarda las secciones y la razón del cambio.
+No es un render del episodio ni una nueva síntesis; queda pendiente escuchar la
+adecuación subjetiva de la transición.

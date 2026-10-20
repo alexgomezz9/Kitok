@@ -360,6 +360,98 @@
         }
       ],
       "preview_source": "https://platform.r2.fish.audio/task/74d80b455a0347dbba1613ba96697d6b.mp3"
+    },
+    {
+      "id": "gabriel_es",
+      "reference_id": "53ac6dc4ad314fed88aa28732ad9c87d",
+      "display_name": "GABRIEL VO - Professional Spanish Narrator",
+      "languages": [
+        "es"
+      ],
+      "tags": [
+        "male",
+        "middle-aged",
+        "narration",
+        "educational",
+        "advertisement",
+        "entertainment",
+        "calm",
+        "measured",
+        "warm",
+        "clear",
+        "professional",
+        "relaxed",
+        "expressive",
+        "storytelling",
+        "neutral-tone",
+        "deep",
+        "authoritative",
+        "mysterious",
+        "announcer",
+        "documentary",
+        "cinematic"
+      ],
+      "api_licensed": true,
+      "selectable": true,
+      "rights_status": "fish_licensed_api",
+      "source_url": "https://api.fish.audio/model/53ac6dc4ad314fed88aa28732ad9c87d",
+      "verified_on": "2026-10-20",
+      "samples": [
+        {
+          "path": "cache/voice-library/gabriel_es/preview.mp3",
+          "sha256": "79855cb6fd2a2dad8c8d428357ec1ff94cfc412e8e76bbda3f0c03733cf35a1b",
+          "kind": "existing_provider_preview",
+          "duration": 8.803188
+        }
+      ],
+      "preview_source": "https://api.fish.audio/model/53ac6dc4ad314fed88aa28732ad9c87d",
+      "preview_task_id": "6092251f66ab4917ae4284216672314c"
+    },
+    {
+      "id": "brian_es",
+      "reference_id": "f40c5dc43e7e4e3ba641b6e8b53ad7c2",
+      "display_name": "BRIAN - Voz Tranquila y Reflexiva",
+      "languages": [
+        "es"
+      ],
+      "tags": [
+        "male",
+        "middle-aged",
+        "narration",
+        "educational",
+        "entertainment",
+        "conversational",
+        "character-voice",
+        "social-media",
+        "advertisement",
+        "medium",
+        "calm",
+        "relaxed",
+        "measured",
+        "smooth",
+        "clear",
+        "neutral-tone",
+        "expressive",
+        "storytelling",
+        "professional",
+        "confident",
+        "gentle"
+      ],
+      "api_licensed": true,
+      "selectable": true,
+      "rights_status": "fish_licensed_api",
+      "source_url": "https://api.fish.audio/model/f40c5dc43e7e4e3ba641b6e8b53ad7c2",
+      "verified_on": "2026-10-20",
+      "samples": [
+        {
+          "path": "cache/voice-library/brian_es/preview.mp3",
+          "sha256": "487848b96cd1f6c5327e9f32cede23395f03fd157e5f984ba617990b0e38d383",
+          "kind": "existing_provider_preview",
+          "duration": 16.274188
+        }
+      ],
+      "preview_source": "https://api.fish.audio/model/f40c5dc43e7e4e3ba641b6e8b53ad7c2",
+      "preview_task_id": "a86fb9f536934fe0812d5d7a1f7a4a08"
     }
   ]
 }

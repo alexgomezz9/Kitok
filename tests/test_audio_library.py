@@ -12,7 +12,7 @@ import wave
 import httpx
 import pytest
 
-from kitok.audio_library import AudioLibrary, AudioLibraryError, BASE, SFX_KINDS, infer_audio_mood, synthesize_sfx
+from kitok.audio_library import AudioLibrary, AudioLibraryError, BASE, SFX_KINDS, infer_audio_mood, narrative_transition, synthesize_sfx
 from kitok.media.ffprobe import probe_media
 
 
@@ -410,3 +410,87 @@ def test_editorial_affinities_are_selectable_without_changing_source_receipts(au
     assert "editorial affinity" in choice["mood_basis"]
     assert "history" not in library.sources["echoes_of_time_v2"].moods
     assert receipt_path.read_bytes() == before
+
+
+def test_music_preview_is_hash_verified_local_and_non_mutating(audio_library):
+    library, _, _, calls = audio_library
+    with pytest.raises(AudioLibraryError, match="preview missing"):
+        library.preview("long_note_two")
+    assert not (library.cache / "long_note_two").exists()
+    library.fetch("long_note_two")
+    before = len(calls)
+    assert library.preview("long_note_two").read_bytes()
+    assert len(calls) == before
+    assert not (library.cache / "selection.json").exists()
+    library.preview("long_note_two").write_bytes(b"changed")
+    with pytest.raises(AudioLibraryError, match="preview missing"):
+        library.preview("long_note_two")
+    with pytest.raises(AudioLibraryError):
+        library.preview("../../outside")
+
+
+OPENING = "The investigation follows the evidence of fraud hidden in the records, while the audit exposes the scandal. " * 3
+CLOSING = "The aftermath brings grief and loss to the survivors, whose memories and legacy remain with the community. " * 2
+
+
+def test_narrative_preflight_and_selection_use_two_moods_and_preserve_revisions(audio_library):
+    library, _, _, calls = audio_library
+    script = OPENING + CLOSING
+    options = library.narrative_options(script)
+    assert options["eligible"] is False
+    assert not (library.cache / "selection.json").exists()
+    for track in ("long_note_two", "echoes_of_time_v2", "dreams_become_real"):
+        library.fetch(track)
+    before = len(calls)
+    options = library.narrative_options(script)
+    assert options["eligible"] and options["opening_mood"] == "investigation" and options["closing_mood"] == "reflective"
+    choice = library.select_narrative("narrative", script)
+    assert choice["tracks"][0] in {"long_note_two", "echoes_of_time_v2"}
+    assert choice["tracks"][1] == "dreams_become_real"
+    assert choice["count"] == 2 and choice["method"] == "narrative-v1"
+    assert library.select_narrative("narrative", script) == choice
+    assert library.select_narrative("next", script)["tracks"][0] != choice["tracks"][0]
+    with pytest.raises(AudioLibraryError, match="different audio selection"):
+        library.select_narrative("narrative", script + " Another closing sentence.")
+    assert len(calls) == before
+
+
+def test_narrative_selection_requires_two_distinct_verified_tracks(audio_library):
+    library, *_ = audio_library
+    library.fetch("dreams_become_real")
+    script = "The survivors reflect on grief, loss and memories in the aftermath of an event that changed their community."
+    assert library.narrative_options(script)["eligible"] is False
+    with pytest.raises(AudioLibraryError, match="distinct cached"):
+        library.select_narrative("insufficient", script)
+    assert not (library.cache / "selection.json").exists()
+
+
+def test_narrative_crossfade_uses_validated_semantic_boundary_and_labels_fallback():
+    script = OPENING + CLOSING
+    sections = [{"text": OPENING, "start": 0, "end": 11}, {"text": CLOSING, "start": 11.5, "end": 30}]
+    result = narrative_transition(script, 30, sections=sections)
+    assert result["transition_at"] == 11.25 and result["method"] == "validated-mood-boundary"
+    assert narrative_transition(script, 30)["transition_at"] == 15
+    assert narrative_transition(script, 30)["method"] == "fallback-central-estimated"
+    changed = [{**sections[0], "text": "An unrelated transcript"}, sections[1]]
+    assert narrative_transition(script, 30, sections=changed)["method"] == "fallback-central-estimated"
+    changed = [{**sections[0], "start": float("nan")}, sections[1]]
+    assert narrative_transition(script, 30, sections=changed)["method"] == "fallback-central-estimated"
+
+
+def test_real_mix_crossfade_can_follow_an_off_center_boundary(audio_library, tmp_path):
+    library, *_ = audio_library
+    for track in ("long_note_two", "echoes_of_time_v2"):
+        library.fetch(track)
+    library.select("boundary", channel="loose_thread", mood="investigation")
+    narration = tmp_path / "voice.wav"
+    narration.write_bytes(tone_bytes(seconds=6))
+    receipt = library.mix("boundary", narration, tmp_path / "boundary.m4a", duration=6, transition_at=2)
+    assert receipt["transition_at"] == 2
+    assert "atrim=duration=2.750000" in receipt["filter"] and "atrim=duration=4.750000" in receipt["filter"]
+    assert abs(receipt["duration"]-6) < .08
+    assert abs(receipt["measured"]["integrated_lufs"]+16) < 1
+    assert receipt["measured"]["true_peak_dbtp"] <= -1.5
+    for at in [float("nan"), -.5, .1, 5.9]:
+        with pytest.raises(AudioLibraryError, match="transition"):
+            library.mix("boundary", narration, tmp_path / "invalid.m4a", duration=6, transition_at=at)

@@ -122,6 +122,65 @@ def infer_audio_mood(script: str, *, channel: str = "loose_thread") -> str:
     return winners[0] if len(winners) == 1 else default
 
 
+def _narrative_profile(script: str, channel: str) -> dict:
+    if not isinstance(script, str) or not script.strip():
+        raise AudioLibraryError("Narrative music requires the full narration text")
+    words = re.sub(r"\[[^\]\n]{1,80}\]", "", script).split()
+    if len(words) < 36:
+        opening = closing = script
+        reason = "Short narration: retain the full-script mood for both distinct tracks."
+    else:
+        opening = " ".join(words[:max(12, math.ceil(len(words)*.45))])
+        closing = " ".join(words[-max(12, math.ceil(len(words)*.35)):])
+        reason = "Opening 45% and closing 35% of narration words; conservative independent mood inference."
+    return {"opening_mood": infer_audio_mood(opening, channel=channel),
+            "closing_mood": infer_audio_mood(closing, channel=channel), "reason": reason,
+            "script_sha256": hashlib.sha256(script.encode()).hexdigest()}
+
+
+def narrative_transition(script: str, duration: float, *, sections: list[dict] | None = None,
+                         channel: str = "loose_thread") -> dict:
+    """Choose a verified sentence/mood boundary, or label a central estimate.
+
+    sections must contain the complete transcript and validated provider timing,
+    expressed as text/start/end. No word-level claim is made from estimated data.
+    """
+    if not math.isfinite(duration) or duration < 3:
+        raise AudioLibraryError("Narrative transition needs at least three measured seconds")
+    profile = _narrative_profile(script, channel)
+    fallback = {"transition_at": duration/2, "method": "fallback-central-estimated",
+                "reason": "No validated aligned section boundary; central crossfade is an estimate."}
+    if not sections:
+        return fallback
+    token = lambda text: re.findall(r"\w+", re.sub(r"\[[^\]\n]{1,80}\]", "", text).casefold())
+    try:
+        if token(script) != [word for section in sections for word in token(section["text"])]:
+            raise ValueError
+        previous = 0.
+        for section in sections:
+            start, end = float(section["start"]), float(section["end"])
+            if not math.isfinite(start+end) or start < previous-.02 or not 0 <= start < end <= duration+.05:
+                raise ValueError
+            previous = end
+        candidates = []
+        for index in range(1, len(sections)):
+            at = (float(sections[index-1]["end"])+float(sections[index]["start"]))/2
+            if not max(.75, duration*.15) <= at <= min(duration-.75, duration*.85):
+                continue
+            before = infer_audio_mood(" ".join(section["text"] for section in sections[:index]), channel=channel)
+            after = infer_audio_mood(" ".join(section["text"] for section in sections[index:]), channel=channel)
+            candidates.append((before == after, after != profile["closing_mood"], abs(at-duration*.62), at))
+        if not candidates:
+            return fallback
+        no_change, _, _, at = min(candidates)
+        return {"transition_at": at,
+                "method": "validated-section-boundary" if no_change else "validated-mood-boundary",
+                "reason": "Aligned transcript boundary nearest the narrative turn; " + (
+                    "no distinct mood change was detected." if no_change else "opening/closing moods differ.")}
+    except (ValueError, TypeError, KeyError, AttributeError):
+        return {**fallback, "reason": "Section transcript/timing validation failed; central crossfade is an estimate."}
+
+
 class MusicSource(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
     id: str
@@ -289,6 +348,56 @@ class AudioLibrary:
                 if (channel is None or channel in source.channels)
                 and (mood is None or self._matches_mood(source, mood)) and self._cached(source.id)]
 
+    def preview(self, track_id: str) -> Path:
+        """Return one verified local track for an ID-only HTTP route, without writes."""
+        if not isinstance(track_id, str) or track_id not in self.sources or not self._cached(track_id):
+            raise AudioLibraryError("Music preview missing or changed; fetch the audited source before listening")
+        return self.cache / track_id / "music.mp3"
+
+    def narrative_options(self, script: str, *, channel: str = "loose_thread") -> dict:
+        """Read eligible opening/closing pools without creating a selection or downloading."""
+        if not isinstance(channel, str) or not ID.fullmatch(channel):
+            raise AudioLibraryError("Invalid narrative channel ID")
+        profile = _narrative_profile(script, channel)
+        tracks = self.available(channel=channel)
+        opening = [row["id"] for row in tracks if profile["opening_mood"] in row["moods"]]
+        closing = [row["id"] for row in tracks if profile["closing_mood"] in row["moods"]]
+        eligible = any(a != b for a in opening for b in closing)
+        return {**profile, "eligible": eligible, "opening_candidates": opening, "closing_candidates": closing}
+
+    def select_narrative(self, job_id: str, script: str, *, channel: str = "loose_thread") -> dict:
+        """Fix two distinct licensed tracks for the opening and closing narrative moods."""
+        if not isinstance(job_id, str) or not ID.fullmatch(job_id):
+            raise AudioLibraryError("Invalid narrative job ID")
+        with self._lock():
+            options = self.narrative_options(script, channel=channel)
+            state = self._state()
+            request = {"channel": channel, "mood": options["opening_mood"], "closing_mood": options["closing_mood"],
+                       "count": 2, "method": "narrative-v1", "script_sha256": options["script_sha256"]}
+            if job_id in state["jobs"]:
+                selection = self._selection(state, job_id)
+                if any(selection.get(key) != value for key, value in request.items()):
+                    raise AudioLibraryError("This job already has a different audio selection; use a new revision ID")
+                if not all(self._cached(track_id) for track_id in selection["tracks"]):
+                    raise AudioLibraryError("A selected narrative track is missing or corrupted")
+                return selection
+            if not options["eligible"]:
+                raise AudioLibraryError("Not enough distinct cached licensed tracks for the opening and closing moods")
+            previous = state["last"].get(channel)
+            pairs = [(a, b) for a in options["opening_candidates"] for b in options["closing_candidates"] if a != b]
+            pairs.sort(key=lambda pair: (pair[0] == previous,
+                                        hashlib.sha256(f"{job_id}:{channel}:{pair[0]}:{pair[1]}".encode()).hexdigest()))
+            tracks = list(pairs[0])
+            selection = {"job_id": job_id, **request, "tracks": tracks,
+                         "selected_at": datetime.now(timezone.utc).isoformat(),
+                         "credits": [self.sources[track].attribution for track in tracks],
+                         "changes_notice": "Music trimmed, crossfaded at a declared narrative boundary, mixed and ducked under narration.",
+                         "reason": options["reason"], "content_id": "unknown"}
+            state["jobs"][job_id] = selection
+            state["last"][channel] = tracks[0]
+            _atomic_json(self.cache / "selection.json", state)
+            return selection
+
     @staticmethod
     def _matches_mood(source: MusicSource, mood: str) -> bool:
         return mood in source.moods or source.id in AUDIO_AFFINITIES.get(mood, set())
@@ -435,12 +544,15 @@ class AudioLibrary:
         return selection
 
     def mix(self, job_id: str, narration: Path, output: Path, *, duration: float,
-            offset: float = 0, crossfade: float = 1.5, sfx_events: list[dict] | None = None) -> dict:
+            offset: float = 0, crossfade: float = 1.5, sfx_events: list[dict] | None = None,
+            transition_at: float | None = None) -> dict:
         """Render a separate mix; narration and existing outputs are never overwritten."""
         if not ID.fullmatch(job_id) or not all(math.isfinite(value) for value in (duration, offset, crossfade)):
             raise AudioLibraryError("Invalid audio request")
         if not 3 <= duration <= 7200 or offset < 0 or not .1 <= crossfade <= min(5, duration / 2):
             raise AudioLibraryError("Invalid duration, offset or crossfade")
+        if transition_at is not None and (not math.isfinite(transition_at) or not crossfade/2 <= transition_at <= duration-crossfade/2):
+            raise AudioLibraryError("Music transition must fit the duration and crossfade")
         try:
             events = [SoundEvent.model_validate(event).model_dump() for event in (sfx_events or [])]
         except (ValidationError, TypeError):
@@ -475,7 +587,9 @@ class AudioLibrary:
                 path = Path(workspace) / f"sfx-{index}.wav"
                 effect_receipts.append({**synthesize_sfx(path, kind=event["kind"]), "time": event["time"]})
                 inputs += ["-i", str(path)]
-            chain = self._mix_filter(duration, crossfade, len(selection["tracks"]), events)
+            if transition_at is not None and len(selection["tracks"]) != 2:
+                raise AudioLibraryError("A narrative transition requires two selected tracks")
+            chain = self._mix_filter(duration, crossfade, len(selection["tracks"]), events, transition_at)
             analysis_filter = chain + ";[mixed]loudnorm=I=-16:LRA=7:TP=-1.8:print_format=json[analysis]"
             analysis = self._run(inputs + ["-filter_complex", analysis_filter, "-map", "[analysis]", "-vn", "-t", str(duration), "-f", "null", "-"], "mix analysis")
             measured = parse_loudnorm_measurement(analysis.stderr)
@@ -502,6 +616,7 @@ class AudioLibrary:
             receipt = {"version": 1, "job_id": job_id, "selection": selection,
                        "narration_sha256": narration_sha256, "narration_offset": offset,
                        "duration": final_info.duration, "crossfade_seconds": crossfade if len(selection["tracks"]) == 2 else 0,
+                       "transition_at": (duration/2 if transition_at is None else transition_at) if len(selection["tracks"]) == 2 else None,
                        "ducking": {"threshold": .012, "ratio": 8, "attack_ms": 15, "release_ms": 300},
                        "target_lufs": -16, "target_true_peak_dbtp": -1.5, "encoding_headroom_db": .3,
                        "measured": loudness, "output_sha256": _hash(temporary),
@@ -523,11 +638,13 @@ class AudioLibrary:
             return receipt
 
     @staticmethod
-    def _mix_filter(duration: float, crossfade: float, count: int, events: list[dict] | None = None) -> str:
+    def _mix_filter(duration: float, crossfade: float, count: int, events: list[dict] | None = None,
+                    transition_at: float | None = None) -> str:
         filters = [f"[0:a]atrim=duration={duration:.6f},asetpts=PTS-STARTPTS,aformat=sample_rates=48000:channel_layouts=stereo,"
                    "loudnorm=I=-19:LRA=7:TP=-3,aresample=48000,asplit=2[voice][key]"]
-        segment = (duration + crossfade) / 2 if count == 2 else duration
         for index in range(count):
+            center = duration/2 if transition_at is None else transition_at
+            segment = (center if index == 0 else duration-center) + crossfade/2 if count == 2 else duration
             filters.append(f"[{index+1}:a]atrim=duration={segment:.6f},asetpts=PTS-STARTPTS,"
                            "aformat=sample_rates=48000:channel_layouts=stereo,highpass=f=60,lowpass=f=6500,"
                            f"loudnorm=I=-29:LRA=11:TP=-8,aresample=48000[m{index}]")
