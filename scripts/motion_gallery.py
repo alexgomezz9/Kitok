@@ -11,14 +11,14 @@ import math
 import subprocess
 from types import SimpleNamespace
 
-from kitok.audio_library import AudioLibrary
+from kitok.audio_library import AudioLibrary, narrative_transition
 from kitok.config import Settings, PROJECT_ROOT
 from kitok.editing.manifest import build_edit_manifest
-from kitok.editing.motion import motion_plan, provider_sections
+from kitok.editing.motion import motion_plan, provider_sections, automatic_sfx
 from kitok.editing.motion_components import CATALOG, MotionDesign
 from kitok.editing.production import render_editorial_plan
 from kitok.editing.quality import inspect_video, contact_sheet
-from kitok.editing.storyboard import EditorialPlan, EditorialScene, EditorialAsset, frame_time, project_file
+from kitok.editing.storyboard import EditorialPlan, EditorialScene, EditorialAsset, frame_time, project_file, file_hash
 from kitok.longform.models import TimelineClip, TimelineSlot
 from kitok.media.ffprobe import probe_media
 from kitok.state import write_json_atomic
@@ -35,7 +35,10 @@ def review(plan, folder, settings, *, title, family, kind, credits, baseline=Non
     report=inspect_video(output,folder/'qa.json',settings=settings,comparison=baseline,scene_boundaries=points)
     # Name exposed through the read-only gallery route.
     (folder/'qa.contact.jpg').rename(folder/'contact.jpg')
+    if len(points)<4:
+        contact_sheet(output,folder/'contact.jpg',points,ffmpeg=settings.ffmpeg_binary,columns=len(points),label='Review')
     report['contact_sheet']=str(folder/'contact.jpg')
+    report['contact_sheet_sha256']=file_hash(folder/'contact.jpg')
     write_json_atomic(folder/'qa.json',report)
     (folder/'CREDITS.md').write_text(credits,encoding='utf-8')
     write_json_atomic(folder/'item.json',{'id':folder.name,'title':title,'family':family,'kind':kind,
@@ -121,8 +124,14 @@ def sample(args, settings):
     library=AudioLibrary(root/'presets/music_sources.json',root/'cache/audio-library')
     mixed=folder/'mix.m4a'
     try:
-        selection=library.select(ident,channel=config.get('channel','loose_thread'),mood=config.get('mood','investigation'),count=2)
-        receipt=library.mix(ident,narration,mixed,duration=duration,offset=offset,sfx_events=config.get('sfx_events'))
+        excerpt=' '.join(s.section for s in sections)
+        channel=config.get('channel','loose_thread')
+        selection=library.select_narrative(ident,excerpt,channel=channel)
+        transition=narrative_transition(excerpt,duration,channel=channel,
+                    sections=[{'text':s.section,'start':s.audio_start,'end':s.audio_end} for s in sections] if alignment else None)
+        events=config.get('sfx_events',automatic_sfx(edit,duration,word_alignment=local_alignment))
+        receipt=library.mix(ident,narration,mixed,duration=duration,offset=offset,sfx_events=events,transition_at=transition['transition_at'])
+        write_json_atomic(folder/'music-direction.json',transition)
     finally:
         library.close()
     # Reuse the source editor's stock, with offsets clipped to this excerpt.
@@ -142,13 +151,26 @@ def sample(args, settings):
            for i,(a,b,item,shift) in enumerate(ranges)]
     plan=motion_plan(clips,mixed,duration,root=root,episode_id=ident,editing=edit,style=config.get('preset','investigation'),
                      audio_is_final_mix=True,width=args.width,height=args.height,word_alignment=local_alignment)
+    for asset in plan.assets.values():
+        ident_match=__import__('re').search(r'/(\d+)/?$',asset.source_url or '')
+        evidence=root/'cache/pexels-credits'/f'{ident_match[1]}.json' if ident_match else None
+        if evidence and evidence.is_file():
+            attribution=json.loads(evidence.read_text())
+            asset.credit=f"{attribution['author']} · Pexels"
+            asset.source_url=attribution['source_url']
     baseline=folder/'baseline.mp4'
     baseline_source=project_file(root,config['baseline'])
     run([settings.ffmpeg_binary,'-nostdin','-v','error','-ss',str(offset),'-i',str(baseline_source),'-i',str(mixed),
          '-map','0:v:0','-map','1:a:0','-t',str(duration),'-vf',f'scale={args.width}:{args.height}',
          '-c:v','libx264','-preset','fast','-crf','20','-threads','2','-c:a','copy','-movflags','+faststart',str(baseline)])
     credits='# Credits\n\nOriginal narration reused, no new Fish request.\nStock is illustrative, not footage of the case. Pexels License: https://www.pexels.com/license/\n'
-    credits+=''.join(f'\n- Stock: https://www.pexels.com/video/{c.asset_id}/ (cropped/trimmed).\n' for c in clips)
+    for clip in {c.asset_id:c for c in clips}.values():
+        evidence=root/'cache/pexels-credits'/f'{clip.asset_id}.json'
+        source=json.loads(evidence.read_text()) if evidence.is_file() else {}
+        if source.get('id')==clip.asset_id and source.get('author'):
+            credits+=f"\n- {source['author']}: {source['source_url']} — {source.get('author_url','')} (cropped/trimmed).\n"
+        else:
+            credits+=f'\n- Stock: https://www.pexels.com/video/{clip.asset_id}/ (creator unknown in historic cache; cropped/trimmed).\n'
     credits+='\n'+ '\n\n'.join(selection['credits'])+'\n\nMusic trimmed, crossfaded and ducked under the narration. Content ID: unknown.\n'
     credits+='\nBaseline reuses previous editor images with this exact new mix for a visual comparison. The previous original remains unchanged.\n'
     review(plan,folder,settings,title=config['title'],family=config.get('family','documentary'),kind='sample',credits=credits,baseline=baseline)

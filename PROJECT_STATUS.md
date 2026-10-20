@@ -1,88 +1,70 @@
 # Estado vigente de Kitok
 
-Actualizado: 2026-10-20. Fase **Documental enriquecido** en rama
-**feature/documentary-motion**, base main bfd43c5. No integrar main ni renderizar
-UltimateBet completo en esta fase. Entrega anterior integrada por autorización.
+Actualizado: 2026-10-20. Rama **feature/documentary-motion**, base **main bfd43c5**.
+Manual operativo: [GUIA.md](GUIA.md). Decisiones y licencias: [investigación](docs/motion-research.md).
 
-## Fase en curso: audio e investigación
+## Capacidades comprobadas
 
-- Catálogo ampliado a20 músicas Incompetech CC BY4.0, archivos locales, hashes,
-  páginas/licencias y recibos verificados. 9 voces catalogadas y13 muestras de
-  escucha históricas/proveedor; ninguna síntesis nueva. DefaultLooseThread intacto.
-- CLI audio selección automática/manual, crossfade/ducking/seis SFX temporizados;
-  preferencias locales de voces y consulta Fish GET. Evidencia: 49tests afectados
-  correctos20/10; demo20s -16.00LUFS/-1.99dBTP. Audición humana pendiente.
-- [Investigación](docs/motion-research.md): conservarFFmpeg/ASS/Pillow; alternativas
-  revisadas, sin instalar otro motor. Three.js queda opcional histórico.
-- Compositor local19candidatos y MotionDirector con intenciones acotadas:46tests
-  de montaje/estudio y14motion correctos20/10; revisión independiente cerrada. Galería19MP4 de4s renderizada e inspeccionada
-  por contacto. Frontend/muestras aún en revisión; siguiente: controles integrados.
-- CI anterior bfd43c5 comprobado20/10: main39291059237 y feature39291054745 success.
+- Documental enriquecido integrado en Vídeo largo: Native/FFmpeg, ASS y Pillow;
+  19 composiciones/tratamientos, tres presets y caché por escena. Three.js/póker
+  se conserva opcional histórico, fuera de la selección automática documental.
+- MotionDirector conservador: preguntas, cantidades literales, fechas, nombres
+  explícitos y conceptos técnicos acotados; diversidad, densidad y sincronía Fish
+  validada. Diagramas/documentos complejos requieren plan. [Contrato y límites](docs/motion.md).
+- Frontend: voz, música Automática/Desactivada/Manual y Básico/Documental enriquecido.
+  Guardar/comprobar no contacta proveedores. Galería con reproducción, descarga,
+  comparación A/B y créditos. Generar es una acción explícita que puede usar Fish/Pexels.
+- 20 músicas Incompetech CC BY 4.0 con hashes, procedencia y atribución; seis SFX
+  originales. Selección por tono/canal, rotación, dos ambientes con crossfade,
+  ducking y medición de mezcla. 11 voces y 15 muestras, incluidas alternativas
+  españolas; favoritos y asignación por canal. Loose Thread conserva su voz
+  predeterminada `e686ae649ee44f219a108aacba206c1a`. [Audio y derechos](docs/audio.md).
 
-Código y guías: **18e6031**, SHA local/remoto comprobado. Manual: [GUIA.md](GUIA.md).
+## Evidencia audiovisual local
 
-## Disponible y comprobado
+En `outputs/motion-gallery/`, accesible desde **Montaje → Galería documental**:
 
-- Shorts/largos nuevos: Fish + FFmpeg nativos y Pexels cuando corresponde.
-  MPT sólo diagnóstico/recuperación histórica; Álvaro/Edge no se usa para voz nueva.
-- Estudio local: Short, Vídeo largo, Montaje y guía única; sin Google Drive.
-- Montaje: gráficos, fotografía animada y reconstrucción 3D secuencial/cacheada.
-  Escenarios de póker aún restringidos a Paredes/NioNio; sin editor de timeline.
-- Compilador: brief explícito → selección de recursos por entidad/función → plan.
-  Comprueba licencia, hash, cobertura y repetición; un faltante bloquea el plan.
-  No investiga ni interpreta un guion arbitrario. CLI sin voz, red ni publicación.
-- Biblioteca Commons + registro offline Pexels. Procedencia/derechos conservados;
-  stock sólo ilustrativo. Un recurso de menor resolución exige revisión expresa.
-- Música: 4 pistas CC BY 4.0, selector por trabajo/canal, crossfade, ducking y SFX.
-  CLI independiente, no activado en formularios ni en el audio de comparación.
-- YouTube: OAuth Desktop PKCE y CLI oficial sólo lectura preparados. Conexión real
-  pendiente de cliente/consentimiento Google. VidIQ reconoce LooseThread y pide
-  verificación. Sin créditos de investigación gastados. CTR/CSV aún no importado.
+| Muestra vigente | Duración | LUFS / dBTP |
+| --- | --- | --- |
+| `ub_opening_v5` | 31 s, 1080p | −16,09 / −1,83 |
+| `ub_development_v5` | 31,5 s, 1080p | −15,96 / −1,79 |
+| `ub_revelation_v5` | 29,5 s, 1080p | −16,10 / −1,85 |
+| `generalization_mfa_v1` | 20 s, 1080p | −15,74 / −1,78 |
+| `native_roundtrip_v2` | 31,07 s, 720p | −16,10 / −1,81 |
 
-## Evidencia del 18 y revalidación del 19 de octubre
+Además, 19 efectos individuales de cuatro segundos. Las tres muestras UltimateBet
+reutilizan Fish/alineación/stock existentes y comparan imagen con audio A/B idéntico.
+MFA demuestra reutilización visual sin narración nueva. El recorrido Native usa
+proveedores locales simulados, sockets externos bloqueados y bloqueo real por ID.
+Versiones anteriores conservadas, fuera de la galería vigente.
 
-- C final: outputs/evaluation/ultimatebet_cinema/B_improved.mp4; 76 s, 1920×1080, 30 fps,
-  17 escenas. A es el B anterior. Original de 652,6 s y todas las versiones conservados.
-- Flujo real brief→plan→render; voz/mix idénticos a A, decode completo correcto,
-  sin negros, -16,13LUFS/-1,8dBTP. Último ensamblado 14,49 s, 17 planos reutilizados,
-  NVENC y cero proveedores; QA aparte. Reconstrucciones 3D se renderizaron antes.
-- Revisión visual independiente corrigió UTF8, cartas ambiguas, origen de apuesta,
-  rótulos y tiempo de revelación. Final coincide byte a byte con el archivo revisado.
-  Chromium real reprodujo A/B a 62,8 s; créditos HTTP 200, sin errores de página.
-- Foto Hamilton: Gene Bromberg, CC BY-SA 2.0; cambios/licencia en CREDITS.md y vídeo.
-  Algunas fuentes se reescalan: salida 1080p no implica fuentes 1080p.
-- Mezcla musical separada 18 s: -16,24LUFS/-1,8dBTP; 15 tests/revisión correctos.
-- Gate de reorganización del 19/10: **654 Python, 13 React, build y 5 E2E** correctos; studio-check correcto.
-  136 tests afectados repetidos por revisor independiente, sin P1/P2 pendientes.
-- Promoción exclusiva conserva archivos concurrentes. SHA aprobado bloquea cambios
-  antes/durante render. Probes Chromium normal y congelado cierran procesos propios
-  con TERM repetido; no garantizan limpieza ante SIGKILL externo/caída del sistema.
+QA: decodificación completa, duración, geometría, hashes, LUFS/pico y contactos
+visuales. Reproducción puntual real en Chromium de las cinco muestras, audio/vídeo
+avanzando, créditos HTTP 200 y cero errores de página. No acredita escucha continua
+ni aprobación editorial: ambas quedan al operador. Stock ilustrativo con autores
+consultados por API oficial Pexels; cachés históricas pueden carecer de autor.
+Content ID desconocido. Los previews nuevos de voces tienen textos distintos;
+las muestras históricas plain/tags sí permiten comparar el mismo texto. La marca
+licensed de Fish no acredita consentimiento universal.
 
-## Git, límites y siguiente paso
+## Verificación y continuidad
 
-Integración fast-forward conservando el historial local y remoto; sin force-push.
-CI de 5c591f3, f4c46aa y eef9d88 correcta, comprobada el 19/10. CI de 18e6031
-en main (39290708250) y en la rama de trabajo (39290651451) en ejecución al consultar;
-no se atribuye éxito remoto todavía. No se ha publicado ningún vídeo.
+- 20/10: `make verify-browser` correcto: **764 pruebas Python, 20 React, build
+  TypeScript/Vite y cinco E2E**. `make studio-check` y `make docs-check` correctos.
+  Revisión independiente de corrección, adversarial y entrega cerrada sin pendientes
+  funcionales P0/P1/P2; la aceptación audiovisual humana sigue pendiente.
+- Checkpoints coherentes publicados desde `fba1361` hasta `9e47f88`, incluido audio,
+  compositor, sincronía, atribución e integración. SHA remoto `9e47f88` comprobado;
+  [CI de integración correcto](https://github.com/alexgomezz9/Kitok/actions/runs/39406713963).
+  Este estado documenta esa evidencia; el checkpoint de cierre no cambia el motor.
+- Skill local `kitok-audiovisual-qa` instalada y validada. No se añadió otro motor,
+  MCP, hook ni agente autónomo de producción. Google/CTR y perfiles multicanal
+  completos siguen pendientes. Buffer y permisos YouTube no se modificaron.
+- Sin síntesis Fish nueva, render completo, publicación ni merge a main en esta fase.
+  Original de 652,6 s y piloto de 76 s conservados. Credencial Google local ignorada,
+  no leída. La restauración de cola del 19/10 y su límite siguen registrados en
+  `local/backups`: sin hash previo que certifique cambios locales posteriores.
 
-Raíz con 11 archivos públicos necesarios y datos privados locales. Lógica larga en
-el paquete, herramientas en scripts/ y ejemplos en examples/. Manuales actuales en
-docs/README.md; inventario de automatización en docs/capabilities.md. Historia aislada.
-docs-check verifica enlaces, estructura y contratos de ejemplos dentro de verify/CI;
-no verifica verdad editorial. Revisión independiente sin hallazgos pendientes.
-También make test pasa: 654 pruebas desde el ejecutable pytest.
-
-Incidencia local al pasar por main antigua: Git retiró content_queue.json, entonces
-versionado. Restaurado desde 7ff1e8b^:content_queue.json (30 entradas), con copia y
-recibo en local/backups/. Sin hash previo no puede acreditarse que no hubiera
-cambios locales posteriores. Estado de publicación conservado; no reintentar envíos.
-El contrato exige ahora switch --no-overwrite-ignore para evitar esa sobrescritura.
-
-La mejora es real, pero sigue habiendo stock genérico, contraste stock/3D y un
-diagrama plano. Sin audición subjetiva ni reproducción audiovisual continua.
-No se ha mejorado el episodio completo ni creado un director general multicanal.
-Content ID permanece desconocido. No prometer monetización, CTR o retención.
-
-Siguiente trabajo editorial: reunir recursos específicos adicionales y unificar aspecto de
-stock/3D antes de ampliar al episodio entero. Google requiere intervención de
-cuenta; ese requisito no impide trabajar en edición. Mantener GUIA/estado/Git al día.
+Siguiente paso: escuchar y aprobar las muestras. Después, el operador podrá usar
+**Vídeo largo → Documental enriquecido → Comprobar → Guardar → Generar** para un
+trabajo nuevo. No lanzar UltimateBet completo desde un agente durante esta fase.

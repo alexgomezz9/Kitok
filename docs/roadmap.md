@@ -9,10 +9,10 @@ No se activa instalando otra skill y no es un contrato aceptado por las APIs act
 - Más archivos/fotografías específicos por episodio, con identidad y derechos.
 - Tratamiento coherente de color entre stock luminoso y reconstrucciones oscuras.
 - Escuchar y revisar de forma continua; los contactos sólo muestrean imágenes.
-- Mejorar el diagrama plano del piloto y validar ritmo antes de extender los652,6s.
+- Revisar con audición humana la galería y las tres muestras enriquecidas; recursos más específicos para sustituir stock genérico. No extender UltimateBet completo desde un agente durante esta fase.
 
 Aceptación: muestra corregida y revisión audiovisual con problemas concretos
-cerrados; después ampliación del episodio, reutilizando voz y recursos aprobados.
+cerrados; el operador podrá lanzar después el episodio completo desde el frontend con montaje documental, reutilizando cachés; esta fase no lo renderiza.
 
 ## 2. Director editorial y perfiles reutilizables
 

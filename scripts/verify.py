@@ -36,6 +36,10 @@ def main(argv=None):
         if key.startswith(('FISH_', 'PEXELS_', 'BUFFER_', 'CLOUDINARY_', 'YOUTUBE_', 'GOOGLE_')) or key == 'MPT_API_KEY':
             env.pop(key)
     env['PUBLISH_ENABLED'] = 'false'
+    # cinema-setup installs the shared browser here; honour an explicit override
+    # and otherwise reuse it instead of requiring a duplicate download.
+    if 'PLAYWRIGHT_BROWSERS_PATH' not in env and (ROOT / '.tools' / 'browsers').is_dir():
+        env['PLAYWRIGHT_BROWSERS_PATH'] = str(ROOT / '.tools' / 'browsers')
     if not shutil.which('npm'):
         print('npm is required. Install Node 22.12+ or 24.', file=sys.stderr)
         return 1

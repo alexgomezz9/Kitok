@@ -92,3 +92,11 @@ make verify-browser
 - Si existe .codex-work/, mantén allí PLAN.md, PROJECT_STATE.md, DECISIONS.md y QA_MATRIX.md como estado privado. No lo incluyas en entregables.
 - Haz commits locales coherentes y verificados; separa cambios previos del operador. No hagas push, PR, publicación ni despliegue sin intención explícita.
 - En la entrega indica comandos de arranque, pruebas realizadas y límites no verificados.
+
+## Fase documental enriquecido (2026-10-20)
+
+- Native/FFmpeg/ASS/Pillow es la ruta documental. Three.js/póker se conserva opcional histórico, fuera del director automático; no instalar otros motores sin una prueba corta con ganancia concreta.
+- Antes de editar busca Fish, alineación y stock existentes. En esta fase no sintetizar otra voz UltimateBet ni lanzar su render completo; la generación completa la iniciará el operador desde el frontend tras revisar muestras.
+- Repertorio y límites actuales: docs/motion.md; música/voces/licencias: docs/audio.md. No confundir 19 candidatos con 19 intenciones seleccionadas automáticamente.
+- Skills de desarrollo ya disponibles más kitok-audiovisual-qa local para QA visual/audio. No son agentes de producción. Registrar qué MP4/fotogramas se inspeccionaron y qué no se escuchó.
+- Mantener el reloj de los rótulos al cruzar stock y anclar énfasis sólo a alineación de transcript validada. Revisión técnica/sonoridad no equivalen a aprobación audiovisual.

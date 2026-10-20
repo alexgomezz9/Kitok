@@ -38,6 +38,8 @@ Reutiliza los motores, validación, caché, catálogo, música y compilador sigu
 tiempos y recursos. Las escenas table/records no son genéricas: Paredes/NioNio
 están fijados en el código y el compilador bloquea otro reparto.
 
-Falta ampliar el episodio completo. Antes conviene resolver más recursos específicos
-y coherencia visual. El encargo y las versiones de documentación anteriores están
+El episodio completo no se ha reeditado. La fase documental del 20/10 prueba
+[composiciones y muestras](../motion.md) con stock/voz existentes; Three.js deja
+de ser prioritario y se conserva opcional. El operador lanzará el completo desde
+el frontend tras revisar calidad; no corresponde ampliarlo desde un agente en esta fase. El encargo y las versiones de documentación anteriores están
 aislados en el [archivo histórico](../archive/README.md); no se usan como manual.

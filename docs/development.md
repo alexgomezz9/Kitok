@@ -49,8 +49,11 @@ Los agentes pueden leer el contrato del repo y preparar briefs; el programa ejec
 los pasos deterministas descritos en [capacidades](capabilities.md).
 
 Las skills ya disponibles plan-work, verify-before-completion y git-checkpoint
-cubren planificación, evidencia y Git. No se han instalado nuevas skills, MCPs o
-hooks globales para este ordenamiento. Un workflow especializado puede añadirse
+cubren planificación, evidencia y Git. En la fase audiovisual del 20/10 se añadió la skill local
+`kitok-audiovisual-qa` en `~/.codex/skills/kitok-audiovisual-qa/SKILL.md`, validada
+con el comprobador de skill-creator. Guía revisión de muestras/entradas/cortes,
+Fish reutilizado y límites de audición; no añade dependencias ni proveedores.
+No se instalaron MCPs ni hooks globales. Un workflow especializado puede añadirse
 cuando una necesidad repetida lo justifique; no duplicar estas instrucciones.
 AGENTS.md aporta guía persistente y las skills aportan procedimientos reutilizables;
 ninguno sustituye la verificación ni instala por sí solo un orquestador.
