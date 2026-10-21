@@ -96,11 +96,19 @@ archivo afectado y no se presenta como prueba de corrupción del MP4.
 Para reconstruir efectos con stock existente y fuente/licencia revisadas:
 
 ```bash
-.venv/bin/python scripts/motion_gallery.py effects --stock cache/pexels/videos/ID.mp4 --source-url https://www.pexels.com/video/ID/ --credit "Autor y procedencia comprobados" --revision r2
+.venv/bin/python scripts/motion_gallery.py effects --stock cache/pexels/videos/ID.mp4 --source-url https://www.pexels.com/video/ID/ --credit "Autor y procedencia comprobados" --revision mi_revision --collection mi_coleccion
 ```
 
 `--revision` crea IDs nuevos y conserva las pruebas anteriores; sin revisión,
 los archivos ya existentes se omiten.
+
+Las cámaras y transiciones usan el mismo motor y pueden reconstruirse con
+recursos locales revisados (sustituye rutas, autores y colección):
+
+```bash
+.venv/bin/python scripts/motion_gallery.py cameras --stock cache/pexels/videos/ID.mp4 --photo content/longform/MI_EPISODIO/images/person.jpg --source-url https://www.pexels.com/video/ID/ --credit "Autor del vídeo" --photo-credit "Autor y permiso de la foto" --revision mi_revision --collection mi_coleccion
+.venv/bin/python scripts/motion_gallery.py transitions --stock cache/pexels/videos/ID.mp4 --photo content/longform/MI_EPISODIO/images/person.jpg --source-url https://www.pexels.com/video/ID/ --credit "Autor del vídeo" --photo-credit "Autor y permiso de la foto" --revision mi_revision --collection mi_coleccion
+```
 
 Para un fragmento preparado localmente:
 
@@ -123,10 +131,36 @@ la hoja de contacto muestrea imágenes. No acredita audición subjetiva ni aprob
 
 ## Galería del editor final (21/10/2026)
 
-La colección nueva se prepara con `collection="editor-final-20261021"`. Su
+La colección activa es `collection="editor-final-20261021"`. Su
 `active.json` selecciona únicamente esos ejemplos; los vídeos y metadatos
 anteriores permanecen en disco. La interfaz distingue efectos nuevos/mejorados
 de los existentes, con ejemplos renderizados de nuevo por el motor actual.
-La lista concreta y su QA se actualizarán al terminar las demostraciones.
+
+| Grupo | IDs locales y alcance |
+| --- | --- |
+| UltimateBet, apertura | `final_ub_opening_r3`: 31,5 s, 945 frames, 1080p. Narración existente, fecha animada, capturas aportadas, cifra literal con calificador y stock automático cacheado. |
+| UltimateBet, protagonista | `final_ub_portrait_r1`: 27,8 s, 834 frames, 1080p. Retrato en la frase que lo nombra y fecha posterior. |
+| Otro tema | `final_mfa_r2`: 20 s, 600 frames, 1080p. Sólo cambian guion, JSON y recursos. Música existente sin voz: prueba generalización visual, no alineación hablada. |
+| Documento aportado | `final_document_source`: 4 s. Resaltado de píxeles de `ub10.jpg`, sin reconstruir un documento; sin narración. |
+| Efectos | 20 `effect_final21_*`: fecha mecanografiada/foco nueva; identidad, documento y transiciones mejorados; demás componentes existentes regenerados. |
+| Cámaras | 11 `final_camera_*`: primero zoom in/out y cuatro paneos, después movimientos adicionales y estático. |
+| Transiciones | 8 `final_transition_*`: corte, fade, disolución, wipe, slide, negro, foco y match cut preparado. |
+
+Los **43 MP4 / 7.179 fotogramas** pasan decode completo y auditoría de todos los
+PTS, inicio cero, 30 FPS y `yuv420p`. Las tres muestras documentales conservan el
+audio decodificado idéntico a su referencia básica. Sus primeros y últimos frames
+reales son negros y los fundidos quedan dentro de su duración. No hay nueva Fish.
+Informes originales en `outputs/evaluation/editor-final-20261021/`: auditoría
+`gallery-all-frames.json`, `fade-endpoints.json` y registros `browser-playback-*`.
+
+Se inspeccionaron contactos de las tres muestras y documento, seis secuencias de
+cámara y cinco de transición. Los 43 vídeos llegaron al final desde la galería
+HTTP local en Chromium, silenciados, sin errores de reproducción. Se observó un
+frame descartado por el navegador; no se afirma reproducción sin tirones en otros
+equipos. Esto no acredita escucha, reproducción Windows ni aceptación
+editorial humana. La autenticidad y permisos de las cuatro imágenes aportadas
+siguen sin comprobar; el stock se declara ilustrativo. Se conservaron y retiraron
+de la colección activa las revisiones con blackjack y con peor contraste.
+
 La historia de las muestras anteriores y su reparación de códec está enlazada
 mediante [el índice de archivo](archive/README.md).

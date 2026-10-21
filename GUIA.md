@@ -260,14 +260,25 @@ Con un MP4 y audio ya aprobados, puedes preparar un plan por escenas y reutiliza
 los recursos locales. El montaje guarda cifras con significado, diagramas,
 rótulos y movimientos elegidos por escena. Cambiar un plano reutiliza el resto.
 
-En «Montaje», selecciona «UltimateBet — C» para comparar el montaje anterior
-(A) con la nueva versión (B). Conservamos también la comparación original.
-El enlace de fuentes y licencias acompaña a la muestra nueva.
-La «Galería documental» ofrece efectos individuales y fragmentos con reproducción, descarga, referencia A/B y créditos. Pulsa «Reproducir muestra» o «Reproducir referencia básica»: se carga un vídeo cada vez. «Ver fotogramas de revisión» muestra un mosaico estático, no la animación. Si el navegador avisa de un error, conserva el enlace para descargar ese MP4 y probarlo en un reproductor local. Revisa primero las tres muestras UltimateBet y la de otro tema. «Renderizar plan guardado» vuelve a montar los recursos sin sintetizar voz.
-Para otro vídeo prepara un brief o un plan local; no hay editor visual de timeline.
-Los planos 3D opcionales requieren `make cinema-setup` una sola vez.
-La nueva biblioteca de composiciones y sus comandos locales están en
-[docs/motion.md](docs/motion.md).
+En «Montaje», la «Galería documental» actual ofrece **43 demostraciones**:
+dos fragmentos de UltimateBet, otro tema, un documento aportado, veinte efectos,
+once cámaras y ocho transiciones. El filtro «Ver demostraciones» permite empezar
+por los seis movimientos básicos: acercamiento, alejamiento y los cuatro paneos.
+Cada ficha distingue componentes nuevos, mejorados y existentes.
+
+Pulsa «Reproducir muestra» o «Reproducir referencia básica»: se carga un vídeo
+cada vez. Las muestras documentales permiten comparar A/B con el mismo audio.
+El segundo tema demuestra montaje visual con música, sin narración; no acredita
+sincronía hablada. «Ver fotogramas de revisión» muestra un mosaico estático.
+Si hay un error, descarga ese MP4 para probarlo en un reproductor local. Los
+créditos acompañan cada muestra; los ejemplos anteriores se conservan en disco.
+
+Para otro vídeo usa el flujo de «Vídeo largo» con guion, JSON parcial opcional
+y fotografías. Las comparaciones avanzadas de planes guardados siguen disponibles:
+«Renderizar plan guardado» monta recursos locales sin sintetizar voz. No hay
+editor manual de timeline. Three.js/3D sigue siendo opcional histórico y requiere
+`make cinema-setup`; no se necesita para fotos ni para el documental automático.
+La biblioteca y sus comandos locales están en [docs/motion.md](docs/motion.md).
 
 La preparación y el comando están en [docs/editing.md](docs/editing.md), con una
 plantilla en examples/editorial/plan.json. No genera guion ni hace llamadas a
