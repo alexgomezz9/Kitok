@@ -20,6 +20,7 @@ from kitok.editing.motion_components import CATALOG, MotionDesign
 from kitok.editing.production import render_editorial_plan
 from kitok.editing.quality import inspect_video, contact_sheet
 from kitok.editing.storyboard import EditorialPlan, EditorialScene, EditorialAsset, frame_time, project_file, file_hash
+from kitok.editing.camera import CameraPreset
 from kitok.longform.models import TimelineClip, TimelineSlot
 from kitok.media.ffprobe import probe_media
 from kitok.state import write_json_atomic
@@ -70,6 +71,7 @@ def effects(args, settings):
       'amount':{'text':'$22 million','label':'An explicit quantity needs a clear context.','detail':'Demo data — not a historical claim.'},
       'identity':{'text':'Alex Morgan','label':'DEMONSTRATION / FICTIONAL NAME'},
       'date':{'text':'July 2007','label':'A CHANGE IN TIME','detail':'Date copied from the narration.'},
+      'date_typewriter_focus':{'text':'JULY 2007','label':'A CHANGE IN TIME','detail':'Demonstration — supplied editorial date.'},
       'location':{'text':'Montréal, Canada','label':'DEMONSTRATION / PLACE'},
       'chapter':{'text':'The boundary','label':'CHAPTER 02','detail':'A pause before the explanation.'},
       'quote':{'text':'The software knew. The players did not.','label':'EDITORIAL DEMONSTRATION','detail':'An original line, not a sourced quotation.'},
@@ -84,7 +86,7 @@ def effects(args, settings):
             continue
         folder.mkdir(exist_ok=True)
         design=MotionDesign(effect=effect,preset=['investigation','archive','signal'][i%3],**defaults.get(effect,{}))
-        footage=family in {'footage','transitions'} or effect in {'identity','location'}
+        footage=family in {'footage','transitions'} or effect in {'identity','location','date_typewriter_focus'}
         scenes=[EditorialScene(id='demo',start=0,end=4,intention=title,spoken_claim='Demonstration only',
                   asset='stock' if footage else None,graphic=None if footage else 'motion',motion_design=design)]
         if family=='transitions':
@@ -97,6 +99,70 @@ def effects(args, settings):
              assets={'stock':EditorialAsset(path=str(stock.relative_to(root)),description='Demonstration stock',source_url=args.source_url,credit=args.credit)},scenes=scenes)
         review(plan,folder,settings,title=title,family=family,kind='effect',
                credits=f'# Credits\n\nStock is illustrative. {args.credit}\n{args.source_url}\nPexels License: https://www.pexels.com/license/\n\nMotion: original Kitok compositions; DejaVu fonts. Silent individual demonstration. Example figures and names are explicitly illustrative.\n')
+        if getattr(args, 'collection', None):
+            metadata=json.loads((folder/'item.json').read_text())
+            metadata.update(collection=args.collection,
+                            effect_status='new' if effect=='date_typewriter_focus' else
+                                          'improved' if effect in {'identity','document','dissolve','wipe'} else 'existing')
+            write_json_atomic(folder/'item.json',metadata)
+        print(f'{folder.name}: rendered',flush=True)
+
+
+def vocabulary(args, settings):
+    """Each demonstration uses the same source and engine, with no provider calls."""
+    from typing import get_args
+    from documentary_gallery import publish_item
+    if not re.fullmatch(r'[a-z0-9][a-z0-9_-]{0,23}',args.revision):
+        raise ValueError('Revision must be a short lowercase ID')
+    if not re.fullmatch(r'[a-z0-9][a-z0-9_-]{0,99}',args.collection):
+        raise ValueError('Invalid gallery collection')
+    root=PROJECT_ROOT
+    stock=project_file(root,str(args.stock))
+    photo=project_file(root,str(args.photo)) if args.photo else stock
+    parent=root/'outputs/motion-gallery'
+    parent.mkdir(parents=True,exist_ok=True)
+    silence=parent/'gallery-silence.m4a'
+    if not silence.exists():
+        run([settings.ffmpeg_binary,'-nostdin','-v','error','-f','lavfi','-i','anullsrc=r=48000:cl=stereo',
+             '-t','4','-c:a','aac',str(silence)])
+    cameras=get_args(CameraPreset)
+    # Basics first, then the smaller optional vocabulary.
+    basics=('slow_push_in','slow_pull_out','pan_right','pan_left','pan_down','pan_up')
+    names=(*basics,*(name for name in cameras if name not in basics)) if args.command=='cameras' else (
+        'cut','fade','dissolve','wipe','slide','fade_black','focus','match_cut')
+    titles={'slow_push_in':'Zoom de entrada','slow_pull_out':'Zoom de salida',
+            'pan_right':'Paneo izquierda → derecha','pan_left':'Paneo derecha → izquierda',
+            'pan_down':'Paneo arriba → abajo','pan_up':'Paneo abajo → arriba',
+            'diagonal_drift':'Desplazamiento diagonal','subtle_rotation':'Rotación sutil',
+            'zoom_and_pan':'Zoom y paneo','focus_push':'Acercamiento con foco','static':'Plano estático',
+            'cut':'Corte directo','fade':'Entrada desde negro','dissolve':'Disolución entre fuentes móviles',
+            'wipe':'Barrido entre fuentes móviles','slide':'Deslizamiento contenido',
+            'fade_black':'Paso por negro','focus':'Transición de foco','match_cut':'Corte preparado por el editor'}
+    for index,name in enumerate(names):
+        folder=parent/f'{args.revision}_{"camera" if args.command=="cameras" else "transition"}_{name}'
+        if folder.exists():
+            print(f'{folder.name}: exists, preserved',flush=True)
+            continue
+        folder.mkdir()
+        assets={'stock':EditorialAsset(path=str(stock.relative_to(root)),description='Illustrative cached stock',
+                                      source_url=args.source_url,credit=args.credit),
+                'photo':EditorialAsset(path=str(photo.relative_to(root)),description='Supplied camera demonstration image',usage='provided',credit=args.photo_credit)}
+        if args.command=='cameras':
+            scenes=[EditorialScene(id='camera',start=0,end=4,intention=titles[name],
+                      spoken_claim='Camera demonstration only',asset='photo',camera=name,image_fit='contain')]
+        else:
+            scenes=[EditorialScene(id='outgoing',start=0,end=2,intention='Moving outgoing source',
+                      spoken_claim='Transition demonstration only',asset='stock',camera='static'),
+                    EditorialScene(id='incoming',start=2,end=4,intention=titles[name],
+                      spoken_claim='Transition demonstration only',asset='stock' if name=='match_cut' else 'photo',
+                      source_start=2 if name=='match_cut' else 0,camera='static' if name=='match_cut' else 'slow_pull_out',transition=name)]
+        plan=EditorialPlan(episode_id=folder.name,title=titles[name],duration=4,width=args.width,height=args.height,
+                    audio_source=str(silence.relative_to(root)),audio_is_final_mix=True,assets=assets,scenes=scenes)
+        publish_item(plan,folder,settings,title=f'{index+1:02} · {titles[name]}',
+                     family='camera' if args.command=='cameras' else 'transitions',kind='effect',
+                     effect_status='existing' if name in {'cut','fade','static','match_cut'} else 'new',
+                     collection=args.collection,
+                     credits=f'# Credits\n\nSilent reusable demonstration.\n\nStock: {args.credit}; {args.source_url}; Pexels License https://www.pexels.com/license/ .\n\nImage: {args.photo_credit}. Original file preserved.\n\nMatch cut means a deliberately prepared direct cut, not automatic visual understanding.\n')
         print(f'{folder.name}: rendered',flush=True)
 
 
@@ -188,9 +254,24 @@ def main():
     sub=parser.add_subparsers(dest='command',required=True)
     e=sub.add_parser('effects');e.add_argument('--stock',type=Path,required=True);e.add_argument('--source-url',required=True);e.add_argument('--credit',required=True)
     e.add_argument('--revision',help='New revision ID; preserves all earlier gallery files')
+    e.add_argument('--collection',help='Collection label; activation is a separate step after QA')
+    for name in ('cameras','transitions'):
+        command=sub.add_parser(name)
+        command.add_argument('--stock',type=Path,required=True)
+        command.add_argument('--photo',type=Path)
+        command.add_argument('--photo-credit',default='Provided image; provenance and usage permission unverified')
+        command.add_argument('--source-url',required=True)
+        command.add_argument('--credit',required=True)
+        command.add_argument('--revision',required=True)
+        command.add_argument('--collection',required=True)
     s=sub.add_parser('sample');s.add_argument('config',type=Path)
     args=parser.parse_args()
     settings=Settings(_env_file=None)
-    effects(args,settings) if args.command=='effects' else sample(args,settings)
+    if args.command=='effects':
+        effects(args,settings)
+    elif args.command in {'cameras','transitions'}:
+        vocabulary(args,settings)
+    else:
+        sample(args,settings)
 
 if __name__=='__main__': main()

@@ -7,6 +7,62 @@ No investiga hechos ni inventa esas decisiones. El modo automático documental
 elige un subconjunto conservador de intenciones del guion; su repertorio, galería
 y límites están en [Documental enriquecido](motion.md).
 
+## JSON parcial sobre montaje automático
+
+Para un largo nuevo basta guion, keywords y, opcionalmente, `visual_plan` en su
+configuración. No escribas una escena por corte. Native selecciona stock, cubre la
+narración y compila los momentos explícitos con prioridad sobre MotionDirector.
+Fuera de ellos mantiene el stock automático. Una entrada mínima es:
+
+```json
+{
+  "visual_cues": [
+    {"asset": "images/person.jpg", "anchor": {"phrase": "A researcher named Alex"}}
+  ]
+}
+```
+
+En CLI el objeto anterior va bajo `visual_plan` y `visual_root` identifica la
+carpeta del episodio relativa al proyecto. Por defecto se usa la carpeta del JSON
+CLI. El estudio determina la carpeta por ID de episodio, sin aceptar rutas libres.
+También admite `real_images/`; no hace falta mover imágenes existentes.
+[Plantilla mínima y ejemplo avanzado](../examples/visuals/README.md).
+
+Cada cue elige `anchor.phrase` y `occurrence` (desde cero), o `start` en segundos.
+La frase debe existir en el guion antes de sintetizar. Con alineación Fish íntegra
+se usa su tiempo real; en ausencia de alineación válida se declara
+`estimated-script-words`. Duración automática de hasta 4 s, ajustada al siguiente
+cue/final; `duration` permite sobrescribirla. Los límites se cuantizan a frames.
+Los intervalos explícitos incompatibles se rechazan, no se sustituyen con stock.
+Alrededor de cortes muy cercanos el compilador puede ampliar el intervalo técnico
+manteniendo el reloj global del efecto; el manifiesto conserva instante pedido,
+intervalo compilado y ajuste. No se promete alineación por palabra estimada.
+
+`camera`, `image_fit` y `transition` sobrescriben sus valores sobrios automáticos.
+`effect`, `text` y `motion_data` usan `MotionDesign` del repertorio común. Un cue
+sin `asset` puede colocar tipografía sobre `background="automatic_stock"` (valor
+predeterminado) o una placa `"black"`. Usa `transition="dissolve"`/`"wipe"` para
+transiciones: esos nombres en `effect` se rechazan para evitar una orden inerte.
+No hay subtítulos permanentes ni llamadas LLM al render.
+
+Las imágenes admitidas por el flujo parcial son JPG/JPEG, PNG y WebP, de al menos
+32 px y hasta 40 megapíxeles/40 MB en disco; el upload del estudio admite hasta
+cuatro por petición de 6 MB cada una. Se comprueban decodificación, contención y
+symlinks antes de Fish. `description`, `source_url`, `credit`, `usage`, `license`
+y `license_url` permiten una procedencia mínima opcional, conservada junto con
+SHA-256 en recibo/créditos. Un archivo aportado se declara como tal: su nombre no
+verifica identidad ni permiso de uso. Una ilustración nunca es prueba del caso.
+
+Los cues comparten escenas, fuentes, filtros, caché, ensamblador y validación con
+el stock. Actualmente Native aún busca/selecciona stock para toda la narración,
+incluso bajo fotos: éstas mandan en la imagen final, pero no evitan todas esas
+consultas. No es un buscador autónomo de fotografías. Los ajustes de música del
+plan parcial requieren `music_mode="off"`, `"auto"` o `"manual"`; se rechaza la
+configuración musical histórica ambigua antes de Fish.
+
+Los planes completos descritos a continuación siguen disponibles para dirección
+por escena y audio aprobado. No son necesarios para el uso diario de fotos.
+
 ## Preparar un montaje
 
 1. Conserva una referencia audiovisual con el audio final aprobado dentro del
@@ -67,8 +123,22 @@ la del vídeo. La versión de caché anterior queda invalidada.
 
 
 `headline` y `kicker` son rótulos breves deliberados; no se extraen palabras sueltas
-mediante regex. Movimiento: ninguno, acercamiento o desplazamiento suave.
-Transición: corte, entrada breve desde negro, disolución o barrido breve sin desplazar la voz. `palette` marfil/verde y `accent`
+mediante regex. `camera` acepta un preset o un objeto con `preset`, `focus_x`,
+`focus_y`, `start_scale`, `end_scale`, `displacement`, `rotation` y `easing`
+(`linear` o `smoothstep`). Los once presets están en [motion](motion.md).
+Los campos históricos `motion="none"`, `"push"` y `"pan"` siguen admitidos.
+Las fotos usan encuadre completo sobre fondo desenfocado (`image_fit="auto"`
+o `"contain"`); `"cover"` permite un recorte deliberado.
+
+`transition` admite `cut`, `fade`, `dissolve`, `wipe`, `slide`, `fade_black`,
+`focus` y `match_cut`. Las transiciones entre fuentes usan fotogramas de
+continuación del plano anterior, sin congelar ni repetir su cola. Si el stock no
+cubre ese margen opcional, se aplica corte y se registra el motivo en el recibo;
+la narración y los límites de plano no cambian. `match_cut` es un corte preparado
+por el editor: el motor no descubre correspondencias visuales.
+`fade_in` y `fade_out` del plan sólo afectan al vídeo y están dentro de su duración.
+Los planes históricos los omiten con valor cero; un plan parcial nuevo los fija a
+0,6/0,8 s. `palette` marfil/verde y `accent`
 fijan el estilo del plan; una escena puede cambiar la paleta. `channel_id` registra
 el canal y permite conservar planes de estilos distintos, pero no resuelve un
 catálogo multicanal ni abre canales de YouTube.
@@ -143,3 +213,18 @@ No interpreta un guion arbitrario ni investiga hechos automáticamente.
 El plan fija el SHA del audio y de cada recurso seleccionado. Un cambio de bytes
 tras la preparación bloquea el render; si un input cambia durante el trabajo,
 se bloquea la entrega. Los planes antiguos sin SHA conservan compatibilidad.
+
+## Fotografías de stock de Pexels: investigación adicional
+
+La [API oficial](https://www.pexels.com/api/documentation/) admite fotos mediante
+`GET /v1/search` con `query`, orientación y variantes de resolución. La prueba
+read-only del 21/10/2026 respondió HTTP 200 y descargó una foto de muestra con
+ID, autor, URL y licencia conservados. Eso verifica acceso a fotos; el proveedor
+Native actual sigue buscando **vídeos**. No se presenta esta prueba como una
+opción de fotos automáticas ya integrada en el producto.
+
+Una futura mezcla opcional puede conservar keywords y montaje, separando la
+caché por tipo y manteniendo prioridad de imágenes explícitas. Las fotos Pexels
+serían ilustrativas, sin atribuirles identidad histórica del caso. No hacen falta
+otro renderer ni un gestor de imágenes. Esta investigación no cambia el alcance
+ni retrasa el cierre del editor solicitado.

@@ -74,6 +74,12 @@ def inspect_examples(root: Path) -> list[str]:
                     load_longform_config(path, project_root=root)
             except (ValueError, OSError, TypeError, KeyError) as error:
                 errors.append(f'{path.relative_to(root)}: invalid public template: {error}')
+    from kitok.editing.visual_cues import VisualPlan
+    for path in sorted((root / 'examples/visuals').glob('*.json')):
+        try:
+            VisualPlan.model_validate_json(path.read_text())
+        except (ValueError, OSError, TypeError) as error:
+            errors.append(f'{path.relative_to(root)}: invalid visual template: {error}')
     return errors
 
 

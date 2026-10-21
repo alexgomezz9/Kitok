@@ -71,11 +71,18 @@ class ConfirmedNarration:
 
 
 def definition_identity(definition):
-    return identity({'script': definition.item.script, 'voice': definition.voice_name,
+    value = {'script': definition.item.script, 'voice': definition.voice_name,
                      'rate': definition.voice_rate, 'id': definition.item.id,
                      'keywords': definition.item.keywords,
                      'music_mode': definition.music_mode, 'music_track': definition.music_track,
-                     'mounting_style': definition.mounting_style})
+                     'mounting_style': definition.mounting_style}
+    plan = getattr(definition, 'visual_plan', None)
+    if plan is not None:
+        value['visual_plan'] = plan.model_dump(mode='json') if hasattr(plan, 'model_dump') else plan
+        value['visual_root'] = str(getattr(definition, 'visual_root', None))
+    if getattr(definition, 'source_narration_id', None) is not None:
+        value['source_narration_id'] = definition.source_narration_id
+    return identity(value)
 
 
 def ensure_no_output(output):
@@ -85,7 +92,8 @@ def ensure_no_output(output):
             raise ValueError('Recovery output already exists; preserve and review it before continuing')
 
 
-def inspect_narration(settings, definition, output: Path, *, source_files=()) -> ConfirmedNarration:
+def inspect_narration(settings, definition, output: Path, *, source_files=(), _allow_existing_output=False,
+                      _validate_visual_assets=True) -> ConfirmedNarration:
     """Read-only audit. Requires exact successful Fish operation identity + edit/audio."""
     root = settings.data_root
     if root is None:
@@ -94,7 +102,8 @@ def inspect_narration(settings, definition, output: Path, *, source_files=()) ->
     root = root.absolute()
     if output.parent != root / 'outputs' / 'longform':
         raise ValueError('Recovery output is outside the controlled directory')
-    ensure_no_output(output)
+    if not _allow_existing_output:
+        ensure_no_output(output)
     narration = regular(output.parent / '.native-work' / definition.item.id / 'narration.mp3', root)
     alignment = regular(narration.with_suffix('.alignment.json'), root)
     edit = regular(output.with_suffix('.edit.json'), root)
@@ -121,11 +130,52 @@ def inspect_narration(settings, definition, output: Path, *, source_files=()) ->
     words = json.loads(alignment.read_text())
     if provider_sections(manifest.sections, words, info.duration) is None:
         raise ValueError('Recovery word alignment does not match the narration transcript or duration')
-    paths = (narration, alignment, edit, ledger, cache_audio, *source_files)
+    visual_files = _visual_input_files(definition, root) if _validate_visual_assets else ()
+    paths = (narration, alignment, edit, ledger, cache_audio, *source_files, *visual_files)
     files = tuple((regular(path, root), digest(path)) for path in paths)
     definition_hash = definition_identity(definition)
     fingerprint = identity({'definition': definition_hash, 'files': [(str(p.relative_to(root)), h) for p, h in files]})
     return ConfirmedNarration(root, output, narration, info.duration, audio_hash, fingerprint, files, definition_hash)
+
+
+def _visual_input_files(definition, root):
+    from .editing.visual_cues import validate_visual_plan, visual_file
+    plan = getattr(definition, 'visual_plan', None)
+    if plan is None:
+        return ()
+    visual_root = getattr(definition, 'visual_root', None)
+    plan = validate_visual_plan(plan, definition.item.script, root, visual_root)
+    return tuple(visual_file(root, visual_root, cue.asset) for cue in plan.visual_cues if cue.asset)
+
+
+def inspect_remount_narration(settings, source_definition, source_output: Path,
+                              new_definition, new_output: Path, *, source_files=()) -> ConfirmedNarration:
+    """Audit an existing paid voice for a separate cut, preserving the original.
+
+    No output, alignment or receipt is copied or written by this operation. The
+    returned confirmation is bound to the new montage and all input hashes.
+    """
+    if getattr(new_definition, 'source_narration_id', None) not in (None, source_definition.item.id):
+        raise ValueError('The selected narration source does not match the target draft')
+    if source_definition.item.id == new_definition.item.id or source_output == new_output:
+        raise ValueError('A new montage requires a distinct content ID and output')
+    if (source_definition.item.script, source_definition.voice_name, source_definition.voice_rate) != (
+            new_definition.item.script, new_definition.voice_name, new_definition.voice_rate):
+        raise ValueError('Remount narration requires the same script, voice and rate')
+    ensure_no_output(new_output)
+    audit = inspect_narration(settings, source_definition, source_output,
+                               source_files=source_files, _allow_existing_output=True, _validate_visual_assets=False)
+    if new_output.parent != audit.root / 'outputs' / 'longform':
+        raise ValueError('Remount output is outside the controlled directory')
+    extras = _visual_input_files(new_definition, audit.root)
+    if source_output.exists():
+        extras = (*extras, source_output)
+    files = (*audit.files, *((regular(path, audit.root), digest(path)) for path in extras))
+    definition_hash = definition_identity(new_definition)
+    fingerprint = identity({'definition': definition_hash,
+                            'files': [(str(p.relative_to(audit.root)), h) for p,h in files]})
+    return ConfirmedNarration(audit.root, new_output, audit.narration, audit.duration,
+                             audit.sha256, fingerprint, files, definition_hash)
 
 
 class CachedStock:

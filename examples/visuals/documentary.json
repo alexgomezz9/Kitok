@@ -1,0 +1,63 @@
+{
+  "fade_in": 0.6,
+  "fade_out": 0.8,
+  "visual_cues": [
+    {
+      "anchor": {
+        "phrase": "In July 2010"
+      },
+      "effect": "date_typewriter_focus",
+      "text": "JULY 2010",
+      "duration": 3,
+      "motion_data": {
+        "label": "A DEMONSTRATION DATE"
+      }
+    },
+    {
+      "asset": "images/person.jpg",
+      "anchor": {
+        "phrase": "A researcher named Alex"
+      },
+      "description": "Provided portrait: verify identity, source and rights",
+      "effect": "identity",
+      "text": "Alex",
+      "motion_data": {
+        "label": "RESEARCHER \u00b7 DEMONSTRATION"
+      },
+      "camera": "slow_push_in"
+    },
+    {
+      "asset": "images/document.png",
+      "anchor": {
+        "phrase": "The report described"
+      },
+      "usage": "document",
+      "duration": 4,
+      "effect": "document",
+      "motion_data": {
+        "highlight_box": [
+          0.08,
+          0.2,
+          0.92,
+          0.35
+        ],
+        "label": "PROVIDED DOCUMENT \u00b7 VERIFY SOURCE"
+      },
+      "camera": {
+        "preset": "focus_push",
+        "focus_x": 0.5,
+        "focus_y": 0.3
+      }
+    },
+    {
+      "anchor": {
+        "phrase": "The next chapter"
+      },
+      "background": "black",
+      "effect": "chapter",
+      "text": "The boundary",
+      "duration": 3,
+      "transition": "fade_black"
+    }
+  ]
+}

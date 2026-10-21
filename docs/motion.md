@@ -7,12 +7,12 @@ por qué Remotion, Motion Canvas, MotionCraft, MLT y frei0r se aplazan.
 
 ## Repertorio reutilizable
 
-19 candidatos en `kitok.editing.motion_components.CATALOG`, agrupados por familia:
+20 candidatos en `kitok.editing.motion_components.CATALOG`, agrupados por familia:
 
 | Familia | Composiciones/tratamientos |
 | --- | --- |
 | Tipografía | Pregunta, frase en tres tiempos, palabra en contexto, capítulo |
-| Contexto | Identidad, fecha, lugar |
+| Contexto | Identidad, fecha, lugar, fecha mecanografiada con recuperación de foco |
 | Datos | Cantidad explícita, comparación con dos valores, flujo con tres pasos |
 | Documentos | Cita atribuida, fragmento textual resaltado |
 | Stock | Congelación, acercamiento, reencuadre, desenfoque de entrada, color archivo |
@@ -40,8 +40,24 @@ El reloj de crecimiento es lineal para conservar el mismo estado entre cortes.
 Una escena del plan usa `graphic="motion"` y `motion_design` para una placa o
 `asset` más `motion_design` para componer sobre stock. El render valida texto medido,
 áreas seguras y duración; si no cabe, exige acortarlo. Escapa código ASS en texto.
-Las disoluciones/barridos usan el último fotograma anterior durante 0,28 s máximo;
-no solapan la narración ni acortan la duración total.
+Las disoluciones y barridos mezclan la fuente entrante con fotogramas de
+continuación de la saliente, durante un máximo de 0,28 s. No se congela ni se
+repite su cola. Si no hay margen de stock suficiente, el recibo registra un corte
+seguro. La narración y el total de fotogramas se conservan.
+
+`date_typewriter_focus` escribe caracteres sobre una imagen desenfocada; retira
+la fecha y recupera el foco al final. `document` con `highlight_box=[x0,y0,x1,y1]`
+resalta una zona normalizada de una imagen auténtica aportada, antes de aplicar
+la cámara. No genera un supuesto documento histórico. Identidad admite nombre
+más grande, detalle opcional y degradado discreto en lugar de un panel opaco.
+
+`camera` ofrece `slow_push_in`, `slow_pull_out`, `pan_left`, `pan_right`, `pan_up`,
+`pan_down`, `diagonal_drift`, `subtle_rotation`, `zoom_and_pan`, `focus_push` y
+`static`. Los mismos filtros sirven para foto y vídeo. Parámetros en
+[montaje](editing.md). `parallax` se rechaza: no se inventan capas de una imagen
+plana. Transiciones nuevas: `slide`, `fade_black` y `focus`; `match_cut` conserva
+un corte decidido editorialmente. Fundidos visuales configurables sin tocar voz
+ni añadir segundos.
 
 ## Qué decide automáticamente
 
@@ -105,73 +121,12 @@ Las salidas nuevas son exclusivas; conserva originales y usa ID/revisión nueva.
 El informe mide decodificación, geometría, duración, negros, LUFS/pico y audio A/B;
 la hoja de contacto muestrea imágenes. No acredita audición subjetiva ni aprobación.
 
-## Muestras revisadas tras el feedback visual
+## Galería del editor final (21/10/2026)
 
-El operador rechazó la primera presentación por parecer tarjetas/subtítulos.
-El mosaico enviado era `contact.jpg`, una imagen estática; no se utiliza ahora
-como portada del vídeo. Ese hecho no convierte la calidad inicial en aceptada.
-La revisión conserva los MP4 anteriores y los retira de la galería vigente.
-
-Las candidatas actuales están bajo `outputs/motion-gallery/`:
-
-- `effect_r2_*`: 19 demostraciones individuales de cuatro segundos.
-- `ub_opening_v7`: 31 s; pregunta con titular editorial explícito y cifra grande.
-- `ub_development_v7`: 31,5 s; flujo de información con objetos/conexiones animados.
-- `ub_revelation_v7`: 29,5 s; dato de reembolso y contexto financiero.
-- `generalization_mfa_v3`: 20 s; tipografía y diagrama llave/dispositivo/escudo,
-  sin narración nueva.
-
-Las tres UB conservan la mezcla de voz y música de las versiones anteriores, con referencia A/B de audio decodificado idéntico. Se retiraron los
-planos de solitario, pantallas de compras y mesas de blackjack señalados en la
-revisión; el stock sigue siendo ilustrativo, no imágenes históricas. Las preguntas
-breves y etiquetas de estas pruebas fueron decisiones editoriales explícitas;
-no se prometen esas mismas decisiones mediante recortes automáticos de frases.
-El recorrido Native anterior se conserva como prueba técnica histórica, fuera
-de esta selección visual; en esa fase no se renderizó un episodio completo.
-La reparación técnica posterior de un intento completo del operador se registra
-en [el estado vigente](../PROJECT_STATUS.md); no cambia la selección de muestras
-ni acredita aceptación audiovisual del episodio.
-
-Autores consultados mediante GET oficial de Pexels el 20/10 y guardados en
-`cache/pexels-credits/`; los créditos de la revisión identifican las sustituciones.
-Las búsquedas nuevas conservan autor/perfil; cachés antiguas pueden carecer de
-ellos y se declaran desconocidos hasta verificarlos.
-
-El operador confirmó después el error de decodificación tanto en Kitok como en
-la descarga Windows. La auditoría completa encontró **seis MP4** que empezaban
-como H.264 High/4:2:0 pero cambiaban a High 4:4:4 dentro del archivo al entrar en
-una transición. La cabecera inicial y el decoder software de Linux toleraban ese
-cambio; las comprobaciones previas no bastaban para validar una entrega portable.
-
-En FFmpeg 6.1.1, `xfade` negocia formatos de trabajo 4:4:4. El renderer ahora
-convierte a `yuv420p` después del filtro y fija ese formato al codificar; una versión
-nueva de caché invalida las escenas afectadas. Regresión: disolución y barrido
-reales, comprobando **todos** los fotogramas y la conservación del AAC.
-
-La galería vigente usa los IDs de arriba con sufijo **`_compat1`**, incluidos los
-19 `effect_r2_*_compat1`. Son copias nuevas con H.264 High/4:2:0 uniforme; 5.640
-fotogramas de los 23 previews comprobados, decodificación completa y paquetes AAC
-idénticos. Las referencias A/B compatibles se copian sin recodificación. Los
-originales y metadatos anteriores se conservan con respaldo; cada carpeta nueva
-tiene `repair.json` con hashes y procedimiento. No se sintetizó voz ni se renderizó
-el episodio para esta reparación. El decoder Windows no está disponible aquí;
-la comprobación en el equipo del operador sigue siendo necesaria.
-
-Para reparar otra candidata corta activa, sin sobrescribirla ni usar proveedores:
-
-```bash
-.venv/bin/python scripts/repair_motion_delivery.py --item ID_ACTIVO --revision compat1
-```
-
-El comando rechaza medios de más de 60 segundos y salidas existentes. Publica la
-nueva entrada sólo después de validar todos los fotogramas, duración y AAC;
-archivar la entrada anterior es una operación separada con respaldo.
-Para ver el movimiento abre el estudio y pulsa «Reproducir muestra»; el contacto
-es una imagen de revisión, no una animación.
-
-La música utiliza dos pistas para inicio/cierre, con una frontera de secciones
-validada o cambio central estimado declarado. No compone una banda sonora para
-cada escena. Las voces nuevas tienen previews del proveedor de textos distintos;
-las históricas plain/tags sí comparten texto. No se sintetizó voz en esta fase.
-La escucha subjetiva, sincronía audiovisual continua y aprobación editorial
-siguen pendientes del operador, aunque se revisen frames y reproducción técnica.
+La colección nueva se prepara con `collection="editor-final-20261021"`. Su
+`active.json` selecciona únicamente esos ejemplos; los vídeos y metadatos
+anteriores permanecen en disco. La interfaz distingue efectos nuevos/mejorados
+de los existentes, con ejemplos renderizados de nuevo por el motor actual.
+La lista concreta y su QA se actualizarán al terminar las demostraciones.
+La historia de las muestras anteriores y su reparación de códec está enlazada
+mediante [el índice de archivo](archive/README.md).

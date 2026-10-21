@@ -17,7 +17,7 @@ from .graphics import _fit
 
 Effect = Literal['question', 'kinetic', 'keyword', 'amount', 'identity', 'date',
                  'location', 'chapter', 'quote', 'document', 'comparison', 'flow',
-                 'freeze', 'push', 'pan', 'focus', 'grade', 'dissolve', 'wipe']
+                 'freeze', 'push', 'pan', 'focus', 'grade', 'dissolve', 'wipe', 'date_typewriter_focus']
 PRESETS = {
     'investigation': {'background': '#11151B', 'text': '#F4EFE4', 'accent': '#E8B95D', 'muted': '#B9BCC2', 'font': 'DejaVu Sans'},
     'archive': {'background': '#EAE3D3', 'text': '#242D32', 'accent': '#9B3A27', 'muted': '#65605A', 'font': 'DejaVu Serif'},
@@ -34,6 +34,7 @@ CATALOG = [
     ('pan', 'Reencuadre lateral', 'footage'), ('focus', 'Desenfoque de entrada', 'footage'),
     ('grade', 'Tratamiento de archivo', 'footage'), ('dissolve', 'Disolución breve', 'transitions'),
     ('wipe', 'Barrido contenido', 'transitions'),
+    ('date_typewriter_focus', 'Fecha escrita y recuperación de foco', 'context'),
 ]
 
 
@@ -49,17 +50,25 @@ class MotionDesign(BaseModel):
     symbols: list[Literal['key', 'device', 'shield', 'database', 'lock', 'person']] = Field(default_factory=list, max_length=3)
     values: list[float] = Field(default_factory=list, max_length=2)
     preset: Literal['investigation', 'archive', 'signal'] = 'investigation'
-    delay: float = Field(default=.12, ge=0, le=15, allow_inf_nan=False)
+    # Compiler-owned scene prefixes can precede a valid operator delay. Input
+    # cues keep their separate 15-second limit in VisualCue.coherent.
+    delay: float = Field(default=.12, ge=0, le=60, allow_inf_nan=False)
     elapsed: float = Field(default=0, ge=0, le=7200, allow_inf_nan=False)
     emphasis_delay: float = Field(default=.35, ge=0, le=30, allow_inf_nan=False)
     hold: float | None = Field(default=None, ge=.4, le=30, allow_inf_nan=False)
+    # Coordinates in the authentic source image, before contain/camera transforms.
+    highlight_box: tuple[float, float, float, float] | None = None
 
     @model_validator(mode='after')
     def coherent(self):
         for text in [self.text, self.display_text, self.label, self.detail, self.emphasis, *self.items]:
             if any(ord(c) < 32 and c not in '\n\t' for c in text):
                 raise ValueError('Motion text contains control characters')
-        if self.effect not in {'freeze', 'push', 'pan', 'focus', 'grade', 'dissolve', 'wipe'} and not self.text.strip():
+        if self.highlight_box is not None:
+            left, top, right, bottom = self.highlight_box
+            if self.effect != 'document' or not all(math.isfinite(v) and 0 <= v <= 1 for v in self.highlight_box) or left >= right or top >= bottom:
+                raise ValueError('Document highlight needs an ordered normalized source box')
+        if self.effect not in {'freeze', 'push', 'pan', 'focus', 'grade', 'dissolve', 'wipe'} and not self.text.strip() and self.highlight_box is None:
             raise ValueError('This composition needs explicit editorial text')
         if self.effect == 'keyword' and (not self.emphasis or self.emphasis not in self.text):
             raise ValueError('The highlighted phrase must occur verbatim in the text')
@@ -89,11 +98,21 @@ def write_motion_ass(design: MotionDesign, output: Path, *, duration: float, wid
     scale = height / 1080
     start = design.delay-design.elapsed
     global_end = design.delay + (design.hold or duration)
+    if design.effect == 'date_typewriter_focus':
+        # The date leaves while the authentic backdrop is still blurred; focus
+        # returns during the final fraction of the same shot, without extra time.
+        global_end = max(design.delay+.25, global_end-.35)
     end = min(duration, global_end-design.elapsed)
     entering = design.elapsed <= design.delay+1e-6
     leaving = global_end-design.elapsed <= duration+1e-6
     fade_in,fade_out = (150 if entering else 0),(180 if leaving else 0)
-    if end - max(0,start) < .25:
+    visible = end-max(0,start)
+    if design.hold is not None and visible <= 1e-9:
+        # A global cue may own a whole stock scene while its active phase is
+        # wholly before/after that scene. There is nothing to overlay here.
+        output.write_text('', encoding='utf-8')
+        return False
+    if design.hold is None and visible < .25:
         raise ValueError('The composition delay/hold leaves no readable interval')
     events = []
     ink, accent, muted, bg = (_color(style[k]) for k in ('text', 'accent', 'muted', 'background'))
@@ -190,10 +209,12 @@ def write_motion_ass(design: MotionDesign, output: Path, *, duration: float, wid
 
     e = design.effect
     headline = design.display_text or design.text
-    if over_stock and e in {'identity', 'location', 'date', 'keyword', 'amount', 'kinetic'}:
+    if over_stock and e in {'identity', 'location', 'date', 'date_typewriter_focus', 'keyword', 'amount', 'kinetic'}:
         # A bounded opaque panel guarantees contrast on arbitrary stock.
         if e in {'identity', 'location'}:
-            rect(x-20*scale, height*.66, width*.73, height*.24, bg, layer=0)
+            for band in range(20):
+                alpha=round(250-(250-35)*band/19)
+                rect(0,height*(.55+.45*band/20),width,height*.45/20+1,bg,layer=0,alpha=f'{alpha:02X}')
         else:
             # Leave the image legible. Only the lower narrative emphasis gets
             # a graduated scrim; no opaque rectangle covers the entire shot.
@@ -232,22 +253,40 @@ def write_motion_ass(design: MotionDesign, output: Path, *, duration: float, wid
         text(design.label,box(.075,.79,.925,.91),43,max_lines=2,at=start+.5)
         text(design.detail,box(.075,.16,.925,.25),29,color=muted)
     elif e in {'identity','location'}:
-        rect(x,height*.69,5*scale,height*.16,grow=False)
-        text(design.label,box(.10,.68,.86,.74),27,color=accent)
-        text(design.text,box(.10,.76,.87,.85),54,bold=True,max_lines=1)
-    elif e == 'date':
+        rect(x,height*.65,5*scale,height*.24,grow=False)
+        text(design.label,box(.10,.64,.90,.71),31,color=accent)
+        text(design.text,box(.10,.73,.93,.87),94,bold=True,max_lines=1)
+        text(design.detail,box(.10,.90,.93,.97),30,color=muted,at=start+.2,max_lines=1)
+    elif e in {'date', 'date_typewriter_focus'}:
         text(design.label,box(.075,.16,.89,.24),31,color=muted)
-        text(design.text,box(.075,.29,.90,.58),210,color=accent,serif=design.preset=='archive',bold=design.preset!='archive',max_lines=1,reveal=True)
+        if e == 'date_typewriter_focus':
+            draw = ImageDraw.Draw(Image.new('RGB', (1, 1)))
+            font, _, _, _ = _fit(draw, _text(design.text), box(.075,.29,.90,.58),
+                                 round(210*scale), minimum=round(30*scale),
+                                 bold=True, max_lines=1)
+            for i, character in enumerate(_text(design.text)):
+                at = start+i*min(.12, max(.015, (end-max(0,start))*.45/max(1,len(design.text))))
+                if at < end:
+                    tx = x+draw.textlength(_text(design.text)[:i], font=font)
+                    tags = rf'\an7\pos({tx:.1f},{height*.29:.1f})\fnDejaVu Sans\fs{font.size}\b1\1c{accent}\bord0\shad0'
+                    events.append(_event(3, max(0,at), end, '{'+tags+'}'+character))
+        else:
+            text(design.text,box(.075,.29,.90,.58),210,color=accent,serif=design.preset=='archive',bold=design.preset!='archive',max_lines=1,reveal=True)
         rect(x,height*.69,width*.85,4*scale,grow=True)
         for j in range(13):rect(x+width*.85*j/12,height*.675,2*scale,height*(.05 if j%3==0 else .025),muted,at=start+j*.045)
         text(design.detail,box(.075,.79,.90,.89),34,at=start+.55)
     elif e == 'document':
-        rect(width*.075,height*.21,width*.85,height*.57,ink,layer=0)
-        text(design.label,box(.105,.25,.86,.32),25,color=bg)
-        # Highlight the exact excerpt, never a fabricated scan or source document.
-        rect(width*.10,height*.40,width*.79,height*.22,accent,layer=1,grow=True)
-        text(design.text,box(.12,.415,.87,.61),55,color=bg,serif=True,max_lines=3)
-        text(design.detail,box(.105,.68,.86,.75),25,color=bg)
+        if over_stock and design.highlight_box:
+            # The highlight is painted onto the real source before its camera
+            # transform, so it stays attached to the passage throughout motion.
+            text(design.label,box(.075,.87,.925,.96),28,color=accent)
+        else:
+            rect(width*.075,height*.21,width*.85,height*.57,ink,layer=0)
+            text(design.label,box(.105,.25,.86,.32),25,color=bg)
+            # A supplied excerpt is typography, never a fabricated source scan.
+            rect(width*.10,height*.40,width*.79,height*.22,accent,layer=1,grow=True)
+            text(design.text,box(.12,.415,.87,.61),55,color=bg,serif=True,max_lines=3)
+            text(design.detail,box(.105,.68,.86,.75),25,color=bg)
     elif e == 'comparison':
         text(design.text,box(.075,.12,.90,.30),87,bold=True,max_lines=2,reveal=True)
         for i,(label,value) in enumerate(zip(design.items,design.values,strict=True)):
@@ -286,6 +325,16 @@ Format: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text
 
 
 def treatment_filters(design: MotionDesign, *, duration: float, width: int, height: int, fps: int) -> list[str]:
+    if design.effect == 'date_typewriter_focus':
+        active_end = design.delay+(design.hold or duration)
+        recovery = max(design.delay+.25,active_end-.35)-design.elapsed
+        beginning = max(0,design.delay-design.elapsed-.1)
+        filters = []
+        for sigma, left, right in [(8,beginning,recovery),(4,recovery,recovery+.16),
+                                    (1,recovery+.16,recovery+.28)]:
+            if right > max(0,left):
+                filters.append(f"gblur=sigma={sigma}:enable='between(t,{max(0,left):.8f},{right:.8f})'")
+        return filters
     if design.effect == 'push':
         return [f"zoompan=z='1+0.055*min(on/{max(1,round(duration*fps))},1)':x='iw/2-iw/zoom/2':y='ih/2-ih/zoom/2':d=1:s={width}x{height}:fps={fps}"]
     if design.effect == 'pan':

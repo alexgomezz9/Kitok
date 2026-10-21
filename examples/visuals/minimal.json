@@ -1,0 +1,10 @@
+{
+  "visual_cues": [
+    {
+      "asset": "images/person.jpg",
+      "anchor": {
+        "phrase": "A researcher named Alex"
+      }
+    }
+  ]
+}

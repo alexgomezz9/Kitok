@@ -25,6 +25,7 @@ class EditorialAsset(PlanModel):
 
 
 from .motion_components import MotionDesign
+from .camera import CameraMotion
 
 
 class EditorialScene(PlanModel):
@@ -41,7 +42,9 @@ class EditorialScene(PlanModel):
     composition: Literal['table', 'records', 'photo'] | None = None
     composition_data: dict = Field(default_factory=dict)
     motion: Literal["none", "push", "pan"] = "none"
-    transition: Literal["cut", "fade", "dissolve", "wipe"] = "cut"
+    camera: CameraMotion | None = None
+    image_fit: Literal['auto', 'contain', 'cover'] = 'auto'
+    transition: Literal["cut", "fade", "dissolve", "wipe", "slide", "fade_black", "focus", "match_cut"] = "cut"
     motion_design: MotionDesign | None = None
     headline: str | None = Field(default=None, max_length=95)
     kicker: str | None = Field(default=None, max_length=80)
@@ -54,7 +57,10 @@ class EditorialScene(PlanModel):
             raise ValueError("A scene needs at least 0.4 seconds")
         if self.graphic == 'motion' and self.motion_design is None:
             raise ValueError('A motion plate needs an explicit motion design')
-        if self.motion_design and (self.motion_design.delay >= self.end-self.start-.3):
+        if self.motion_design and self.motion_design.highlight_box and not self.asset:
+            raise ValueError('An authentic document highlight needs an existing image asset')
+        if self.motion_design and self.motion_design.hold is None and (max(0, self.motion_design.delay-self.motion_design.elapsed)
+                                   >= self.end-self.start-.3):
             raise ValueError('Motion delay must leave a readable interval')
         if self.motion_design and self.composition:
             raise ValueError('Motion design uses stock or a motion plate, not legacy 3D')
@@ -93,6 +99,8 @@ class EditorialPlan(PlanModel):
     width: int = Field(default=1920, ge=320, le=3840)
     height: int = Field(default=1080, ge=180, le=2160)
     fps: int = Field(default=30, ge=24, le=60)
+    fade_in: float = Field(default=0, ge=0, le=5, allow_inf_nan=False)
+    fade_out: float = Field(default=0, ge=0, le=5, allow_inf_nan=False)
     palette: Literal["ivory", "green"] = "ivory"
     accent: str = Field(default="#B7EA68", pattern=r"^#[0-9A-Fa-f]{6}$")
     assets: dict[str, EditorialAsset] = Field(default_factory=dict)

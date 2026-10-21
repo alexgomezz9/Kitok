@@ -107,8 +107,7 @@ def test_fractional_seeks_keep_last_frame_available_for_dissolve_and_wipe(tmp_pa
     render_editorial_plan(plan, root=tmp_path, output=output,
                           settings=SETTINGS, encoder_name='libx264')
     workspace = tmp_path / '.editorial-work' / plan.episode_id
-    assert (workspace / 'scene_02.previous.png').is_file()
-    assert (workspace / 'scene_03.previous.png').is_file()
+    assert not list(workspace.glob('*.previous.png'))
     for scene in plan.scenes:
         assert _clock(workspace / f'{scene.id}.mp4') == pytest.approx((30, 0, 1))
     assert _clock(output) == pytest.approx((120, 0, 4))

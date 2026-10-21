@@ -22,3 +22,9 @@ La documentación vigente está en [el índice actual](../README.md).
 
 El archivo queda excluido del gate de enlaces de manuales vigentes porque conserva
 referencias históricas. No se usa para generar ni publicar automáticamente.
+
+- [Galería motion del 20/10/2026](motion-gallery-2026-10-20.md): historial de muestras y reparación de códec; sustituido por la colección actual de docs/motion.md.
+
+- [Investigación de motores del 20/10/2026](motion-research-2026-10-20.md): comparación documental anterior al render real de Remotion.
+
+- [Estado previo al editor final](status-before-editor-2026-10-21.md): reparación del reloj y mezcla, rutas y evidencia anteriores.

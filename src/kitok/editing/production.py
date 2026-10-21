@@ -18,8 +18,10 @@ from ..state import write_json_atomic
 from .ass import filter_path
 from .graphics import render_graphic
 from .storyboard import EditorialPlan, file_hash, project_file
+from .camera import IMAGE_EXTENSIONS, CameraMotion, camera_filters, image_plate
 
-RENDER_VERSION = 4
+RENDER_VERSION = 5
+MOVING_TRANSITIONS = {'dissolve', 'wipe', 'slide', 'fade_black', 'focus'}
 
 
 class EditorialValidationError(RuntimeError):
@@ -29,6 +31,10 @@ class EditorialValidationError(RuntimeError):
 def _clock_matches(clock, frames: int, fps: int) -> bool:
     return (clock.frames == frames and abs(clock.start_time) <= 1e-6
             and abs(clock.duration - frames / fps) <= 1e-5)
+
+
+def _blend_frames(previous_frames: int, incoming_frames: int, fps: int) -> int:
+    return max(2, min(round(.28*fps), incoming_frames//3, previous_frames))
 
 
 def _require_clock(path, frames, fps, diagnostics, *, ffprobe="ffprobe"):
@@ -53,7 +59,7 @@ def validate_stock_coverage(plan, assets: dict[str, Path], *, ffprobe="ffprobe")
         if scene.graphic or scene.composition:
             continue
         source = assets[scene.asset]
-        if source.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp"}:
+        if source.suffix.lower() in IMAGE_EXTENSIONS:
             continue
         if source not in durations:
             durations[source] = measured_video_duration(source, ffprobe)
@@ -171,14 +177,14 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
     manifest = output.with_suffix('.editorial.json')
     if output.exists() or manifest.exists() or manifest.is_symlink():
         raise ValueError("Editorial output or receipt exists; choose a new output to preserve the previous cut")
-    validate_stock_coverage(plan, assets, ffprobe=settings.ffprobe_binary)
+    stock_durations = validate_stock_coverage(plan, assets, ffprobe=settings.ffprobe_binary)
     output.parent.mkdir(parents=True, exist_ok=True)
     workspace = output.parent / ".editorial-work" / plan.episode_id
     workspace.mkdir(parents=True, exist_ok=True)
     encoder = choose_encoder(settings.ffmpeg_binary, requested=encoder_name, nvenc_preset="p5")
     spec = RenderSpec(width=plan.width, height=plan.height, fps=plan.fps,
                       fade_in=0, fade_out=0, chunk_size=4)
-    rendered, reused, clips = [], [], []
+    rendered, reused, clips, handles, transition_decisions = [], [], [], [], []
     with _plan_lock(workspace):
         for index, scene in enumerate(plan.scenes):
             if on_stage:
@@ -198,7 +204,13 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
             elif scene.graphic == 'motion':
                 from .motion_components import background_plate
                 source = workspace / f'{scene.id}.png'
-                background_plate(scene.motion_design, source, plan.width, plan.height)
+                if scene.graphic_data.get('background') == 'black':
+                    from PIL import Image
+                    Image.new('RGB', (plan.width, plan.height), 'black').save(source)
+                elif scene.graphic_data.get('background') in (None, 'automatic_stock'):
+                    background_plate(scene.motion_design, source, plan.width, plan.height)
+                else:
+                    raise ValueError('Unknown motion plate background')
                 source_identity = file_hash(source)
             elif image:
                 source = workspace / f"{scene.id}.png"
@@ -208,10 +220,32 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
                 source_identity = file_hash(source)
             else:
                 source = assets[scene.asset]
-                image = source.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp"}
+                image = source.suffix.lower() in IMAGE_EXTENSIONS
                 source_identity = file_hash(source)
+                if image:
+                    plate = workspace / f'{scene.id}.source.png'
+                    image_plate(source, plate, width=plan.width, height=plan.height,
+                                fit=scene.image_fit,
+                                highlight_box=scene.motion_design.highlight_box if scene.motion_design else None)
+                    source = plate
+                elif scene.motion_design and scene.motion_design.highlight_box:
+                    raise ValueError('An authentic document highlight requires a photograph or scan')
             caption = workspace / f"{scene.id}.ass"
             _caption(scene, caption, plan)
+            # A transition consumes future frames from the outgoing shot rather
+            # than replaying its already displayed tail. Handles are optional:
+            # insufficient stock coverage produces an explicit safe cut.
+            handle_frames = 0
+            if index+1 < len(plan.scenes) and plan.scenes[index+1].transition in MOVING_TRANSITIONS:
+                following = plan.scenes[index+1]
+                count = round(following.end*plan.fps)-round(following.start*plan.fps)
+                wanted = _blend_frames(frames, count, plan.fps)
+                coverage = image or (not scene.composition and
+                    stock_durations.get(source, 0) >= scene.source_start+(frames+wanted+1)/plan.fps)
+                if coverage:
+                    handle_frames = wanted
+            handle = workspace / f'{scene.id}.handle.mp4' if handle_frames else None
+            render_frames = frames+handle_frames
             # Fractional input seeks can leave the first source PTS above zero.
             # Reset it before fps; otherwise per-scene time limits silently lose
             # frames, accumulating a short video beneath the full-length audio.
@@ -220,7 +254,13 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
                 f"scale={plan.width}:{plan.height}:force_original_aspect_ratio=increase:force_divisible_by=2",
                 f"crop={plan.width}:{plan.height}", f"fps={plan.fps}", "setsar=1", "format=yuv420p",
             ]
-            if scene.motion == "push":
+            camera = scene.camera
+            if camera is None and image and scene.asset and not scene.composition and scene.motion == 'none':
+                camera = CameraMotion(preset='slow_push_in')
+            if camera is not None:
+                filters.extend(camera_filters(camera, width=plan.width, height=plan.height,
+                                              frames=render_frames, fps=plan.fps))
+            elif scene.motion == "push":
                 filters.append(f"zoompan=z='1+0.035*min(on/{frames},1)':x='iw/2-iw/zoom/2':y='ih/2-ih/zoom/2':d=1:s={plan.width}x{plan.height}:fps={plan.fps}")
             elif scene.motion == "pan":
                 sw, sh = round(plan.width*1.035/2)*2, round(plan.height*1.035/2)*2
@@ -238,14 +278,28 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
                 filters.append(f"ass='{filter_path(caption)}'")
             if scene.transition == "fade":
                 filters.append("fade=t=in:st=0:d=0.14")
+            # Apply fades at global visual time, including fades that span more
+            # than one short scene. Audio is never fed through these filters.
+            if plan.fade_in or plan.fade_out:
+                filters.append(f'setpts=PTS+{scene.start:.9f}/TB')
+                if plan.fade_in:
+                    filters.append(f'fade=t=in:st=0:d={min(plan.fade_in, plan.duration):.9f}')
+                if plan.fade_out:
+                    fade = min(plan.fade_out, plan.duration)
+                    # Last displayed frame reaches black within the frame grid.
+                    start = max(0, plan.duration-fade-1/plan.fps)
+                    filters.append(f'fade=t=out:st={start:.9f}:d={fade:.9f}')
+                filters.append('setpts=PTS-STARTPTS')
             target = workspace / f"{scene.id}.mp4"
             receipt = workspace / f"{scene.id}.json"
             scene_key = scene.model_dump(exclude={"palette", "headline_style"})
             key_data = {"version":RENDER_VERSION, "scene":scene_key, "source_hash":source_identity,
                         "filters":filters,"encoder":encoder.__dict__,"caption":caption.read_text(),
+                        "camera_code":file_hash(Path(__file__).with_name('camera.py')),
+                        "handle_frames":handle_frames,
                         "motion_ass":motion_ass.read_text() if scene.motion_design else None,
                         "motion_code":inputs[Path(__file__).with_name('motion_components.py')] if scene.motion_design else None,
-                        "previous":file_hash(clips[-1].source) if clips and scene.transition in {'dissolve','wipe'} else None}
+                        "previous":file_hash(handles[-1]) if handles and handles[-1] and scene.transition in MOVING_TRANSITIONS else None}
             import hashlib
             fingerprint = hashlib.sha256(json.dumps(key_data,sort_keys=True).encode()).hexdigest()
             hit = False
@@ -257,6 +311,9 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
                            and (info.width,info.height)==(plan.width,plan.height)
                            and prior.get("media_sha256")==file_hash(target)
                            and _clock_matches(probe_video_clock(target, settings.ffprobe_binary), frames, plan.fps))
+                    if hit and handle is not None:
+                        hit = (handle.is_file() and prior.get('handle_sha256') == file_hash(handle)
+                               and _clock_matches(probe_video_clock(handle, settings.ffprobe_binary), handle_frames, plan.fps))
             if not hit:
                 temp = target.with_name(f".{target.stem}.part.mp4")
                 command = [settings.ffmpeg_binary,"-nostdin","-v","error","-y","-threads","2"]
@@ -264,29 +321,43 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
                     command += ["-loop","1","-framerate",str(plan.fps)]
                 else:
                     command += ["-ss",f"{scene.source_start:.6f}"]
-                command += ["-i",str(source),"-an","-frames:v",str(frames),"-vf",",".join(filters),
-                            "-filter_threads","1",*encoder_arguments(encoder),"-pix_fmt","yuv420p","-threads","2",str(temp)]
+                command += ['-i',str(source)]
+                if handle is not None:
+                    # Split one continuous filtered stream at the exact boundary;
+                    # both files retain zero PTS and independent H.264 headers.
+                    graph = (f"[0:v]{','.join(filters)},split=2[base][continuation];"
+                             f'[base]trim=end_frame={frames},setpts=PTS-STARTPTS[v];'
+                             f'[continuation]trim=start_frame={frames}:end_frame={render_frames},setpts=PTS-STARTPTS[h]')
+                    command += ['-filter_complex_threads','1','-filter_complex',graph,
+                                '-map','[v]','-an','-frames:v',str(frames),*encoder_arguments(encoder),
+                                '-pix_fmt','yuv420p','-threads','2',str(temp),
+                                '-map','[h]','-an','-frames:v',str(handle_frames),*encoder_arguments(encoder),
+                                '-pix_fmt','yuv420p','-threads','2',str(handle)]
+                else:
+                    command += ["-an","-frames:v",str(frames),"-vf",",".join(filters),
+                                "-filter_threads","1",*encoder_arguments(encoder),"-pix_fmt","yuv420p","-threads","2",str(temp)]
                 _run(command)
-                if clips and scene.transition in {'dissolve', 'wipe'}:
-                    # Borrow only the preceding final frame. Incoming frames keep their
-                    # timestamps, so a transition never shifts narration or shot boundaries.
+                if handle is not None:
+                    _require_clock(handle, handle_frames, plan.fps,
+                                   workspace / f'{scene.id}.handle.validation.json',ffprobe=settings.ffprobe_binary)
+                if clips and scene.transition in MOVING_TRANSITIONS and handles[-1] is not None:
                     prior = clips[-1]
-                    still = workspace / f'{scene.id}.previous.png'
-                    _run([settings.ffmpeg_binary,'-nostdin','-v','error','-y',
-                          '-ss',str(max(0, prior.slot.duration-1/plan.fps)), '-i',str(prior.source),
-                          '-frames:v','1',str(still)])
                     transitioned = temp.with_name(temp.stem+'.transition.mp4')
-                    blend = min(.28, duration/3)
-                    mode = 'fade' if scene.transition == 'dissolve' else 'wipeleft'
+                    blend_frames = _blend_frames(round(prior.slot.duration*plan.fps), frames, plan.fps)
+                    blend = blend_frames/plan.fps
+                    mode = {'dissolve':'fade', 'wipe':'wipeleft', 'slide':'slideleft',
+                            'fade_black':'fadeblack', 'focus':'fade'}[scene.transition]
+                    focus = (",gblur=sigma=6:enable='lt(t,0.10)',gblur=sigma=2:enable='between(t,0.10,0.20)'"
+                             if scene.transition == 'focus' else '')
                     _run([settings.ffmpeg_binary,'-nostdin','-v','error','-y',
-                          '-loop','1','-framerate',str(plan.fps),'-t',f'{blend:.6f}','-i',str(still),'-i',str(temp),
+                          '-i',str(handles[-1]),'-i',str(temp),
                           '-filter_complex_threads','1','-filter_complex',
                           # xfade negotiates a planar 4:4:4 working format even
                           # when both inputs are 4:2:0. Convert AFTER the filter:
                           # otherwise a concatenated avc1 MP4 can switch from
                           # High/4:2:0 to High 4:4:4 midstream while ffprobe's
                           # stream summary still reports its first frame only.
-                          f'[0:v]format=yuv420p,setpts=PTS-STARTPTS,settb=AVTB[a];[1:v]format=yuv420p,setpts=PTS-STARTPTS,settb=AVTB[b];[a][b]xfade=transition={mode}:duration={blend:.6f}:offset=0,format=yuv420p[v]',
+                          f'[0:v]format=yuv420p,setpts=PTS-STARTPTS,settb=AVTB[a];[1:v]format=yuv420p,setpts=PTS-STARTPTS,settb=AVTB[b];[a][b]xfade=transition={mode}:duration={blend:.9f}:offset=0{focus},format=yuv420p[v]',
                           '-map','[v]','-an','-frames:v',str(frames),*encoder_arguments(encoder),
                           '-pix_fmt','yuv420p','-threads','2',str(transitioned)])
                     transitioned.replace(temp)
@@ -294,9 +365,19 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
                 _require_clock(temp, frames, plan.fps, workspace / f"{scene.id}.validation.json",
                                ffprobe=settings.ffprobe_binary)
                 temp.replace(target)
-                write_json_atomic(receipt,{"fingerprint":fingerprint,"media_sha256":file_hash(target)})
+                write_json_atomic(receipt,{"fingerprint":fingerprint,"media_sha256":file_hash(target),
+                                           'handle_sha256':file_hash(handle) if handle else None})
+            applied = scene.transition
+            reason = None
+            if index and scene.transition in MOVING_TRANSITIONS and handles[-1] is None:
+                applied, reason = 'cut', 'Outgoing source lacks continuation coverage'
+            if scene.transition == 'match_cut':
+                reason = 'Direct cut; visual match is an explicit editorial decision'
+            transition_decisions.append({'scene_id':scene.id,'requested':scene.transition,
+                                         'applied':applied,'reason':reason})
             (reused if hit else rendered).append(scene.id)
             clips.append(TimelineClip(TimelineSlot(index,"editorial",scene.start,duration),index,target,0))
+            handles.append(handle)
             if on_stage:
                 on_stage(f"{scene.id}: {'cached' if hit else 'rendered'} in {time.monotonic()-scene_start:.2f}s")
         # Existing engine owns normalization, concat, encoder fallback and audio mixing.
@@ -371,6 +452,7 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
                                     'encoded-aac-without-normalization' if plan.audio_is_final_mix else 'engine-mix',
                   "alignment":plan.alignment,"provider_requests":0,"scenes":[s.model_dump() for s in plan.scenes],
                   "assets":{key:asset.model_dump() for key,asset in plan.assets.items()}}
+        result['transitions'] = transition_decisions
         if any(file_hash(path) != digest for path, digest in inputs.items()):
             raise ValueError('An editorial input changed during rendering; delivery was blocked')
         _publish_new(pending, output, manifest, result)

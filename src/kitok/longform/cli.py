@@ -16,6 +16,7 @@ from typing import Any, Callable
 from pydantic import ValidationError
 
 from kitok.config import PROJECT_ROOT, Settings
+from kitok.editing.visual_cues import VisualPlan
 from kitok.locks import generation_lock
 from kitok.dialogue_audio import media_duration
 from kitok.models import ContentItem, MPTTask
@@ -61,6 +62,9 @@ class LongformDefinition:
     music_mode: str | None = None
     music_track: str | None = None
     mounting_style: str = "basic"
+    visual_plan: VisualPlan | None = None
+    visual_root: Path | None = None
+    source_narration_id: str | None = None
 
 
 def _read_json_object(path: Path, label: str) -> dict[str, Any]:
@@ -140,7 +144,7 @@ def log_tts_script_validation(script: str) -> None:
 
 
 def load_longform_config(
-    config_path: str | Path, *, project_root: Path = PROJECT_ROOT
+    config_path: str | Path, *, project_root: Path = PROJECT_ROOT, validate_visual_assets: bool = True
 ) -> LongformDefinition:
     path = Path(config_path).expanduser()
     if not path.is_absolute():
@@ -234,6 +238,21 @@ def load_longform_config(
         )
         raise LongformError(f"Invalid long-form content: {details}") from exc
 
+    source_narration_id = raw.get('source_narration_id')
+    if source_narration_id is not None and (not isinstance(source_narration_id, str) or not source_narration_id.strip()):
+        raise LongformError('source_narration_id must be a nonempty source ID')
+    visual_plan = None
+    visual_root = None
+    if raw.get("visual_plan") is not None:
+        from ..editing.visual_cues import validate_visual_plan
+        visual_root = Path(raw.get("visual_root", path.parent))
+        if not visual_root.is_absolute():
+            visual_root = project_root / visual_root
+        visual_plan = validate_visual_plan(raw["visual_plan"], script, project_root, visual_root,
+                                           validate_assets=validate_visual_assets)
+        if music_mode is None and music_enabled:
+            raise LongformError("Photograph/effect plans require explicit music_mode off, auto or manual to preserve the intended mix")
+
     return LongformDefinition(
         item=item,
         voice_name=voice_name,
@@ -248,6 +267,7 @@ def load_longform_config(
         music_enabled=music_enabled,
         preserve_debug_audio=preserve_debug_audio,
         music_mode=music_mode, music_track=music_track, mounting_style=mounting_style,
+        visual_plan=visual_plan, visual_root=visual_root, source_narration_id=source_narration_id,
     )
 
 
@@ -703,7 +723,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.renderer == 'native' and args.resume:
             raise LongformError('--resume requires --renderer mpt and a known historical task ID')
         definition = load_longform_config(args.config)
-        if args.renderer == 'mpt' and (definition.mounting_style != 'basic' or definition.music_mode is not None):
+        if args.renderer == 'mpt' and (definition.mounting_style != 'basic' or definition.music_mode is not None or definition.visual_plan is not None):
             raise LongformError('mounting_style and music_mode options are Native-only; historical MPT recovery requires basic mounting and legacy music configuration')
         settings = Settings()
         if args.dry_run:
@@ -724,6 +744,8 @@ def main(argv: list[str] | None = None) -> int:
                               'note': 'Local checks only; no network, rendering, uploads or scheduling.'},
                              ensure_ascii=False, indent=2))
             return 0 if all(checks.values()) else 1
+        if definition.source_narration_id is not None:
+            raise LongformError('This montage reuses an existing narration. Use the studio narration audit and confirmed remount; ordinary CLI generation is disabled for this draft.')
         lease.enter_context(generation_lock(settings, f'longform-{definition.item.id}'))
         if args.renderer == 'native':
             historical_task = longform_task_path(definition.item.id, project_root=settings.data_root or PROJECT_ROOT)

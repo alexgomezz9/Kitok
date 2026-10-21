@@ -100,6 +100,8 @@ class NativeLongformRenderer(LongformRenderer):
 
     def render(self, definition, *, start_over: bool = False) -> RenderResult:
         started = time.monotonic()
+        if getattr(definition, 'source_narration_id', None) is not None and self.confirmed_narration is None:
+            raise NativeRenderError('A narration remount requires an audited confirmation; new Fish synthesis is disabled')
         if self.confirmed_narration is not None:
             self.confirmed_narration.verify(definition, self.output_path)
             from ..native_recovery import CachedStock
@@ -107,7 +109,17 @@ class NativeLongformRenderer(LongformRenderer):
                 raise NativeRenderError("Recovery requires the offline-only stock adapter")
         music_mode = getattr(definition, "music_mode", None)
         mounting_style = getattr(definition, "mounting_style", "basic")
-        uses_motion = mounting_style == "documentary" or music_mode in {"auto", "manual"}
+        from ..config import PROJECT_ROOT
+        from ..editing.visual_cues import VisualPlan, validate_visual_plan, visual_sources
+        visual_plan = getattr(definition, 'visual_plan', None)
+        visual_root = getattr(definition, 'visual_root', None)
+        data_root = (self.settings.data_root or PROJECT_ROOT).resolve()
+        if visual_plan is not None and music_mode is None and definition.music_enabled:
+            raise NativeRenderError('Photograph/effect plans require explicit music_mode off, auto or manual to preserve the intended mix')
+        if visual_plan is not None:
+            visual_plan = validate_visual_plan(visual_plan, definition.item.script, data_root, visual_root)
+        sources = visual_sources(visual_plan, data_root, visual_root) if visual_plan else []
+        uses_motion = mounting_style == "documentary" or music_mode in {"auto", "manual"} or visual_plan is not None
         editorial_receipt = self.output_path.with_suffix(".editorial.json")
         if (editorial_receipt.exists() or editorial_receipt.is_symlink()
                 or uses_motion and (self.output_path.exists() or self.output_path.is_symlink())):
@@ -371,13 +383,17 @@ class NativeLongformRenderer(LongformRenderer):
                     audio_is_final_mix = True
                 finally:
                     library.close()
-            if mounting_style == "documentary" or audio_is_final_mix:
+            if visual_plan is not None and visual_sources(visual_plan, data_root, visual_root) != sources:
+                raise NativeRenderError('Visual inputs changed after validation; preserve the narration and review the images')
+            if mounting_style == "documentary" or audio_is_final_mix or visual_plan is not None:
                 from ..editing.motion import render_motion_longform
                 info = render_motion_longform(
                     clips, final_audio, narration_duration, self.output_path, workspace,
                     settings=self.settings, editing=editing,
                     style="investigation" if mounting_style == "documentary" else "basic",
                     audio_is_final_mix=audio_is_final_mix, word_alignment=word_alignment,
+                    visual_plan=visual_plan if visual_plan is not None else VisualPlan() if mounting_style == "documentary" else None,
+                    visual_root=visual_root, script=script,
                     width=self.engine.spec.width, height=self.engine.spec.height, fps=self.engine.spec.fps,
                     on_stage=self.output,
                     **({'workspace_id': f'{content_id}-{workspace.name}'} if self.confirmed_narration else {}),
@@ -437,6 +453,8 @@ class NativeLongformRenderer(LongformRenderer):
                     "music_mode": music_mode,
                     "music_selection": music_selection,
                     "stock_sources": stock_sources,
+                    "visual_sources": sources,
+                    "visual_plan": visual_plan.model_dump(mode="json") if visual_plan else None,
                     "music_transition": music_transition,
                     "sfx_events": sfx_events,
                     "audio_is_final_mix": audio_is_final_mix,
@@ -470,6 +488,15 @@ class NativeLongformRenderer(LongformRenderer):
                 text += f"  - Download: {source['download_url']}\n"
                 text += f"  - License: {source['license']} — {source['license_url']}\n"
                 text += f"  - Changes: {source['usage']}\n"
+            if sources:
+                text += "\n## Photographs and documents supplied by the editor\n\n"
+                for source in sources:
+                    text += f"- {source['path']} — {source['description']}\n"
+                    text += f"  - SHA-256: {source['sha256']}\n"
+                    text += f"  - Source: {source['source_url'] or 'unverified'}\n"
+                    text += f"  - Credit: {source['credit'] or 'unverified'}\n"
+                    text += f"  - License: {source['license'] or 'unverified'} — {source['license_url'] or 'unverified'}\n"
+                    text += f"  - Usage: {source['usage']}; provenance and license require editorial review.\n"
             if music_selection:
                 text += "\n## Music\n\n" + "\n\n".join(music_selection['credits'])
                 text += "\n\n" + music_selection['changes_notice'] + "\n\nContent ID: unknown.\n"
