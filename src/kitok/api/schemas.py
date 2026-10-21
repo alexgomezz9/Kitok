@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from ..models import DialogueTurn, ContentItem
+from ..editing.visual_cues import VisualPlan
 
 
 class Request(BaseModel):
@@ -174,6 +175,9 @@ class LongformRequest(Request):
     music_track: str | None = Field(default=None, pattern=r'^[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}$')
     mounting_style: Literal['basic', 'documentary'] = 'basic'
     narrator_voice: str | None = Field(default=None, max_length=200)
+    episode_id: str | None = Field(default=None, pattern=r'^[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}$')
+    visual_plan: VisualPlan | None = None
+    source_narration_id: str | None = Field(default=None, pattern=r'^lf_[0-9a-f]{32}$')
 
     @field_validator('subject', 'script', mode='before')
     @classmethod
@@ -183,6 +187,19 @@ class LongformRequest(Request):
 
 class VoiceFavoriteRequest(Request):
     enabled: bool
+
+
+class EpisodeImageUpload(Request):
+    filename: str = Field(min_length=1, max_length=160)
+    data: str = Field(min_length=1, max_length=8_388_608)
+
+
+class EpisodeImagesRequest(Request):
+    images: list[EpisodeImageUpload] = Field(min_length=1, max_length=4)
+
+
+class LongformRemountRequest(LongformRecoveryRequest):
+    source_id: str = Field(pattern=r'^lf_[0-9a-f]{32}$')
 
 
 class VoiceAssignmentRequest(Request):

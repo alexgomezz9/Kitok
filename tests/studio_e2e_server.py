@@ -81,7 +81,18 @@ def main():
             shutil.copyfile(horizontal, path)
         kitok.application.run_generation = short_render
         app.state.longform._render = long_render
-        uvicorn.run(app, host='127.0.0.1', port=8000)
+        port = int(os.environ.get('KITOK_E2E_PORT', '8000'))
+        if port != 8000:
+            # Only this disposable fixture translates its alternate local URL.
+            # The production application's origin policy remains unchanged.
+            @app.middleware('http')
+            async def fixture_origin(request, call_next):
+                origin = f'http://127.0.0.1:{port}'.encode()
+                request.scope['headers'] = [
+                    (key, b'http://127.0.0.1:8000' if key == b'origin' and value == origin else value)
+                    for key, value in request.scope['headers']]
+                return await call_next(request)
+        uvicorn.run(app, host='127.0.0.1', port=port)
 
 
 if __name__ == '__main__':

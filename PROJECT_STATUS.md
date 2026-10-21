@@ -16,18 +16,22 @@ Manual: [GUIA.md](GUIA.md); contrato: [montaje](docs/editing.md);
 - Nuevo efecto: fecha mecanografiada con foco. Identidad y resaltado sobre documento
   aportado mejorados. Parallax sin capas se rechaza; Three.js/póker sigue histórico.
 - Estudio de fotos/importación/voz reutilizada implementado, comprobado localmente
-  y pendiente de su checkpoint. Navegar/guardar/comprobar no llama proveedores.
+  y verificado también en Chromium con upload real, imagen+frase, comprobación
+  y borrador en workspace temporal. Navegar/guardar/comprobar no llama proveedores.
   Nuevo montaje auditado usa otro ID; recuperación del mismo ID se conserva.
 - MP4 reales actuales: `outputs/motion-gallery/final_ub_opening_r2/preview.mp4`
-  (31,5 s/945 frames/1080p, decode completo y audio A/B idéntico). Es candidata,
-  no aprobación: el stock de blackjack detectado se sustituye en otra revisión.
-  Se preparan retrato, otro tema y galería actual sin borrar originales.
+  (31,5 s/945 frames/1080p, decode completo y audio A/B idéntico), conservada y
+  sustituida por `final_ub_opening_r3` tras detectar blackjack. Retrato
+  `final_ub_portrait_r1` (27,8 s) y `final_mfa_r1` (20 s), mismo compilador.
+  Colección nueva: 43 demos; revisión de reproducción/fotogramas en curso.
 
 ## Evidencia y límites actuales
 
+- Motor publicado `dc4924c`, SHA remoto igual; CI 39676770736 en ejecución.
 - 108 pruebas core Native/visuales/recuperación correctas (16,51 s); dos recorridos
   Native de 6 s con FFmpeg real y proveedores simulados. Render/cámara/motion:
-  71 pruebas y regresiones de continuidad/retardo global correctas.
+  53 pruebas de renderer/reloj/cues correctas (42,32 s), además de regresiones de
+  continuidad y retardo global. Estudio/API: 66 pruebas correctas (6,16 s).
 - 25 React, build TypeScript/Vite y cinco E2E aislados correctos (18,2 s).
   `make docs-check` y `make studio-check` correctos; gate completo pendiente.
 - Revisión independiente de corrección y adversarial: hallazgos P2 de intervalos,

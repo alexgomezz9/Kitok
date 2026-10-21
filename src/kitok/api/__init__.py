@@ -24,7 +24,8 @@ from ..thumbnails import ThumbnailService
 from ..longform_studio import LongformStudio
 from ..editorial_studio import EditorialStudio
 from ..motion_studio import MotionStudio
-from .schemas import LongformRequest, LongformRecoveryRequest, VoiceFavoriteRequest, VoiceAssignmentRequest
+from .schemas import (LongformRequest, LongformRecoveryRequest, VoiceFavoriteRequest, VoiceAssignmentRequest,
+                      EpisodeImagesRequest, LongformRemountRequest)
 
 log = logging.getLogger('kitok.api')
 
@@ -184,6 +185,18 @@ def create_app(settings=None, *, catalog_path=None):
     def longform_list():
         return longform.list()
 
+    @app.get('/api/longform/episodes')
+    def longform_episodes():
+        return longform.episodes()
+
+    @app.post('/api/longform/episodes', status_code=201)
+    def longform_episode_create():
+        return longform.create_episode()
+
+    @app.post('/api/longform/episodes/{episode_id}/images', status_code=201)
+    def longform_image_upload(episode_id: str, body: EpisodeImagesRequest):
+        return longform.upload_images(episode_id, body.images)
+
     @app.post('/api/longform-preview')
     def longform_preview(body: LongformRequest):
         return longform.preview(body)
@@ -207,6 +220,14 @@ def create_app(settings=None, *, catalog_path=None):
     @app.post('/api/longform/{cid}/recovery', status_code=202)
     def longform_recover(cid: str, body: LongformRecoveryRequest):
         return longform.recover(cid, body.narration_sha256, body.audit_fingerprint)
+
+    @app.get('/api/longform/{cid}/remount')
+    def longform_remount_audit(cid: str, source_id: str):
+        return longform.remount_audit(cid, source_id)
+
+    @app.post('/api/longform/{cid}/remount', status_code=202)
+    def longform_remount(cid: str, body: LongformRemountRequest):
+        return longform.remount(cid, body.source_id, body.narration_sha256, body.audit_fingerprint)
 
     @app.get('/api/longform/{cid}/video')
     def longform_video(cid: str):

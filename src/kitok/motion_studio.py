@@ -34,11 +34,24 @@ class MotionStudio:
 
     def list(self):
         result = []
-        if not self.folder.is_dir() or self.folder.is_symlink():
+        if not self.folder.is_dir() or any(path.is_symlink() for path in (self.root, self.root / 'outputs', self.folder)):
             return result
+        active = None
+        manifest = self.folder / 'active.json'
+        if manifest.exists() or manifest.is_symlink():
+            try:
+                if manifest.is_symlink():
+                    return []
+                active = json.loads(manifest.read_text())['collection']
+                if not isinstance(active, str) or not re.fullmatch(r'[a-z0-9][a-z0-9_-]{0,99}', active):
+                    return []
+            except (ValueError, OSError, KeyError, TypeError):
+                return []
         for folder in sorted(self.folder.iterdir()):
             try:
                 data = json.loads(self._path(folder.name, 'item.json').read_text())
+                if active is not None and data.get('collection') != active:
+                    continue
                 if data.get('id') != folder.name or data.get('kind') not in {'effect', 'sample'}:
                     continue
                 if (type(data.get('duration')) not in (int,float) or not math.isfinite(data['duration'])
@@ -54,7 +67,7 @@ class MotionStudio:
                         pass
                 if 'preview.mp4' not in files:
                     continue
-                result.append({k: data.get(k) for k in ('id','title','family','duration','kind','review','preset')} | {'files': files})
+                result.append({k: data.get(k) for k in ('id','title','family','duration','kind','review','preset','collection','effect_status')} | {'files': files})
             except (ValueError, OSError, TypeError, AttributeError):
                 continue
         return result

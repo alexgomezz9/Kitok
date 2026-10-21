@@ -229,3 +229,59 @@ describe('local editorial comparison',()=>{
   expect(screen.queryByRole('option',{name:/MoneyPrinterTurbo/})).toBeNull();
  })
 })
+
+describe('episode photographs and a new montage',()=>{
+ it('adds a minimal image anchor and invalidates a prior review without generating',async()=>{
+  const original=vi.mocked(fetch).getMockImplementation()!;
+  vi.mocked(fetch).mockImplementation((path,options)=>String(path)==='/api/longform/episodes'?Promise.resolve({ok:true,json:async()=>[{id:'3_ultimatebet',images:[{asset:'real_images/case.png',filename:'case.png'}]}]} as Response):original(path,options));
+  render(<Workbench {...props} mode="long"/>);fillLong();
+  fireEvent.click(screen.getByText('Fotografías y documentos del caso · opcional'));
+  await screen.findByRole('option',{name:'3_ultimatebet'});
+  fireEvent.change(screen.getByLabelText('Carpeta del episodio'),{target:{value:'3_ultimatebet'}});
+  fireEvent.click(screen.getByRole('button',{name:'Comprobar sin generar'}));
+  await screen.findByRole('button',{name:'Guardar borrador'});
+  fireEvent.change(screen.getByLabelText('Fotografía del caso'),{target:{value:'real_images/case.png'}});
+  fireEvent.change(screen.getByLabelText('Mostrar al decir esta frase exacta'),{target:{value:'guion completo'}});
+  fireEvent.click(screen.getByRole('button',{name:'Añadir imagen en esta frase'}));
+  expect(screen.queryByRole('button',{name:'Guardar borrador'})).toBeNull();
+  fireEvent.click(screen.getByRole('button',{name:'Comprobar sin generar'}));
+  await screen.findByRole('button',{name:'Guardar borrador'});
+  expect(requests.filter(r=>r.path==='/api/longform-preview').at(-1)?.body).toMatchObject({episode_id:'3_ultimatebet',visual_plan:{visual_cues:[{asset:'real_images/case.png',anchor:{phrase:'guion completo'}}]}});
+  expect(requests.some(r=>r.path.includes('/jobs'))).toBe(false);
+ });
+ it('rejects malformed visual JSON locally before any preview or job request',async()=>{
+  render(<Workbench {...props} mode="long"/>);fillLong();
+  fireEvent.change(screen.getByLabelText('Plan visual JSON'),{target:{value:'{broken'}});
+  fireEvent.click(screen.getByRole('button',{name:'Comprobar sin generar'}));
+  await waitFor(()=>expect(props.onError).toHaveBeenCalledWith('El JSON visual no es válido. Revísalo antes de comprobar.'));
+  expect(requests.some(r=>r.path==='/api/longform-preview'||r.path.includes('/jobs'))).toBe(false);
+ });
+ it('saves a distinct montage then audits and explicitly starts original narration reuse',async()=>{
+  const source={config_path:'/tmp/original.json',script_path:'/tmp/original.txt',output_path:'/tmp/original.mp4',id:'lf_original',subject:'Original documentary',status:'succeeded',renderer:'native',stage:'Complete',created_at:'2026-10-20',script:'An original narration that must stay identical.',keywords:['city'],narrator_voice:'fish_audio:voice:Original',music_enabled:false,error:null};
+  longRows=[source];
+  const original=vi.mocked(fetch).getMockImplementation()!;
+  vi.mocked(fetch).mockImplementation(async(path,options)=>{
+   if(String(path)==='/api/longform'&&options?.method==='POST'){
+    const body=JSON.parse(String(options.body));requests.push({path:String(path),body});const row={...source,...body,id:'lf_new',status:'draft'};longRows=[row,source];return {ok:true,json:async()=>row} as Response;
+   }
+   if(String(path).includes('/remount')){requests.push({path:String(path),body:options?.body?JSON.parse(String(options.body)):null});return {ok:true,json:async()=>({narration_sha256:'a'.repeat(64),audit_fingerprint:'b'.repeat(64),duration:12,note:'Sólo caché local.'})} as Response}
+   return original(path,options)
+  });
+  render(<Workbench {...props} mode="long"/>);
+  await screen.findByRole('option',{name:/Reutilizar voz: Original documentary/});
+  fireEvent.change(screen.getByLabelText('Narración para este montaje'),{target:{value:'lf_original'}});
+  expect((screen.getByLabelText('Guion completo') as HTMLTextAreaElement).readOnly).toBe(true);
+  expect((screen.getByLabelText('Narrador') as HTMLSelectElement).disabled).toBe(true);
+  fireEvent.click(screen.getByRole('button',{name:'Comprobar sin generar'}));
+  await screen.findByRole('button',{name:'Guardar borrador'});
+  fireEvent.click(screen.getByRole('button',{name:'Guardar borrador'}));
+  fireEvent.click(await screen.findByRole('button',{name:'Revisar voz original sin generar'}));
+  await screen.findByText(/Narración confirmada: 12.000/);
+  expect(requests.filter(r=>r.path.includes('/remount'))).toHaveLength(1);
+  expect(requests.find(r=>r.path==='/api/longform'&&r.body)?.body).toMatchObject({source_narration_id:'lf_original',script:source.script,narrator_voice:source.narrator_voice});
+  fireEvent.click(screen.getByRole('button',{name:'Iniciar nuevo montaje · sin Fish ni red'}));
+  await waitFor(()=>expect(requests.filter(r=>r.path.includes('/remount'))).toHaveLength(2));
+  expect(requests.filter(r=>r.path.includes('/remount'))[1].body).toEqual({source_id:'lf_original',narration_sha256:'a'.repeat(64),audit_fingerprint:'b'.repeat(64)});
+  expect(requests.some(r=>r.path.includes('/jobs'))).toBe(false);
+ });
+});

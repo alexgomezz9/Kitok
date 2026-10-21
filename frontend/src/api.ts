@@ -20,6 +20,6 @@ export function localInput(iso:string,zone:string){const parts=new Intl.DateTime
 export type EditorialComparison = {id:string;title:string;status:string;stage:string;error:string|null;duration:number;scene_count:number;updated_at?:string;run_id?:string;media_revision?:string;qa_warning?:string|null;files:Record<string,string>;stats:null|{duration:number;geometry:number[];fps:number;full_decode:string;black_intervals:unknown[];loudness:Record<string,number|null>;comparison?:{audio_identical:boolean};manual_review_required?:string[]}}
 
 export type MusicTrack = {id:string; title:string; author:string; moods:string[]; attribution?:string; preview_url?:string}
-export type MotionItem = {id:string; title:string; family:string; duration:number; kind:"effect"|"sample"; files:Record<string,string>}
+export type MotionItem = {id:string; title:string; family:string; duration:number; kind:"effect"|"sample";effect_status?:"new"|"improved"|"existing"|null;collection?:string|null; files:Record<string,string>}
 
 export type LibraryVoice = {id:string;reference_id:string;display_name:string;languages:string[];tags:string[];selectable:boolean;favorite:boolean;assigned_channels:string[];samples:{url:string;kind:string;duration?:number}[]}

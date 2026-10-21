@@ -86,7 +86,7 @@ En generación nueva y recuperación, Kitok calcula los tramos de stock con la d
 
 La interfaz y el CLI usan el motor nativo: Fish + Pexels + FFmpeg. El largo nativo sigue siendo experimental; no necesita MPT. No se ofrecen nuevos trabajos MPT. Los trabajos históricos se conservan para consulta y recuperación explícita.
 
-La salida es horizontal 16:9, 1920×1080, sin subtítulos, en outputs/longform/. La duración depende del guion y de la voz; no se fija con un selector de minutos. Se admiten hasta 24.000 caracteres y 20 búsquedas. El montaje básico organiza el guion en secciones y usa esas búsquedas. Los tiempos de sección pueden ser estimados; esto no garantiza que cada plano ilustre exactamente la frase. El modo enriquecido sigue reglas conservadoras: no investiga, no entiende cualquier guion y no convierte automáticamente todas las frases en gráficos. Los tiempos sin alineación válida se declaran estimados. Para control por escena usa «Montaje».
+La salida es horizontal 16:9, 1920×1080, sin subtítulos, en outputs/longform/. La duración depende del guion y de la voz; no se fija con un selector de minutos. Se admiten hasta 24.000 caracteres y 20 búsquedas. El montaje básico organiza el guion en secciones y usa esas búsquedas. Los tiempos de sección pueden ser estimados; esto no garantiza que cada plano ilustre exactamente la frase. El modo enriquecido sigue reglas conservadoras: no investiga, no entiende cualquier guion y no convierte automáticamente todas las frases en gráficos. Los tiempos sin alineación válida se declaran estimados. Para control por escena usa «Montaje». Las escenas locales también aceptan fotografías con encuadre completo, once movimientos de cámara y transiciones entre fuentes móviles; consulta [el contrato de montaje](docs/editing.md).
 
 Los vídeos largos no entran en el calendario ni en el publicador Buffer de shorts. Descárgalos y súbelos a YouTube Studio. Los largos antiguos creados sólo por CLI siguen en outputs/longform/; la nueva lista muestra los borradores creados en este estudio.
 
@@ -99,6 +99,46 @@ los fotogramas exactos por plano y al unirlos. Un rechazo muestra valores medido
 y conserva los diagnósticos, planos y narración. Tras actualizar el código,
 reinicia tu backend cuando esté inactivo para cargar la corrección; actualizar
 la página no reinicia ni cancela el trabajo del servidor.
+
+### Añadir fotos y documentos reales
+
+En «Vídeo largo», despliega **«Fotografías y documentos del caso · opcional»**.
+Selecciona la carpeta del episodio; `3_ultimatebet` ya encuentra las cuatro fotos
+que has colocado en `real_images/`. Para otro episodio usa «Crear carpeta de
+episodio» y añade JPG, PNG o WebP, o colócalos manualmente en `images/`.
+
+Elige el archivo, copia una frase exacta del guion y pulsa **«Añadir imagen en
+esta frase»**. Kitok elige duración (hasta 4 s), movimiento suave variado y
+transición. Puedes añadir varias fotos así, sin escribir un JSON detallado.
+Comprobar y guardar siguen sin generar voz ni descargar stock.
+
+También puedes importar un guion `.txt` y un JSON visual preparado por ChatGPT.
+El JSON describe sólo momentos importantes; el stock cubre lo restante. En «Ver
+o ajustar JSON visual» puedes cambiar duración, cámara, encuadre, transición o
+texto. [Ejemplo mínimo](examples/visuals/minimal.json) y
+[contrato con parámetros](docs/editing.md). Las frases repetidas admiten
+`occurrence` desde cero. Si no hay alineación precisa, Kitok declara los tiempos
+estimados. Revisa identidad, contexto y permisos de las imágenes aportadas.
+
+### Corregir el montaje usando la voz de otro trabajo
+
+En «Narración para este montaje», selecciona un trabajo Native anterior terminado,
+fallido o interrumpido. El estudio conserva su guion y narrador. Cambia el título,
+fotos o JSON visual, comprueba y guarda un **borrador nuevo**. La salida original
+se conserva; cada montaje usa un ID distinto.
+
+En la ficha nueva pulsa **«Revisar voz original sin generar»** y después
+**«Iniciar nuevo montaje · sin Fish ni red»**. La auditoría comprueba guion, voz,
+velocidad, modelo, recibo Fish, alineación y hashes; confirma nuevamente esos
+archivos antes de encolar. Falta de caché o cambio de identidad detiene el trabajo;
+no hay alternativa automática que sintetice de nuevo. Este recorrido monta el
+vídeo completo sólo cuando tú lo inicias. No uses el CLI normal del borrador
+marcado para reutilizar voz: exige la confirmación del estudio.
+
+La narración se reutiliza íntegra; la música puede mezclarse con las opciones
+seleccionadas para el nuevo montaje. Un plan editorial con audio final aprobado
+lo conserva sin normalizarlo. Windows, escucha y aprobación del montaje siguen
+requiriendo revisión de su resultado.
 
 ### Recuperar un largo fallido conservando la voz pagada
 
