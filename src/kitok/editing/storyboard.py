@@ -101,6 +101,7 @@ class EditorialPlan(PlanModel):
     fps: int = Field(default=30, ge=24, le=60)
     fade_in: float = Field(default=0, ge=0, le=5, allow_inf_nan=False)
     fade_out: float = Field(default=0, ge=0, le=5, allow_inf_nan=False)
+    transition_duration: float = Field(default=.28, ge=.05, le=1, allow_inf_nan=False)
     palette: Literal["ivory", "green"] = "ivory"
     accent: str = Field(default="#B7EA68", pattern=r"^#[0-9A-Fa-f]{6}$")
     assets: dict[str, EditorialAsset] = Field(default_factory=dict)

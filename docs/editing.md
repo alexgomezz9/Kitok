@@ -137,6 +137,11 @@ cubre ese margen opcional, se aplica corte y se registra el motivo en el recibo;
 la narración y los límites de plano no cambian. `match_cut` es un corte preparado
 por el editor: el motor no descubre correspondencias visuales.
 `fade_in` y `fade_out` del plan sólo afectan al vídeo y están dentro de su duración.
+`transition_duration` configura la mezcla entre planos (0,05–1 s); conserva
+0,28 s por defecto para planes anteriores. El adaptador stickman utiliza 0,4 s.
+Se acorta si el plano entrante no deja margen suficiente; ambas fuentes comparten
+la misma duración de continuación. Cambiarla invalida la caché afectada.
+El recibo final incluye `output_sha256` para comprobar el MP4 al reanudar.
 Los planes históricos los omiten con valor cero; un plan parcial nuevo los fija a
 0,6/0,8 s. `palette` marfil/verde y `accent`
 fijan el estilo del plan; una escena puede cambiar la paleta. `channel_id` registra

@@ -41,7 +41,8 @@ Una escena del plan usa `graphic="motion"` y `motion_design` para una placa o
 `asset` más `motion_design` para componer sobre stock. El render valida texto medido,
 áreas seguras y duración; si no cabe, exige acortarlo. Escapa código ASS en texto.
 Las disoluciones y barridos mezclan la fuente entrante con fotogramas de
-continuación de la saliente, durante un máximo de 0,28 s. No se congela ni se
+continuación de la saliente, durante 0,28 s por defecto, configurable mediante
+`transition_duration` en el plan compartido (hasta 1 s, acotado al plano). No se congela ni se
 repite su cola. Si no hay margen de stock suficiente, el recibo registra un corte
 seguro. La narración y el total de fotogramas se conservan.
 

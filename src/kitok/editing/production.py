@@ -33,8 +33,8 @@ def _clock_matches(clock, frames: int, fps: int) -> bool:
             and abs(clock.duration - frames / fps) <= 1e-5)
 
 
-def _blend_frames(previous_frames: int, incoming_frames: int, fps: int) -> int:
-    return max(2, min(round(.28*fps), incoming_frames//3, previous_frames))
+def _blend_frames(previous_frames: int, incoming_frames: int, fps: int, duration: float = .28) -> int:
+    return max(2, min(round(duration*fps), incoming_frames//3, previous_frames))
 
 
 def _require_clock(path, frames, fps, diagnostics, *, ffprobe="ffprobe"):
@@ -239,7 +239,7 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
             if index+1 < len(plan.scenes) and plan.scenes[index+1].transition in MOVING_TRANSITIONS:
                 following = plan.scenes[index+1]
                 count = round(following.end*plan.fps)-round(following.start*plan.fps)
-                wanted = _blend_frames(frames, count, plan.fps)
+                wanted = _blend_frames(frames, count, plan.fps, plan.transition_duration)
                 coverage = image or (not scene.composition and
                     stock_durations.get(source, 0) >= scene.source_start+(frames+wanted+1)/plan.fps)
                 if coverage:
@@ -301,6 +301,9 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
                         "motion_code":inputs[Path(__file__).with_name('motion_components.py')] if scene.motion_design else None,
                         "previous":file_hash(handles[-1]) if handles and handles[-1] and scene.transition in MOVING_TRANSITIONS else None}
             import hashlib
+            # Preserve legacy cache identities at the historical duration.
+            if plan.transition_duration != .28:
+                key_data['transition_duration'] = plan.transition_duration
             fingerprint = hashlib.sha256(json.dumps(key_data,sort_keys=True).encode()).hexdigest()
             hit = False
             if target.exists() and receipt.exists():
@@ -343,7 +346,8 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
                 if clips and scene.transition in MOVING_TRANSITIONS and handles[-1] is not None:
                     prior = clips[-1]
                     transitioned = temp.with_name(temp.stem+'.transition.mp4')
-                    blend_frames = _blend_frames(round(prior.slot.duration*plan.fps), frames, plan.fps)
+                    blend_frames = _blend_frames(round(prior.slot.duration*plan.fps), frames, plan.fps,
+                                                 plan.transition_duration)
                     blend = blend_frames/plan.fps
                     mode = {'dissolve':'fade', 'wipe':'wipeleft', 'slide':'slideleft',
                             'fade_black':'fadeblack', 'focus':'fade'}[scene.transition]
@@ -443,6 +447,7 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
                                            + f"; diagnostics preserved: {diagnostics}")
         result = {"version":1,"episode_id":plan.episode_id,"channel_id":plan.channel_id,
                   "output":str(output.relative_to(root)),"duration":final.duration,
+                  "output_sha256":file_hash(pending),
                   "audio_stream_duration":audio_duration,"video_stream_duration":video_duration,
                   "video_frames":final_clock.frames,"validation_report":str(diagnostics.relative_to(root)),
                   "encoder":encoder.codec,"elapsed_seconds":time.monotonic()-started,

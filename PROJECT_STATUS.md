@@ -1,7 +1,8 @@
 # Estado vigente de Kitok
 
-Actualizado: **2026-10-21**. Rama **main**, integrada por fast-forward desde
-feature/documentary-motion; base anterior `bfd43c5`. Motor `dc4924c`, estudio
+Actualizado: **2026-10-22**. Rama **feature/youtube-stickman-es**, base main
+`99f4766`. Main anterior integrado por fast-forward desde feature/documentary-motion.
+Motor documental `dc4924c`, estudio
 `c61635d`. Se conserva el historial granular. SHA remoto y CI del checkpoint
 final se comprueban al entregar; CI de ambas unidades anteriores correcto
 (39676770736 y 39677661474).
@@ -9,6 +10,11 @@ Manual: [GUIA.md](GUIA.md); [montaje](docs/editing.md);
 [efectos y demos](docs/motion.md); [audio](docs/audio.md).
 
 ## Capacidades comprobadas
+
+- Preparación del adaptador `youtube_stickman_es` en curso, separado de shorts
+  y documentales. El motor compartido admite duración de transición configurable
+  (mantiene 0,28 s anterior) y recibo SHA del MP4. Nuevo flujo todavía en verificación;
+  no hay imágenes definitivas, voz nueva ni episodio completo generado.
 
 - Fotos/documentos JPG, PNG y WebP, stock, cámaras, ASS, caché y FFmpeg comparten
   Native. Archivo y frase bastan; JSON parcial opcional sobrescribe defaults.
