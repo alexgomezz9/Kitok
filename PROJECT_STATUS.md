@@ -1,9 +1,10 @@
 # Estado vigente de Kitok
 
-Actualizado: **2026-10-22**. Rama **feature/youtube-stickman-es**, base main
-`99f4766`; motor compartido `19984d5` subido con CI correcto (39741341045).
-Integración y push de main autorizados expresamente por el operador; pendientes
-hasta cerrar el checkpoint del adaptador y su verificación final.
+Actualizado: **2026-10-22**. Rama **main**, integrada por fast-forward desde
+`feature/youtube-stickman-es`, base `99f4766`. Motor compartido `19984d5`
+(CI 39741341045 correcto) y adaptador `fbcc0c7`, con historial granular.
+Integración y push autorizados expresamente por el operador; el SHA remoto y
+el resultado del CI final se comprueban al entregar.
 Manual: [GUIA.md](GUIA.md); [stickman ES](docs/youtube-stickman-es.md);
 [montaje](docs/editing.md); [movimiento](docs/motion.md); [audio](docs/audio.md).
 
@@ -52,7 +53,7 @@ Manual: [GUIA.md](GUIA.md); [stickman ES](docs/youtube-stickman-es.md);
   Pexels admite fotos por keywords, comprobado antes; su búsqueda automática de
   fotos sigue sin implementarse. [Historia](docs/archive/README.md).
 
-Siguiente: terminar gate/checkpoint e integración main autorizada. Para producir
-el primer stickman, aportar guion definitivo, título y fotogramas interiores;
+Siguiente para el operador: para producir el primer stickman, aportar guion
+definitivo, título y fotogramas interiores;
 Codex prepara y presenta una muestra de estilo antes del lote. UltimateBet
 completo lo inicia el operador desde el estudio tras revisar sus muestras.
