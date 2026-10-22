@@ -80,6 +80,12 @@ def inspect_examples(root: Path) -> list[str]:
             VisualPlan.model_validate_json(path.read_text())
         except (ValueError, OSError, TypeError) as error:
             errors.append(f'{path.relative_to(root)}: invalid visual template: {error}')
+    from kitok.youtube_stickman_es.models import Config as StickmanConfig
+    for path in sorted((root/'examples/youtube_stickman_es').glob('*.json')):
+        try:
+            StickmanConfig.model_validate_json(path.read_text())
+        except (ValueError,OSError) as error:
+            errors.append(f'{path.relative_to(root)}: invalid stickman configuration: {error}')
     return errors
 
 

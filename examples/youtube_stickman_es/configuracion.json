@@ -1,0 +1,35 @@
+{
+  "pipeline": "youtube_stickman_es",
+  "version": 1,
+  "target_scene_seconds": 5.0,
+  "max_scene_seconds": 8.0,
+  "style_prompt": "Original 2D stickman explanatory illustration. Uniform dark outlines, simple expressive characters, clean light backgrounds and a consistent restrained palette. Landscape 16:9. Use supplied interior frames only to guide technique and character consistency; do not copy a specific composition. No typography, letters, captions, logos or watermarks.",
+  "characters": {},
+  "references": [
+    {
+      "path": "referencias/fotograma_interior.png",
+      "role": "interior",
+      "notes": "Sustituir por un fotograma interior aportado; no una miniatura."
+    }
+  ],
+  "voice": {
+    "reference_id": null,
+    "model": null,
+    "speed": 1.0
+  },
+  "music": {
+    "mode": "auto",
+    "channel": "documentary",
+    "mood": "investigation",
+    "track_id": null,
+    "count": 2
+  },
+  "sfx_events": [],
+  "transition_duration": 0.4,
+  "fade_in": 0.6,
+  "fade_out": 0.8,
+  "chapters": null,
+  "sources": [],
+  "description": null,
+  "thumbnail_text": {}
+}

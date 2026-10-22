@@ -11,6 +11,7 @@ principal; los documentos no duplican instrucciones completas.
 | Preparar brief/plan y reeditar sin nueva voz | [Montaje por escenas](editing.md) |
 | Elegir música, efectos, voces y conservar créditos | [Audio y derechos](audio.md) |
 | Reutilizar composiciones y revisar la galería | [Documental enriquecido](motion.md) |
+| Preparar ilustraciones stickman y montarlas con Kitok | [YouTube stickman ES](youtube-stickman-es.md) |
 | Comparar motores de motion y licencias | [Investigación de montaje](motion-research.md) |
 | Conectar YouTube sólo para lectura | [Conexión oficial](integrations/youtube-readonly.md) |
 | Mantener código, Git, pruebas y documentación | [Desarrollo](development.md) y [AGENTS.md](../AGENTS.md) |

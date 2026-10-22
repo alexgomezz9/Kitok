@@ -27,8 +27,10 @@ no un intérprete semántico de cualquier guion.
 
 ## 3. Paquete editorial
 
-Miniaturas editoriales, variantes de título y portada, capítulos, adaptación a
-shorts y evaluación de retención necesitan componentes y revisión propios.
+El adaptador [stickman ES](youtube-stickman-es.md) ya prepara conceptos de miniatura,
+composición PNG, descripción y capítulos reales; su primer estilo/lote de imágenes
+todavía necesita referencias y aprobación. El empaquetado general de otros formatos,
+variantes de título, adaptación a shorts y evaluación de retención siguen pendientes.
 Las miniaturas técnicas de previsualización ya existentes no cumplen esa función.
 Doblar/traducir tampoco conserva automáticamente la sincronización.
 

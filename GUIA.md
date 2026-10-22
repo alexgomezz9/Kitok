@@ -160,6 +160,31 @@ Para iniciar explícitamente la recuperación, usa los dos valores completos que
 
 La confirmación se vuelve a validar bajo bloqueo antes de poner el montaje en cola. Si cambian los archivos, se rechaza; no hay alternativa automática que vuelva a generar voz. La auditoría acredita la identidad de la narración; el resultado del montaje se verifica cuando termina la recuperación.
 
+## Nuevo flujo YouTube stickman ES
+
+El pipeline `youtube_stickman_es` usa el mismo motor de Kitok, con imágenes
+generadas previamente por Codex. Conserva los flujos de shorts y documental.
+Se ejecuta por terminal; no hay aún un formulario específico en el estudio.
+
+```bash
+.venv/bin/python -m kitok.youtube_stickman_es init content/longform/mi_episodio
+.venv/bin/python -m kitok.youtube_stickman_es produce content/longform/mi_episodio
+.venv/bin/python -m kitok.youtube_stickman_es resume content/longform/mi_episodio
+.venv/bin/python -m kitok.youtube_stickman_es render content/longform/mi_episodio --revision v2
+```
+
+Aporta `guion_final.txt`, `titulo.txt`, referencias interiores y configuración;
+voz/SRT existentes se reutilizan. Kitok prepara tiempos y solicita a Codex la
+dirección e imágenes que faltan: no puede llamar a la herramienta de imágenes
+desde Python. Primero se aprueba la muestra visual, después el lote. No se
+reescribe el guion ni se genera un episodio completo al preparar la configuración.
+No hay SRT estimado: audio importado sin SRT/alineación real necesita ese recurso.
+El comando se detiene indicando qué falta, sin contratar servicios ni publicar.
+
+La muestra de configuración sólo demuestra el montaje con dibujos/señal técnica;
+todavía no acredita el estilo final o un lote real de 120 imágenes.
+[Instrucciones, reintentos, miniaturas y límites](docs/youtube-stickman-es.md).
+
 ## Usar shorts desde el backend / terminal
 
 No necesitas activar el entorno si usas .venv/bin/python. Todos los comandos siguientes se lanzan desde la raíz del proyecto.

@@ -23,11 +23,14 @@ revisa. Las claves se configuran en .env; nunca se guardan en el frontend.
 - Shorts con Pexels: Fish + Pexels + FFmpeg nativos.
 - Vídeo largo: motor nativo experimental; Básico o Documental enriquecido desde el formulario, sin preparar un plan manual.
 - Montaje: compara A/B y renderiza planes por escena con audio/recursos locales;
-  galería de19composiciones, tres muestras UltimateBet, otro tema, fotografía y QA.
+  galería de 43 demostraciones: 20 efectos, 11 cámaras, 8 transiciones y muestras.
   Three.js/póker se conserva opcional histórico.
 - Compilador de briefs: selección local por entidad/función, derechos y hashes;
   biblioteca de20músicas con crossfade/ducking,6SFX y11voces catalogadas. No interpreta guiones arbitrarios.
 - Guardado local: outputs/ready y outputs/longform. No requiere Google Drive.
+- [YouTube stickman ES](docs/youtube-stickman-es.md): adaptador CLI de ilustraciones,
+  voz/SRT, lotes reanudables y montaje compartido. Codex aporta dirección e imágenes;
+  la aprobación de estilo y la generación real del primer episodio siguen pendientes.
 - Generar o asignar una fecha local no publica. Buffer requiere confirmación.
 - YouTube: CLI oficial de lectura preparado, consentimiento de Google pendiente.
   El director general y los perfiles multicanal siguen pendientes.
