@@ -188,7 +188,7 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
     with _plan_lock(workspace):
         for index, scene in enumerate(plan.scenes):
             if on_stage:
-                on_stage(f"Scene {index+1}/{len(plan.scenes)}: {scene.intention}")
+                on_stage(f"Plano {index+1}/{len(plan.scenes)} · {scene.start:.1f}–{scene.end:.1f} s · {scene.intention}")
             scene_start = time.monotonic()
             duration = scene.end - scene.start
             frames = round(scene.end * plan.fps) - round(scene.start * plan.fps)
@@ -383,10 +383,12 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
             clips.append(TimelineClip(TimelineSlot(index,"editorial",scene.start,duration),index,target,0))
             handles.append(handle)
             if on_stage:
-                on_stage(f"{scene.id}: {'cached' if hit else 'rendered'} in {time.monotonic()-scene_start:.2f}s")
+                on_stage(f"Plano {index+1}/{len(plan.scenes)}: {'reutilizado' if hit else 'renderizado'} en {time.monotonic()-scene_start:.2f}s")
         # Existing engine owns normalization, concat, encoder fallback and audio mixing.
         engine = FFmpegNativeEngine(ffmpeg=settings.ffmpeg_binary,ffprobe=settings.ffprobe_binary,
                                    encoder=encoder,spec=spec)
+        if on_stage:
+            on_stage("Ensamblaje: uniendo planos y preparando audio final")
         assembled = workspace / "assembled.mp4"
         if plan.audio_is_final_mix:
             # All scene files already share geometry/codec/timebase. Joining them
@@ -421,6 +423,8 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
             if plan.audio_offset:
                 raise ValueError("An unmixed narration plan currently requires audio_offset=0")
             assembled.replace(pending)
+        if on_stage:
+            on_stage("Validación del montaje: duración, pistas y reloj de fotogramas")
         final = probe_media(pending,settings.ffprobe_binary)
         video_duration, audio_duration = stream_durations(pending,settings.ffprobe_binary)
         final_clock = probe_video_clock(pending, settings.ffprobe_binary)

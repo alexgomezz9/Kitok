@@ -233,8 +233,9 @@ def _provider_cues(path: Path, script: str, duration: float) -> list[dict]:
 
 
 def prepare_narration(episode: Path, *, root: Path, settings, voice: dict | None = None,
-                      generate: bool = False) -> dict:
+                      generate: bool = False, on_stage=None) -> dict:
     """Validate/reuse narration; generating new Fish audio requires explicit opt-in."""
+    report = on_stage or (lambda message: None)
     episode = Path(episode).absolute()
     audio, srt, script_path = (episode / name for name in ("voz.mp3", "voz.srt", "guion_final.txt"))
     alignment = audio.with_suffix(".alignment.json")
@@ -286,6 +287,7 @@ def prepare_narration(episode: Path, *, root: Path, settings, voice: dict | None
         )
         try:
             if not staged_audio.exists():
+                report('Voz: solicitando síntesis Fish; puede consumir saldo. Esperando audio')
                 client.synthesize(script.strip(), reference_id, staged_audio, speed=identity["speed"])
         finally:
             client.close()
@@ -308,6 +310,7 @@ def prepare_narration(episode: Path, *, root: Path, settings, voice: dict | None
                     "speed": voice.get("speed", 1.0)}
         if request.get("voice") != identity:
             raise StickmanAudioError("Fish voice settings changed after a request; existing audio was preserved")
+    report('Voz: comprobando audio guardado, duración, transcript y alineación; sin otra síntesis')
     info = probe_media(audio, settings.ffprobe_binary)
     if not info.audio_codec or not math.isfinite(info.duration) or info.duration <= 0:
         raise StickmanAudioError("voz.mp3 must contain measurable, finite narration audio")

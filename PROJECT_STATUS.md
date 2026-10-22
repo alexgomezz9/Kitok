@@ -10,6 +10,13 @@ Manual: [GUIA.md](GUIA.md); [stickman ES](docs/youtube-stickman-es.md);
 
 ## Capacidades comprobadas
 
+- CLI stickman: progreso por stderr con fases, reloj transcurrido, planos actual/total,
+  reutilización y aviso cada 15 s en esperas; `--quiet` conserva salida JSON y errores.
+  El renderer compartido mantiene callbacks opcionales sin salida automática fuera del CLI.
+  Verificación 22/10: 98 tests focales (incluido Native real 6 s/180 frames),
+  docs-check y studio-check correctos; no se han llamado proveedores.
+
+
 - Stickman ES conserva guion y voz, convierte timestamps Fish completos aunque
   el guion contenga párrafos y planifica cortes sobre palabras reales. Valida
   transcript, orden, solapes, duración y hashes; admite palabras instantáneas

@@ -162,6 +162,13 @@ La confirmación se vuelve a validar bajo bloqueo antes de poner el montaje en c
 
 ## Nuevo flujo YouTube stickman ES
 
+Los comandos stickman muestran progreso legible en terminal por defecto: fase,
+tiempo transcurrido, plano actual/total y reutilización de recursos. Si una fase
+tarda, aparece un aviso cada 15 segundos sin inventar porcentajes. El progreso
+sale por stderr y el resultado JSON por stdout; `--quiet` oculta el progreso
+pero conserva los errores. No hacen falta opciones nuevas para verlo.
+
+
 Si aparece `no word start between ...`, la alineación deja un tramo sin cortes
 reales que supera el máximo por escena. El error indica tiempos absolutos y, al
 reutilizar imágenes, el plano original. Un hueco entre timestamps no demuestra

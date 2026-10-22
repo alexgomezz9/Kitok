@@ -48,17 +48,21 @@ def initialize(root: Path, value: Path) -> dict:
             'note':'No script, final illustration or paid voice was generated.'}
 
 
-def _prepare(episode: Path, root: Path, settings, *, generate_voice=False, reuse_images=False):
+def _prepare(episode: Path, root: Path, settings, *, generate_voice=False, reuse_images=False, on_stage=None):
+    emit = on_stage or (lambda message: None)
+    emit('Entradas: comprobando guion, configuración y referencias')
     config,title,script = inputs(episode)
     _style_guide(episode,config)
     narration = prepare_narration(episode,root=root,settings=settings,
-                                  voice=config.voice.model_dump(),generate=generate_voice)
+                                  voice=config.voice.model_dump(),generate=generate_voice, on_stage=on_stage)
     direction_path = local_file(episode,'direccion_visual.json',exists=False)
     reuse_images = reuse_images or local_file(episode,'.stickman/provided_images.json',exists=False).exists()
     spans = source_spans(episode,script) if reuse_images else None
     directions = json.loads(direction_path.read_text()) if direction_path.exists() and spans is None else None
+    emit('Alineación: calculando cortes sobre los tiempos reales de la voz')
     plan = plan_illustrations(episode,title=title,script=script,narration=narration,config=config,
                               directions=directions,source_spans=spans)
+    emit(f'Plan listo: {len(plan.scenes)} planos · {plan.duration:.1f} s de vídeo')
     if narration.get('words') is not None:
         timing_file = '.stickman/word_timing'+('' if plan.direction_complete else '.borrador')+'.json'
         write(local_file(episode,timing_file,exists=False),{
@@ -70,14 +74,17 @@ def _prepare(episode: Path, root: Path, settings, *, generate_voice=False, reuse
         write(local_file(episode,'direcciones_plantilla.json',exists=False),direction_template(plan))
         return plan,config,narration,{'status':'visual_direction_required','planned_scenes':len(plan.scenes),
                                     'next':'Codex fills direccion_visual.json using each exact narrated span; no generic images.'}
+    emit('Preparando descripción, capítulos y conceptos de miniaturas')
     packaging = prepare_packaging(episode,title=title,script=clean_script(script),
                                   scenes=[s.model_dump() for s in plan.scenes],duration=plan.duration,
                                   references=plan.references,chapters=config.chapters,sources=config.sources,
                                   description=config.description,thumbnail_text=config.thumbnail_text)
     batch = ImageBatch(episode,plan,config)
     if reuse_images:
+        emit('Imágenes: verificando y asociando los recursos existentes; sin generar imágenes')
         batch.adopt_provided()
     image_status = batch.status()
+    emit(f'Imágenes comprobadas: {image_status["completed"]} completadas')
     ready = image_status['render_images_ready'] and (image_status['style_approved'] or image_status['assembly_authorized'])
     return plan,config,narration,{'status':'ready_to_render' if ready else 'images_required',
                                 'images':image_status,'packaging':packaging}
@@ -100,7 +107,9 @@ def current(episode: Path):
     return plan,config,ImageBatch(episode,plan,config)
 
 
-def _render(episode: Path, root: Path, settings, *, revision: str | None = None):
+def _render(episode: Path, root: Path, settings, *, revision: str | None = None, on_stage=None):
+    emit = on_stage or (lambda message: None)
+    emit('Montaje: validando plan e imágenes antes de renderizar')
     if revision is not None and not re.fullmatch('[a-z0-9][a-z0-9_-]{0,39}',revision):
         raise ValueError('Render revision must be a short lowercase ID')
     plan,config,batch = current(episode)
@@ -109,7 +118,8 @@ def _render(episode: Path, root: Path, settings, *, revision: str | None = None)
     status = batch.status()
     if not status['render_images_ready']:
         raise ValueError('Every planned illustration must exist, decode and have visual review before rendering')
-    narration = prepare_narration(episode,root=root,settings=settings,voice=config.voice.model_dump())
+    narration = prepare_narration(episode,root=root,settings=settings,voice=config.voice.model_dump(),on_stage=on_stage)
+    emit('Audio: preparando mezcla local de voz, música y efectos configurados')
     mix = prepare_mix(episode,narration,root=root,settings=settings,
                       music=config.music.model_dump(),sfx_events=config.sfx_events)
     source_audio = Path(mix['audio_path'])
@@ -141,10 +151,12 @@ def _render(episode: Path, root: Path, settings, *, revision: str | None = None)
                 or old.get('audio_source_sha256') != mix['audio_sha256']
                 or old.get('assets') != {key:asset.model_dump() for key,asset in assets.items()}):
             raise ValueError('Existing render receipt differs; preserve it and choose --revision')
+        emit('Vídeo existente: recibo e identidad comprobados; se reutiliza')
         result = old
     else:
         timeline.write(local_file(episode,'montaje'+suffix+'.json',exists=False))
-        result = render_editorial_plan(timeline,root=root,output=output,settings=settings)
+        result = render_editorial_plan(timeline,root=root,output=output,settings=settings, on_stage=on_stage)
+    emit('Calidad: comprobando MP4, fotogramas, sonoridad y continuidad de audio')
     if qa_path.exists():
         qa = json.loads(qa_path.read_text())
         if qa.get('video_sha256') != digest(output):
@@ -156,6 +168,7 @@ def _render(episode: Path, root: Path, settings, *, revision: str | None = None)
     credits = '# Créditos\n\nGuion y título aportados por el operador.\n\n'+'\n\n'.join(mix.get('credits',[]))
     credits += '\n\nIlustraciones generadas: revisar referencias, derechos y consistencia antes de publicar.\n'
     write(local_file(episode,'CREDITS.md',exists=False),credits)
+    emit('Entrega: preparando créditos, informe y miniaturas disponibles')
     packaging = _finish_packaging(episode,plan,config)
     report = {'pipeline':'youtube_stickman_es','technical_status':qa['technical_status'],
               'production_status':'human_review_required' if packaging['thumbnails_ready'] else 'thumbnail_images_required',
@@ -222,7 +235,7 @@ def _style_guide(episode, config):
     write(local_file(episode,'personajes.json',exists=False),config.characters)
 
 
-def execute(root: Path, episode: Path, command: str, *, settings=None, **options) -> dict:
+def execute(root: Path, episode: Path, command: str, *, settings=None, on_stage=None, **options) -> dict:
     """One lock spans preparation/mixing/render; no background provider scheduler."""
     root = root.resolve()
     settings = settings or Settings()
@@ -233,13 +246,13 @@ def execute(root: Path, episode: Path, command: str, *, settings=None, **options
         name = options['revision']
         if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]{0,63}',name):
             raise ValueError('Revision must be a simple identifier of at most 64 characters')
-        return execute(root,episode_path(root,folder/'revisiones'/name),command,settings=settings)
+        return execute(root,episode_path(root,folder/'revisiones'/name),command,settings=settings,on_stage=on_stage)
     if options.get('revision') and command in {'prepare','produce','resume'}:
         with episode_lock(folder):
             revised = safe_revision(root,folder,options['revision'])
         # The revision has its own production lock; provider opt-in never carries
         # into recovery of already supplied audio.
-        return execute(root,revised,command,settings=settings,
+        return execute(root,revised,command,settings=settings,on_stage=on_stage,
                        **{**options,'revision':None,'generate_voice':False})
     if command == 'status':
         missing=[name for name in ('configuracion.json','guion_final.txt','titulo.txt')
@@ -256,14 +269,14 @@ def execute(root: Path, episode: Path, command: str, *, settings=None, **options
     with episode_lock(folder):
         if command in {'prepare','produce','resume'}:
             plan,config,narration,result = _prepare(folder,root,settings,generate_voice=options.get('generate_voice',False),
-                                                   reuse_images=options.get('reuse_images',False))
+                                                   reuse_images=options.get('reuse_images',False), on_stage=on_stage)
             if command == 'prepare' or not plan.direction_complete:
                 return result
             if not (result['images']['style_approved'] or result['images']['assembly_authorized']) or not result['images']['render_images_ready']:
                 return result
-            return _render(folder,root,settings,revision=options.get('revision'))
+            return _render(folder,root,settings,revision=options.get('revision'), on_stage=on_stage)
         if command == 'render':
-            return _render(folder,root,settings,revision=options.get('revision'))
+            return _render(folder,root,settings,revision=options.get('revision'), on_stage=on_stage)
         plan,config,batch = current(folder)
         if command == 'request-next':
             status=batch.status()

@@ -128,7 +128,12 @@ def test_real_shared_native_render_resume_and_rerender(setup_episode,monkeypatch
     root,folder,settings=setup_episode
     accept_fixture(setup_episode,thumbs=True)
     before={p.name:digest(p) for p in (folder/'imagenes').iterdir()}
-    report=execute(root,folder,'produce',settings=settings)
+    stages=[]
+    report=execute(root,folder,'produce',settings=settings,on_stage=stages.append)
+    assert any('Plano 1/2' in s for s in stages)
+    assert any('Plano 2/2: renderizado' in s for s in stages)
+    assert any('Ensamblaje:' in s for s in stages)
+    assert any('Calidad:' in s for s in stages)
     assert report['technical_status']=='passed'
     assert report['packaging']['thumbnails_ready']
     assert report['render']['provider_requests']==0
@@ -142,7 +147,9 @@ def test_real_shared_native_render_resume_and_rerender(setup_episode,monkeypatch
     original=digest(folder/'video_final.mp4')
     # Simulate a crash after renderer promotion and before outer QA publication.
     (folder/'qa.json').unlink()
-    resumed=execute(root,folder,'resume',settings=settings)
+    stages.clear()
+    resumed=execute(root,folder,'resume',settings=settings,on_stage=stages.append)
+    assert any('Vídeo existente:' in s for s in stages)
     assert resumed['technical_status']=='passed' and digest(folder/'video_final.mp4')==original
     rerender=execute(root,folder,'render',settings=settings,revision='v2')
     assert len(rerender['render']['reused_scenes'])==2

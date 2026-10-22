@@ -7,6 +7,7 @@ import sys
 
 from ..config import PROJECT_ROOT
 from .pipeline import execute
+from .progress import TerminalProgress
 
 
 def main(argv=None):
@@ -14,6 +15,7 @@ def main(argv=None):
     parser.add_argument('command', choices=['init','prepare','produce','resume','render','status','request','request-next',
                                            'import-image','review-image','approve-style','reject','retry','unknown','package'])
     parser.add_argument('episode',type=Path,help='Episode folder inside the Kitok workspace')
+    parser.add_argument('--quiet', action='store_true', help='Hide human progress on stderr; keep final JSON')
     parser.add_argument('--generate-voice',action='store_true',help='Explicitly allow configured Fish only if voz.mp3 is absent')
     parser.add_argument('--revision',help='prepare/produce/resume: isolated episode snapshot; render: new MP4 suffix')
     parser.add_argument('--reuse-images',action='store_true',help='Authorize assembly of supplied images using plan_visual.json or the original visual plan; no generation or visual QA')
@@ -34,8 +36,12 @@ def main(argv=None):
     for name in required.get(command,[]):
         if args.get(name) is None:
             parser.error('--'+name.replace('_','-')+' is required for '+command)
+    quiet = args.pop('quiet')
     try:
-        result = execute(PROJECT_ROOT,episode,command,**args)
+        with TerminalProgress(enabled=not quiet) as progress:
+            progress(f'Kitok · {command} · {episode.name}')
+            result = execute(PROJECT_ROOT,episode,command,on_stage=progress,**args)
+            progress(f'Comando terminado · estado: {result.get("status", result.get("technical_status", "consulta completada"))}')
     except (ValueError,OSError,RuntimeError) as error:
         print(json.dumps({'status':'blocked','error':str(error)},ensure_ascii=False),file=sys.stderr)
         return 2
