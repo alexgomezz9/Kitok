@@ -59,3 +59,27 @@ Siguiente para el operador, desde la raíz del proyecto:
 El MP4 se guardará en la revisión; no se regeneran voz ni ilustraciones.
 UltimateBet completo sigue bajo control del operador desde el estudio tras revisar
 sus muestras. [Historia](docs/archive/README.md).
+
+## Michael Myers: reparación local de voz (22/10)
+
+El operador confirmó ruido audible en ambos huecos. El MP3 original decodifica
+completo y su duración coincide; no se demostró un fallo del cálculo de offsets.
+Copia preparada en `stickman_2_michael_myers/revisiones/montaje_720p_sin_ruidos/`: dos cortes
+interiores, 14,88 s eliminados; 2165 palabras conservadas y 135 planos calculados.
+Originales y 125 imágenes intactos. Sin síntesis, ASR externo ni render completo.
+Método de tiempos derivado explícito y hashes contrastados con originales.
+`prepare --reuse-images` devuelve `ready_to_render`; las 125 imágenes proceden
+de la revisión `montaje_720p` aportada por el operador y pasan el importador.
+Verificación 22/10: `make verify` (1095 Python, 25 React, TypeScript/Vite),
+`docs-check`, `studio-check` y 19 pruebas de cortes/skill correctos. Revisión
+independiente cerrada tras corregir fundidos en intervalos vacíos/contiguos.
+Las 132 entradas originales conservan sus hashes. Decodificación completa del
+MP3 reparado correcta; duración 725,995102 s, montaje 726 s y máximo por plano
+7,933333 s. Muestras de ambos empalmes en la carpeta de salida; escucha pendiente.
+La copia diagnóstica anterior `revisiones/sin_ruidos` conserva recortes pequeños:
+no usarla para montar. La skill ahora exige verificar todos los PNG finales y
+señalar la ruta de entrega correcta. Siguiente del operador, sin nueva voz:
+
+```bash
+.venv/bin/python -m kitok.youtube_stickman_es produce content/longform/stickman_2_michael_myers/revisiones/montaje_720p_sin_ruidos --reuse-images
+```

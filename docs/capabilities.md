@@ -281,3 +281,7 @@ recorta y publica PNG completos con manifiestos e IDs originales. El montaje sig
 usando `youtube_stickman_es --reuse-images` y el motor Native existente. Generación
 integrada disponible no acredita saldo, coste o límites de cuenta: si no se exponen,
 se declaran desconocidos. Las APIs independientes de pago requieren autorización.
+
+Los ruidos de voz confirmados por el operador pueden retirarse en una copia
+con cortes entre palabras y tiempos derivados verificables, sin nueva síntesis.
+No hay detección ni realineación acústica automática; ver [audio](audio.md#quitar-ruidos-de-sintesis-confirmados).

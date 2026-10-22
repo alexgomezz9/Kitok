@@ -98,6 +98,8 @@ def _snapshot_files(episode: Path) -> dict[str, str]:
     for name in ('configuracion.json', 'guion_final.txt', 'titulo.txt'):
         paths.add(local_file(episode, name).relative_to(episode).as_posix())
     for name in ('voz.mp3', 'voz.alignment.json', 'voz.srt', 'guion_lectura_limpia.txt',
+                 'audio_original/voz.mp3', 'audio_original/voz.alignment.json', 'audio_original/voz.srt',
+                 'audio_repair_source.json',
                  *_PLAN_PATHS, 'planificacion_visual/aprobacion_estilo_operador.json'):
         candidate = local_file(episode, name, exists=False)
         if candidate.exists():

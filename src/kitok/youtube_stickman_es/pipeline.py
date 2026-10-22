@@ -97,7 +97,8 @@ def current(episode: Path):
             or plan.audio_sha256 != digest(local_file(episode,'voz.mp3'))
             or plan.srt_sha256 != digest(local_file(episode,'voz.srt'))):
         raise ValueError('Planned script, approved title, voice or SRT changed; use another episode revision')
-    if plan.timing_method == 'fish_provider_word_timestamps_full_transcript':
+    if plan.timing_method in {'fish_provider_word_timestamps_full_transcript',
+                              'fish_provider_word_timestamps_after_audio_cuts'}:
         record = json.loads(local_file(episode,'.stickman/word_timing.json').read_text())
         if (record.get('alignment_sha256') != digest(local_file(episode,'voz.alignment.json'))
                 or record.get('plan_sha256') != digest(plan.model_dump())

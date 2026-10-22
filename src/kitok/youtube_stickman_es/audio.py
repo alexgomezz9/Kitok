@@ -155,7 +155,12 @@ def _provider_segments(path: Path, script: str, duration: float) -> list[dict]:
     """Validate original Fish segments without inventing intra-segment timestamps."""
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
-        if not isinstance(data, dict) or data.get("method") != "fish_provider_timestamps":
+        if not isinstance(data, dict):
+            raise ValueError
+        if data.get('method') == 'fish_provider_timestamps_after_audio_cuts':
+            from .audio_cuts import verify_edited_alignment
+            verify_edited_alignment(path, data, script)
+        elif data.get('method') != 'fish_provider_timestamps':
             raise ValueError
         words = data["words"]
         if not isinstance(words, list) or not words:
@@ -348,6 +353,8 @@ def prepare_narration(episode: Path, *, root: Path, settings, voice: dict | None
         if _hash(alignment) != alignment_sha:
             raise StickmanAudioError("Provider alignment changed during validation; no receipt was accepted")
         result["alignment_sha256"] = alignment_sha
+        if json.loads(alignment.read_text())['method'] == 'fish_provider_timestamps_after_audio_cuts':
+            result['alignment_method'] = 'fish_provider_timestamps_after_audio_cuts'
         # Fish also returns whole segments under 'words'. Never invent word times.
         if all(len(_tokens(segment["word"])) == 1 for segment in segments):
             result["words"] = segments

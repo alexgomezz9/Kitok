@@ -174,9 +174,10 @@ reales que supera el máximo por escena. El error indica tiempos absolutos y, al
 reutilizar imágenes, el plano original. Un hueco entre timestamps no demuestra
 silencio en el MP3: revisa ambos antes de cambiar límites. Conserva `voz.mp3`,
 `voz.srt`, `voz.alignment.json` y `.stickman/`; no los borres para repetir Fish.
-Repetir el comando no repara una alineación incorrecta. La recuperación necesita
-alineación real corregida en una revisión nueva; Kitok no la estima ni dispone
-de realineación acústica automática.
+Repetir el comando no repara una alineación incorrecta. Kitok no dispone de
+realineación acústica automática. Si escuchas un artefacto de síntesis dentro
+de un hueco entre palabras, se puede quitar en una copia conservando el original;
+consulta [los cortes de audio revisados](docs/audio.md#quitar-ruidos-de-sintesis-confirmados).
 
 
 El pipeline `youtube_stickman_es` usa el mismo motor de Kitok, con imágenes

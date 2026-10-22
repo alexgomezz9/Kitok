@@ -274,3 +274,32 @@ con límite obtenido de la alineación Fish existente tras validar el transcript
 completo. El archivo `.narrative.json` guarda las secciones y la razón del cambio.
 No es un render del episodio ni una nueva síntesis; queda pendiente escuchar la
 adecuación subjetiva de la transición.
+
+## Quitar ruidos de síntesis confirmados
+
+Un hueco de timestamps puede contener ruido, no silencio. Escúchalo antes de
+editar. Este auxiliar sólo corta intervalos expresos que no intersecten ninguna
+palabra Fish. No detecta artefactos ni decide cortes por su cuenta.
+
+```bash
+.venv/bin/python scripts/repair_stickman_audio.py content/longform/mi_episodio --output content/longform/mi_episodio_sin_ruido --cut 12.1:14.9 --reviewer operador
+.venv/bin/python -m kitok.youtube_stickman_es prepare content/longform/mi_episodio_sin_ruido --reuse-images
+```
+
+Los tiempos del ejemplo son ilustrativos: sustituir por huecos escuchados y
+verificados del episodio. Se puede repetir `--cut`, en orden, para varios tramos.
+La salida debe ser una carpeta nueva; no sobrescribe ni reintenta una reparación.
+No llama a Fish, ASR ni proveedores y no monta el vídeo. El modelo configurado
+no cambia y no se solicita ninguna síntesis nueva.
+
+La copia archiva voz, alineación y SRT originales en `audio_original/`; conserva
+guion e imágenes con hashes. Recorta PCM a muestras exactas, aplica fundidos de
+hasta 5 ms sólo en empalmes y codifica una vez a MP3. Desplaza los tiempos por
+la duración eliminada sin borrar ni inventar palabras. La alineación derivada
+se identifica como `fish_provider_timestamps_after_audio_cuts`, incluye los
+cortes, hashes y revisor, y se contrasta de nuevo con el original al preparar.
+La revisión acústica de los empalmes sigue correspondiendo al operador.
+
+Después de preparar y revisar la copia, `produce RUTA_COPIA --reuse-images`
+monta con la voz reparada, sin `--generate-voice`. Las validaciones de imágenes
+siguen vigentes: recortes inferiores a 1280×720 no pasan por tener audio reparado.

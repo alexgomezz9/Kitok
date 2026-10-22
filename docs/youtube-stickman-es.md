@@ -240,3 +240,8 @@ confirma que consume uso de Codex. Esta integración no puede consultar tu cuota
 restante ni garantizar que 120 dibujos sean baratos por ser sencillos. La forma
 de medir viabilidad será la muestra aprobada y los datos que reporte la herramienta,
 sin contratar una API alternativa automáticamente.
+
+Para un artefacto audible de voz entre palabras, conserva el episodio original
+y usa [la reparación local con cortes revisados](audio.md#quitar-ruidos-de-sintesis-confirmados).
+La copia conserva evidencia de los tiempos derivados; no se presenta como
+alineación Fish original ni se solicita otra voz.
