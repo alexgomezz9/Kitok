@@ -1,9 +1,10 @@
 # Estado vigente de Kitok
 
-Actualizado: **2026-10-22**. Integración prevista en **main** desde
+Actualizado: **2026-10-22**. Rama **main**, integrada por fast-forward desde
 `feature/stickman-word-alignment`, base `53c739e`. Checkpoints de alineación
-`be3cf81` y planificación `01c11ae` subidos a la rama; integración de reutilización
-al cierre. CI remoto se comprueba por SHA; aún en curso durante esta actualización.
+`be3cf81`, planificación `01c11ae` y reutilización `e46fbb1` verificados localmente.
+CI remoto consultado: en curso; la comprobación del checkpoint de planificación
+seguía instalando FFmpeg. No se presenta ese estado como CI aprobado.
 Manual: [GUIA.md](GUIA.md); [stickman ES](docs/youtube-stickman-es.md);
 [montaje](docs/editing.md); [movimiento](docs/motion.md); [audio](docs/audio.md).
 
