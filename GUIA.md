@@ -181,6 +181,25 @@ reescribe el guion ni se genera un episodio completo al preparar la configuraci�
 No hay SRT estimado: audio importado sin SRT/alineación real necesita ese recurso.
 El comando se detiene indicando qué falta, sin contratar servicios ni publicar.
 
+Si ya tienes imágenes con su plan visual, Kitok conserva sus fragmentos de guion
+y nombres al ajustar los cortes a las palabras reales de Fish. No necesitas
+arreglar el SRT ni renombrar archivos. Para recuperar un episodio conservando
+todos sus recursos y registros originales:
+
+```bash
+.venv/bin/python -m kitok.youtube_stickman_es prepare content/longform/mi_episodio --revision alineada --reuse-images
+.venv/bin/python -m kitok.youtube_stickman_es produce content/longform/mi_episodio --revision alineada --reuse-images
+```
+
+`prepare` comprueba y planifica sin renderizar; `produce` monta en
+`revisiones/alineada/`. La revisión copia los inputs y fija sus hashes;
+reanudar exige que originales y copia sigan intactos. `--reuse-images` autoriza
+el montaje de los recursos proporcionados, sin afirmar una nueva revisión visual.
+El plan puede ser `plan_visual.json` o el plan previo de `planificacion_visual/`;
+su formato se explica en el manual enlazado abajo. Sin imágenes previas se mantiene
+la muestra y generación por Codex. `render --revision v2` conserva su significado
+anterior: otro nombre de MP4 dentro del mismo episodio.
+
 La muestra de configuración sólo demuestra el montaje con dibujos/señal técnica;
 todavía no acredita el estilo final o un lote real de 120 imágenes.
 [Instrucciones, reintentos, miniaturas y límites](docs/youtube-stickman-es.md).

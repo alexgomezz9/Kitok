@@ -113,6 +113,7 @@ class ImageBatch:
 
     def status(self):
         state, approved = self._read(), self.approval()
+        provided = self.provided_authorization()
         rows = []
         for ident, job in self.jobs.items():
             row = state['jobs'].get(ident, {})
@@ -129,7 +130,44 @@ class ImageBatch:
                 'completed':sum(r['valid'] for r in rows),'planned':len(rows),
                 'generation_cost':sum(costs) if costs and all(c is not None for c in costs) else None,
                 'cost_note':'Unknown until the actual generation tool reports a cost; never treated as zero.',
-                'render_images_ready':all(r['valid'] and r['reviewed'] for r in rows if r['kind']=='scene')}
+                'assembly_authorized':bool(provided),
+                'render_images_ready':all(r['valid'] and (r['reviewed'] or bool(provided)) for r in rows if r['kind']=='scene')}
+
+    def provided_authorization(self):
+        """Explicit operator permission to assemble supplied files; never visual QA."""
+        path = local_file(self.episode,'.stickman/provided_images.json',exists=False)
+        if not path.exists():
+            return None
+        data = json.loads(path.read_text())
+        expected = {s.id:digest(local_file(self.episode,s.image_file)) for s in self.plan.scenes}
+        if (data.get('plan_sha256') != self.plan_key or data.get('batch_sha256') != self.key
+                or data.get('image_hashes') != expected):
+            raise ValueError('Provided image authorization changed; preserve it and use another revision')
+        return data
+
+    def adopt_provided(self):
+        """Register existing originals without normalization, renaming or fake review."""
+        state = self._read()
+        hashes = {}
+        for scene in self.plan.scenes:
+            info = self.inspect(local_file(self.episode,scene.image_file))
+            old = state['jobs'].get(scene.id)
+            if old and (old.get('source_kind') != 'provided_collection'
+                        or old.get('sha256') != info['sha256'] or old.get('status') != 'complete'):
+                raise ValueError('Existing image attempt cannot be replaced by provided resources')
+            hashes[scene.id] = info['sha256']
+        # All files are validated before either state or authorization is published.
+        for scene in self.plan.scenes:
+            state['jobs'].setdefault(scene.id,{'status':'complete','attempts':1,
+                'sha256':hashes[scene.id],'source_kind':'provided_collection',
+                'reviewed':False,'reported_cost':None})
+        from .files import write
+        self._write(state)
+        write(local_file(self.episode,'.stickman/provided_images.json',exists=False),{
+            'version':1,'plan_sha256':self.plan_key,'batch_sha256':self.key,
+            'image_hashes':hashes,'authorization':'operator --reuse-images',
+            'review_scope':'Assembly of supplied resources only; no new visual/style review asserted.'})
+        return self.status()
 
     def claim(self, ident: str) -> dict:
         job = self._job(ident)
@@ -226,6 +264,8 @@ class ImageBatch:
     def reject(self, ident: str, *, reason: str):
         job, state = self._job(ident), self._read()
         row = state['jobs'].get(ident,{})
+        if row.get('source_kind') == 'provided_collection':
+            raise ValueError('Provided collection is immutable; preserve it and create another revision')
         if not reason.strip() or row.get('status')!='complete':
             raise ValueError('Reject a completed image with a concrete review reason')
         if self.approval() and ident in self.samples:

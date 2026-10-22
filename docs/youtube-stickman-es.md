@@ -65,10 +65,45 @@ sigue necesitando revisión. No se presenta esa comparación textual como ASR.
 
 La planificación produce aproximadamente un plano cada cinco segundos: por
 ejemplo, 600 s con subtítulos suficientemente granulares generan 120 escenas.
-Los cortes usan límites reales cercanos de las frases, cuantizados a 30 fps;
-el último frame cubre el final de la voz sin recortarlo. Un SRT demasiado grueso
-se rechaza: no se reduce silenciosamente el número de ilustraciones ni se
-interpolan palabras dentro de una frase de veinte segundos.
+Cuando Fish aporta palabras completas y ordenadas, los cortes usan sus tiempos
+reales aunque el SRT tenga bloques largos. Se elige una distribución global
+factible próxima a cinco segundos, con máximo estricto y cuantización a 30 fps;
+el último frame cubre el final de la voz sin recortarlo. Se conservan las palabras
+con duración cero y no se eligen cortes que creen escenas vacías. Los segmentos
+multipalabra sirven para SRT, pero no se subdividen inventando tiempos. Sin reloj
+de palabras sigue disponible el modo SRT: si sus límites reales no permiten
+respetar el máximo se solicita una alineación más granular.
+
+## Reutilizar imágenes y un plan anterior
+
+```bash
+.venv/bin/python -m kitok.youtube_stickman_es prepare content/longform/mi_episodio --revision alineada --reuse-images
+.venv/bin/python -m kitok.youtube_stickman_es produce content/longform/mi_episodio --revision alineada --reuse-images
+```
+
+El primer comando no renderiza ni consume proveedores. El segundo usa el motor
+de Kitok para montaje, cámaras, transiciones, música y render, conservando la voz.
+No hace falta un script para reparar SRT ni renombrar imágenes. Las miniaturas
+que falten quedan pendientes y no bloquean el MP4.
+
+`plan_visual.json` contiene `script_source`, `script_sha256` y `scenes`. Cada escena
+declara `id`, `source_char_start` y `source_char_end` (fin exclusivo), `narration`,
+`image_file`, `visual_description` y `scene_prompt`; opcionalmente `image_sha256`
+y `characters`. Los offsets se refieren al texto exacto de `script_source`.
+También se admite `planificacion_visual/plan_visual_prevoz.json` con
+`visual_description_en`. Se comprueba la cobertura completa del guion, sin huecos
+ni duplicados, y se ignoran los tiempos estimados. La imagen sigue asociada al
+mismo fragmento; si necesita varios planos para respetar el máximo, se reutiliza
+el mismo archivo. Los planes y prompts se preparan antes con Codex.
+
+La revisión se guarda en `revisiones/alineada/`, con copias independientes de
+inputs, referencias e imágenes y un manifiesto de hashes. No reemplaza recursos,
+SRT, aprobaciones ni recibos de pago originales. Una reanudación rechaza cambios
+en los inputs fijados. La alineación queda ligada al plan mediante su hash.
+`--reuse-images` registra autorización del operador para montar esos recursos;
+no marca imágenes como inspeccionadas ni crea una aprobación de estilo ficticia.
+La revisión humana audiovisual y de derechos sigue pendiente. Sin este parámetro
+se mantiene el flujo de muestras y aprobación del lote.
 
 Primero aparecen `plan_imagenes.borrador.json`, `.md` y
 `direcciones_plantilla.json`. Codex copia la plantilla a `direccion_visual.json`

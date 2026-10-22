@@ -17,6 +17,7 @@ from .models import Config, IllustrationPlan
 from .packaging import prepare_packaging, compose_thumbnail
 from .planner import direction_template, plan_illustrations, reference_records, write_plan
 from .quality import QA_VERSION, inspect_delivery
+from .reuse import source_spans, safe_revision
 
 
 def inputs(episode: Path):
@@ -47,14 +48,23 @@ def initialize(root: Path, value: Path) -> dict:
             'note':'No script, final illustration or paid voice was generated.'}
 
 
-def _prepare(episode: Path, root: Path, settings, *, generate_voice=False):
+def _prepare(episode: Path, root: Path, settings, *, generate_voice=False, reuse_images=False):
     config,title,script = inputs(episode)
     _style_guide(episode,config)
     narration = prepare_narration(episode,root=root,settings=settings,
                                   voice=config.voice.model_dump(),generate=generate_voice)
     direction_path = local_file(episode,'direccion_visual.json',exists=False)
-    directions = json.loads(direction_path.read_text()) if direction_path.exists() else None
-    plan = plan_illustrations(episode,title=title,script=script,narration=narration,config=config,directions=directions)
+    reuse_images = reuse_images or local_file(episode,'.stickman/provided_images.json',exists=False).exists()
+    spans = source_spans(episode,script) if reuse_images else None
+    directions = json.loads(direction_path.read_text()) if direction_path.exists() and spans is None else None
+    plan = plan_illustrations(episode,title=title,script=script,narration=narration,config=config,
+                              directions=directions,source_spans=spans)
+    if narration.get('words') is not None:
+        timing_file = '.stickman/word_timing'+('' if plan.direction_complete else '.borrador')+'.json'
+        write(local_file(episode,timing_file,exists=False),{
+            'version':1,'alignment_sha256':narration['alignment_sha256'],
+            'audio_sha256':narration['audio_sha256'],'script_sha256':narration['script_sha256'],
+            'plan_sha256':digest(plan.model_dump())})
     write_plan(episode,plan)
     if not plan.direction_complete:
         write(local_file(episode,'direcciones_plantilla.json',exists=False),direction_template(plan))
@@ -65,7 +75,12 @@ def _prepare(episode: Path, root: Path, settings, *, generate_voice=False):
                                   references=plan.references,chapters=config.chapters,sources=config.sources,
                                   description=config.description,thumbnail_text=config.thumbnail_text)
     batch = ImageBatch(episode,plan,config)
-    return plan,config,narration,{'status':'images_required','images':batch.status(),'packaging':packaging}
+    if reuse_images:
+        batch.adopt_provided()
+    image_status = batch.status()
+    ready = image_status['render_images_ready'] and (image_status['style_approved'] or image_status['assembly_authorized'])
+    return plan,config,narration,{'status':'ready_to_render' if ready else 'images_required',
+                                'images':image_status,'packaging':packaging}
 
 
 def current(episode: Path):
@@ -75,6 +90,13 @@ def current(episode: Path):
             or plan.audio_sha256 != digest(local_file(episode,'voz.mp3'))
             or plan.srt_sha256 != digest(local_file(episode,'voz.srt'))):
         raise ValueError('Planned script, approved title, voice or SRT changed; use another episode revision')
+    if plan.timing_method == 'fish_provider_word_timestamps_full_transcript':
+        record = json.loads(local_file(episode,'.stickman/word_timing.json').read_text())
+        if (record.get('alignment_sha256') != digest(local_file(episode,'voz.alignment.json'))
+                or record.get('plan_sha256') != digest(plan.model_dump())
+                or record.get('audio_sha256') != plan.audio_sha256
+                or record.get('script_sha256') != plan.script_sha256):
+            raise ValueError('Word timing evidence changed; use another episode revision')
     return plan,config,ImageBatch(episode,plan,config)
 
 
@@ -82,7 +104,7 @@ def _render(episode: Path, root: Path, settings, *, revision: str | None = None)
     if revision is not None and not re.fullmatch('[a-z0-9][a-z0-9_-]{0,39}',revision):
         raise ValueError('Render revision must be a short lowercase ID')
     plan,config,batch = current(episode)
-    if not batch.approval():
+    if not batch.approval() and not batch.provided_authorization():
         raise ValueError('Approve the style sample before rendering the episode')
     status = batch.status()
     if not status['render_images_ready']:
@@ -207,6 +229,18 @@ def execute(root: Path, episode: Path, command: str, *, settings=None, **options
     if command == 'init':
         return initialize(root,episode)
     folder = episode_path(root,episode)
+    if options.get('revision') and command == 'status':
+        name = options['revision']
+        if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]{0,63}',name):
+            raise ValueError('Revision must be a simple identifier of at most 64 characters')
+        return execute(root,episode_path(root,folder/'revisiones'/name),command,settings=settings)
+    if options.get('revision') and command in {'prepare','produce','resume'}:
+        with episode_lock(folder):
+            revised = safe_revision(root,folder,options['revision'])
+        # The revision has its own production lock; provider opt-in never carries
+        # into recovery of already supplied audio.
+        return execute(root,revised,command,settings=settings,
+                       **{**options,'revision':None,'generate_voice':False})
     if command == 'status':
         missing=[name for name in ('configuracion.json','guion_final.txt','titulo.txt')
                  if not local_file(folder,name,exists=False).is_file()]
@@ -221,10 +255,11 @@ def execute(root: Path, episode: Path, command: str, *, settings=None, **options
                 'human_review_required':True}
     with episode_lock(folder):
         if command in {'prepare','produce','resume'}:
-            plan,config,narration,result = _prepare(folder,root,settings,generate_voice=options.get('generate_voice',False))
+            plan,config,narration,result = _prepare(folder,root,settings,generate_voice=options.get('generate_voice',False),
+                                                   reuse_images=options.get('reuse_images',False))
             if command == 'prepare' or not plan.direction_complete:
                 return result
-            if not result['images']['style_approved'] or not result['images']['render_images_ready']:
+            if not (result['images']['style_approved'] or result['images']['assembly_authorized']) or not result['images']['render_images_ready']:
                 return result
             return _render(folder,root,settings,revision=options.get('revision'))
         if command == 'render':
