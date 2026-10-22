@@ -151,7 +151,8 @@ def _new_text(path: Path, content: str) -> None:
         os.unlink(temporary)
 
 
-def _provider_cues(path: Path, script: str, duration: float) -> list[dict]:
+def _provider_segments(path: Path, script: str, duration: float) -> list[dict]:
+    """Validate original Fish segments without inventing intra-segment timestamps."""
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
         if not isinstance(data, dict) or data.get("method") != "fish_provider_timestamps":
@@ -159,16 +160,34 @@ def _provider_cues(path: Path, script: str, duration: float) -> list[dict]:
         words = data["words"]
         if not isinstance(words, list) or not words:
             raise ValueError
-        expanded, previous = [], 0.0
+        segments, transcript, previous = [], [], 0.0
         for word in words:
+            if (not isinstance(word, dict) or not isinstance(word.get("word"), str)
+                    or isinstance(word.get("start"), bool) or isinstance(word.get("end"), bool)):
+                raise ValueError
             start, end = float(word["start"]), float(word["end"])
-            if (not math.isfinite(start) or not math.isfinite(end)
+            tokens = _tokens(word["word"])
+            if (not tokens or not math.isfinite(start) or not math.isfinite(end)
                     or not previous <= start <= end <= duration + .001):
                 raise ValueError
             previous = end
-            expanded.extend((token, start, end) for token in _tokens(word["word"]))
-        if [word[0] for word in expanded] != _tokens(script):
+            transcript.extend(tokens)
+            segments.append({"word": word["word"], "start": start, "end": end})
+        if transcript != _tokens(script):
             raise ValueError
+        return segments
+    except (OSError, UnicodeError, ValueError, TypeError, KeyError, IndexError, OverflowError):
+        raise StickmanAudioError(
+            "Missing or invalid full-transcript Fish alignment. Provide a real aligned voz.srt; "
+            "audio was preserved, with no estimated timing or second synthesis."
+        ) from None
+
+
+def _provider_cues(path: Path, script: str, duration: float) -> list[dict]:
+    try:
+        segments = _provider_segments(path, script, duration)
+        expanded = [(token, word["start"], word["end"])
+                    for word in segments for token in _tokens(word["word"])]
         spoken = clean_script(script)
         spans = list(re.finditer(r"\w+", spoken))
         cues, cursor = [], 0
@@ -180,7 +199,14 @@ def _provider_cues(path: Path, script: str, duration: float) -> list[dict]:
                           if expanded[end][2] > start
                           and (end == len(expanded) - 1 or expanded[end + 1][1] >= expanded[end][2])]
             if not boundaries:
-                raise ValueError
+                if not cues:
+                    raise ValueError
+                # A terminal run of instantaneous tokens cannot form its own
+                # positive-duration subtitle. Attach its text to the preceding
+                # cue and use the final provider endpoint, even across silence.
+                cues[-1]["text"] += " " + " ".join(spoken[spans[cursor].start():].split())
+                cues[-1]["end"] = expanded[-1][2]
+                break
             within = [end for end in boundaries if expanded[end][2] - start <= 3.0]
             # Do not split a long sentence only at its final punctuation: the
             # visual planner needs genuine boundaries roughly every five seconds.
@@ -192,7 +218,9 @@ def _provider_cues(path: Path, script: str, duration: float) -> list[dict]:
             char_start = 0 if cursor == 0 else spans[cursor].start()
             char_end = spans[end + 1].start() if end + 1 < len(spans) else len(spoken)
             cues.append({"index": len(cues) + 1, "start": start,
-                         "end": expanded[end][2], "text": spoken[char_start:char_end].strip()})
+                         "end": expanded[end][2],
+                         # Script paragraphs must not become SRT block separators.
+                         "text": " ".join(spoken[char_start:char_end].split())})
             cursor = end + 1
         _validate_cues(cues, duration=duration)
         # Persist and subsequently consume precisely the same millisecond clock.
@@ -293,6 +321,8 @@ def prepare_narration(episode: Path, *, root: Path, settings, voice: dict | None
     if receipt and receipt.get("alignment_sha256") and (
             not alignment.is_file() or _hash(alignment) != receipt["alignment_sha256"]):
         raise StickmanAudioError("Provider alignment changed after validation; use a new episode revision")
+    alignment_sha = _hash(alignment) if alignment.is_file() else None
+    segments = _provider_segments(alignment, script, duration) if alignment_sha else None
     method = receipt["alignment_method"] if receipt else "imported_srt_human_sync_review_required"
     if not srt.is_file():
         cues = _provider_cues(alignment, script, duration)
@@ -311,10 +341,13 @@ def prepare_narration(episode: Path, *, root: Path, settings, voice: dict | None
               "acoustic_sync_verified": False, "human_sync_review_required": True,
               "source": ("fish" if request and request.get("audio_sha256") == audio_sha
                          else "imported_after_unconfirmed_fish_request" if request else "imported")}
-    if alignment.is_file() and method == "fish_provider_timestamps_full_transcript":
-        result["alignment_sha256"] = _hash(alignment)
-        if receipt and receipt.get("alignment_sha256") != result["alignment_sha256"]:
-            raise StickmanAudioError("Provider alignment changed after validation; use a new episode revision")
+    if alignment_sha:
+        if _hash(alignment) != alignment_sha:
+            raise StickmanAudioError("Provider alignment changed during validation; no receipt was accepted")
+        result["alignment_sha256"] = alignment_sha
+        # Fish also returns whole segments under 'words'. Never invent word times.
+        if all(len(_tokens(segment["word"])) == 1 for segment in segments):
+            result["words"] = segments
     if receipt is None:
         write_json_atomic(receipt_path, result)
     return result
