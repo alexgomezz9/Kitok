@@ -69,6 +69,14 @@ def _allocate_boundaries(frames: list[int], natural: list[bool], *, target: floa
     """
     size = len(frames)
     max_frames = math.floor(maximum*30 + 1e-9)
+    for start, end in zip(frames, frames[1:]):
+        if end-start > max_frames:
+            raise ValueError(
+                'Real word boundaries cannot satisfy scene duration limits: '
+                f'no word start between {start/30:.3f}s and {end/30:.3f}s '
+                f'({(end-start)/30:.3f}s; maximum {maximum:g}s). '
+                'Review voz.alignment.json against voz.mp3; a timestamp gap does not prove silence. '
+                'Paid voice was preserved: do not delete it or regenerate to retry.')
     tree_size = 1 << (size-1).bit_length()
     tree = [0]*(2*tree_size)
     mask = (1 << 501)-1
@@ -166,8 +174,12 @@ def _word_scenes(script: str, narration: dict, config: Config, source_spans):
         if seconds <= config.max_scene_seconds:
             cuts = [0, last-first]
         else:
-            cuts = _allocate_boundaries(frames[first:last+1], natural[first:last+1],
-                                        target=config.target_scene_seconds, maximum=config.max_scene_seconds)
+            try:
+                cuts = _allocate_boundaries(frames[first:last+1], natural[first:last+1],
+                                            target=config.target_scene_seconds, maximum=config.max_scene_seconds)
+            except ValueError as error:
+                raise ValueError(f'Source scene {span.get("source_id", first)} '
+                                 f'({span.get("image_file", "unknown image")}): {error}') from error
         for a, b in zip(cuts, cuts[1:]):
             a, b = a+first, b+first
             result.append((frames[a]/30, frames[b]/30, text[offsets[a]:offsets[b]].strip(), span))

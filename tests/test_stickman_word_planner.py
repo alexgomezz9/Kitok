@@ -71,8 +71,20 @@ def test_zero_duration_words_and_duplicate_starts_are_retained(tmp_path):
 
 
 def test_long_gap_is_rejected_without_interpolation(tmp_path):
-    with pytest.raises(ValueError, match='cannot satisfy'):
+    with pytest.raises(ValueError, match=r'0.100s and 10.000s.*9.900s; maximum 8s'):
         plan(tmp_path, [0, .1, 10, 10.1], duration=12)
+
+
+def test_long_gap_reports_original_image_and_absolute_clock(tmp_path):
+    spans = [source(0, 2, 'imagenes/intro.png'),
+             source(2, 5, 'imagenes/068.png', source_id='escena_068')]
+    with pytest.raises(ValueError) as caught:
+        plan(tmp_path, [0, 2, 4, 5, 16], duration=18, source_spans=spans)
+    message = str(caught.value)
+    assert 'Source scene escena_068 (imagenes/068.png)' in message
+    assert '5.000s and 16.000s (11.000s; maximum 8s)' in message
+    assert 'timestamp gap does not prove silence' in message
+    assert 'Paid voice was preserved' in message
 
 
 @pytest.mark.parametrize('spans', [[], [source(1, 4)], [source(0, 2), source(1, 4)],

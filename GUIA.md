@@ -162,6 +162,16 @@ La confirmación se vuelve a validar bajo bloqueo antes de poner el montaje en c
 
 ## Nuevo flujo YouTube stickman ES
 
+Si aparece `no word start between ...`, la alineación deja un tramo sin cortes
+reales que supera el máximo por escena. El error indica tiempos absolutos y, al
+reutilizar imágenes, el plano original. Un hueco entre timestamps no demuestra
+silencio en el MP3: revisa ambos antes de cambiar límites. Conserva `voz.mp3`,
+`voz.srt`, `voz.alignment.json` y `.stickman/`; no los borres para repetir Fish.
+Repetir el comando no repara una alineación incorrecta. La recuperación necesita
+alineación real corregida en una revisión nueva; Kitok no la estima ni dispone
+de realineación acústica automática.
+
+
 El pipeline `youtube_stickman_es` usa el mismo motor de Kitok, con imágenes
 generadas previamente por Codex. Conserva los flujos de shorts y documental.
 Se ejecuta por terminal; no hay aún un formulario específico en el estudio.
