@@ -1,0 +1,45 @@
+---
+name: kitok-image-batches
+description: Genera, continúa, repara o valida las imágenes de un episodio de Kitok desde sus prompts, usando láminas ordenadas, recortes y manifiestos reanudables. No genera voz ni renderiza vídeo.
+---
+
+# Imágenes de episodios Kitok
+
+Localiza el episodio solicitado; lee sus instrucciones, perfil del canal y configuración sin alterar guion, voz, prompts ni otros episodios. Descubre el JSON real: `plan_imagenes.json` terminado, `plan_visual.json` o `planificacion_visual/plan_visual_prevoz.json`. Si hay varios, comprueba cuál corresponde al guion y trabajo vigente. Conserva IDs y `image_file`; usa `scene_prompt` como prompt principal y `visual_description` para revisar. El contrato actual de reutilización se verifica con `kitok.youtube_stickman_es.reuse.source_spans`; no edites el renderer ni sus recibos para simular aprobación.
+
+## Herramienta y referencias
+
+Comprueba la skill oficial `imagegen` y la herramienta integrada disponibles en esta sesión; lee la skill y úsala. Verifica costes/límites si la herramienta o cuenta los exponen; cuando no los expongan, indica que son desconocidos, sin inventar gratuidad, saldo ni tarifa. Una autorización previa vigente permite continuar. No recurras a APIs independientes de pago sin autorización ni ejecutes generación desde el auxiliar Python. En resultado ambiguo, conserva el intento y averigua si hay artefacto antes de repetir; tras tres fallos del mismo bloque, informa de pendientes y detén ese bloque.
+
+Inspecciona las referencias locales con `view_image`. Fija referencias de estilo y un ancla visual del protagonista proporcionada o aceptada, conservando esos mismos archivos y hashes durante los lotes. Si falta ancla, crea primero una muestra con autorización vigente y revísala antes de ampliar. Referencias fijan estilo/identidad, no composiciones. Distingue máscara/rostro, vestuario y personajes secundarios; no fuerces al protagonista en planos de objetos, documentos ilustrativos, mapas, fechas, gráficos u otros personajes. No transfieras el tono entre canales.
+
+## Bloque, recorte y revisión
+
+El auxiliar `scripts/batches.py` sólo prepara prompts/manifiestos, recorta con Pillow y guarda PNG revisados. Ejecútalo con el Python/Pillow existente en Kitok, desde su raíz. No llama proveedores. `--help` da los argumentos reales.
+
+```bash
+.venv/bin/python RUTA_SKILL/scripts/batches.py pending EPISODIO --plan PLAN_RELATIVO
+.venv/bin/python RUTA_SKILL/scripts/batches.py plan EPISODIO --plan PLAN_RELATIVO --start ID --count 9 --columns 3 --batch lote-001 --reference REF_RELATIVA --anchor ANCLA_RELATIVA
+```
+
+Elige nueve escenas consecutivas pendientes en el orden del JSON y numéralas 1–9. `plan` conserva esa asignación y genera `prompt.txt` con ÚNICAMENTE esos nueve prompts más estilo/referencias; no envíes el guion completo, otras escenas, una cuadrícula anterior ni todo el historial. Invoca la herramienta con ese texto y las referencias fijadas explícitamente, evitando incluir imágenes de conversación adicionales. Cuadrícula exacta 123 / 456 / 789, nueve casillas iguales, cada una 16:9, sin bordes ni texto de numeración. Cada casilla es independiente y exclusiva de su prompt. El texto intencional de una escena prevalece sobre prohibiciones genéricas de texto. No reescribas el archivo original.
+
+Genera y guarda dos lotes primero cuando se esté validando un estilo/método nuevo; inspecciona sus resultados y continúa si son adecuados. Copia cada lámina al lote antes de la siguiente llamada. Para el último bloque, usa las escenas restantes y casillas vacías declaradas; nunca inventes escenas para rellenar. El manifiesto preserva las posiciones.
+
+```bash
+.venv/bin/python RUTA_SKILL/scripts/batches.py crop EPISODIO --batch lote-001 --atlas SALIDA_REAL --inset 8 --source-kind builtin_imagegen
+```
+
+Inspecciona TODOS los recortes: correspondencia con `visual_description`, acción, personajes/objetos, anatomía simple, identidad, composición y ausencia de bordes/contaminación de otra casilla. El recorte uniforme es sólo el punto de partida: si las divisiones no están en tercios exactos, ajusta con Pillow y conserva las cajas reales; regenera un lote si el orden no es inequívoco. No reasignes escenas por parecido. Revisa los avisos de resolución y duplicados exactos/perceptuales: pueden ser legítimos, pero exigen juicio. No prometas 1080p nativo: registra tamaño real. Conserva los recortes nativos. El contrato actual `ImageBatch.inspect` exige 16:9 y al menos 1280×720: `accept` aplica LANCZOS a ese tamaño sólo si lo exige el contrato, registra tamaño nativo/procesamiento/hash de entrega y ejecuta ese validador. No promete detalle nuevo ni 1080p nativo. Revisa también la entrega escalada.
+
+```bash
+.venv/bin/python RUTA_SKILL/scripts/batches.py accept EPISODIO --batch lote-001 --ids ID1 ID2 --reviewer Codex --note 'Revisión visual real de correspondencia, estilo y recorte'
+```
+
+Acepta sólo IDs vistos y adecuados. Los demás quedan pendientes. El auxiliar publica por las rutas `image_file` originales, sin sobrescribir archivos distintos. Para reparar existentes, conserva primero copia y hash en el lote y solicita sólo la sustitución autorizada; no borres originales. Para fallos, usa un NUEVO lote 2×2 (`--count 4 --columns 2`) o individual (`--count 1 --columns 1`) que cubra sólo escenas afectadas consecutivas; si están dispersas, haz lotes individuales. No repitas todo el episodio. `pending` distingue archivos existentes de revisiones documentadas; su existencia no acredita calidad. Los hashes fijados impiden reanudar con prompts/referencias/crops cambiados. No trabajes simultáneamente sobre un mismo lote.
+
+## Entrega
+
+En `imagenes/`, entrega sólo PNG con IDs originales, según `image_file`. Láminas, cajas de recorte, hashes, estado y revisiones quedan en `planificacion_visual/lotes_imagenes/<batch>/manifest.json`, fuera de la carpeta consumida por Kitok. No marques como revisados archivos sólo porque decodifiquen. No modifiques recibos `.stickman`; para imágenes aportadas usa el recorrido existente `--reuse-images`. Cuando haya voz/alineación reales, `prepare --reuse-images` valida sin renderizar; sólo ejecuta `produce` si el encargo lo autoriza. Aprovecha `kitok-audiovisual-qa` al revisar montaje si está disponible y dentro del encargo; esta skill termina en las imágenes.
+
+Informa de cantidad realmente generada, aceptada, conservada y pendiente, tamaño nativo y ruta. Las skills se invocan en Codex con `$kitok-image-batches`; ese nombre no es un comando del renderer.

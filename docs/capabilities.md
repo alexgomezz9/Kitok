@@ -271,3 +271,13 @@ instalando una skill.
 Para verificar cambios de código usa `make studio-check`, `make verify` y, con
 Chromium disponible, `make verify-browser`. No conectan por sí solos una cuenta
 real ni prueban una publicación o una voz nueva contra proveedores reales.
+
+## Skill de imágenes por lotes
+
+`kitok-image-batches` es una [skill local de Codex](../.agents/skills/kitok-image-batches/SKILL.md),
+no un proveedor Python ni un servicio autónomo de Kitok. El agente invoca ImageGen,
+revisa cada escena y decide las correcciones; el auxiliar determinista prepara bloques,
+recorta y publica PNG completos con manifiestos e IDs originales. El montaje sigue
+usando `youtube_stickman_es --reuse-images` y el motor Native existente. Generación
+integrada disponible no acredita saldo, coste o límites de cuenta: si no se exponen,
+se declaran desconocidos. Las APIs independientes de pago requieren autorización.

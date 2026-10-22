@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kitok · imágenes por lotes"
+  short_description: "Genera y revisa imágenes de episodios por lotes"
+  default_prompt: "Usa $kitok-image-batches para continuar las imágenes del episodio indicado."

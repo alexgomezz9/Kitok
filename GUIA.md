@@ -474,3 +474,29 @@ Siempre queda como ilustración, con la licencia Pexels y su página de origen;
 no como una imagen histórica ni como identidad de una persona. El catálogo usa
 la resolución realmente medida. Si no coincide con la declarada, exige revisión
 expresa; no modifica la caché original para ocultar la diferencia.
+
+## Imágenes stickman por lotes en Codex
+
+Invoca «Usa $kitok-image-batches para generar o continuar las imágenes de
+content/longform/MI_EPISODIO». La [skill de proyecto](.agents/skills/kitok-image-batches/SKILL.md)
+lee los prompts originales, usa referencias fijas y entrega PNG por ID en
+`imagenes/`; conserva láminas, recortes y manifiestos fuera de esa carpeta.
+No genera voz ni monta el vídeo. El auxiliar de recorte y su ayuda están en:
+
+```bash
+.venv/bin/python .agents/skills/kitok-image-batches/scripts/batches.py --help
+```
+
+Con imágenes y plan visual aportados, la primera preparación con voz Fish explícita
+se hace sin `--revision` (una revisión reutiliza audio existente):
+
+```bash
+.venv/bin/python -m kitok.youtube_stickman_es prepare content/longform/MI_EPISODIO --generate-voice --reuse-images
+.venv/bin/python -m kitok.youtube_stickman_es produce content/longform/MI_EPISODIO --reuse-images
+```
+
+El primer comando puede consumir Fish si falta voz; no renderiza. El segundo monta
+con los recursos preparados. Los recortes conservan el tamaño real de la lámina. El contrato actual exige
+entregas de al menos 1280×720: el auxiliar aplica LANCZOS sólo cuando hace falta,
+con hash/tamaño nativo y de entrega separados. No crea detalle nativo nuevo;
+la revisión visual y el control del montaje siguen siendo necesarios.
