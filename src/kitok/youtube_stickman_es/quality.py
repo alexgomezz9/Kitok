@@ -52,7 +52,8 @@ def inspect_audio_continuity(video: Path, narration: Path, *, settings) -> dict:
 def inspect_delivery(video: Path, output: Path, *, plan, settings, narration: Path,
                      fade_in=.6, fade_out=.8) -> dict:
     report = inspect_video(video, output, settings=settings,
-                           scene_boundaries=[(s.start+s.end)/2 for s in plan.scenes])
+                           scene_boundaries=[(s.start+s.end)/2 for s in plan.scenes],
+                           publish_report=False)
     raw = subprocess.run([settings.ffprobe_binary,'-v','error','-select_streams','v:0',
                           '-show_entries','frame=best_effort_timestamp_time,pix_fmt','-of','json',str(video)],
                          capture_output=True,text=True,check=True,timeout=600)

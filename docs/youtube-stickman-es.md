@@ -207,6 +207,11 @@ distintos de miniatura, tres fondos solicitados al generador y PNG 1280×720,
 real. `description` acepta copy editorial preparado; si se omite, se usa un
 extracto declarado del guion, sin inventar un resumen, fuentes o patrocinios.
 
+El informe `qa.json` se publica atómicamente una vez completados todos los
+controles, con `technical_status: passed` o `rejected`. Durante las mediciones
+pueden aparecer el MP4 y contactos antes del informe definitivo; espera a que
+termine el comando. Si se interrumpe un control, no se publica un dictamen nuevo.
+
 Los capítulos utilizan escenas reales y títulos explícitos o frases del guion;
 el primero empieza en 00:00. Se aplica la [regla oficial de YouTube](https://support.google.com/youtube/answer/9884579?hl=en):
 al menos tres y diez segundos por capítulo. Una prueba de quince segundos no

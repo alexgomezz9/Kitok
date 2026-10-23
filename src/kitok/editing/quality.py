@@ -55,8 +55,8 @@ def contact_sheet(video: Path, output: Path, times: list[float], *,
 
 
 def inspect_video(video: Path, output: Path, *, settings, comparison: Path | None = None,
-                  scene_boundaries: list[float] | None = None) -> dict:
-    """Measure facts, flag review points; a green report does not judge storytelling."""
+                  scene_boundaries: list[float] | None = None, publish_report: bool = True) -> dict:
+    """Measure facts; callers with additional gates can defer report publication."""
     info = probe_media(video, settings.ffprobe_binary)
     if not info.video_codec or not info.audio_codec:
         raise ValueError("A deliverable needs both video and audio")
@@ -107,5 +107,6 @@ def inspect_video(video: Path, output: Path, *, settings, comparison: Path | Non
     report["contact_sheet_sha256"]=file_hash(contact)
     report["contact_sampling"]={"available_points":requested,"sampled_points":len(times),
                                 "exhaustive":requested == len(times)}
-    write_json_atomic(output,report)
+    if publish_report:
+        write_json_atomic(output,report)
     return report

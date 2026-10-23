@@ -177,6 +177,11 @@ tarda, aparece un aviso cada 15 segundos sin inventar porcentajes. El progreso
 sale por stderr y el resultado JSON por stdout; `--quiet` oculta el progreso
 pero conserva los errores. No hacen falta opciones nuevas para verlo.
 
+En la fase «Calidad» el MP4 ya está montado y las comprobaciones pueden tardar
+varios minutos. Espera al resultado del comando: `qa.json` se publica con
+`technical_status: passed` o `rejected` al terminar todas las comprobaciones.
+La mera existencia de un MP4 o una hoja de contacto no acredita aprobación.
+
 Si aparece `no word start between ...`, la alineación deja un tramo sin cortes
 reales que supera el máximo por escena. El error indica tiempos absolutos y, al
 reutilizar imágenes, el plano original. Un hueco entre timestamps no demuestra
