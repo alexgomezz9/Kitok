@@ -163,12 +163,12 @@ La confirmación se vuelve a validar bajo bloqueo antes de poner el montaje en c
 ## Nuevo flujo YouTube stickman ES
 
 Opcional: añade `--subtitles` a `produce` para exportar también una versión
-con grupos de tres palabras EN MAYÚSCULAS y palabra activa amarilla, un 10 %
-mayor. Para un MP4 terminado usa `subtitles`. [Detalle y evidencia](docs/captions.md).
+con grupos de tres palabras EN MAYÚSCULAS y palabra activa amarilla, un 10 % mayor. Para un MP4 ya terminado,
+usa el comando `subtitles`. [Detalle y evidencia](docs/captions.md).
 
 Las imágenes aportadas mediante `--reuse-images` conservan su tamaño nativo: no
-exigen 720p ni 1080p. Native las escala y encuadra al tamaño final sin recuperar
-detalle; se avisa si son pequeñas. Miniaturas y nuevas entregas individuales
+exigen 720p ni 1080p. Se avisa de fuentes pequeñas; Native las escala y encuadra
+al tamaño final, sin recuperar detalle. Miniaturas y nuevas entregas individuales
 conservan su contrato específico.
 
 Los comandos stickman muestran progreso legible en terminal por defecto: fase,
@@ -176,7 +176,6 @@ tiempo transcurrido, plano actual/total y reutilización de recursos. Si una fas
 tarda, aparece un aviso cada 15 segundos sin inventar porcentajes. El progreso
 sale por stderr y el resultado JSON por stdout; `--quiet` oculta el progreso
 pero conserva los errores. No hacen falta opciones nuevas para verlo.
-
 
 Si aparece `no word start between ...`, la alineación deja un tramo sin cortes
 reales que supera el máximo por escena. El error indica tiempos absolutos y, al
@@ -187,7 +186,6 @@ Repetir el comando no repara una alineación incorrecta. Kitok no dispone de
 realineación acústica automática. Si escuchas un artefacto de síntesis dentro
 de un hueco entre palabras, se puede quitar en una copia conservando el original;
 consulta [los cortes de audio revisados](docs/audio.md#quitar-ruidos-de-sintesis-confirmados).
-
 
 El pipeline `youtube_stickman_es` usa el mismo motor de Kitok, con imágenes
 generadas previamente por Codex. Conserva los flujos de shorts y documental.
@@ -484,6 +482,19 @@ Siempre queda como ilustración, con la licencia Pexels y su página de origen;
 no como una imagen histórica ni como identidad de una persona. El catálogo usa
 la resolución realmente medida. Si no coincide con la declarada, exige revisión
 expresa; no modifica la caché original para ocultar la diferencia.
+
+
+## Investigar y continuar historias stickman
+
+Dentro de Kitok, pide «Usa $kitok-youtube para investigar o continuar el episodio».
+La skill local carga las reglas del canal y las referencias guardadas. Su lector de
+contexto es local y no genera medios ni llama a proveedores:
+
+```bash
+.venv/bin/python .agents/skills/kitok-youtube/scripts/context.py --episode content/longform/stickman_video1
+```
+
+[Flujo editorial, continuidad y límites](docs/youtube-editorial.md).
 
 ## Imágenes stickman por lotes en Codex
 

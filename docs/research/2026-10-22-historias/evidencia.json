@@ -1,0 +1,555 @@
+{
+  "observed_at": "2026-10-22",
+  "method": "YouTube public rendered accessibility UI, signed out, Spanish interface; views mostly rounded. Source pages opened with web tools. Search is a sample, not a market census.",
+  "queries": [
+    "Cospaia history",
+    "history diamond hoax 1872",
+    "BlueJay history stories",
+    "Erwin Kreuz",
+    "man wrong city Bangor San Francisco",
+    "Robert Smalls esclavo barco",
+    "Robert Smalls Simple History",
+    "Thomas Blood joyas corona",
+    "Thomas Blood stole crown jewels",
+    "flota rusa Dogger Bank 1904",
+    "Mary Toft conejos",
+    "Mary Toft Extra History",
+    "Timothy Dexter español",
+    "viaje flota rusa más desastroso",
+    "Robert Smalls historia español",
+    "Garfield médicos asesinato",
+    "inundación cerveza Londres 1814",
+    "William D Porter Roosevelt español",
+    "Daniel Dancer avaro",
+    "London beer flood Simple History"
+  ],
+  "videos": [
+    {
+      "id": "6PbbB2NKu5s",
+      "channel": "Comedy Central",
+      "topic": "Robert Smalls",
+      "title": "Robert Smalls Escapes Slavery in a Stolen Confederate Ship - Drunk History",
+      "views_approx": 1300000,
+      "display": "1,3 M",
+      "age_display": "7 a",
+      "length": "6:28",
+      "language_evidence": "English title and channel; spoken track not inspected"
+    },
+    {
+      "id": "4d4t9k8An1k",
+      "channel": "Woodson Center",
+      "topic": "Robert Smalls",
+      "title": "Robert Smalls - Radical Grace",
+      "views_approx": 253000,
+      "display": "253 K",
+      "age_display": "2 a",
+      "length": "5:21",
+      "language_evidence": "English title/channel context; track not inspected"
+    },
+    {
+      "id": "lmKXjtttCyI",
+      "channel": "Funstorical Español",
+      "topic": "Robert Smalls",
+      "title": "La apasionante lucha de ROBERT SMALLS: Ex-esclavo, héroe de guerra, congresista...",
+      "views_approx": 1600,
+      "display": "1,6 K",
+      "age_display": "4 a",
+      "length": "12:12",
+      "language_evidence": "Spanish channel and metadata; track not inspected"
+    },
+    {
+      "id": "Vs-3crBx9PM",
+      "channel": "El Dollop",
+      "topic": "Robert Smalls",
+      "title": "E236: Robert Smalls: El Esclavo Rebelde",
+      "views_approx": 35000,
+      "display": "35 K",
+      "age_display": "2 a",
+      "length": "57:00",
+      "format": "podcast",
+      "language_evidence": "Spanish show and metadata; track not inspected"
+    },
+    {
+      "id": "RtyV-At-rIQ",
+      "channel": "Curiosidades y Relatos",
+      "topic": "Robert Smalls",
+      "views_approx": 182,
+      "display": "182",
+      "age_display": "4 m",
+      "length": "8:33",
+      "language_evidence": "Spanish metadata; track not inspected"
+    },
+    {
+      "id": "UmHYnY0bm5E",
+      "channel": "Pasó de Verdad",
+      "topic": "Robert Smalls",
+      "views_approx": 153,
+      "display": "153",
+      "age_display": "7 d",
+      "length": "13:45",
+      "language_evidence": "Spanish metadata; track not inspected"
+    },
+    {
+      "id": "yzGqp3R4Mx4",
+      "channel": "BlueJay",
+      "topic": "Russian fleet 1904",
+      "title": "The Dumbest Russian Voyage Nobody Talks About",
+      "views_exact_visible": 5304821,
+      "views_approx": 5300000,
+      "published_visible": "2021-08-19",
+      "length": "8:45 player / 8:46 search",
+      "language_evidence": "English original; interface localized title/description. Spanish audio availability not checked.",
+      "inspected": [
+        "channel catalog",
+        "description",
+        "chapters",
+        "expanded public metrics"
+      ],
+      "transcript_read": false,
+      "full_playback": false,
+      "audio_listened": false
+    },
+    {
+      "id": "9Mdi_Fh9_Ag",
+      "channel": "Drachinifel",
+      "topic": "Russian fleet 1904",
+      "title": "The Russian 2nd Pacific Squadron - Voyage of the Damned",
+      "views_approx": 2000000,
+      "display": "2 M",
+      "age_display": "7 a",
+      "length": "42:00",
+      "observation": "Related video card, not full watch page"
+    },
+    {
+      "id": "ga-tOrlaLMk",
+      "channel": "BATALLAS NAVALES",
+      "topic": "Dogger Bank 1904",
+      "title": "76.Incidente de Dogger Bank 1904",
+      "views_approx": 4100,
+      "display": "4,1 K",
+      "age_display": "2 a",
+      "length": "7:52",
+      "language_evidence": "Spanish channel/metadata; track not inspected"
+    },
+    {
+      "id": "M3tIStMvhZ8",
+      "channel": "Historia Naval PGM- SGM",
+      "topic": "Dogger Bank 1904",
+      "title": "El incidente de Dogger Bank",
+      "views_approx": 159,
+      "display": "159",
+      "age_display": "1 a",
+      "length": "5:25",
+      "language_evidence": "Spanish channel/metadata; track not inspected"
+    },
+    {
+      "id": "iRmBE6B8F7I",
+      "channel": "Historic Royal Palaces",
+      "topic": "Thomas Blood",
+      "title": "The Crown Jewels Thief | Colonel Blood",
+      "views_approx": 39000,
+      "display": "39 K",
+      "age_display": "6 a",
+      "length": "3:27",
+      "language_evidence": "English original metadata; not listened"
+    },
+    {
+      "id": "0znk6Jdjv5w",
+      "channel": "Forgotten Lives",
+      "topic": "Thomas Blood",
+      "views_approx": 36000,
+      "display": "36 K",
+      "age_display": "7 a",
+      "length": "12:56",
+      "language_evidence": "Title localized by YouTube; exclude from confirmed Spanish list"
+    },
+    {
+      "id": "KBayH57guRI",
+      "channel": "Cosas de la Historia",
+      "topic": "Thomas Blood",
+      "title": "EL MAYORDOMO QUE IMPIDIÓ EL ROBO DE LAS JOYAS DE LA CORONA",
+      "views_approx": 154,
+      "display": "154",
+      "age_display": "2 a",
+      "length": "6:31",
+      "language_evidence": "Spanish channel/metadata; track not inspected"
+    },
+    {
+      "id": "lehJ9fhWmvE",
+      "channel": "Expediente Negro",
+      "topic": "Thomas Blood",
+      "views_approx": 246,
+      "display": "246",
+      "age_display": "2 m",
+      "length": "24:00",
+      "language_evidence": "Spanish channel/metadata; track not inspected"
+    },
+    {
+      "id": "ChSUvdU_Sbk",
+      "channel": "Sam O'Nella Academy",
+      "topic": "Timothy Dexter",
+      "title": "Timothy Dexter: The Dumbest Rags-to-Riches Story",
+      "views_approx": 16000000,
+      "display": "16 M",
+      "age_display": "6 a",
+      "length": "9:07"
+    },
+    {
+      "id": "_VSTueroEKA",
+      "channel": "Raquel de la Morena",
+      "topic": "Timothy Dexter",
+      "title": "¿Cómo se hizo millonario el mayor idiota de la historia?",
+      "views_approx": 687000,
+      "display": "687 K",
+      "age_display": "1 a",
+      "length": "28:00",
+      "language_evidence": "Spanish channel/metadata; track not inspected"
+    },
+    {
+      "id": "KqS-hXYZF5g",
+      "channel": "Sin Credenciales",
+      "topic": "Timothy Dexter",
+      "title": "El Millonario mas Estupido y Suertudo del Mundo",
+      "views_approx": 132000,
+      "display": "132 K",
+      "age_display": "2 a",
+      "length": "19:00",
+      "language_evidence": "Spanish channel/metadata; track not inspected"
+    },
+    {
+      "id": "lXSfufPrWiU",
+      "channel": "Extra History",
+      "topic": "Mary Toft",
+      "views_approx": 444000,
+      "display": "444 K",
+      "age_display": "4 a",
+      "length": "11:07",
+      "language_evidence": "English original, title localized in some queries"
+    },
+    {
+      "id": "JnVv8PcWsnw",
+      "channel": "Supercurioso",
+      "topic": "Mary Toft",
+      "views_approx": 140000,
+      "display": "140 K",
+      "age_display": "9 a",
+      "length": "2:36",
+      "language_evidence": "Spanish channel/metadata; track not inspected"
+    },
+    {
+      "id": "VrguvXTjGwQ",
+      "channel": "Que lo sepa Edmundo",
+      "topic": "Mary Toft",
+      "views_approx": 66000,
+      "display": "66 K",
+      "age_display": "10 a",
+      "length": "7:08",
+      "language_evidence": "Spanish channel/metadata; track not inspected"
+    },
+    {
+      "id": "zz0PYzzfixY",
+      "channel": "Sam O'Nella Academy",
+      "topic": "William D. Porter",
+      "views_approx": 13000000,
+      "age_display": "6 a",
+      "observation": "Popular channel tab"
+    },
+    {
+      "id": "Ib8yOxZ4unY",
+      "channel": "El Señor Historia",
+      "topic": "William D. Porter",
+      "views_approx": 162,
+      "age_display": "11 m",
+      "length": "12:15",
+      "language_evidence": "Spanish channel/metadata, not listened"
+    },
+    {
+      "id": "bS_CO772ctM",
+      "channel": "Flujo Real",
+      "topic": "William D. Porter",
+      "views_approx": 147,
+      "age_display": "2 m",
+      "length": "6:19",
+      "language_evidence": "Spanish metadata, not listened"
+    },
+    {
+      "id": "Nh60bUy7oOM",
+      "channel": "Efecto Mariposa Histórico",
+      "topic": "William D. Porter",
+      "views_approx": 62,
+      "age_display": "11 m",
+      "length": "12:08",
+      "language_evidence": "Spanish metadata, not listened"
+    },
+    {
+      "id": "jFS9rRTXue8",
+      "channel": "Sam O'Nella Academy",
+      "topic": "Daniel Dancer",
+      "views_approx": 12000000,
+      "age_display": "8 a",
+      "length": "7:56",
+      "language_evidence": "English original; localized title in search"
+    },
+    {
+      "id": "eSPVHr47VOM",
+      "channel": "Lo que la Escuela Olvidó",
+      "topic": "Daniel Dancer",
+      "views_approx": 1500,
+      "age_display": "3 a",
+      "length": "5:28",
+      "language_evidence": "Spanish channel/metadata, not listened"
+    },
+    {
+      "id": "B7bvYEMcXUk",
+      "channel": "HABLANDO DE LO QUE SEA",
+      "topic": "Daniel Dancer",
+      "views_approx": 17,
+      "age_display": "5 m",
+      "length": "16:00",
+      "language_evidence": "Spanish metadata, not listened"
+    },
+    {
+      "id": "96OMuA65goo",
+      "channel": "Simple History",
+      "topic": "London Beer Flood",
+      "views_approx": 702000,
+      "age_display": "6 a",
+      "length": "6:49",
+      "language_evidence": "English original, localized in search"
+    },
+    {
+      "id": "_cFCvZL-JGA",
+      "channel": "Tasting History with Max Miller",
+      "topic": "London Beer Flood",
+      "views_approx": 388000,
+      "age_display": "5 a",
+      "length": "11:04",
+      "format": "History and cooking, supporting interest reference"
+    },
+    {
+      "id": "lp0OVg4j_8U",
+      "channel": "Mundo de la historia",
+      "topic": "London Beer Flood",
+      "views_approx": 12000,
+      "age_display": "5 a",
+      "length": "10:27",
+      "language_evidence": "Spanish channel/metadata, not listened"
+    },
+    {
+      "id": "DXxWaeBxYF4",
+      "channel": "Raquel de la Morena",
+      "topic": "James Garfield",
+      "views_approx": 779000,
+      "age_display": "2 a",
+      "length": "49:00",
+      "reason_not_prioritized": "Strong established Spanish treatment exists"
+    }
+  ],
+  "bluejay_context_sample": {
+    "reason": "Nine historical uploads immediately preceding the Russian-voyage entry in the visible recent-order channel catalog; approximate public counts, varying ages. Descriptive context, not age-adjusted performance.",
+    "ids": [
+      "QyKYP89ECXY",
+      "RtIkiGQd9Xg",
+      "JGLoH7pPM7o",
+      "zMuYohlRlfY",
+      "Aw8VZOfHgjE",
+      "7VtMYSe_mmM",
+      "SFPeTVLpmgQ",
+      "clNL1RdgRsI",
+      "ifWLW0BvWb0"
+    ],
+    "views": [
+      672000,
+      2400000,
+      3700000,
+      2600000,
+      3200000,
+      5300000,
+      2400000,
+      2500000,
+      3600000
+    ],
+    "median": 2600000,
+    "target_rounded_multiple": 2.0384615384615383,
+    "limits": "Not an apples-to-apples age comparison; avoid calling it a large outlier."
+  },
+  "primary_fact_sources_opened": [
+    "https://history.house.gov/People/Detail/21764",
+    "https://www.smithsonianmag.com/history/what-a-teachers-letters-reveal-about-robert-smalls-who-stole-a-confederate-ship-to-secure-his-freedom-from-slavery-180983758/",
+    "https://www.royalnavymuseums.org.uk/visit-us/submarine-museum/hms-holland-1",
+    "https://wellcomecollection.org/works/k3zyn6tm",
+    "https://blogs.ucl.ac.uk/museums/2017/10/18/the-woman-who-gave-birth-to-rabbits/"
+  ],
+  "source_blockers": [
+    {
+      "url": "https://www.nationalarchives.gov.uk/education/resources/significant-events/attempt-to-steal-the-crown-jewels/",
+      "result": "403, not read"
+    }
+  ],
+  "calls_to_vidiq": 0,
+  "calls_to_fish": 0,
+  "image_generations": 0,
+  "english_channels_popular_tab": [
+    {
+      "channel": "Sam O'Nella Academy",
+      "handle": "@SamONellaAcademy",
+      "subscribers_display": "4,81 M",
+      "videos_display": 69,
+      "format": "Stickman, historia y curiosidades con humor",
+      "most_viewed_observed": [
+        {
+          "id": "0zMSMJZc9EA",
+          "title": "Historical Misconceptions",
+          "views_approx": 23000000
+        },
+        {
+          "id": "nYHDj2sB-rc",
+          "title": "Tarrare, the Hungriest Man in History",
+          "views_approx": 20000000
+        },
+        {
+          "id": "ORmUUhh6O-8",
+          "title": "Why It Sucked to Be a Pirate",
+          "views_approx": 19000000
+        },
+        {
+          "id": "MGVraepNj04",
+          "title": "The Presidential Assassination Nobody Talks About",
+          "views_approx": 19000000
+        },
+        {
+          "id": "K_NRBkJtNAI",
+          "title": "Obscure and Obsolete Inventions",
+          "views_approx": 19000000
+        },
+        {
+          "id": "ChSUvdU_Sbk",
+          "title": "Timothy Dexter",
+          "views_approx": 16000000
+        },
+        {
+          "id": "7KwzVus9xds",
+          "title": "History's Worst Non-Water Floods",
+          "views_approx": 16000000
+        },
+        {
+          "id": "zz0PYzzfixY",
+          "title": "World War II's Unluckiest Ship, the William D. Porter",
+          "views_approx": 13000000
+        }
+      ],
+      "limits": "Popular lifetime totals, not recent outliers. Daniel Dancer verified separately in search, 12 M."
+    },
+    {
+      "channel": "BlueJay",
+      "handle": "@BlueJayYT",
+      "subscribers_display": "935 K",
+      "videos_display": 59,
+      "format": "Ilustración sencilla, historia y curiosidades narradas con humor",
+      "most_viewed_observed": [
+        {
+          "id": "7VtMYSe_mmM",
+          "title": "How to Survive in Victorian London",
+          "views_approx": 5300000
+        },
+        {
+          "id": "yzGqp3R4Mx4",
+          "title": "The Dumbest Russian Voyage Nobody Talks About",
+          "views_approx": 5300000
+        },
+        {
+          "id": "fxLWZBXBOBs",
+          "title": "How to Survive in the Wild West",
+          "views_approx": 4800000
+        },
+        {
+          "id": "JGLoH7pPM7o",
+          "title": "The Worst Radioactive Ideas in Nuclear History",
+          "views_approx": 3700000
+        },
+        {
+          "id": "ifWLW0BvWb0",
+          "title": "Absurd Historical Trends",
+          "views_approx": 3600000
+        },
+        {
+          "id": "Aw8VZOfHgjE",
+          "title": "Wacky War Tactics",
+          "views_approx": 3200000
+        }
+      ],
+      "limits": "Videos vary in age; translated titles and automatic dubs require checking."
+    },
+    {
+      "channel": "History Matters",
+      "handle": "@HistoryMatters",
+      "subscribers_display": "1,92 M",
+      "videos_display": 397,
+      "format": "Animación histórica afín, normalmente más corta que el objetivo del canal; no stickman idéntico",
+      "most_viewed_observed": [
+        {
+          "id": "_1VoMLwb_oA",
+          "title": "What happened when Kamikaze pilots failed or chickened out?",
+          "views_approx": 10000000
+        },
+        {
+          "id": "H5K4tq-9osc",
+          "title": "Why does Russia own Kaliningrad?",
+          "views_approx": 6800000
+        },
+        {
+          "id": "uYiEXwti1_U",
+          "title": "Why did Mao not invade Taiwan?",
+          "views_approx": 6700000
+        },
+        {
+          "id": "k17KlonUDOM",
+          "title": "Why did France leave NATO?",
+          "views_approx": 6600000
+        },
+        {
+          "id": "F1rzd3eG7ps",
+          "title": "Why do countries no longer declare war formally?",
+          "views_approx": 6500000
+        },
+        {
+          "id": "BoR_k4Go9W8",
+          "title": "Why did Russia sell Alaska?",
+          "views_approx": 6000000
+        },
+        {
+          "id": "yGu9jriYpp4",
+          "title": "Why do people no longer duel?",
+          "views_approx": 4700000
+        }
+      ],
+      "limits": "Format reference and curiosity mechanisms. These topics were not all screened in Spanish, so they are not final recommendations."
+    }
+  ],
+  "fact_sources_additional": [
+    {
+      "url": "https://www.history.navy.mil/research/histories/ship-histories/danfs/w/william-d-porter.html",
+      "access": "Official search result returned extensive text; direct open timed out"
+    },
+    {
+      "url": "https://www.history.navy.mil/about-us/leadership/director/directors-corner/h-grams/h-gram-049/h-049-1.html",
+      "access": "Official search result text including warning about embellished ship legends"
+    },
+    {
+      "url": "https://www.npg.org.uk/collections/search/personExtended/mp01181/daniel-dancer?tab=biography",
+      "access": "Official catalogue text in search result"
+    },
+    {
+      "url": "https://www.londonmuseum.org.uk/collections/london-stories/pint-sized-guide-londons-historic-breweries/",
+      "access": "Page opened"
+    }
+  ],
+  "current_shortlist_ranked": [
+    "William D. Porter",
+    "Daniel Dancer",
+    "Russian fleet 1904",
+    "London Beer Flood",
+    "Robert Smalls"
+  ],
+  "selection_rule": "Original clickable premises, evidence of interest and room among Spanish treatments. Existing Spanish coverage is allowed; zero competition is not required. No success guarantee or measured CTR."
+}

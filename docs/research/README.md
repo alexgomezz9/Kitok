@@ -42,3 +42,7 @@ No existe un recomendador autónomo de temas ni pruebas de monetización/retenci
 Los estudios y métricas recibidos en octubre se preservan únicamente en el
 [archivo histórico](../archive/README.md). Sus números son snapshots y no deben
 usarse como métricas actuales ni instrucciones del producto.
+
+## Producción stickman: revisión actual
+
+[Decisiones corregidas del 22/10/2026](2026-10-22-produccion/README.md): acceso real a WSL, evidencia del episodio, una imagen por escena y tres tareas propuestas. Plan pendiente de validación; no acredita la reparación concurrente como terminada.

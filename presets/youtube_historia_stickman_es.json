@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "updated": "2026-10-22",
+  "profile_id": "historia_stickman_es",
+  "language": "es",
+  "channel_handle": null,
+  "channel_name": null,
+  "target_minutes": [
+    8,
+    12
+  ],
+  "editorial_direction": "Historias curiosas en stickman, con guion y enfoque propios, gancho claro y señales de interés; buscar margen frente a versiones españolas fuertes, sin exigir ausencia de vídeos españoles ni copiar referentes.",
+  "preferences": {
+    "preserve_native_kitok_renderer": true,
+    "one_distinct_final_image_per_editorial_scene": true,
+    "plates_are_intermediate_only": true,
+    "assign_scene_to_panel_before_generation": true,
+    "reuse_existing_resources_first": true,
+    "research_using_public_youtube": true,
+    "use_vidiq_credits": false,
+    "buy_new_services": false,
+    "avoid_repeated_user_explanations": true,
+    "independent_agent_per_phase_required": false
+  },
+  "rejected_topics": [
+    {
+      "topic": "ondol",
+      "reason": "Rechazado por el usuario; quiere historias narrativas."
+    }
+  ],
+  "excluded_projects": [
+    "ana"
+  ],
+  "voice": {
+    "existing_provider": "fish",
+    "operator_report": "Gratuito de momento, según el usuario; no es una tarifa verificada ni una autorización para repetir voz existente.",
+    "prefer_existing_audio_and_alignment": true
+  },
+  "images": {
+    "delivery": "PNG independientes, composición horizontal 16:9, destino de vídeo 1920x1080/30 fps",
+    "existing_import_floor": null,
+    "native_resolution_must_be_recorded": true,
+    "candidate_panels_per_plate": [
+      2,
+      4
+    ],
+    "selected_batch_size": null,
+    "measured_web_vs_integrated_generation": false,
+    "semantic_review_required": true,
+    "provided_sources": "Native resolution preserved; safety/hash checks; renderer scales and frames at export."
+  },
+  "known_episode": "content/longform/stickman_video1",
+  "known_episode_caveat": "136 PNG presentes no equivalen a 136 imágenes semánticamente aprobadas. La tanda externa reportada de 39 recortes incluyó asignación posterior por afinidad temática.",
+  "source": "Preferencias expresadas por el usuario en este chat el 22/10/2026. No confundir con reglas de otros canales del repositorio."
+}
