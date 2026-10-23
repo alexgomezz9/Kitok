@@ -1,8 +1,10 @@
 # Estado vigente de Kitok
 
-Actualizado: **2026-10-23**. Integración a main autorizada por el operador;
+Actualizado: **2026-10-23**. Rama **main**, integrada por fast-forward con
+autorización expresa del operador desde base `1f879b6`;
 checkpoints de esta entrega: audio `7673b34`, fuentes nativas `8f3e92b`,
-subtítulos `bf3bc49`. El SHA final y CI remoto se comprueban tras el push.
+subtítulos `bf3bc49`. Verificación local completa pasada. El SHA remoto y CI se consultan tras el push;
+no se presenta una ejecución remota pendiente como CI aprobado.
 
 Manual: [GUIA](GUIA.md), [stickman](docs/youtube-stickman-es.md),
 [audio](docs/audio.md), [subtítulos](docs/captions.md).
