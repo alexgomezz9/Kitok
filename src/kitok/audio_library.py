@@ -61,7 +61,7 @@ AUDITED = {
 }
 ID = re.compile(r"[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}\Z")
 SFX_KINDS = ("soft_tick", "low_pulse", "air_swish", "paper_texture", "key_click", "ui_ping")
-MIXER_REVISION = "sample-clock-v2"
+MIXER_REVISION = "sample-clock-v3-aac-headroom"
 # Editorial affinities are separate from the source/license receipt. They are
 # judgments based on the author's stored instrument/feel descriptions, not claims
 # that the author assigned a business/history genre or that Kitok auditioned them.
@@ -616,14 +616,16 @@ class AudioLibrary:
             if transition_at is not None and len(selection["tracks"]) != 2:
                 raise AudioLibraryError("A narrative transition requires two selected tracks")
             chain = self._mix_filter(duration, crossfade, len(selection["tracks"]), events, transition_at)
-            analysis_filter = chain + (";[mixed]loudnorm=I=-16:LRA=7:TP=-1.8:print_format=json,"
+            # AAC reconstruction can overshoot the PCM true peak. Leave 0.8 dB
+            # before encoding and still enforce -1.5 dBTP on the decoded file.
+            analysis_filter = chain + (";[mixed]loudnorm=I=-16:LRA=7:TP=-2.3:print_format=json,"
                                        "aresample=48000,asetpts=N/SR/TB[analysis]")
             analysis = self._run(inputs + ["-filter_complex", analysis_filter, "-map", "[analysis]", "-vn", "-t", str(duration), "-f", "null", "-"], "mix analysis")
             (workspace / "analysis.log").write_text(analysis.stderr)
             measured = parse_loudnorm_measurement(analysis.stderr)
             if not all(math.isfinite(value) for value in (measured.input_i, measured.input_lra, measured.input_tp, measured.input_thresh, measured.target_offset)):
                 raise AudioLibraryError("Cannot normalize silent or non-finite audio")
-            normalize = (f"loudnorm=I=-16:LRA=7:TP=-1.8:measured_I={measured.input_i}:"
+            normalize = (f"loudnorm=I=-16:LRA=7:TP=-2.3:measured_I={measured.input_i}:"
                          f"measured_LRA={measured.input_lra}:measured_TP={measured.input_tp}:"
                          f"measured_thresh={measured.input_thresh}:offset={measured.target_offset}:linear=true:print_format=json,"
                          "aresample=48000,asetpts=N/SR/TB")
@@ -668,7 +670,7 @@ class AudioLibrary:
                        "duration": final_info.duration, "crossfade_seconds": crossfade if len(selection["tracks"]) == 2 else 0,
                        "transition_at": (duration/2 if transition_at is None else transition_at) if len(selection["tracks"]) == 2 else None,
                        "ducking": {"threshold": .012, "ratio": 8, "attack_ms": 15, "release_ms": 300},
-                       "target_lufs": -16, "target_true_peak_dbtp": -1.5, "encoding_headroom_db": .3,
+                       "target_lufs": -16, "target_true_peak_dbtp": -1.5, "encoding_headroom_db": .8,
                        "normalization_input": {"integrated_lufs": measured.input_i,
                                                "loudness_range_lu": measured.input_lra,
                                                "true_peak_dbtp": measured.input_tp},

@@ -83,3 +83,10 @@ señalar la ruta de entrega correcta. Siguiente del operador, sin nueva voz:
 ```bash
 .venv/bin/python -m kitok.youtube_stickman_es produce content/longform/stickman_2_michael_myers/revisiones/montaje_720p_sin_ruidos --reuse-images
 ```
+
+## Margen AAC (23/10)
+
+La mezcla reparada rechazó −1,45 dBTP con margen 0,3 dB. Con 0,8 dB antes de
+AAC, el mismo audio valida −16,01 LUFS y −1,78 dBTP; el límite final sigue
+siendo −1,5 dBTP. Mezcla local completa y 86 tests audio correctos, sin Fish.
+El render completo de Michael Myers está en curso por encargo expreso del operador.

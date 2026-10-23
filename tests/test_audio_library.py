@@ -543,7 +543,7 @@ def test_long_documentary_automatic_mix_has_continuous_sample_clock(audio_librar
     assert math.isfinite(receipt["measured"]["loudness_range_lu"])
     assert receipt["transition_at"] == 223.1457
     assert len(receipt["sound_effects"]) == 4
-    assert receipt["mixer_revision"] == "sample-clock-v2"
+    assert receipt["mixer_revision"] == "sample-clock-v3-aac-headroom"
     diagnostics = Path(receipt["diagnostics_directory"])
     assert (diagnostics / "mixed.wav").is_file()
     assert json.loads((diagnostics / "validation.json").read_text())["status"] == "validated"
@@ -664,7 +664,7 @@ def test_new_documentary_from_scratch_uses_real_stock_lengths_and_auto_music(aud
             source = plan['assets'][scene['asset']]['path']
             assert scene['source_start'] + scene['end']-scene['start'] <= lengths[source] + 1e-6
     mix = json.loads(next(workspace.glob('music-*.wav.json')).read_text())
-    assert mix['mixer_revision'] == 'sample-clock-v2'
+    assert mix['mixer_revision'] == 'sample-clock-v3-aac-headroom'
     assert abs(mix['duration']-probe_media(voice).duration) <= .08
     assert len(mix['selection']['tracks']) == 2
     assert mix['sound_effects']
