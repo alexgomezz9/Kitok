@@ -162,6 +162,10 @@ La confirmación se vuelve a validar bajo bloqueo antes de poner el montaje en c
 
 ## Nuevo flujo YouTube stickman ES
 
+Opcional: añade `--subtitles` a `produce` para exportar también una versión
+con grupos de tres palabras EN MAYÚSCULAS y palabra activa amarilla, un 10 %
+mayor. Para un MP4 terminado usa `subtitles`. [Detalle y evidencia](docs/captions.md).
+
 Las imágenes aportadas mediante `--reuse-images` conservan su tamaño nativo: no
 exigen 720p ni 1080p. Native las escala y encuadra al tamaño final sin recuperar
 detalle; se avisa si son pequeñas. Miniaturas y nuevas entregas individuales

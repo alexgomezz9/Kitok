@@ -84,6 +84,8 @@ def _prepare(episode: Path, root: Path, settings, *, generate_voice=False, reuse
         emit('Imágenes: verificando y asociando los recursos existentes; sin generar imágenes')
         batch.adopt_provided()
     image_status = batch.status()
+    if image_status['resolution_warnings']:
+        emit(f'Aviso: {len(image_status["resolution_warnings"])} fuentes pequeñas; se escalan al montar, sin recuperar detalle')
     emit(f'Imágenes comprobadas: {image_status["completed"]} completadas')
     ready = image_status['render_images_ready'] and (image_status['style_approved'] or image_status['assembly_authorized'])
     return plan,config,narration,{'status':'ready_to_render' if ready else 'images_required',
@@ -268,6 +270,16 @@ def execute(root: Path, episode: Path, command: str, *, settings=None, on_stage=
                 'video_exists':local_file(folder,'video_final.mp4',exists=False).is_file(),
                 'human_review_required':True}
     with episode_lock(folder):
+        def finish(report):
+            if options.get('subtitles'):
+                from .subtitle_delivery import caption_video
+                report['subtitled'] = caption_video(folder, root=root, settings=settings,
+                    on_stage=on_stage, revision=options.get('revision'))
+            return report
+        if command == 'subtitles':
+            from .subtitle_delivery import caption_video
+            return caption_video(folder, root=root, settings=settings, on_stage=on_stage,
+                                 revision=options.get('revision'))
         if command in {'prepare','produce','resume'}:
             plan,config,narration,result = _prepare(folder,root,settings,generate_voice=options.get('generate_voice',False),
                                                    reuse_images=options.get('reuse_images',False), on_stage=on_stage)
@@ -275,9 +287,9 @@ def execute(root: Path, episode: Path, command: str, *, settings=None, on_stage=
                 return result
             if not (result['images']['style_approved'] or result['images']['assembly_authorized']) or not result['images']['render_images_ready']:
                 return result
-            return _render(folder,root,settings,revision=options.get('revision'), on_stage=on_stage)
+            return finish(_render(folder,root,settings,revision=options.get('revision'), on_stage=on_stage))
         if command == 'render':
-            return _render(folder,root,settings,revision=options.get('revision'), on_stage=on_stage)
+            return finish(_render(folder,root,settings,revision=options.get('revision'), on_stage=on_stage))
         plan,config,batch = current(folder)
         if command == 'request-next':
             status=batch.status()

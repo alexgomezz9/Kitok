@@ -285,3 +285,7 @@ se declaran desconocidos. Las APIs independientes de pago requieren autorizació
 Los ruidos de voz confirmados por el operador pueden retirarse en una copia
 con cortes entre palabras y tiempos derivados verificables, sin nueva síntesis.
 No hay detección ni realineación acústica automática; ver [audio](audio.md#quitar-ruidos-de-sintesis-confirmados).
+
+Los recursos existentes pequeños se admiten sin ampliación previa mediante
+`--reuse-images`, con avisos de resolución. La exportación de subtítulos es
+opcional y separada del vídeo limpio; ver [subtítulos](captions.md).

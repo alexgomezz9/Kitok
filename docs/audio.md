@@ -301,8 +301,8 @@ cortes, hashes y revisor, y se contrasta de nuevo con el original al preparar.
 La revisión acústica de los empalmes sigue correspondiendo al operador.
 
 Después de preparar y revisar la copia, `produce RUTA_COPIA --reuse-images`
-monta con la voz reparada, sin `--generate-voice`. Las validaciones de imágenes
-siguen vigentes: recortes inferiores a 1280×720 no pasan por tener audio reparado.
+monta con la voz reparada, sin `--generate-voice`. Las validaciones de seguridad y hashes de imágenes siguen vigentes; las fuentes
+pequeñas aportadas se escalan al montar y llevan aviso de resolución.
 
 Desde `sample-clock-v3-aac-headroom`, las mezclas nuevas dejan 0,8 dB de margen
 antes de AAC (objetivo PCM −2,3 dBTP). Se sigue comprobando el AAC decodificado
