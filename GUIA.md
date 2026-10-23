@@ -162,6 +162,11 @@ La confirmación se vuelve a validar bajo bloqueo antes de poner el montaje en c
 
 ## Nuevo flujo YouTube stickman ES
 
+Las imágenes aportadas mediante `--reuse-images` conservan su tamaño nativo: no
+exigen 720p ni 1080p. Native las escala y encuadra al tamaño final sin recuperar
+detalle; se avisa si son pequeñas. Miniaturas y nuevas entregas individuales
+conservan su contrato específico.
+
 Los comandos stickman muestran progreso legible en terminal por defecto: fase,
 tiempo transcurrido, plano actual/total y reutilización de recursos. Si una fase
 tarda, aparece un aviso cada 15 segundos sin inventar porcentajes. El progreso

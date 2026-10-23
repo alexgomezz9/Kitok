@@ -90,3 +90,11 @@ La mezcla reparada rechazó −1,45 dBTP con margen 0,3 dB. Con 0,8 dB antes de
 AAC, el mismo audio valida −16,01 LUFS y −1,78 dBTP; el límite final sigue
 siendo −1,5 dBTP. Mezcla local completa y 86 tests audio correctos, sin Fish.
 El render completo de Michael Myers está en curso por encargo expreso del operador.
+
+## Fuentes de imagen nativas (23/10)
+
+`--reuse-images` admite imágenes pequeñas decodificables conservando bytes,
+hashes y límites de seguridad. Native resuelve escalado/encuadre; el tamaño
+pequeño se informa como aviso. Las entregas nuevas y miniaturas mantienen
+su validación. Skill de lotes conserva recortes nativos. 39 pruebas offline
+de imágenes/lotes pasadas, incluida adopción y reanudación sin alterar fuentes.

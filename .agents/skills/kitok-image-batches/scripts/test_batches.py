@@ -45,10 +45,10 @@ class BatchesTest(unittest.TestCase):
         self.assertFalse((self.ep/'imagenes/scene_000.png').exists())
         (self.ep/'imagenes/scene_008.png').unlink();b.accept(self.ep,args);b.accept(self.ep,args)
         self.assertEqual(len(list((self.ep/'imagenes').glob('*.png'))),9)
-        with Image.open(self.ep/'imagenes/scene_000.png') as im:self.assertEqual(im.size,(1280,720))
+        with Image.open(self.ep/'imagenes/scene_000.png') as im:self.assertEqual(im.size,(160,90))
         _, latest=b.load_batch(self.ep,'test')
         self.assertEqual(latest['scenes'][0]['native_size'],[160,90])
-        self.assertEqual(latest['scenes'][0]['processing'],'LANCZOS fit 1280x720')
+        self.assertEqual(latest['scenes'][0]['processing'],'native')
 
     def test_changed_input_and_prompt_rejected(self):
         result=b.plan(self.ep,self.args);folder=Path(result['manifest']).parent

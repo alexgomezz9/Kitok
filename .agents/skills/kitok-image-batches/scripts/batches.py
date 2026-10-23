@@ -204,7 +204,7 @@ def accept(ep, args):
     if set(args.ids) != {s['id'] for s in selected}:
         raise ValueError('Unknown scene ID')
     from kitok.youtube_stickman_es.images import ImageBatch
-    # The current Kitok contract requires 16:9 and at least 1280x720. Native crops stay untouched.
+    # Keep native crops. Native rendering owns final output scaling.
     deliveries = {}
     for s in selected:
         source = local(folder, s['crop'])
@@ -212,17 +212,13 @@ def accept(ep, args):
             raise ValueError('Changed crop')
         with Image.open(source) as im:
             native = im.size
-            needs_fit = im.width < 1280 or im.height < 720 or abs(im.width/im.height-16/9) > .02
-            if needs_fit:
-                output = ImageOps.fit(im.convert('RGB'), (1280,720), method=Image.Resampling.LANCZOS)
-                buf = io.BytesIO(); output.save(buf, format='PNG'); payload = buf.getvalue()
-            else:
-                payload = source.read_bytes()
+        needs_fit = False
+        payload = source.read_bytes()
         fd, temp = tempfile.mkstemp(dir=folder, suffix='.png', prefix='.validate-')
         try:
             with os.fdopen(fd, 'wb') as output_file:
                 output_file.write(payload)
-            ImageBatch.inspect(Path(temp))
+            ImageBatch.inspect(Path(temp), require_delivery_size=False)
         finally:
             Path(temp).unlink(missing_ok=True)
         sha = hashlib.sha256(payload).hexdigest()
@@ -242,7 +238,7 @@ def accept(ep, args):
         if digest(dest) != deliveries[s['id']][1]:
             raise ValueError('Output changed during acceptance')
         from kitok.youtube_stickman_es.images import ImageBatch
-        ImageBatch.inspect(dest)
+        ImageBatch.inspect(dest, require_delivery_size=False)
         s.update(delivery_sha256=deliveries[s['id']][1], native_size=list(deliveries[s['id']][2]),
                  processing='LANCZOS fit 1280x720' if deliveries[s['id']][3] else 'native',
                  state='accepted', review={'reviewer': args.reviewer, 'note': args.note})

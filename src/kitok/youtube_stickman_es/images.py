@@ -71,7 +71,7 @@ class ImageBatch:
         return self.jobs[ident]
 
     @staticmethod
-    def inspect(path: Path) -> dict:
+    def inspect(path: Path, *, require_delivery_size: bool = True) -> dict:
         if not path.is_file() or path.is_symlink() or not 0 < path.stat().st_size <= 40*1024**2:
             raise ValueError('Image missing, symlinked or larger than 40MB')
         try:
@@ -80,7 +80,9 @@ class ImageBatch:
                 if image.getexif().get(274) in {5,6,7,8}:
                     width,height=height,width
                 if (image.format not in {'PNG','JPEG','WEBP'} or width*height > 40_000_000
-                        or width < 1280 or height < 720 or abs(width/height-16/9) > .02):
+                        or width < 1 or height < 1):
+                    raise ValueError('Image must be decodable PNG/JPEG/WebP, at most 40MP')
+                if require_delivery_size and (width < 1280 or height < 720 or abs(width/height-16/9) > .02):
                     raise ValueError('Image needs landscape 16:9, at least 1280x720 and at most 40MP')
                 image.load()
                 return {'width':width,'height':height,'sha256':digest(path),'format':image.format}
@@ -91,7 +93,7 @@ class ImageBatch:
         if not isinstance(row, dict) or row.get('status') != 'complete':
             return False
         path = local_file(self.episode, self._job(ident)['image_file'], exists=False)
-        info = self.inspect(path)
+        info = self.inspect(path, require_delivery_size=row.get('source_kind') != 'provided_collection')
         if info['sha256'] != row.get('sha256'):
             raise ValueError(f'Previously accepted image changed: {ident}')
         return True
@@ -131,6 +133,8 @@ class ImageBatch:
                 'generation_cost':sum(costs) if costs and all(c is not None for c in costs) else None,
                 'cost_note':'Unknown until the actual generation tool reports a cost; never treated as zero.',
                 'assembly_authorized':bool(provided),
+                'resolution_warnings': sorted({job['image_file'] for ident,job in self.jobs.items()
+                    if state['jobs'].get(ident,{}).get('small_source')}),
                 'render_images_ready':all(r['valid'] and (r['reviewed'] or bool(provided)) for r in rows if r['kind']=='scene')}
 
     def provided_authorization(self):
@@ -149,8 +153,10 @@ class ImageBatch:
         """Register existing originals without normalization, renaming or fake review."""
         state = self._read()
         hashes = {}
+        dimensions = {}
         for scene in self.plan.scenes:
-            info = self.inspect(local_file(self.episode,scene.image_file))
+            info = self.inspect(local_file(self.episode,scene.image_file), require_delivery_size=False)
+            dimensions[scene.id] = [info['width'], info['height']]
             old = state['jobs'].get(scene.id)
             if old and (old.get('source_kind') != 'provided_collection'
                         or old.get('sha256') != info['sha256'] or old.get('status') != 'complete'):
@@ -161,6 +167,8 @@ class ImageBatch:
             state['jobs'].setdefault(scene.id,{'status':'complete','attempts':1,
                 'sha256':hashes[scene.id],'source_kind':'provided_collection',
                 'reviewed':False,'reported_cost':None})
+            width,height = dimensions[scene.id]
+            state['jobs'][scene.id].update(source_dimensions=[width,height], small_source=width<1280 or height<720)
         from .files import write
         self._write(state)
         write(local_file(self.episode,'.stickman/provided_images.json',exists=False),{

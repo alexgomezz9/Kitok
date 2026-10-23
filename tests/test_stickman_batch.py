@@ -313,3 +313,31 @@ def test_unknown_image_id_does_not_create_state(batch):
     with pytest.raises(ValueError, match='Unknown planned image'):
         batch.claim('../../outside')
     assert not batch.state_path.exists()
+
+
+def test_native_small_source_is_supported_without_weakening_generated_delivery(tmp_path):
+    path = tmp_path / 'small.png'
+    Image.new('RGB', (549, 305), 'white').save(path)
+    before = path.read_bytes()
+    info = ImageBatch.inspect(path, require_delivery_size=False)
+    assert (info['width'], info['height']) == (549, 305)
+    assert path.read_bytes() == before
+    with pytest.raises(ValueError, match='1280x720'):
+        ImageBatch.inspect(path)
+    path.write_bytes(b'invalid')
+    with pytest.raises(ValueError):
+        ImageBatch.inspect(path, require_delivery_size=False)
+
+
+def test_provided_collection_keeps_native_bytes_and_reports_small_sources(batch):
+    originals = {}
+    for scene in batch.plan.scenes:
+        path = batch.episode / scene.image_file
+        path.parent.mkdir(exist_ok=True)
+        Image.new('RGB', (549, 305), 'ivory').save(path)
+        originals[path] = path.read_bytes()
+    result = batch.adopt_provided()
+    assert result['render_images_ready'] and result['assembly_authorized']
+    assert len(result['resolution_warnings']) == len(batch.plan.scenes)
+    assert all(path.read_bytes() == data for path, data in originals.items())
+    assert batch.status()['render_images_ready']
