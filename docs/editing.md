@@ -139,6 +139,10 @@ por el editor: el motor no descubre correspondencias visuales.
 `fade_in` y `fade_out` del plan sólo afectan al vídeo y están dentro de su duración.
 `transition_duration` configura la mezcla entre planos (0,05–1 s); conserva
 0,28 s por defecto para planes anteriores. El adaptador stickman utiliza 0,4 s.
+Su contrato de reutilización admite una `camera` explícita por fragmento; conserva
+esa intención al asignar los cortes reales, incluso en escenas breves de apertura.
+La [preparación del storyboard](../GUIA.md#preparar-escenas-desde-un-guion) reutiliza
+este sistema; no añade otro editor ni interpreta una transición como movimiento.
 Se acorta si el plano entrante no deja margen suficiente; ambas fuentes comparten
 la misma duración de continuación. Cambiarla invalida la caché afectada.
 El recibo final incluye `output_sha256` para comprobar el MP4 al reanudar.

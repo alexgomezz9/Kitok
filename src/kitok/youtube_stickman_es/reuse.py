@@ -29,13 +29,19 @@ def _plan(episode: Path):
     raise ValueError('Image reuse requires plan_visual.json with narrative source spans')
 
 
-def source_spans(episode: Path, script: str) -> list[dict]:
+def source_spans(episode: Path, script: str, *, require_images: bool = True,
+                 plan_path: str | None = None) -> list[dict]:
     """Validate original narrative ownership before changing any timing or scene IDs.
 
     source_char_start/end address the exact source text, and word_end is exclusive.
     The original plan's estimated times and word counts are deliberately unused.
     """
-    _, plan = _plan(episode)
+    if plan_path is None:
+        _, plan = _plan(episode)
+    else:
+        plan = json.loads(local_file(episode, plan_path).read_text(encoding='utf-8'))
+        if not isinstance(plan, dict) or not isinstance(plan.get('scenes'), list) or not plan['scenes']:
+            raise ValueError('Provided visual plan must contain scenes')
     source = local_file(episode, plan.get('script_source', 'guion_lectura_limpia.txt'))
     if plan.get('script_sha256') != digest(source):
         raise ValueError('Provided visual plan script hash changed or is missing')
@@ -67,11 +73,12 @@ def source_spans(episode: Path, script: str) -> list[dict]:
         image_value = scene.get('image_file')
         if not isinstance(image_value, str):
             raise ValueError('Provided visual scene requires an image_file')
-        image = local_file(episode, image_value)
-        with Image.open(image) as loaded:
-            loaded.verify()
-        if scene.get('image_sha256') is not None and scene['image_sha256'] != digest(image):
-            raise ValueError('Provided image hash changed')
+        image = local_file(episode, image_value, exists=require_images)
+        if require_images:
+            with Image.open(image) as loaded:
+                loaded.verify()
+            if scene.get('image_sha256') is not None and scene['image_sha256'] != digest(image):
+                raise ValueError('Provided image hash changed')
         description = scene.get('visual_description', scene.get('visual_description_en'))
         prompt = scene.get('scene_prompt')
         if not isinstance(description, str) or not description.strip() or not isinstance(prompt, str) or not prompt.strip():
@@ -85,7 +92,8 @@ def source_spans(episode: Path, script: str) -> list[dict]:
             raise ValueError('Invalid provided scene characters')
         result.append({'word_start': previous_word, 'word_end': indices[-1] + 1,
                        'image_file': image_value, 'visual_description': description,
-                       'scene_prompt': prompt, 'characters': characters, 'source_id': source_id})
+                       'scene_prompt': prompt, 'characters': characters, 'source_id': source_id,
+                       **({'camera': scene['camera']} if 'camera' in scene else {})})
         previous_char, previous_word = end, indices[-1] + 1
     if text[previous_char:].strip() or previous_word != len(words):
         raise ValueError('Provided visual plan does not cover the complete narration')

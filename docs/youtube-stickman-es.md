@@ -63,6 +63,14 @@ sigue necesitando revisión. No se presenta esa comparación textual como ASR.
 
 ## Dirección y generación de ilustraciones
 
+Para preparar escenas desde el guion sin voz ni imágenes, usa
+`$kitok-storyboard`; [flujo y comandos](../GUIA.md#preparar-escenas-desde-un-guion).
+Entrega el contrato `planificacion_visual/plan_visual_prevoz.json` ya consumible
+por `$kitok-image-batches`, con fragmentos exactos y tiempos pendientes. El ritmo
+editorial orientativo es 1,5–2,5 s al inicio, 2,5–4 s hasta el primer minuto y
+4–6 s después, ajustado a comprensión. Se comprueba sobre voz/alineación reales,
+sin convertir esa guía en cortes obligatorios. No cambia los planes antiguos.
+
 La planificación produce aproximadamente un plano cada cinco segundos: por
 ejemplo, 600 s con subtítulos suficientemente granulares generan 120 escenas.
 Cuando Fish aporta palabras completas y ordenadas, los cortes usan sus tiempos
@@ -88,8 +96,9 @@ que falten quedan pendientes y no bloquean el MP4.
 
 `plan_visual.json` contiene `script_source`, `script_sha256` y `scenes`. Cada escena
 declara `id`, `source_char_start` y `source_char_end` (fin exclusivo), `narration`,
-`image_file`, `visual_description` y `scene_prompt`; opcionalmente `image_sha256`
-y `characters`. Los offsets se refieren al texto exacto de `script_source`.
+`image_file`, `visual_description` y `scene_prompt`; opcionalmente `image_sha256`,
+`characters` y `camera` con el contrato CameraMotion existente. La cámara explícita
+se conserva al reutilizar la imagen. Los offsets se refieren al texto exacto de `script_source`.
 También se admite `planificacion_visual/plan_visual_prevoz.json` con
 `visual_description_en`. Se comprueba la cobertura completa del guion, sin huecos
 ni duplicados, y se ignoran los tiempos estimados. La imagen sigue asociada al

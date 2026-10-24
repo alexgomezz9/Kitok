@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kitok · storyboard"
+  short_description: "Guion a escenas y prompts stickman compatibles"
+  default_prompt: "Usa $kitok-storyboard para preparar las escenas y prompts de este episodio con una introducción dinámica."

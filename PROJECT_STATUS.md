@@ -1,15 +1,24 @@
 # Estado vigente de Kitok
 
-Actualizado: **2026-10-23**. Corrección en **fix/stickman-final-qa-publication**
-desde main `4da9610`, con integración/push autorizados por el operador;
-checkpoints de esta entrega: audio `7673b34`, fuentes nativas `8f3e92b`,
-subtítulos `bf3bc49`. Verificación local completa pasada. El SHA remoto y CI se consultan tras el push;
-no se presenta una ejecución remota pendiente como CI aprobado.
+Actualizado: **2026-10-24**. Trabajo en **feature/kitok-storyboard** desde
+main `ef8370c`: skill local de guion a escenas/prompts, sin generación de medios.
+Gates locales y revisión cerrados; no integrado en main ni enviado al remoto.
+CI remoto no ejecutado para esta rama.
 
 Manual: [GUIA](GUIA.md), [stickman](docs/youtube-stickman-es.md),
 [audio](docs/audio.md), [subtítulos](docs/captions.md).
 
 ## Capacidades verificadas
+
+- Storyboard: JSON prevoz compatible con imágenes por lotes y reutilización,
+  cobertura exacta y auditoría del reloj Fish existente. Conserva estilo,
+  personajes y cámara explícita; no añade otro generador. Validación focal:
+  **83 tests** (24/10), revisión independiente cerrada. Prueba aislada completa
+  Michael: **132 escenas/142 planos**, 15 lotes preparados sin generar;
+  **1133 hashes originales conservados**. Apertura sobre Fish real: medias
+  **2,11 s / 3,78 s / 5,60 s** en bandas 0–30 / 30–60 / resto. No se ha
+  generado ni aprobado calidad de imágenes nuevas. Codex `skills/list` reconoce
+  la skill con ámbito repo, habilitada y sin errores.
 
 - Native/FFmpeg/ASS/Pillow monta con voz/alineación e imágenes existentes. No
   hay publicación automática. Fish nuevo requiere opción expresa; modelo
@@ -26,10 +35,21 @@ Manual: [GUIA](GUIA.md), [stickman](docs/youtube-stickman-es.md),
 - Cámaras y transiciones siguen el plan reproducible: zoom/paneo son movimientos;
   las disoluciones son transiciones entre planos. No se eligen al azar.
 
-## Verificación (23/10)
+## Verificación (24/10)
 
-- `make verify`: **1125 Python**, **25 React**, TypeScript/Vite, higiene y whitespace
+- `make verify`: **1154 Python**, **25 React**, TypeScript/Vite, higiene y whitespace
   correctos; `docs-check` y `studio-check` correctos.
+- `skill-creator/quick_validate.py`: skill válida. Invocación independiente:
+  guion ficticio de 128 palabras → 15 escenas/9 tipos → dos lotes, sin medios.
+- `prepare --reuse-images` importa el contrato nuevo en copia aislada con
+  imágenes diagnósticas repetidas: 142 planos, sin render ni aprobación visual.
+- Siguiente: `$kitok-storyboard Prepara las escenas y prompts de MI_EPISODIO`;
+  después `$kitok-image-batches` consume `planificacion_visual/plan_visual_prevoz.json`.
+  Los resultados de prueba siguen en `/tmp/kitok-storyboard-michael-proof/`;
+  no son un episodio con imágenes nuevas listas para renderizar.
+
+Evidencia audiovisual anterior (23/10):
+
 - Pruebas reales FFmpeg de subtítulos, tamaño, color, reloj y audio copiado.
   Revisión independiente cerrada tras corregir grupos de palabras instantáneas.
 - Mezcla real del episodio: **−16,01 LUFS / −1,78 dBTP**; margen AAC 0,8 dB
@@ -38,7 +58,9 @@ Manual: [GUIA](GUIA.md), [stickman](docs/youtube-stickman-es.md),
   pasados; seis regresiones reproducían el fallo antes del cambio. Éxito,
   rechazo e interrupción cubiertos; revisión independiente sin hallazgos.
 
-## Michael Myers: vídeo solicitado en curso
+## Michael Myers: último estado audiovisual registrado el 23/10
+
+No se ha revalidado ese montaje en el encargo de storyboard del 24/10.
 
 Entrada: `content/longform/stickman_2_michael_myers/revisiones/montaje_720p_sin_ruidos`.
 Dos ruidos confirmados por el operador retirados en copia: **14,88 s**;

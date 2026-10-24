@@ -12,6 +12,9 @@ import tempfile
 
 from PIL import Image, ImageOps
 
+from kitok.youtube_stickman_es.models import Config
+from kitok.youtube_stickman_es.storyboard import GUARD, prompt_prefix
+
 
 def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -121,10 +124,15 @@ def plan(ep, args):
             im.verify()
         inputs[r] = digest(local(ep, r))
     style = ''
+    config_model = None
     config = local(ep, 'configuracion.json')
     if config.exists():
         inputs['configuracion.json'] = digest(config)
-        style = json.loads(config.read_text()).get('style_prompt', '')
+        config_data = json.loads(config.read_text())
+        # Only compress the exact, reproducible prefix emitted by storyboard.
+        # Original and legacy prompts remain the authoritative fallback.
+        config_model = Config.model_validate(config_data)
+        style = config_model.style_prompt
     rows = math.ceil(args.count/args.columns)
     prompt = (f'Create ONE NEW atlas: {args.columns} columns x {rows} rows, equal panels, '
               'row-major order. Every panel is an independent 16:9 landscape image. '
@@ -133,12 +141,26 @@ def plan(ep, args):
               'Keep simple 2D stickman style when the episode requests it. '
               'Only depict the characters/objects requested in each cell, never force the protagonist. '
               'Specific intentional text overrides generic no-text clauses.\nSTYLE\n'+style+'\n')
+    shared_characters = {}
+    cells = []
+    for s in selected:
+        cell_prompt = s['scene_prompt']
+        characters = s.get('characters', [])
+        if config_model is not None and not set(characters)-config_model.characters.keys():
+            prefix = prompt_prefix(config_model, characters)
+            if cell_prompt.startswith(prefix):
+                cell_prompt = 'CHARACTERS: '+(', '.join(characters) or 'none')+'\n'+cell_prompt[len(prefix):]
+                shared_characters.update({c: config_model.characters[c] for c in characters})
+        cells.append(cell_prompt)
+    if any(a != s['scene_prompt'] for a, s in zip(cells, selected)):
+        prompt += '\n'+GUARD+'\nSHARED CHARACTER SHEET (use ONLY IDs requested in each cell)\n'
+        prompt += '\n'.join(f'{c}: {description}' for c, description in shared_characters.items())+'\n'
     records = []
     for i, s in enumerate(selected):
         records.append({'cell': i+1, 'id': s['id'], 'image_file': s['image_file'],
                         'scene_prompt': s['scene_prompt'], 'visual_description': s['visual_description'],
                         'state': 'pending'})
-        prompt += f"\nCELL {i+1}, row {i//args.columns+1}, column {i%args.columns+1}\n{s['scene_prompt']}\n"
+        prompt += f"\nCELL {i+1}, row {i//args.columns+1}, column {i%args.columns+1}\n{cells[i]}\n"
     for i in range(args.count, rows*args.columns):
         prompt += f'\nCELL {i+1}: empty neutral blank panel; no extra scene.\n'
     data = {'version': 1, 'plan': args.plan, 'inputs': inputs, 'references': refs,

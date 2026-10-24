@@ -289,3 +289,15 @@ No hay detección ni realineación acústica automática; ver [audio](audio.md#q
 Los recursos existentes pequeños se admiten sin ampliación previa mediante
 `--reuse-images`, con avisos de resolución. La exportación de subtítulos es
 opcional y separada del vídeo limpio; ver [subtítulos](captions.md).
+
+`kitok-storyboard` es una [skill local](../.agents/skills/kitok-storyboard/SKILL.md)
+para pasar del guion definitivo al contrato prevoz existente. Codex decide
+escenas concretas y variadas, conservando el estilo y personajes del episodio;
+el auxiliar calcula cobertura, offsets, IDs y prompts completos. No incorpora
+un LLM al pipeline. `check --timing` lee voz/alineación existentes y usa el
+planificador real sin generar ni renderizar. La mayor densidad inicial se
+conserva por fragmentos editoriales; no modifica el objetivo global de cinco
+segundos para episodios antiguos. La skill de imágenes consume el mismo JSON;
+los prefijos compartidos verificables se envían una vez por lote, conservando
+prompts completos en el manifiesto. No hay métrica de ahorro exacto de tokens
+ni prueba de mejora real de retención/ingresos. [Uso](../GUIA.md#preparar-escenas-desde-un-guion).

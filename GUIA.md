@@ -501,6 +501,35 @@ contexto es local y no genera medios ni llama a proveedores:
 
 [Flujo editorial, continuidad y límites](docs/youtube-editorial.md).
 
+## Preparar escenas desde un guion
+
+Invoca «Usa $kitok-storyboard para preparar todas las escenas y prompts de
+content/longform/MI_EPISODIO». La [skill local](.agents/skills/kitok-storyboard/SKILL.md)
+lee el guion completo, conserva estilo/personajes y prepara una apertura más
+dinámica con acciones, objetos, preguntas, cifras o mapas cuando ayudan al relato.
+No genera voz ni imágenes. No mide ni garantiza retención o ingresos.
+
+Produce `planificacion_visual/plan_visual_prevoz.json`, compatible directamente
+con la skill de imágenes. Un auxiliar calcula IDs, fragmentos exactos, posiciones
+y prompts completos desde decisiones editoriales compactas; no necesitas
+explicar cada vez el formato. Conserva las referencias visuales existentes;
+las mismas referencias/ancla aprobada se reutilizan en los lotes.
+
+```bash
+.venv/bin/python .agents/skills/kitok-storyboard/scripts/storyboard.py --help
+.venv/bin/python .agents/skills/kitok-storyboard/scripts/storyboard.py check content/longform/MI_EPISODIO --timing
+```
+
+Sin voz, el reloj queda pendiente. Con MP3 y alineación Fish por palabras, el
+segundo comando comprueba cortes reales sin renderizar, generar ni escribir
+recibos de voz; el resultado sale por stdout. SRT sin palabras no permite
+inventar subcortes. Al montar con `--reuse-images`, Kitok conserva los fragmentos
+breves del inicio; sólo subdivide los que exceden el máximo, reutilizando imagen.
+Usa una copia nueva para revisar planes existentes: no sobrescribe salidas.
+
+Después: «Usa $kitok-image-batches para generar las imágenes pendientes de
+MI_EPISODIO usando planificacion_visual/plan_visual_prevoz.json».
+
 ## Imágenes stickman por lotes en Codex
 
 Invoca «Usa $kitok-image-batches para generar o continuar las imágenes de
@@ -522,7 +551,7 @@ se hace sin `--revision` (una revisión reutiliza audio existente):
 ```
 
 El primer comando puede consumir Fish si falta voz; no renderiza. El segundo monta
-con los recursos preparados. Los recortes conservan el tamaño real de la lámina. El contrato actual exige
-entregas de al menos 1280×720: el auxiliar aplica LANCZOS sólo cuando hace falta,
-con hash/tamaño nativo y de entrega separados. No crea detalle nativo nuevo;
-la revisión visual y el control del montaje siguen siendo necesarios.
+con los recursos preparados. Los recortes conservan el tamaño real de la lámina. Las imágenes aportadas se
+aceptan a tamaño nativo con avisos si son pequeñas; Native escala al exportar.
+El mínimo 1280×720 sigue aplicándose a nuevas entregas individuales y miniaturas.
+El escalado no recupera detalle; la revisión visual del montaje sigue siendo necesaria.

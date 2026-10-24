@@ -243,7 +243,7 @@ def plan_illustrations(episode: Path, *, title: str, script: str, narration: dic
                             transition='cut' if number == 0 or number % 5 == 0 else 'dissolve'))
         if source is not None:
             local_file(episode, source['image_file'], exists=False)
-            direction = Direction.model_validate({k: source[k] for k in ('visual_description', 'scene_prompt', 'characters') if k in source}
+            direction = Direction.model_validate({k: source[k] for k in ('visual_description', 'scene_prompt', 'characters', 'camera') if k in source}
                                                  | {'scene_id': ident})
             if set(direction.characters)-config.characters.keys():
                 raise ValueError('Direction names an unknown character; define its consistent character sheet first')
@@ -251,6 +251,8 @@ def plan_illustrations(episode: Path, *, title: str, script: str, narration: dic
             scenes[-1].visual_description = direction.visual_description
             scenes[-1].scene_prompt = direction.scene_prompt
             scenes[-1].characters = direction.characters
+            if direction.camera:
+                scenes[-1].camera = direction.camera
     if directions is not None:
         parsed = [Direction.model_validate(item) for item in directions]
         by_id = {d.scene_id: d for d in parsed}
