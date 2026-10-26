@@ -2,7 +2,8 @@
 
 Actualizado: **2026-10-26**. Rama **main**: storyboard `7897f8b` y corrección
 histórica `7d1747d` integrados por avance rápido desde `ef8370c`.
-Perfil/flujo Trazo Maldito verificados localmente; push/CI pendientes.
+Perfil/flujo Trazo Maldito subidos: `ae4c05b`, SHA remoto confirmado.
+CI [40381416777](https://github.com/alexgomezz9/Kitok/actions/runs/40381416777): **success**.
 
 Manual: [GUIA](GUIA.md), [flujo editorial](docs/youtube-editorial.md),
 [stickman](docs/youtube-stickman-es.md), [audio](docs/audio.md).
@@ -40,7 +41,11 @@ cerrado. Cuotas ImageGen/Fish no verificadas; gasto significativo exige consulta
 
 Encargo activo: producir el siguiente episodio completo tras cerrar main; comparar
 personajes/referencias públicas y conservar evidencia de miniaturas, intervalos de
-vídeo y audio realmente observados. Todavía no se ha generado ningún medio nuevo.
+vídeo y audio realmente observados. Episodio local `content/longform/trazo_003_jason_voorhees`: guion1411palabras,
+109escenas compiladas, ancla y primeros lotes generados; voz476,891s guardada.
+Reloj bloquea escena092 por salto401,711–410,993s con audio real. Muestra de
+escucha solicitada al operador antes de cortar. No repetir voz. Entrega final
+única subtitulada, base limpia sólo intermedio.
 
 ## Michael Myers: recursos anteriores conservados
 
@@ -50,6 +55,6 @@ vídeo limpio y subtitulado; leídos el 26/10. No se han vuelto a reproducir ni 
 completos en este encargo. Aprobación audiovisual humana no acreditada aquí.
 No usar la copia diagnóstica anterior `sin_ruidos`. No se han repetido proveedores.
 
-Siguiente: checkpoint del perfil/flujo, push main y comprobar SHA/CI; después
-episodio nuevo con estado editorial, narrando origen y evolución de Jason.
+Siguiente: completar lotes con revisión; resolver muestra de audio con el
+operador, preparar/montar con Kitok y entregar sólo MP4 subtitulado tras QA final.
 [Historia técnica](docs/archive/README.md).

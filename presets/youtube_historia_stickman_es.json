@@ -87,6 +87,12 @@
       "fallo o resultado ambiguo que no pueda reconciliarse"
     ],
     "publication_authorized": false,
-    "quality": "Muestra antes de ampliar un estilo nuevo; todos los recortes inspeccionados y QA técnico final. Revisión del agente y aprobación humana registradas por separado."
+    "quality": "Muestra antes de ampliar un estilo nuevo; todos los recortes inspeccionados y QA técnico final. Revisión del agente y aprobación humana registradas por separado.",
+    "final_delivery": "Una única entrega final subtitulada; base limpia sólo intermedio técnico de Kitok.",
+    "subtitles": {
+      "enabled": true,
+      "style": "MAYÚSCULAS, grupos cortos, palabra activa amarilla y 110%, reloj real",
+      "evidence": "Gernsbacher2015 respalda atención/comprensión; no demuestra retención de este canal ni superioridad del amarillo."
+    }
   }
 }
