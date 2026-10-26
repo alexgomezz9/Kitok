@@ -15,7 +15,11 @@ from .reuse import _snapshot_files
 METHOD = 'fish_provider_timestamps_after_audio_cuts'
 
 
-def cut_words(words: list[dict], cuts: list[list[int]], rate: int, duration: float) -> list[dict]:
+def cut_words(words: list[dict], cuts: list[list[int]], rate: int, duration: float,
+              *, tempo: float = 1.0) -> list[dict]:
+    if (isinstance(tempo, bool) or not isinstance(tempo, (int, float))
+            or not math.isfinite(tempo) or not .9 <= tempo <= 1.1):
+        raise ValueError('Tempo must be a finite number between 0.9 and 1.1')
     if type(rate) is not int or rate <= 0 or not cuts:
         raise ValueError('Audio cuts need a sample rate and explicit intervals')
     previous = 0
@@ -28,7 +32,7 @@ def cut_words(words: list[dict], cuts: list[list[int]], rate: int, duration: flo
         previous = end
 
     def shifted(value):
-        return value - sum(end-start for start, end in cuts if end/rate <= value)/rate
+        return (value - sum(end-start for start, end in cuts if end/rate <= value)/rate)/tempo
 
     return [{**w, 'start': shifted(w['start']), 'end': shifted(w['end'])} for w in words]
 
@@ -46,14 +50,16 @@ def verify_edited_alignment(path: Path, data: dict, script: str) -> list[dict]:
             or digest(output) != edit['output_audio_sha256']):
         raise ValueError('Edited audio or original evidence changed')
     original = _provider_segments(alignment, script, edit['source_duration'])
-    expected = cut_words(original, edit['removed_samples'], edit['sample_rate'], edit['source_duration'])
+    expected = cut_words(original, edit['removed_samples'], edit['sample_rate'], edit['source_duration'],
+                         tempo=edit.get('tempo', 1.0))
     if data['words'] != expected:
         raise ValueError('Edited word timestamps do not match the recorded audio cuts')
     return expected
 
 
 def repair_audio(root: Path, episode: Path, destination: str, cuts: list[tuple[float, float]],
-                 *, settings, reviewer: str) -> Path:
+                 *, settings, reviewer: str, tempo: float = 1.0,
+                 reason: str = 'Operator confirmed non-speech synthesis artifacts in these gaps') -> Path:
     """Create a new episode atomically. Never replace audio or reuse paid state."""
     from .audio import _provider_segments, _provider_cues, format_srt
     from ..media.ffprobe import stream_durations
@@ -77,7 +83,7 @@ def repair_audio(root: Path, episode: Path, destination: str, cuts: list[tuple[f
         if any(not math.isfinite(a) or not math.isfinite(b) for a, b in cuts):
             raise ValueError('Audio cuts need finite start and end times')
         removed = [[round(a*rate), round(b*rate)] for a, b in cuts]
-        shifted = cut_words(words, removed, rate, duration)
+        shifted = cut_words(words, removed, rate, duration, tempo=tempo)
         temporary = Path(tempfile.mkdtemp(prefix='.audio-repair-', dir=target.parent))
         try:
             for name in hashes:
@@ -103,21 +109,25 @@ def repair_audio(root: Path, episode: Path, destination: str, cuts: list[tuple[f
                     fades += f',afade=t=out:st={(end-start)/rate-fade:.9f}:d={fade:.9f}'
                 graph.append(f'[0:a]aresample={rate},{trim},asetpts=PTS-STARTPTS{fades}[a{index}]')
             graph.append(''.join(f'[a{i}]' for i in range(len(intervals)))+
-                         f'concat=n={len(intervals)}:v=0:a=1[out]')
+                         f'concat=n={len(intervals)}:v=0:a=1[cut]')
+            tempo_filter = 'anull' if tempo == 1 else f'atempo={tempo:.12g}'
+            graph.append(f'[cut]{tempo_filter}[out]')
             subprocess.run([settings.ffmpeg_binary, '-nostdin', '-v', 'error', '-n', '-i', str(audio),
                             '-filter_complex', ';'.join(graph), '-map', '[out]', '-c:a', 'libmp3lame',
                             '-b:a', '192k', str(temporary/'voz.mp3')], check=True, timeout=120,
                            capture_output=True)
-            data = {'method': METHOD, 'precision': 'derived_from_provider_sample_cuts',
+            data = {'method': METHOD, 'precision': ('derived_from_provider_sample_cuts' if tempo == 1
+                                                    else 'derived_from_provider_sample_cuts_and_tempo'),
                     'confidence': None, 'words': shifted, 'audio_edit': {
                         'source_audio_sha256': digest(audio), 'source_alignment_sha256': digest(alignment),
                         'output_audio_sha256': digest(temporary/'voz.mp3'), 'source_duration': duration,
                         'sample_rate': rate, 'removed_samples': removed, 'reviewer': reviewer,
+                        'tempo': tempo,
                         'maximum_seam_fade_seconds': .005,
-                        'reason': 'Operator confirmed non-speech synthesis artifacts in these gaps'}}
+                        'reason': reason}}
             write(temporary/'voz.alignment.json', data)
             edited_duration = stream_durations(temporary/'voz.mp3', settings.ffprobe_binary)[1]
-            expected = duration-sum(b-a for a,b in removed)/rate
+            expected = (duration-sum(b-a for a,b in removed)/rate)/tempo
             if abs(edited_duration-expected) > .06:
                 raise ValueError('Repaired duration differs from the recorded cuts')
             write(temporary/'voz.srt', format_srt(_provider_cues(temporary/'voz.alignment.json', script, edited_duration)))

@@ -1,69 +1,65 @@
 # Estado vigente de Kitok
 
-Actualizado: **2026-10-26**. Rama **main**: storyboard `7897f8b` y corrección
-histórica `7d1747d` integrados por avance rápido desde `ef8370c`.
-Perfil/flujo Trazo Maldito subidos: `ae4c05b`, SHA remoto confirmado.
-CI [40381416777](https://github.com/alexgomezz9/Kitok/actions/runs/40381416777): **success**.
+Actualizado: **2026-10-26**. Rama **main**. Último código subido antes de este
+checkpoint: `2bae2f5`, SHA remoto confirmado y [CI verde](https://github.com/alexgomezz9/Kitok/actions/runs/40389960019).
+Encargo activo: terminar Jason completo, entrega única subtitulada y **>8 min**.
 
 Manual: [GUIA](GUIA.md), [flujo editorial](docs/youtube-editorial.md),
 [stickman](docs/youtube-stickman-es.md), [audio](docs/audio.md).
 
-## Capacidades y verificación
+## Capacidades y evidencia
 
-- Storyboard guion → escenas/prompts con cobertura exacta, personajes, referencias
-  y cámara explícita; compatible con lotes 3×3/reutilización. Prueba focal nueva
-  (26/10): **32 tests** storyboard/lotes pasados. No genera medios al planificar.
-- Native/FFmpeg/ASS/Pillow monta con voz/alineación e imágenes. Fish nuevo requiere
-  opción expresa y voz configurada; no repetir resultados inciertos. No ASR automático.
-- Progreso CLI por etapas/planos, stdout JSON, `--quiet`; QA final sólo al completar
-  controles. Imágenes aportadas conservan tamaño nativo con avisos, sin inventar detalle.
-- Subtítulos opcionales exportan otra versión, grupos de unas tres palabras,
-  MAYÚSCULAS y palabra activa amarilla/110 %, con reloj real y audio conservado.
-- Gate 26/10: **1154 Python**, **25 React**, TypeScript/Vite y studio-check
-  pasados. Frontend tuvo timeouts intermitentes en pruebas distintas; pasada
-  completa independiente 25/25 sin cambios. Causa del reloj aún en diagnóstico.
-- `docs-check`, contexto offline y validación de skill correctos; revisión
-  independiente acotada del flujo sin hallazgos. 3319 inputs protegidos conservan
-  sus hashes tras el cambio de rama.
+- Storyboard compila decisiones editoriales en escenas/prompts con cobertura
+  exacta, personajes/referencias/cámara; lotes 3×3 con manifiestos y revisión.
+- Kitok Native/FFmpeg/ASS monta, mezcla y exporta subtítulos con palabras reales:
+  MAYÚSCULAS, grupos cortos y palabra activa amarilla/110 %. No publica.
+- Fish nuevo requiere opción expresa; resultados inciertos se conservan sin retry.
+  No hay ASR ni realineación acústica automática. QA técnico no acredita escucha.
+- Imágenes aportadas conservan tamaño nativo con avisos; escalar no crea detalle.
+- Mezcla `sample-clock-v4-decoder-tail`: conserva duración declarada del MP3 y
+  margen AAC. 53 tests audio y muestra real33,5s/1005frames pasados, ambos QA
+  passed, −16,1LUFS/−2,29dBTP; fotogramas vistos y reproducción completa silenciada.
+- Reparación ahora admite `--tempo`0.9–1.1 sin cambiar tono, después de cortes
+  revisados. Transforma timestamps de palabras y verifica originales/hashes.
+  72 tests cortes/reuso/subtítulos pasados; revisión independiente sin hallazgos.
+- Baseline anterior: 1154Python/25React, TypeScript/Vite y studio-check correctos;
+  frontend tuvo timeouts intermitentes asociados hipotéticamente al reloj local.
+  `docs-check` e higiene correctos en este checkpoint.
 
 ## Trazo Maldito
 
-Canal `@trazomalditoes`, ID `UC9h_aIbnfQUo0ylPsPNnbrg`, independiente de Loose
-Thread. OAuth oficial de lectura **comprobado el 26/10** mediante `sync` en
-`local/youtube-trazo-maldito`: cero vídeos, Analytics diario/tráfico `no_data`,
-Reporting disponible. No se infieren métricas ni permisos futuros de este snapshot.
-Tokens y snapshot privados permanecen ignorados.
+`@trazomalditoes`, ID `UC9h_aIbnfQUo0ylPsPNnbrg`, separado de Loose Thread.
+OAuth oficial read-only comprobado26/10 en `local/youtube-trazo-maldito`:
+cero vídeos, Analytics diario/tráfico `no_data`, Reporting disponible.
+Tokens y snapshot privados ignorados; esta fecha no prueba acceso futuro.
 
-«Siguiente» delega al agente selección, investigación, guion y coordinación hasta
-entrega local, usando skills existentes; Kitok/helpers hacen voz, tiempos, recortes
-y montaje. Decisiones y QA se guardan por fase. No publica ni funciona con Codex
-cerrado. Cuotas ImageGen/Fish no verificadas; gasto significativo exige consulta.
+«Siguiente» delega investigación/guion/dirección y coordinación por skills hasta
+entrega local; Kitok hace operaciones deterministas. Perfil: historias/evolución
+de todos los personajes famosos, infancia sólo cuando está contada en las obras.
+Planificar9–12min y verificar MP4final estrictamente>480s; no relleno ni promesa de
+monetización. Sólo una entrega subtitulada; limpio es intermedio del motor.
 
-Encargo activo: producir el siguiente episodio completo tras cerrar main; comparar
-personajes/referencias públicas y conservar evidencia de miniaturas, intervalos de
-vídeo y audio realmente observados. Episodio local `content/longform/trazo_003_jason_voorhees`: guion1411palabras,
-109escenas compiladas, ancla y primeros lotes generados; voz476,891s guardada.
-109PNG finales revisados y validados; miniatura1280×720 revisada en móvil.
-Reloj bloquea escena092 por salto401,711–410,993s con audio real. Muestra de
-escucha solicitada al operador antes de cortar. No repetir voz. Entrega final
-única subtitulada, base limpia sólo intermedio.
+## Jason — render completo en curso
 
-## Michael Myers: recursos anteriores conservados
+Base conservada: `content/longform/trazo_003_jason_voorhees`.
+Guion1411palabras,109PNG finales revisados/validados, miniatura1280×720 vista en
+móvil. Voz original476,891s contiene un añadido401,711–410,993s que el operador
+identifica como habla tipo latín ajena al relato. Causa modelo/voz no aislada.
+No atribuirlo a montaje; no repetir Fish ni generar nuevas imágenes.
 
-Ruta: `content/longform/stickman_2_michael_myers/revisiones/montaje_720p_sin_ruidos`.
-Los recibos existentes `qa.json` y `qa_subtitulado.json` indican **passed** para
-vídeo limpio y subtitulado; leídos el 26/10. No se han vuelto a reproducir ni escuchar
-completos en este encargo. Aprobación audiovisual humana no acreditada aquí.
-No usar la copia diagnóstica anterior `sin_ruidos`. No se han repetido proveedores.
+Copia activa: `revisiones/voz_limpia_8min` dentro del episodio. Corte revisado
+401,810930–410,892653s con100ms de margen, tempo0.94. Conserva1411palabras,
+109ilustraciones y119hashes originales. Voz497,711s, plan115planos/497,733s,
+máximo7,4s: `prepare --reuse-images` listo. Render completo con GPU y subtítulos
+iniciado; MP4 final y QA aún pendientes. Progreso: `/tmp/kitok-jason-full-progress.log`.
 
-Corrección de mezcla `sample-clock-v4-decoder-tail`: rellena sólo la cola de
-decodificador MP3 hasta la duración declarada. Regresión FFmpeg fallaba antes y
-pasa ahora; **53 tests audio**, revisión independiente y docs-check correctos.
-Muestra real33,5s: 9planos/1005frames, QA limpio y subtitulado **passed**,
-−16,1LUFS/−2,29dBTP; contactos vistos, escucha completa no realizada. Ruta:
-`content/longform/trazo_003_jason_voorhees/editorial/muestra_inicio/revisiones/decoder_tail/video_subtitulado.mp4`.
+Siguiente: esperar exit/QA finales, verificar duración>480s, inspeccionar resultado
+y entregar únicamente `revisiones/voz_limpia_8min/video_subtitulado.mp4`, miniatura,
+metadatos y créditos. No lanzar otro trabajo del mismo episodio. Escucha completa
+no realizada por el agente; no confundir aprobación técnica con audiovisual humana.
 
-Siguiente: respuesta del operador sobre el tramo de audio; reparar sólo si se
-confirma ruido sin palabras, en revisión nueva. Después montaje completo Kitok
-y única entrega subtitulada. No volver a generar voz ni imágenes.
+Michael Myers anterior: ambos recibos QA leídos26/10 indican passed, sin nueva
+reproducción/escucha en este encargo. Ruta conservada
+`content/longform/stickman_2_michael_myers/revisiones/montaje_720p_sin_ruidos`;
+no usar la copia diagnóstica anterior `sin_ruidos`.
 [Historia técnica](docs/archive/README.md).

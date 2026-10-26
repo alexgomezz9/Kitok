@@ -31,7 +31,8 @@ def test_invalid_cuts_are_rejected(cuts):
 
 @pytest.mark.parametrize('cuts', [[(1.1, 2.9)], [(0, .05), (1.1, 2), (2, 2.85)],
                                  [(1.1, 2), (2.001, 2.9)]])
-def test_real_cut_new_episode_reuse_and_tamper_detection(tmp_path, cuts):
+@pytest.mark.parametrize('tempo', [1.0, .94])
+def test_real_cut_new_episode_reuse_and_tamper_detection(tmp_path, cuts, tempo):
     source = tmp_path/'source'
     source.mkdir()
     script = 'Hola mundo.'
@@ -44,20 +45,31 @@ def test_real_cut_new_episode_reuse_and_tamper_detection(tmp_path, cuts):
     (source/'voz.alignment.json').write_text(json.dumps({'method': 'fish_provider_timestamps', 'words': words}))
     settings = Settings(_env_file=None, data_root=tmp_path)
     before = {p.name: digest(p) for p in source.iterdir()}
-    repaired = repair_audio(tmp_path, source, 'clean', cuts, settings=settings, reviewer='fixture listener')
+    repaired = repair_audio(tmp_path, source, 'clean', cuts, settings=settings, reviewer='fixture listener', tempo=tempo)
     assert all(digest(source/name) == sha for name,sha in before.items())
     assert (repaired/'audio_original/voz.mp3').read_bytes() == (source/'voz.mp3').read_bytes()
     narration = prepare_narration(repaired, root=tmp_path, settings=settings)
     assert narration['alignment_method'] == METHOD
     removed = sum(b-a for a,b in cuts)
-    assert narration['words'][1]['start'] == pytest.approx(3-removed, abs=1/44100)
-    assert narration['duration'] == pytest.approx(2.2, abs=.07)
+    assert narration['words'][1]['start'] == pytest.approx((3-removed)/tempo, abs=1/44100)
+    assert narration['duration'] == pytest.approx(2.2/tempo, abs=.07)
     copy = safe_revision(tmp_path, repaired, 'test')
     assert prepare_narration(copy, root=tmp_path, settings=settings)['words'] == narration['words']
     with pytest.raises(ValueError, match='absent destination'):
         repair_audio(tmp_path, source, 'clean', [(1.1,2.9)], settings=settings, reviewer='fixture')
     path = repaired/'voz.alignment.json'
     data = json.loads(path.read_text())
+    if tempo == 1:
+        # Existing cut-only receipts have no tempo field.
+        del data['audio_edit']['tempo']
+        path.write_text(json.dumps(data))
+        assert _provider_segments(path, script, narration['duration']) == narration['words']
+    else:
+        data['audio_edit']['tempo'] = 1
+        path.write_text(json.dumps(data))
+        with pytest.raises(ValueError, match='invalid full-transcript'):
+            _provider_segments(path, script, narration['duration'])
+        data['audio_edit']['tempo'] = tempo
     data['words'][1]['start'] += .1
     path.write_text(json.dumps(data))
     with pytest.raises(ValueError, match='invalid full-transcript'):
@@ -76,3 +88,9 @@ def test_cutting_words_never_creates_destination(tmp_path):
     with pytest.raises(ValueError, match='intersects'):
         repair_audio(tmp_path, source, 'clean', [(.5, 1.5)], settings=Settings(_env_file=None), reviewer='test')
     assert not (tmp_path/'clean').exists()
+
+
+@pytest.mark.parametrize('tempo', [True, None, '0.94', float('nan'), float('inf'), .89, 1.11])
+def test_invalid_tempo_is_rejected(tempo):
+    with pytest.raises(ValueError, match='Tempo'):
+        cut_words([{'word': 'hola', 'start': .1, 'end': .5}], [[600, 900]], 1000, 2, tempo=tempo)

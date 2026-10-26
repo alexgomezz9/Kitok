@@ -6,7 +6,7 @@
   "channel_handle": "@trazomalditoes",
   "channel_name": "Trazo Maldito",
   "target_minutes": [
-    8,
+    9,
     12
   ],
   "editorial_direction": "Contar con ilustraciones stickman la historia de los personajes famosos de terror: origen, infancia cuando esté narrada, crecimiento y transformaciones hasta convertirse en iconos. Se acabarán cubriendo todos; priorizar claridad narrativa y evolución visual sobre perseguir tendencias. Fijar película/continuidad y no inventar etapas que las obras no cuentan. La creación detrás de cámaras es contexto opcional, no sustituye la historia del personaje.",
@@ -94,5 +94,15 @@
       "style": "MAYÚSCULAS, grupos cortos, palabra activa amarilla y 110%, reloj real",
       "evidence": "Gernsbacher2015 respalda atención/comprensión; no demuestra retención de este canal ni superioridad del amarillo."
     }
+  },
+  "duration_policy": {
+    "minimum_seconds": 480,
+    "strictly_greater": true,
+    "planning_target_seconds": 540,
+    "verification": "Comprobar duración real del MP4 final; no basta con estimar palabras.",
+    "editorial": "Preparar suficiente historia útil para9–12min; no añadir silencios ni repetir contenido para alcanzar el mínimo.",
+    "current_episode": "Se permite aprovechar la voz existente con tempo0.94 conservando tono, guion e imágenes, tras retirar añadido de síntesis confirmado.",
+    "monetization": "YouTube permite anuncios intermedios en vídeos monetizados de8min o más; no garantiza monetización ni inserciones.",
+    "source": "https://support.google.com/youtube/answer/6175006?hl=es"
   }
 }

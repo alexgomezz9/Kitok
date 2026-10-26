@@ -35,6 +35,12 @@ esbozarse antes de la voz; sus tiempos se revisan con palabras reales. Evita
 producir todo el lote antes de detectar un fallo de voz o alineación. Mantén las
 referencias de estilo/identidad fijadas, con variación de composición por escena.
 
+Duración del canal: planificar historias útiles para 9–12 minutos y comprobar
+que el MP4 final supere estrictamente 480 segundos. No confundir estimaciones
+con duración real ni rellenar con pausas. YouTube admite anuncios intermedios
+en vídeos monetizados de ocho minutos o más; la duración no acredita elegibilidad
+del canal ni garantiza anuncios. Fuente: [YouTube](https://support.google.com/youtube/answer/6175006?hl=es).
+
 Dentro del proyecto Kitok, pedir «Usa $kitok-youtube para investigar el próximo episodio» o «Continúa el episodio X». Las skills locales se descubren desde `.agents/skills` del repositorio; una skill de WSL no aparece automáticamente en una carpeta Windows sin relación. [Documentación oficial](https://learn.chatgpt.com/docs/build-skills). El lector compacto se ejecuta desde la raíz:
 
 ```bash

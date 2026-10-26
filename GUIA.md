@@ -170,6 +170,12 @@ imágenes 3×3, montaje y entrega local. Kitok y sus auxiliares hacen los cálcu
 recortes, síntesis y render; las skills guían las decisiones y revisión del agente.
 No es un botón del estudio ni un servicio que continúe con Codex cerrado.
 
+Trazo Maldito prepara relatos de 9–12 minutos y comprueba que la entrega final
+supere 8 minutos reales. No rellena con silencios ni garantiza anuncios: los
+anuncios intermedios requieren además un vídeo monetizado. La voz existente
+puede recibir un ajuste suave de ritmo en una copia revisada, conservando el tono;
+consulta [reparación y tempo](docs/audio.md#quitar-ruidos-de-sintesis-confirmados).
+
 Se conserva el estado del episodio por fases. Una duda material, gasto significativo
 o resultado ambiguo puede necesitar consulta. Publicar requiere otro encargo;
 la revisión del agente no se presenta como aprobación humana. La conexión OAuth

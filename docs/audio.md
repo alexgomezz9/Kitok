@@ -279,7 +279,9 @@ adecuación subjetiva de la transición.
 
 Un hueco de timestamps puede contener ruido, no silencio. Escúchalo antes de
 editar. Este auxiliar sólo corta intervalos expresos que no intersecten ninguna
-palabra Fish. No detecta artefactos ni decide cortes por su cuenta.
+palabra Fish. Puede retirar también habla sintética ajena al guion cuando el
+operador la haya identificado expresamente. No detecta artefactos ni decide
+cortes por su cuenta.
 
 ```bash
 .venv/bin/python scripts/repair_stickman_audio.py content/longform/mi_episodio --output content/longform/mi_episodio_sin_ruido --cut 12.1:14.9 --reviewer operador
@@ -291,6 +293,12 @@ verificados del episodio. Se puede repetir `--cut`, en orden, para varios tramos
 La salida debe ser una carpeta nueva; no sobrescribe ni reintenta una reparación.
 No llama a Fish, ASR ni proveedores y no monta el vídeo. El modelo configurado
 no cambia y no se solicita ninguna síntesis nueva.
+
+`--tempo 0.94` es opcional: ralentiza un 6 % mediante FFmpeg `atempo`, conservando
+el tono. Admite ajustes suaves entre 0.9 y 1.1; el valor predeterminado es 1.
+Los tiempos originales se desplazan por los cortes y se dividen por el tempo,
+sin interpolar palabras. El recibo registra y verifica esa transformación y
+`--reason` conserva el motivo de revisión. La sincronía acústica sigue sin medirse.
 
 La copia archiva voz, alineación y SRT originales en `audio_original/`; conserva
 guion e imágenes con hashes. Recorta PCM a muestras exactas, aplica fundidos de
