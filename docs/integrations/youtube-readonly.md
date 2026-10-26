@@ -1,10 +1,12 @@
 # YouTube: conexión local de lectura
 
 Implementado: OAuth Desktop y CLI oficial. Verificado con pruebas aisladas y
-revisión de seguridad. **La autorización real de Google y las métricas de tu canal
-no se han comprobado todavía.** El MCP vidIQ existente reconoce LooseThread;
-su comprobación de autorización reciente pide verificar la cuenta. Esa conexión
-no entrega sus credenciales al proceso Python de Kitok.
+revisión de seguridad. El **26/10/2026** se comprobó por lectura oficial la conexión
+de **Trazo Maldito**, `@trazomalditoes`, ID `UC9h_aIbnfQUo0ylPsPNnbrg`, en
+`local/youtube-trazo-maldito`. Catálogo: cero vídeos; Analytics diario/tráfico:
+`no_data`; Reporting: lectura disponible. Esto no demuestra acceso futuro ni
+resultados del canal. Loose Thread usa otra conexión; no intercambiar identidades.
+El MCP vidIQ no entrega sus credenciales al proceso Python de Kitok.
 
 ## Preparar la cuenta una sola vez
 
@@ -32,6 +34,8 @@ yt-analytics.readonly, sin upload, force-ssl ni permisos monetarios.
 PYTHONPATH=src .venv/bin/python scripts/youtube_readonly.py status
 PYTHONPATH=src .venv/bin/python scripts/youtube_readonly.py sync
 PYTHONPATH=src .venv/bin/python scripts/youtube_readonly.py sync --start 2026-10-01 --end 2026-10-17 --video ID_DEL_VIDEO
+# Trazo Maldito (conexión independiente):
+PYTHONPATH=src .venv/bin/python scripts/youtube_readonly.py --directory local/youtube-trazo-maldito sync
 ```
 
 status muestra estado local: no prueba una sesión remota válida. sync comprueba
@@ -80,6 +84,7 @@ La implementación local reutiliza httpx/stdlib existentes y evita instalar tres
 servidores completos o copiar herramientas de publicación que no necesitamos.
 
 Del último repo adoptamos la separación de voz editorial, intención del montaje
-y revisión de retención con fuentes. No copiamos sus seis parsers ni instalamos
-las once skills globalmente: no conectan YouTube y sus heurísticas no prueban
-retención futura. El compilador local ejecuta decisiones explícitas verificadas.
+y revisión de retención con fuentes. Las once skills editoriales globales se
+instalaron posteriormente adaptadas al canal; no son la conexión OAuth y sus
+heurísticas no prueban retención futura. El compilador local ejecuta decisiones
+explícitas verificadas.

@@ -17,11 +17,44 @@ Ejecuta desde la raíz el lector compacto, sin proveedores ni escrituras:
 
 Lee el [perfil del canal](../../../presets/youtube_historia_stickman_es.json). Consulta sólo la fase necesaria de la [guía editorial](../../../docs/youtube-editorial.md) y las investigaciones allí enlazadas. No vuelvas a pedir preferencias o recursos que ya estén registrados. El perfil no acredita propiedad de un canal ni permisos de publicación.
 
+## Encargo completo: «siguiente»
+
+Dentro de este canal, «siguiente» encarga el próximo episodio completo hasta entrega
+local. Usa `yt-video-workflow` como coordinación y carga sólo la skill de la fase
+activa. El perfil fija las decisiones delegadas: elige personaje, promesa y paquete
+cuando el operador delegue, sin imponer confirmaciones en cada paso. Consulta sólo
+dudas materiales, gasto significativo o bloqueos no recuperables; publicar requiere
+encargo separado. Identifica Trazo Maldito por su ID, nunca por la conexión de Loose
+Thread. Para leer datos actuales usa el CLI oficial con el directorio del perfil y
+comprueba ID remoto; un snapshot o `status` local no acredita acceso vigente.
+
+Al iniciar o continuar lee `editorial/estado.json`. Al cerrar cada fase registra
+decisión, procedencia, hashes de entradas/salidas y siguiente acción. No cambies el
+guion fijado después de generar voz/imágenes sin una revisión nueva. Primero revisa
+voz/alineación y una muestra visual/audiovisual antes de ampliar. Los scripts hacen
+IDs, cobertura, recortes, tiempos y render; el agente decide historia y revisa
+significado. No recrees esas operaciones escribiendo otro generador.
+
 ## Elegir o investigar
 
-Busca historias curiosas que funcionen con stickman y tengan una buena promesa; personajes, objetivos y conflictos son recursos, no una plantilla obligatoria. No copies ni traduzcas tal cual un vídeo de referencia. Ondol fue rechazado. Investiga YouTube público sin vidIQ y contrasta español e inglés. Distingue idioma hablado de títulos traducidos, largos de shorts y vistas absolutas de rendimiento relativo al canal. Conserva consultas, fecha, enlaces, muestras y límites; no prometas éxito ni llames desocupado a un mercado por una búsqueda vacía.
+Busca personajes de terror y ángulos propios según el perfil: historia ficticia y
+creación detrás de cámaras son capas distintas. Fija película/continuidad y fuentes
+antes de mezclar versiones. No copies ni traduzcas tal cual un vídeo de referencia.
+La prioridad es narrar la vida/evolución del personaje, desde su infancia cuando
+las obras la cuentan; no sustituirla por curiosidades de producción ni inventar
+un crecimiento ausente. Se cubrirán los personajes principales con el tiempo:
+las referencias ayudan a narrar y visualizar, no obligan a perseguir tendencias.
+Investiga YouTube público sin gastar vidIQ y contrasta español e inglés. Distingue
+idioma hablado de títulos traducidos, largos de shorts y vistas absolutas de
+rendimiento relativo al canal. Conserva consultas, fecha, enlaces, muestras y límites;
+no prometas éxito ni llames desocupado a un mercado por una búsqueda vacía.
 
-Propón pocas opciones ordenadas, con evidencia a favor/en contra y un ángulo propio. Antes del guion definitivo acuerda tema, promesa y paquete de título/miniatura cuando siga pendiente. Obtén tú las referencias públicas; pide sólo el enlace o material preciso que no puedas consultar. Guarda análisis propios, no copias de guiones ajenos. Diferencia haber visto una miniatura, leído el guion, visto el montaje y escuchado el audio.
+Compara pocas opciones con evidencia a favor/en contra y un ángulo propio; si la
+selección está delegada, elige y registra el motivo antes del guion definitivo.
+Obtén tú las referencias públicas. Abre e inspecciona miniaturas; intenta reproducir
+secuencias relevantes y anota los intervalos realmente vistos, audio escuchado y
+limitaciones. Un título/transcript no demuestra montaje ni sonido. Guarda análisis
+propios, no copias de guiones ajenos. Sin métricas propias, declara esa limitación.
 
 ## Escribir y visualizar
 

@@ -28,7 +28,11 @@ def context(root: Path, episode: str | None = None, scene_ids=()) -> dict:
         'read_only': True,
         'profile': read_json(profile),
         'guide': 'docs/youtube-editorial.md',
-        'research': 'docs/research/2026-10-22-historias/README.md',
+        'research': 'docs/youtube-editorial.md',
+        'historical_research': {
+            'path': 'docs/research/2026-10-22-historias/README.md',
+            'scope': 'Generic historical topics, not the current horror-channel selection.'
+        },
         'provider_calls': 0,
         'limitation': 'File presence is not approval, semantic quality or acoustic synchronization.'
     }

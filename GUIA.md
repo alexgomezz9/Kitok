@@ -162,6 +162,20 @@ La confirmación se vuelve a validar bajo bloqueo antes de poner el montaje en c
 
 ## Nuevo flujo YouTube stickman ES
 
+Para encargar un episodio completo a Codex en este proyecto puedes decir
+**«Siguiente»**. El perfil vigente es **Trazo Maldito** (`@trazomalditoes`),
+historias de personajes de terror en español; no Loose Thread. El agente investiga
+referencias, elige personaje/enfoque/paquete y coordina guion, voz, storyboard,
+imágenes 3×3, montaje y entrega local. Kitok y sus auxiliares hacen los cálculos,
+recortes, síntesis y render; las skills guían las decisiones y revisión del agente.
+No es un botón del estudio ni un servicio que continúe con Codex cerrado.
+
+Se conserva el estado del episodio por fases. Una duda material, gasto significativo
+o resultado ambiguo puede necesitar consulta. Publicar requiere otro encargo;
+la revisión del agente no se presenta como aprobación humana. La conexión OAuth
+de lectura del canal está en `local/youtube-trazo-maldito`: comprobar el ID remoto
+antes de usar métricas. [Contrato editorial y continuidad](docs/youtube-editorial.md).
+
 Opcional: añade `--subtitles` a `produce` para exportar también una versión
 con grupos de tres palabras EN MAYÚSCULAS y palabra activa amarilla, un 10 % mayor. Para un MP4 ya terminado,
 usa el comando `subtitles`. [Detalle y evidencia](docs/captions.md).

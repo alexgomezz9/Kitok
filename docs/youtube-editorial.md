@@ -1,6 +1,11 @@
 # Producción editorial de historias stickman
 
-Entrada reutilizable: skill `kitok-youtube` en `.agents/skills/kitok-youtube/SKILL.md`. Perfil común: [historia stickman ES](../presets/youtube_historia_stickman_es.json). [Próximas historias y evidencia](research/2026-10-22-historias/README.md). Estado técnico y comandos de producción: [guía principal](../GUIA.md) y [adaptador stickman](youtube-stickman-es.md).
+Entrada reutilizable: skill `kitok-youtube` en `.agents/skills/kitok-youtube/SKILL.md`.
+Perfil vigente: [Trazo Maldito](../presets/youtube_historia_stickman_es.json),
+`@trazomalditoes`, ID `UC9h_aIbnfQUo0ylPsPNnbrg`. Es el canal de personajes de
+terror en español, separado de Loose Thread. La [investigación histórica genérica](research/2026-10-22-historias/README.md)
+es contexto fechado, no una selección vigente para este canal. Estado técnico y
+comandos: [guía principal](../GUIA.md) y [adaptador stickman](youtube-stickman-es.md).
 
 ## Alcance comprobado
 
@@ -9,6 +14,26 @@ La skill dirige al agente y su lector devuelve contexto local; no es un servicio
 Verifica el CLI y el estado del episodio antes de continuar. No sobrescribas reparaciones ni registros privados; un archivo presente no equivale a un recurso revisado.
 
 ## Inicio y continuidad sin explicar todo de nuevo
+
+«Siguiente» dentro de este proyecto encarga elegir y producir el próximo episodio
+de Trazo Maldito hasta entrega local. El agente elige personaje, ángulo, título,
+miniatura y guion según el perfil y las referencias observadas; utiliza las skills
+por fase. No impone otra aprobación para cada decisión delegada. Consulta dudas
+materiales, gasto significativo o resultados ambiguos sin recuperación segura.
+La revisión del agente se registra como tal; no se atribuye aprobación al operador.
+No incluye publicar, programar ni cambiar el canal.
+
+Consulta identidad y datos mediante la [conexión oficial de lectura](integrations/youtube-readonly.md)
+en `local/youtube-trazo-maldito`, comprobando el ID remoto. No uses la conexión
+de Loose Thread. El 26/10 se verificó acceso real y cero vídeos; esa fecha no prueba
+acceso futuro y no hay todavía métricas propias con las que ordenar personajes.
+
+La secuencia de trabajo es investigación/paquete → guion fijado → voz y auditoría
+del reloj → storyboard → muestra de imágenes → lotes 3×3 revisados → muestra de
+montaje → render completo/QA → miniatura/metadatos y entrega. El storyboard puede
+esbozarse antes de la voz; sus tiempos se revisan con palabras reales. Evita
+producir todo el lote antes de detectar un fallo de voz o alineación. Mantén las
+referencias de estilo/identidad fijadas, con variación de composición por escena.
 
 Dentro del proyecto Kitok, pedir «Usa $kitok-youtube para investigar el próximo episodio» o «Continúa el episodio X». Las skills locales se descubren desde `.agents/skills` del repositorio; una skill de WSL no aparece automáticamente en una carpeta Windows sin relación. [Documentación oficial](https://learn.chatgpt.com/docs/build-skills). El lector compacto se ejecuta desde la raíz:
 
@@ -42,7 +67,15 @@ Conservar un breve paquete por selección: consultas de YouTube y fecha; vídeos
 
 Una referencia útil aporta una lección concreta: qué promete título/miniatura, qué hace el primer minuto, cómo introduce conflicto, resuelve preguntas y distribuye información visual. Guardar análisis propio y timestamps si se observaron. No copiar guiones ni convertir recursos de terceros en recursos propios. Un título visto no permite afirmar cómo narra el vídeo. Las lecciones pasan al perfil o guía sólo cuando sean útiles y estén respaldadas; las métricas permanecen como snapshots fechados.
 
-Priorizar oportunidad narrativa, competencia observada, credibilidad de fuentes y viabilidad visual. Visitas y multiplicadores orientan; no pronostican ingresos o éxito. Antes de escribir entero se acuerda la promesa del episodio y un concepto de título/miniatura que el vídeo pueda cumplir. No aprobar un tema porque sea simplemente el mayor número de una tabla.
+Priorizar oportunidad narrativa, competencia observada, credibilidad de fuentes y
+viabilidad visual. Visitas y multiplicadores orientan; no pronostican ingresos o
+éxito. Antes de escribir entero se fija la promesa y un concepto de título/miniatura
+que el vídeo pueda cumplir; el agente decide cuando esté delegado. Identifica qué
+película/continuidad se cuenta y distingue ficción de historia de producción.
+El objetivo es cubrir los personajes famosos y narrar su evolución con stickman:
+origen, infancia cuando exista, crecimiento y transformaciones. No rellenar años
+sin relato en las obras ni reemplazar esta historia por anécdotas de rodaje.
+No elegir un tema sólo por ser el mayor número de una tabla.
 
 ## Guiones con historia y hooks
 

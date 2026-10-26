@@ -1,15 +1,15 @@
 {
   "version": 1,
-  "updated": "2026-10-22",
+  "updated": "2026-10-26",
   "profile_id": "historia_stickman_es",
   "language": "es",
-  "channel_handle": null,
-  "channel_name": null,
+  "channel_handle": "@trazomalditoes",
+  "channel_name": "Trazo Maldito",
   "target_minutes": [
     8,
     12
   ],
-  "editorial_direction": "Historias curiosas en stickman, con guion y enfoque propios, gancho claro y señales de interés; buscar margen frente a versiones españolas fuertes, sin exigir ausencia de vídeos españoles ni copiar referentes.",
+  "editorial_direction": "Contar con ilustraciones stickman la historia de los personajes famosos de terror: origen, infancia cuando esté narrada, crecimiento y transformaciones hasta convertirse en iconos. Se acabarán cubriendo todos; priorizar claridad narrativa y evolución visual sobre perseguir tendencias. Fijar película/continuidad y no inventar etapas que las obras no cuentan. La creación detrás de cámaras es contexto opcional, no sustituye la historia del personaje.",
   "preferences": {
     "preserve_native_kitok_renderer": true,
     "one_distinct_final_image_per_editorial_scene": true,
@@ -20,7 +20,9 @@
     "use_vidiq_credits": false,
     "buy_new_services": false,
     "avoid_repeated_user_explanations": true,
-    "independent_agent_per_phase_required": false
+    "independent_agent_per_phase_required": false,
+    "cover_all_major_horror_characters_over_time": true,
+    "character_life_story_before_production_trivia": true
   },
   "rejected_topics": [
     {
@@ -33,23 +35,58 @@
   ],
   "voice": {
     "existing_provider": "fish",
-    "operator_report": "Gratuito de momento, según el usuario; no es una tarifa verificada ni una autorización para repetir voz existente.",
-    "prefer_existing_audio_and_alignment": true
+    "operator_report": "No inferir precio ni saldo de Fish a partir del nombre del modelo; reutilizar configuración vigente y consultar antes de gasto significativo.",
+    "prefer_existing_audio_and_alignment": true,
+    "existing_episode_config": "content/longform/stickman_2_michael_myers/configuracion.json"
   },
   "images": {
     "delivery": "PNG independientes, composición horizontal 16:9, destino de vídeo 1920x1080/30 fps",
     "existing_import_floor": null,
     "native_resolution_must_be_recorded": true,
     "candidate_panels_per_plate": [
-      2,
-      4
+      9,
+      4,
+      1
     ],
-    "selected_batch_size": null,
+    "selected_batch_size": 9,
     "measured_web_vs_integrated_generation": false,
     "semantic_review_required": true,
-    "provided_sources": "Native resolution preserved; safety/hash checks; renderer scales and frames at export."
+    "provided_sources": "Native resolution preserved; safety/hash checks; renderer scales and frames at export.",
+    "selected_columns": 3,
+    "repair": "2x2 o individual sólo para escenas fallidas; conservar manifiestos y originales."
   },
-  "known_episode": "content/longform/stickman_video1",
-  "known_episode_caveat": "136 PNG presentes no equivalen a 136 imágenes semánticamente aprobadas. La tanda externa reportada de 39 recortes incluyó asignación posterior por afinidad temática.",
-  "source": "Preferencias expresadas por el usuario en este chat el 22/10/2026. No confundir con reglas de otros canales del repositorio."
+  "known_episode": "content/longform/stickman_2_michael_myers",
+  "known_episode_caveat": "Recuperar decisiones y recursos del episodio real; presencia de archivos o QA técnico no acredita aprobación audiovisual humana.",
+  "source": "Canal confirmado por el operador y por OAuth oficial el 26/10/2026. Encargo completo y decisiones delegadas en esa fecha. No contiene credenciales. Aclaración del operador 26/10: cubrir todos los personajes y mostrar su evolución, desde pequeños cuando corresponda.",
+  "channel_id": "UC9h_aIbnfQUo0ylPsPNnbrg",
+  "youtube_connection": {
+    "directory": "local/youtube-trazo-maldito",
+    "expected_channel_id": "UC9h_aIbnfQUo0ylPsPNnbrg",
+    "access": "official_read_only",
+    "operator_confirmed": "2026-10-26",
+    "last_live_verified": "2026-10-26",
+    "live_check_required": true,
+    "other_channel": "Loose Thread usa una conexión distinta; no usarla para este canal."
+  },
+  "workflow": {
+    "trigger": "siguiente",
+    "mode": "agent_coordinated_complete_episode",
+    "decisions_delegated": [
+      "personaje",
+      "angulo",
+      "titulo_y_miniatura",
+      "guion",
+      "storyboard",
+      "revision_del_agente",
+      "montaje_y_entrega_local"
+    ],
+    "new_voice": "Kitok con Fish ya configurado, una vez tras fijar guion; reutilizar resultados confirmados. No repetir solicitudes ambiguas.",
+    "stops": [
+      "duda material de identidad/canon sin resolver",
+      "gasto significativo o servicio nuevo",
+      "fallo o resultado ambiguo que no pueda reconciliarse"
+    ],
+    "publication_authorized": false,
+    "quality": "Muestra antes de ampliar un estilo nuevo; todos los recortes inspeccionados y QA técnico final. Revisión del agente y aprobación humana registradas por separado."
+  }
 }
