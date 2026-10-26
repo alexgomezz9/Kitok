@@ -543,7 +543,7 @@ def test_long_documentary_automatic_mix_has_continuous_sample_clock(audio_librar
     assert math.isfinite(receipt["measured"]["loudness_range_lu"])
     assert receipt["transition_at"] == 223.1457
     assert len(receipt["sound_effects"]) == 4
-    assert receipt["mixer_revision"] == "sample-clock-v3-aac-headroom"
+    assert receipt["mixer_revision"] == "sample-clock-v4-decoder-tail"
     diagnostics = Path(receipt["diagnostics_directory"])
     assert (diagnostics / "mixed.wav").is_file()
     assert json.loads((diagnostics / "validation.json").read_text())["status"] == "validated"
@@ -664,7 +664,7 @@ def test_new_documentary_from_scratch_uses_real_stock_lengths_and_auto_music(aud
             source = plan['assets'][scene['asset']]['path']
             assert scene['source_start'] + scene['end']-scene['start'] <= lengths[source] + 1e-6
     mix = json.loads(next(workspace.glob('music-*.wav.json')).read_text())
-    assert mix['mixer_revision'] == 'sample-clock-v3-aac-headroom'
+    assert mix['mixer_revision'] == 'sample-clock-v4-decoder-tail'
     assert abs(mix['duration']-probe_media(voice).duration) <= .08
     assert len(mix['selection']['tracks']) == 2
     assert mix['sound_effects']
@@ -674,3 +674,21 @@ def test_new_documentary_from_scratch_uses_real_stock_lengths_and_auto_music(aud
                              'frame=pix_fmt', '-of', 'csv=p=0', str(output)],
                             check=True, capture_output=True, text=True).stdout
     assert {row.strip(',') for row in frames.splitlines() if row.strip(',')} == {'yuv420p'}
+
+
+def test_mix_preserves_declared_mp3_duration_after_decoder_padding(tmp_path):
+    """MP3 priming metadata must not make the mixed bed end before the edit."""
+    if not shutil.which('ffmpeg'):
+        pytest.skip('FFmpeg is required for real codec timing')
+    voice = tmp_path / 'padded.mp3'
+    bed = tmp_path / 'bed.wav'
+    output = tmp_path / 'mixed.wav'
+    subprocess.run(['ffmpeg', '-nostdin', '-v', 'error', '-f', 'lavfi', '-i',
+                    'sine=frequency=220:sample_rate=44100:duration=3.007',
+                    '-c:a', 'libmp3lame', '-q:a', '2', str(voice)], check=True, capture_output=True)
+    bed.write_bytes(tone_bytes(seconds=4))
+    duration = probe_media(voice).duration
+    subprocess.run(['ffmpeg', '-nostdin', '-v', 'error', '-i', str(voice), '-i', str(bed),
+                    '-filter_complex', AudioLibrary._mix_filter(duration, .5, 1),
+                    '-map', '[mixed]', '-c:a', 'pcm_s16le', str(output)], check=True, capture_output=True)
+    assert probe_media(output).duration >= duration - .002

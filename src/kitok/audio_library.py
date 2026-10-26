@@ -61,7 +61,7 @@ AUDITED = {
 }
 ID = re.compile(r"[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}\Z")
 SFX_KINDS = ("soft_tick", "low_pulse", "air_swish", "paper_texture", "key_click", "ui_ping")
-MIXER_REVISION = "sample-clock-v3-aac-headroom"
+MIXER_REVISION = "sample-clock-v4-decoder-tail"
 # Editorial affinities are separate from the source/license receipt. They are
 # judgments based on the author's stored instrument/feel descriptions, not claims
 # that the author assigned a business/history genre or that Kitok auditioned them.
@@ -699,7 +699,9 @@ class AudioLibrary:
         # loudnorm can negotiate 192 kHz internally. Rebuild each 48 kHz branch's
         # clock from emitted samples before acrossfade/sidechain/amix. Keeping
         # inherited frame timestamps can shorten long output at the final -t.
-        filters = [f"[0:a]atrim=duration={duration:.6f},asetpts=PTS-STARTPTS,aformat=sample_rates=48000:channel_layouts=stereo,"
+        # MP3 duration can include encoder padding omitted by the decoder. Keep
+        # the declared edit length with a silent tail instead of ending amix early.
+        filters = [f"[0:a]apad=whole_dur={duration:.6f},atrim=duration={duration:.6f},asetpts=PTS-STARTPTS,aformat=sample_rates=48000:channel_layouts=stereo,"
                    "loudnorm=I=-19:LRA=7:TP=-3,aresample=48000,asetpts=N/SR/TB,asplit=2[voice][key]"]
         for index in range(count):
             center = duration/2 if transition_at is None else transition_at

@@ -196,6 +196,10 @@ varios minutos. Espera al resultado del comando: `qa.json` se publica con
 `technical_status: passed` o `rejected` al terminar todas las comprobaciones.
 La mera existencia de un MP4 o una hoja de contacto no acredita aprobación.
 
+La mezcla conserva la duración declarada de MP3 con relleno del códec. Si una
+mezcla guardada con una versión anterior resulta demasiado corta, conserva los
+archivos y prepara otra revisión; no hace falta generar otra voz.
+
 Si aparece `no word start between ...`, la alineación deja un tramo sin cortes
 reales que supera el máximo por escena. El error indica tiempos absolutos y, al
 reutilizar imágenes, el plano original. Un hueco entre timestamps no demuestra

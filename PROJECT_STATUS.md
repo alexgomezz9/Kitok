@@ -43,6 +43,7 @@ Encargo activo: producir el siguiente episodio completo tras cerrar main; compar
 personajes/referencias públicas y conservar evidencia de miniaturas, intervalos de
 vídeo y audio realmente observados. Episodio local `content/longform/trazo_003_jason_voorhees`: guion1411palabras,
 109escenas compiladas, ancla y primeros lotes generados; voz476,891s guardada.
+109PNG finales revisados y validados; miniatura1280×720 revisada en móvil.
 Reloj bloquea escena092 por salto401,711–410,993s con audio real. Muestra de
 escucha solicitada al operador antes de cortar. No repetir voz. Entrega final
 única subtitulada, base limpia sólo intermedio.
@@ -55,6 +56,14 @@ vídeo limpio y subtitulado; leídos el 26/10. No se han vuelto a reproducir ni 
 completos en este encargo. Aprobación audiovisual humana no acreditada aquí.
 No usar la copia diagnóstica anterior `sin_ruidos`. No se han repetido proveedores.
 
-Siguiente: completar lotes con revisión; resolver muestra de audio con el
-operador, preparar/montar con Kitok y entregar sólo MP4 subtitulado tras QA final.
+Corrección de mezcla `sample-clock-v4-decoder-tail`: rellena sólo la cola de
+decodificador MP3 hasta la duración declarada. Regresión FFmpeg fallaba antes y
+pasa ahora; **53 tests audio**, revisión independiente y docs-check correctos.
+Muestra real33,5s: 9planos/1005frames, QA limpio y subtitulado **passed**,
+−16,1LUFS/−2,29dBTP; contactos vistos, escucha completa no realizada. Ruta:
+`content/longform/trazo_003_jason_voorhees/editorial/muestra_inicio/revisiones/decoder_tail/video_subtitulado.mp4`.
+
+Siguiente: respuesta del operador sobre el tramo de audio; reparar sólo si se
+confirma ruido sin palabras, en revisión nueva. Después montaje completo Kitok
+y única entrega subtitulada. No volver a generar voz ni imágenes.
 [Historia técnica](docs/archive/README.md).

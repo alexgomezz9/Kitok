@@ -307,3 +307,9 @@ pequeñas aportadas se escalan al montar y llevan aviso de resolución.
 Desde `sample-clock-v3-aac-headroom`, las mezclas nuevas dejan 0,8 dB de margen
 antes de AAC (objetivo PCM −2,3 dBTP). Se sigue comprobando el AAC decodificado
 con límite −1,5 dBTP. La revisión anterior sigue identificando recibos históricos.
+
+Desde `sample-clock-v4-decoder-tail`, la mezcla conserva también la duración
+declarada cuando el decodificador MP3 omite unas muestras de relleno: añade sólo
+cola silenciosa hasta el final solicitado, sin recortar ni volver a sintetizar voz.
+Los archivos y recibos anteriores se conservan; una mezcla anterior demasiado
+corta necesita una revisión nueva, no borrar su caché ni relajar el control del montaje.
