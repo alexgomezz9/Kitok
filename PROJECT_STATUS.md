@@ -45,8 +45,8 @@ Manual: [GUIA](GUIA.md), [stickman](docs/youtube-stickman-es.md),
   imágenes diagnósticas repetidas: 142 planos, sin render ni aprobación visual.
 - Siguiente: `$kitok-storyboard Prepara las escenas y prompts de MI_EPISODIO`;
   después `$kitok-image-batches` consume `planificacion_visual/plan_visual_prevoz.json`.
-  Los resultados de prueba siguen en `/tmp/kitok-storyboard-michael-proof/`;
-  no son un episodio con imágenes nuevas listas para renderizar.
+  Las copias de prueba de `/tmp/kitok-storyboard-michael-proof/` se retiraron
+  en la limpieza autorizada del 24/10; no eran un episodio listo para renderizar.
 
 Evidencia audiovisual anterior (23/10):
 
