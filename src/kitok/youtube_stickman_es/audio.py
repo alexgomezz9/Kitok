@@ -360,6 +360,12 @@ def prepare_narration(episode: Path, *, root: Path, settings, voice: dict | None
             result["words"] = segments
     if receipt is None:
         write_json_atomic(receipt_path, result)
+    if (voice or {}).get('transcript_verification') == 'local_asr':
+        from .voice_fidelity import require_reviewed, verify_voice
+        report('Voz: comprobando ASR local independiente y actividad fuera de palabras; sin subir audio ni sintetizar')
+        fidelity = verify_voice(episode, settings=settings, transcribe=True)
+        require_reviewed(fidelity, episode)
+        result['voice_fidelity'] = {'status': fidelity['status'], 'report_path': fidelity['report_path']}
     return result
 
 

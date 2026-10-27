@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Literal
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator, model_serializer
 
 from ..editing.camera import CameraMotion
 
@@ -20,6 +20,16 @@ class Voice(Model):
     reference_id: str | None = None
     model: str | None = None
     speed: float = Field(default=1, ge=.5, le=2, allow_inf_nan=False)
+    transcript_verification: Literal['off', 'local_asr'] = 'off'
+
+    @model_serializer(mode='wrap')
+    def preserve_legacy_identity(self, handler):
+        data = handler(self)
+        # Existing plans hash all configuration fields. An optional guard that
+        # is disabled must not invalidate their already paid/rendered inputs.
+        if self.transcript_verification == 'off':
+            data.pop('transcript_verification', None)
+        return data
 
 
 class Music(Model):

@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     fish_api_key: SecretStr = SecretStr("")
     fish_model: str = "s2.1-pro-free"
     fish_tts_timeout_seconds: float = Field(default=180.0, gt=0)
+    # Optional isolated CPU ASR; neither main runtime nor providers install it.
+    local_asr_python: Path = PROJECT_ROOT / 'local' / 'tools' / 'whisper-asr' / 'bin' / 'python'
+    local_asr_model: Path = PROJECT_ROOT / 'local' / 'asr-models' / 'whisper-small'
     pexels_api_key: SecretStr = SecretStr("")
     native_cache_dir: Path = PROJECT_ROOT / "cache" / "pexels"
     dialogue_gap_ms: int = Field(default=140, ge=0, le=1000)

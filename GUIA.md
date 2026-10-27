@@ -609,3 +609,19 @@ el máster compartido.
 entregas distintas. `clean-cache` conserva voz, imágenes fuente, láminas, planes,
 recibos y vídeos finales; bloquea trabajos activos y rutas enlazadas simbólicamente.
 Borrar clips elimina su reutilización rápida: no hacerlo antes de decidir reparaciones.
+
+
+## Comprobar la voz localmente antes de montar
+
+En episodios stickman nuevos, configura `voice.transcript_verification` como
+`local_asr` en `configuracion.json`. El control reconoce audio sin recibir el guion,
+compara después y bloquea diferencias o actividad sospechosa sin revisar. No sube
+voz, no vuelve a sintetizar y no hace cortes automáticos. `off` conserva episodios
+antiguos; el perfil nuevo no modifica sus archivos por sí solo.
+
+```bash
+.venv/bin/python scripts/verify_stickman_voice.py content/longform/MI_EPISODIO --transcribe
+```
+
+Requiere el entorno/modelo local opcional; instalación y revisión de discrepancias
+en [voz y fidelidad](docs/fish-voice.md#comprobacion-local-antes-de-montar).
