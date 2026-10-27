@@ -36,9 +36,10 @@ NO se ha montado un vídeo nuevo con esta voz. El subtitulado anterior en
 `revisiones/voz_limpia_8min/entrega/video.mp4` conserva errores: referencia visual,
 `final_video_ready=false`. No ofrecerlo como vídeo nuevo corregido.
 
-Limpieza: 1139 archivos derivados de Jason retirados, 245 entradas/referencias
-verificadas por hash; 593 archivos restantes (incluye imágenes y fuentes).
-887 temporales Kitok/pytest cerrados retirados. Neto ~1.80 GiB tras compactar evidencia.
+Limpieza: 1359 archivos de Jason retirados, incluidos220duplicados exactos de
+imágenes/referencias de rutas históricas. Se verificaron245entradas por hash y
+se conservó cada contenido canónico; quedan374archivos (imágenes/fuentes/recibos).
+887 temporales Kitok/pytest cerrados retirados. Neto ~1.86 GiB tras compactar evidencia.
 Manifiestos: `local/cleanup/2026-10-27-jason`. Se eliminaron muestras/cachés y el
 máster limpio anterior, conservando el MP4 subtitulado de referencia. Reeditar
 requerirá renderizar clips de nuevo; no borrar recibos ni fuentes para forzar TTS.
