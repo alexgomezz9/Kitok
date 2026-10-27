@@ -58,6 +58,10 @@ AUDITED = {
     "clean_soul": ("USUAN1300033", "Clean Soul"),
     "on_the_ground": ("USUAN1400030", "On the Ground"),
     "deliberate_thought": ("USUAN1100261", "Deliberate Thought"),
+    "this_house": ("USUAN1500055", "This House"),
+    "unnatural_situation": ("USUAN1100464", "Unnatural Situation"),
+    "the_dread": ("USUAN1100048", "The Dread"),
+    "dark_fog": ("USUAN1300031", "Dark Fog"),
 }
 ID = re.compile(r"[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}\Z")
 SFX_KINDS = ("soft_tick", "low_pulse", "air_swish", "paper_texture", "key_click", "ui_ping")

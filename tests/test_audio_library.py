@@ -59,7 +59,11 @@ def audio_library(tmp_path):
 
 def test_catalog_exact_sources_and_noncommercial_rejected(tmp_path):
     catalog = json.loads(CATALOG.read_text())
-    assert len(catalog["sources"]) == 20
+    assert len(catalog["sources"]) == 24
+    horror = {"this_house", "unnatural_situation", "the_dread", "dark_fog"}
+    additions = [item for item in catalog["sources"] if item["id"] in horror]
+    assert {item["id"] for item in additions} == horror
+    assert all("horror" in item["moods"] and item["channels"] == ["horror", "lore"] for item in additions)
     assert all(item["content_id"] == "unknown" for item in catalog["sources"])
     for field, value in [("download_url", "https://attacker.invalid/song.mp3"), ("license_id", "CC-BY-NC-4.0"),
                          ("source_url", "https://incompetech.com/other"), ("title", "Unreviewed title")]:

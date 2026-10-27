@@ -7,9 +7,13 @@ una acción distinta y puede consumir Fish.
 
 ## Biblioteca musical y derechos
 
-El catálogo `presets/music_sources.json` contiene **20 pistas de Kevin MacLeod**.
+El catálogo `presets/music_sources.json` contiene **24 pistas de Kevin MacLeod**.
 Las 16 incorporadas el 20 de octubre de 2026 se descargaron desde Incompetech y
 se comprobaron contra su catálogo oficial y su página individual de licencia.
+El27/10 se añadieron This House, Unnatural Situation, The Dread y Dark Fog,
+con catálogo oficial, licencia individual, MP3 y SHA256 verificados. Las ocho
+candidatas de horror están en caché local en esa fecha; una instalación nueva
+debe ejecutar `fetch` para las pistas que necesite.
 Todas están bajo CC BY 4.0: permiten uso comercial con atribución, enlace a licencia
 e indicación de los cambios. No se suben los MP3 a Git.
 
@@ -29,7 +33,7 @@ de reclamaciones automáticas son cuestiones diferentes.
 | Avance y revelación | Deep Haze, The Descent |
 | Reflexión y cierre | Dreams Become Real, Night Vigil, Despair and Triumph, Anguish, Immersed |
 | Ambiente tranquilo | Floating Cities, Clean Soul, Deliberate Thought |
-| Horror y tensión | Darkest Child, Ghost Story, Dark Walk, Anxiety |
+| Horror y tensión | Darkest Child, Ghost Story, Dark Walk, Anxiety, This House, Unnatural Situation, The Dread, Dark Fog |
 
 Las categorías se solapan; el JSON conserva ambientes base y canales. Las afinidades
 adicionales viven en `AUDIO_AFFINITIES`, separadas de la evidencia de licencia:

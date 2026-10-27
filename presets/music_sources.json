@@ -525,6 +525,110 @@
       "verified_on": "2026-10-20",
       "source_feel": "Calming, Relaxed",
       "instruments": "Synths, Choir"
+    },
+    {
+      "id": "this_house",
+      "isrc": "USUAN1500055",
+      "title": "This House",
+      "author": "Kevin MacLeod",
+      "filename": "This House.mp3",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1500055",
+      "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/This%20House.mp3",
+      "license_id": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution": "\"This House\" — Kevin MacLeod (incompetech.com). Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/ Source: https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1500055",
+      "sha256": "5d6070abd7fe89e13fd641406e6093c1eee8473ae0999b82e5e7334f28f36fd5",
+      "moods": [
+        "horror",
+        "suspense",
+        "mystery"
+      ],
+      "channels": [
+        "horror",
+        "lore"
+      ],
+      "content_id": "unknown",
+      "verified_on": "2026-10-27",
+      "source_feel": "Dark, Eerie, Unnerving",
+      "instruments": "Violins, Violas, Cellos, Basses, Piano, Harp, Celesta, French Horn, Waterphone"
+    },
+    {
+      "id": "unnatural_situation",
+      "isrc": "USUAN1100464",
+      "title": "Unnatural Situation",
+      "author": "Kevin MacLeod",
+      "filename": "Unnatural Situation.mp3",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1100464",
+      "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Unnatural%20Situation.mp3",
+      "license_id": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution": "\"Unnatural Situation\" — Kevin MacLeod (incompetech.com). Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/ Source: https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1100464",
+      "sha256": "47206bd1ab72715771ac7abd21719ce48eb5d0fadcfbe47475f734322c550705",
+      "moods": [
+        "horror",
+        "suspense",
+        "mystery"
+      ],
+      "channels": [
+        "horror",
+        "lore"
+      ],
+      "content_id": "unknown",
+      "verified_on": "2026-10-27",
+      "source_feel": "Dark, Eerie, Mysterious, Unnerving",
+      "instruments": "Piano, Synths"
+    },
+    {
+      "id": "the_dread",
+      "isrc": "USUAN1100048",
+      "title": "The Dread",
+      "author": "Kevin MacLeod",
+      "filename": "The Dread.mp3",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1100048",
+      "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/The%20Dread.mp3",
+      "license_id": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution": "\"The Dread\" — Kevin MacLeod (incompetech.com). Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/ Source: https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1100048",
+      "sha256": "b4d7678fabb4fab9c0ff867b84556fb0b26d035960cc971bc0ef9728e8194b4c",
+      "moods": [
+        "horror",
+        "suspense",
+        "mystery"
+      ],
+      "channels": [
+        "horror",
+        "lore"
+      ],
+      "content_id": "unknown",
+      "verified_on": "2026-10-27",
+      "source_feel": "Dark, Eerie, Mysterious",
+      "instruments": "Synth"
+    },
+    {
+      "id": "dark_fog",
+      "isrc": "USUAN1300031",
+      "title": "Dark Fog",
+      "author": "Kevin MacLeod",
+      "filename": "Dark Fog.mp3",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1300031",
+      "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Dark%20Fog.mp3",
+      "license_id": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution": "\"Dark Fog\" — Kevin MacLeod (incompetech.com). Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/ Source: https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1300031",
+      "sha256": "a357b85ec02c52c17e4c677ca19037d742985045993db8f2226c7eab646ae86e",
+      "moods": [
+        "horror",
+        "suspense",
+        "mystery"
+      ],
+      "channels": [
+        "horror",
+        "lore"
+      ],
+      "content_id": "unknown",
+      "verified_on": "2026-10-27",
+      "source_feel": "Dark, Grooving, Intense, Somber",
+      "instruments": "Synths, Percussion"
     }
   ]
 }
