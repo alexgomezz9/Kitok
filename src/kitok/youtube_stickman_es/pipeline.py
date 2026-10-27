@@ -41,7 +41,9 @@ def initialize(root: Path, value: Path) -> dict:
     folder = episode_path(root,folder)
     for name in ('referencias','imagenes','miniaturas'):
         local_file(folder,name,exists=False).mkdir(exist_ok=True)
-    write(local_file(folder,'configuracion.json',exists=False),Config().model_dump())
+    config = Config()
+    config.voice.transcript_verification = 'local_asr_autocut'
+    write(local_file(folder,'configuracion.json',exists=False),config.model_dump())
     return {'episode':str(folder.relative_to(root)),'status':'inputs_required',
             'required':['guion_final.txt','titulo.txt','referencias/ with interior-frame role in configuracion.json'],
             'optional':['voz.mp3','voz.srt','direccion_visual.json'],
@@ -94,15 +96,18 @@ def _prepare(episode: Path, root: Path, settings, *, generate_voice=False, reuse
 
 def current(episode: Path):
     config,title,script = inputs(episode)
+    from .voice_cleaning import cleaned_paths
+    voice_path, srt_path, alignment_path = cleaned_paths(episode, config.voice.transcript_verification)
     plan = IllustrationPlan.model_validate_json(local_file(episode,'plan_imagenes.json').read_text())
     if (plan.title != title or plan.script_sha256 != digest(local_file(episode,'guion_final.txt'))
-            or plan.audio_sha256 != digest(local_file(episode,'voz.mp3'))
-            or plan.srt_sha256 != digest(local_file(episode,'voz.srt'))):
+            or plan.audio_sha256 != digest(voice_path)
+            or plan.srt_sha256 != digest(srt_path)):
         raise ValueError('Planned script, approved title, voice or SRT changed; use another episode revision')
     if plan.timing_method in {'fish_provider_word_timestamps_full_transcript',
-                              'fish_provider_word_timestamps_after_audio_cuts'}:
+                              'fish_provider_word_timestamps_after_audio_cuts',
+                              'local_asr_word_timestamps_after_audio_cuts'}:
         record = json.loads(local_file(episode,'.stickman/word_timing.json').read_text())
-        if (record.get('alignment_sha256') != digest(local_file(episode,'voz.alignment.json'))
+        if (record.get('alignment_sha256') != digest(alignment_path)
                 or record.get('plan_sha256') != digest(plan.model_dump())
                 or record.get('audio_sha256') != plan.audio_sha256
                 or record.get('script_sha256') != plan.script_sha256):
@@ -122,6 +127,9 @@ def _render(episode: Path, root: Path, settings, *, revision: str | None = None,
     if not status['render_images_ready']:
         raise ValueError('Every planned illustration must exist, decode and have visual review before rendering')
     narration = prepare_narration(episode,root=root,settings=settings,voice=config.voice.model_dump(),on_stage=on_stage)
+    if (narration['audio_sha256'] != plan.audio_sha256 or narration['srt_sha256'] != plan.srt_sha256
+            or abs(narration['duration']-plan.narration_duration) > .001):
+        raise ValueError('Prepared narration differs from the planned voice clock; replan in a new revision before mixing')
     emit('Audio: preparando mezcla local de voz, música y efectos configurados')
     mix = prepare_mix(episode,narration,root=root,settings=settings,
                       music=config.music.model_dump(),sfx_events=config.sfx_events)
@@ -166,7 +174,7 @@ def _render(episode: Path, root: Path, settings, *, revision: str | None = None,
             raise ValueError('QA no longer matches the MP4')
     if not qa_path.exists() or qa.get('qa_version') != QA_VERSION:
         qa = inspect_delivery(output,qa_path,plan=plan,settings=settings,
-                              narration=local_file(episode,'voz.mp3'),
+                              narration=Path(narration['audio_path']),
                               fade_in=config.fade_in,fade_out=config.fade_out)
     credits = '# Créditos\n\nGuion y título aportados por el operador.\n\n'+'\n\n'.join(mix.get('credits',[]))
     credits += '\n\nIlustraciones generadas: revisar referencias, derechos y consistencia antes de publicar.\n'

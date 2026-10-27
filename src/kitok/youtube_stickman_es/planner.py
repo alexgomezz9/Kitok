@@ -272,7 +272,9 @@ def plan_illustrations(episode: Path, *, title: str, script: str, narration: dic
                             config_sha256=digest(config.model_dump()), duration=duration,
                             narration_duration=measured, references=refs, scenes=scenes,
                             direction_complete=directions is not None or source_spans is not None,
-                            timing_method=(('fish_provider_word_timestamps_after_audio_cuts'
+                            timing_method=(('local_asr_word_timestamps_after_audio_cuts'
+                                            if narration.get('alignment_method') == 'local_asr_word_timestamps_after_audio_cuts'
+                                            else 'fish_provider_word_timestamps_after_audio_cuts'
                                             if narration.get('alignment_method') == 'fish_provider_timestamps_after_audio_cuts'
                                             else 'fish_provider_word_timestamps_full_transcript') if word_based
                                            else narration['alignment_method']), srt_cues=cues)

@@ -31,9 +31,12 @@ def delivery(tmp_path, monkeypatch):
     words = [{'word': word, 'start': start, 'end': end}
              for word, start, end in [('Una', .1, .3), ('prueba', .35, .6), ('clara', .65, .9)]]
     narration = {'words': words, 'duration': 1., 'script_sha256': digest(folder / 'guion_final.txt'),
+                 'audio_path': str(folder / 'voz.mp3'),
+                 'srt_sha256': 'fixture-srt',
                  'audio_sha256': digest(folder / 'voz.mp3'),
                  'alignment_sha256': digest(folder / 'voz.alignment.json')}
-    plan = SimpleNamespace(duration=1., narration_duration=1., scenes=[])
+    plan = SimpleNamespace(duration=1., narration_duration=1., scenes=[],
+                           audio_sha256=narration['audio_sha256'], srt_sha256=narration['srt_sha256'])
     plan.model_dump = lambda: {'duration': 1., 'fixture': True}
     config = SimpleNamespace(voice=SimpleNamespace(model_dump=lambda: {}), fade_in=.6, fade_out=.8)
     monkeypatch.setattr(pipeline, 'current', lambda episode: (plan, config, None))
@@ -217,3 +220,17 @@ def test_corrupt_preserved_encoding_blocks_instead_of_reencoding(delivery, monke
         run(delivery)
     assert staged.read_bytes() == b'changed preserved encoding'
     assert not (folder / 'video_subtitulado.mp4').exists()
+
+
+def test_processed_narration_alignment_is_rechecked_instead_of_raw_fish(delivery):
+    root, folder, settings, narration, calls = delivery
+    processed = folder / 'processed'
+    processed.mkdir()
+    (processed / 'audio.wav').write_bytes((folder / 'voz.mp3').read_bytes())
+    (processed / 'alignment.json').write_text('{"method":"local_asr_word_timestamps_after_audio_cuts"}')
+    narration.update(audio_path=str(processed / 'audio.wav'),
+                     alignment_path=str(processed / 'alignment.json'),
+                     alignment_sha256=digest(processed / 'alignment.json'))
+    result = run(delivery)
+    assert result['technical_status'] == 'passed'
+    assert calls

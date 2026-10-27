@@ -39,8 +39,10 @@ Fuentes principales: [control emocional Fish](https://docs.fish.audio/developer-
 
 ## Comprobación local antes de montar
 
-`voice.transcript_verification: "local_asr"` en `configuracion.json` activa un
-reconocimiento independiente **local**, antes de planificar/mezclar/renderizar.
+`voice.transcript_verification: "local_asr_autocut"` es el valor de `init` para
+episodios stickman nuevos: reconoce la voz cruda, recorta inserciones verificables
+en una copia PCM y reconoce de nuevo ANTES de planificar/mezclar/renderizar.
+`"local_asr"` conserva el modo anterior de diagnóstico sin recortes.
 `"off"` conserva compatibilidad con episodios antiguos. No cambia el modelo Fish,
 no vuelve a sintetizar, no sube audio y no necesita tarjeta. No activa ASR en todos
 los shorts/documentales; este control pertenece a `youtube_stickman_es`.
@@ -74,9 +76,12 @@ compartidos por episodios, fuera de Git; no se copian dentro de cada vídeo.
 El informe queda en `.stickman/voice-fidelity/HASH/`: transcript ASR, diferencias,
 actividad audible fuera de las marcas de palabras y hashes de audio/guion/modelo.
 Se conserva y reutiliza; los cambios en entradas/modelo crean otra identidad.
-Las diferencias y ventanas con energía suficiente bloquean la continuación.
+En el modo de diagnóstico, las diferencias y ventanas con energía suficiente
+bloquean la continuación. El modo de recorte intenta quitar sólo inserciones
+con anclas y separaciones válidas y vuelve a comprobar todo el audio.
 Una ventana energética puede ser respiración, música o voz: **no demuestra habla**.
-El ASR puede confundir nombres, cifras o sonidos: **no autoriza cortes**.
+El ASR puede confundir nombres, cifras o sonidos: **una diferencia sola no
+autoriza un corte**. Reemplazos y omisiones no se eliminan automáticamente.
 Las voces/susurros que coincidan temporalmente con palabras pueden escapar al
 detector energético; tampoco se garantiza detectar todas las alucinaciones.
 
@@ -113,3 +118,55 @@ TTS original, pendiente de escucha. Cortar añadidos no reconstruye contenido
 faltante. No confundir conservar1411palabras en JSON con verificar1411palabras
 pronunciadas. La auditoría real y sus límites están en
 [producción](youtube-production-audit.md#comprobacion-real-de-voz).
+
+
+## Recorte automático antes del montaje
+
+```bash
+.venv/bin/python scripts/verify_stickman_voice.py content/longform/mi_episodio --cut-insertions
+```
+
+No monta vídeo ni llama a Fish. Busca inserciones entre anclas exactas y únicas
+del guion, conserva margen de40ms junto a palabras reconocidas y prefiere silencios
+medidos para fijar cortes. Los timestamps ambiguos se contrastan en ventanas con
+ASR local, sin prompts ni guion. Se guarda PCM de muestra exacta, plan, recibo y
+hashes en `.stickman/voice-cleaning/`; `voz.mp3` y su recibo Fish no se modifican.
+
+La segunda transcripción se compara con el guion completo. Sólo un resultado
+coincidente, con palabras individuales observadas y sin inserciones ambiguas,
+puede convertirse en narración de montaje. Kitok usa entonces ese WAV, su SRT y
+su reloj ASR real también en mezcla, QA y subtítulos; no etiqueta esos tiempos
+como si procedieran de Fish. Un resultado parcial permanece disponible para
+inspección y bloquea el montaje: no se acepta porque existan un WAV o un recibo.
+
+Una frase realmente sustituida por cánticos necesita reparar esa frase; cortar
+no recupera su texto. Las diferencias de nombres/cifras pueden exigir revisión.
+Este mecanismo no promete detectar todas las alucinaciones de cualquier voz.
+Los episodios antiguos conservan `off`/`local_asr` y sus hashes; no activar el modo
+editando una entrega ya preparada: usar una revisión de entradas independiente.
+
+
+## Comparación API realizada27/10
+
+Mismo texto de64palabras tomado de los dos primeros párrafos de guion_final.txt,
+modelo s2.1-pro-free, speed0.98, dos referencias (Jason/Loose Thread), endpoint
+directo y endpoint con timestamps. Jason presenta una inserción en ambas rutas;
+Loose Thread también da diferencias al leer español pese a ser referencia inglesa.
+No apareció repetición de bloques binarios en los16/18eventos de audio recibidos.
+Esto descarta que sea únicamente la mezcla o el quemado de subtítulos; no aísla
+una causa universal del modelo ni prueba que todas las diferenciasASR sean habla extra.
+
+La captura del operador muestraDrama3. La documentación oficial permite usar
+model:drama-3 en el mismo POST/v1/tts; esa muestra corta devolvióHTTP402 y no se
+reintentó. No se ha comprobado por API el mismo modelo de la web ni se cambió el
+modelo global. Ver [Drama3](https://docs.fish.audio/features/text-to-speech/drama-3)
+y [tarifas oficiales](https://docs.fish.audio/developer-guide/models-pricing/pricing-and-rate-limits).
+La web pública puede mostrar etiquetas antiguas; no usar su HTML cacheado para
+contradecir el modelo que el operador vio realmente seleccionado.
+
+Jason se reparó sobre el original:24recortes automáticos,1recorte editorial por
+ancla ambigua del nombre y2frases/19palabras recuperadas con la misma voz. La
+segunda ASR completa no encontró inserciones y dejó14diferencias(nombres/cifras,
+variantes de reconocimiento). No acredita escucha humana ni guion acústicamente
+perfecto. El WAV resultante dura435.728708s; todavía no es un MP4 final ni cumple
+por sí solo el objetivo de duración del canal. No alargar con cánticos/silencios.

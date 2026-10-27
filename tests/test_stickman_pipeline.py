@@ -29,6 +29,7 @@ def setup_episode(tmp_path):
         sound.writeframes(b''.join(struct.pack('<h',round(2000*math.sin(2*math.pi*220*n/8000))) for n in range(48000)))
     Image.new('RGB',(1280,720),'ivory').save(folder/'referencias/frame.png')
     config=json.loads((folder/'configuracion.json').read_text())
+    config['voice']['transcript_verification']='off'  # Synthetic tone fixture has no spoken words.
     config.update(target_scene_seconds=3,music={'mode':'off'},
                   references=[{'path':'referencias/frame.png','role':'interior','notes':'Technical fixture only'}])
     (folder/'configuracion.json').write_text(json.dumps(config))

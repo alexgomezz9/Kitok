@@ -151,13 +151,13 @@ def uncovered_activity(audio: Path, alignment: Path, *, ffmpeg: str,
 
 def verify_voice(episode: Path, *, settings, transcribe: bool = False,
                  local_python: Path | None = None, local_model: Path | None = None,
-                 imported_result: Path | None = None) -> dict:
+                 imported_result: Path | None = None, audio_filename: str = 'voz.mp3') -> dict:
     """Run local CPU/int8 ASR or import a hash-bound local result, with cache.
 
     Caller holds the episode lock. Configuration is explicit; no provider, GPU,
     package installation, model download or synthesis is performed here.
     """
-    audio = local_file(episode, 'voz.mp3')
+    audio = local_file(episode, audio_filename)
     script_path = local_file(episode, 'guion_final.txt')
     python_value = local_python or settings.local_asr_python
     model_value = local_model or settings.local_asr_model

@@ -13,6 +13,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('episode', type=Path)
     parser.add_argument('--transcribe', action='store_true', help='Run existing local CPU/int8 ASR if no saved result; never uploads or synthesizes')
+    parser.add_argument('--cut-insertions', action='store_true', help='Remove safely anchored insertions in a new PCM copy and recognize again; blocks montage if differences remain')
     parser.add_argument('--local-python', type=Path, help='Existing Python with faster-whisper; or LOCAL_ASR_PYTHON setting')
     parser.add_argument('--local-model', type=Path, help='Existing local CTranslate2 Whisper model; or LOCAL_ASR_MODEL setting')
     parser.add_argument('--import-asr', type=Path, help='Saved local ASR JSON including exact audio_sha256; runtime/model must identify provenance')
@@ -25,6 +26,20 @@ def main(argv=None):
     try:
         episode = episode_path(PROJECT_ROOT, args.episode)
         with episode_lock(episode):
+            if args.cut_insertions:
+                if args.accept_differences or args.import_asr:
+                    parser.error('--cut-insertions cannot accept differences or replace recognition evidence')
+                from kitok.youtube_stickman_es.audio import prepare_narration
+                from kitok.youtube_stickman_es.voice_cleaning import clean_narration
+                settings = Settings()
+                if args.local_python:
+                    settings.local_asr_python = args.local_python
+                if args.local_model:
+                    settings.local_asr_model = args.local_model
+                raw = prepare_narration(episode, root=PROJECT_ROOT, settings=settings, generate=False)
+                report = clean_narration(episode, settings=settings, raw=raw, require_ready=False)
+                print(json.dumps(report, ensure_ascii=False, indent=2))
+                return 0 if report.get('status') == 'ready' or 'duration' in report else 2
             report = verify_voice(episode, settings=Settings(), transcribe=args.transcribe,
                 local_python=args.local_python, local_model=args.local_model, imported_result=args.import_asr)
             if args.accept_differences:

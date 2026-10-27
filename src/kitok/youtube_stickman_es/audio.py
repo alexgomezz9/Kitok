@@ -240,6 +240,11 @@ def _provider_cues(path: Path, script: str, duration: float) -> list[dict]:
 def prepare_narration(episode: Path, *, root: Path, settings, voice: dict | None = None,
                       generate: bool = False, on_stage=None) -> dict:
     """Validate/reuse narration; generating new Fish audio requires explicit opt-in."""
+    if (voice or {}).get('transcript_verification') == 'local_asr_autocut':
+        from .voice_cleaning import clean_narration
+        raw = prepare_narration(episode, root=root, settings=settings,
+            voice={**voice, 'transcript_verification': 'off'}, generate=generate, on_stage=on_stage)
+        return clean_narration(Path(episode).absolute(), settings=settings, raw=raw, on_stage=on_stage)
     report = on_stage or (lambda message: None)
     episode = Path(episode).absolute()
     audio, srt, script_path = (episode / name for name in ("voz.mp3", "voz.srt", "guion_final.txt"))

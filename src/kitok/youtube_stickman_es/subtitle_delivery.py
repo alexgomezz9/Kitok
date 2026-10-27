@@ -101,6 +101,9 @@ def caption_video(episode: Path, *, root: Path, settings, on_stage=None,
     emit('Subtítulos: comprobando vídeo aprobado y alineación existente; sin generar voz')
     narration = prepare_narration(episode, root=root, settings=settings,
                                  voice=config.voice.model_dump(), generate=False, on_stage=on_stage)
+    if (narration['audio_sha256'] != plan.audio_sha256 or narration['srt_sha256'] != plan.srt_sha256
+            or abs(narration['duration']-plan.narration_duration) > .001):
+        raise ValueError('Prepared narration differs from the planned voice clock; captions blocked')
     if not narration.get('words') or not narration.get('alignment_sha256'):
         raise ValueError('Subtitles require existing validated word alignment; no estimated timestamps')
     source_media = _check_media(base, settings=settings, plan=plan,
@@ -172,14 +175,14 @@ def caption_video(episode: Path, *, root: Path, settings, on_stage=None,
             raise ValueError('Captioned audio differs from base; staged video preserved')
         emit('Calidad: comprobando entrega subtitulada y preservación del audio')
         qa = inspect_delivery(staged, work / 'qa.json', plan=plan, settings=settings,
-                              narration=local_file(episode, 'voz.mp3'),
+                              narration=Path(narration['audio_path']),
                               fade_in=config.fade_in, fade_out=config.fade_out)
         if qa['technical_status'] != 'passed':
             raise ValueError('Caption delivery QA rejected; staged video and report preserved')
         # Recheck source identities immediately before exclusive publication.
         if (digest(base) != base_sha or digest(ass) != identity['ass_sha256']
-                or digest(local_file(episode, 'voz.alignment.json')) != identity['alignment_sha256']
-                or digest(local_file(episode, 'voz.mp3')) != identity['narration_sha256']
+                or digest(Path(narration.get('alignment_path', episode / 'voz.alignment.json'))) != identity['alignment_sha256']
+                or digest(Path(narration['audio_path'])) != identity['narration_sha256']
                 or digest(local_file(episode, 'guion_final.txt')) != identity['script_sha256']):
             raise ValueError('Caption inputs changed during rendering; staged output preserved')
         qa.update(video=str(output), video_sha256=digest(staged), caption_media=media,

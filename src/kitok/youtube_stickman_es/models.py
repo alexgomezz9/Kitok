@@ -20,7 +20,7 @@ class Voice(Model):
     reference_id: str | None = None
     model: str | None = None
     speed: float = Field(default=1, ge=.5, le=2, allow_inf_nan=False)
-    transcript_verification: Literal['off', 'local_asr'] = 'off'
+    transcript_verification: Literal['off', 'local_asr', 'local_asr_autocut'] = 'off'
 
     @model_serializer(mode='wrap')
     def preserve_legacy_identity(self, handler):

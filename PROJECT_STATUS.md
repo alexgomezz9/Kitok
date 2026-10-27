@@ -1,57 +1,56 @@
 # Estado vigente de Kitok
 
-Actualizado: **2026-10-27**. Rama **main**. Auditoría y mejoras de Trazo Maldito
-terminadas localmente; Jason sigue pendiente de reparación/revisión de voz.
-No se hizo push ni publicación en este encargo; CI remoto no comprobado.
-Manual: [GUIA](GUIA.md), [auditoría](docs/youtube-production-audit.md),
-[voz](docs/fish-voice.md), [audio](docs/audio.md).
+Actualizado: **2026-10-27**. Rama **main**. Corrección de voz cruda y comparación
+Fish realizadas; próximo episodio en recorrido guiado, una fase cada vez.
+Sin publicación ni push en este encargo. Manual: [GUIA](GUIA.md),
+[archivos por fase](docs/youtube-stickman-es.md#entradas-y-salidas-por-fase),
+[voz](docs/fish-voice.md), [flujo editorial](docs/youtube-editorial.md).
 
-## Capacidades y evidencia actual
+## Voz y procedencia
 
-- Native/FFmpeg monta, mezcla, anima y ejecuta QA sin LLM por plano. El agente
-  investiga, escribe, decide escenas/prompts, invoca ImageGen y revisa significado.
-- Perfil y tres skills: relato inmersivo del personaje, silueta stickman explícita,
-  terror/sangre contextual, tres enfoques antes de ampliar estilo nuevo. Delegación
-  «siguiente automático/no preguntes» permite elegir al agente y continuar.
-- Control opcional `voice.transcript_verification=local_asr`: Whisper CPU/int8,
-  sin enviar audio; bloquea discrepancias/actividad sospechosa hasta revisión.
-  No corta automáticamente ni sustituye el reloj Fish. `off` conserva hashes legacy.
-  Runtime/modelo compartidos bajo `local/`, fuera del venv principal y de Git.
-- Biblioteca: 24 pistas CC BY4.0, ocho candidatas de horror verificadas en caché
-  el 27/10. Cuatro nuevas con catálogo/licencia individual/MP3/SHA comprobados.
-- Subtítulos: nuevo trabajo conserva encode terminado para reanudar QA sin
-  recodificar. No adivina trabajos antiguos sin recibos ni entregas parciales.
-- Entrega compacta de seis archivos; limpieza visual explícita con simulación,
-  locks y protección de fuentes/revisiones. Cachés Jason conservadas por revisión.
-- Gate 27/10: `make verify` pasó 1194 Python/25 React, TypeScript/Vite, higiene,
-  docs y whitespace (exit0); `make studio-check` pasó. Últimos controles focales:
-  92 de voz y 24 de entrega/subtítulos, revisiones independientes cerradas.
-  ASR real completo original/derivado, adapter offline y música local verificados.
-  Reproductor HTML probado en Chromium por HTTP local: dos saltos/paradas sin error;
-  no acredita escucha del agente ni prueba `file://` en Windows.
+- Stickman envía a Fish `guion_final.txt.strip()`. `guion_lectura_limpia.txt`
+  pertenece al storyboard, no es la entrada de voz. Guion/hash originales conservados.
+- Prueba real: 64 palabras idénticas, Jason/Loose Thread, S2.1-free, directo y con
+  timestamps. Jason tiene inserciones en ambas rutas; LT también difiere al leer
+  español (referencia inglesa). La respuesta directa se guarda sin montaje.
+  La captura del operador usa Drama3; muestra API Drama3 devolvió HTTP402, sin retry.
+  No aislar causa universal de modelo/voz ni equiparar web y API con modelos distintos.
+- `local_asr_autocut`: voz cruda → ASR local → recortes anclados en copia PCM →
+  otra ASR → sólo entonces reloj/mezcla/montaje. Es el valor de init nuevo.
+  Reemplazos, omisiones y ambigüedades bloquean; off conserva episodios antiguos.
+  Runtime/modelo ASR compartidos en local/, sin enviar audio ni modificar Fish crudo.
+- Validación actual: checks focales de motor/empalmes/integración, 42 últimos tests
+  pasados; 40 del motor y 43 de fronteras Native/MPT pasados durante el encargo.
+  studio-check, docs-check e higiene correctos. No repetir suite completa sin motivo.
+  Baseline histórico anterior: make verify 1194 Python/25 React (no gate del nuevo código).
 
-## Jason: técnica correcta, voz sin resolver
+## Jason
 
-Activa: `content/longform/trazo_003_jason_voorhees/revisiones/voz_limpia_8min`.
-Conserva 109 PNG, 1411 palabras del guion y 115 planos. QA final comprobado 27/10:
-497.733333 s/14932 frames, −16.03 LUFS/−1.75 dBTP, audio idéntico al base.
-Entrega organizada bajo `entrega/`, con `final_video_ready=false`/`needs_review`.
+Base: `content/longform/trazo_003_jason_voorhees`. Entradas y usos en su `FLUJO.md`.
+Voz reparada: `editorial/autocorreccion_audio_2026-10-27/voz_reparada/audio.wav`.
+Se aplicaron 24 cortes automáticos, 1 editorial por nombre ambiguo y 2 frases/19 palabras
+recuperadas con la misma voz. Fuente original intacta. WAV 435.728708 s; segunda ASR
+completa: 0 inserciones, 14 diferencias de reconocimiento. Escucha humana pendiente;
+no declarar coincidencia acústica perfecta ni cumplimiento del mínimo 8 min.
+NO se ha montado un vídeo nuevo con esta voz. El subtitulado anterior en
+`revisiones/voz_limpia_8min/entrega/video.mp4` conserva errores: referencia visual,
+`final_video_ready=false`. No ofrecerlo como vídeo nuevo corregido.
 
-El corte anterior 401.810930–410.892653s y tempo 0.94 no limpió todas las anomalías.
-ASR independiente encuentra 38 diferencias en el derivado, incluidas inserciones
-repetidas. La pseudo-habla también está en la voz seca original guardada por Fish;
-el guion solicitado no la contiene. Posible frase de 14 palabras sustituida/omitida
-antes del corte; pendiente de escucha, las marcas Fish no prueban pronunciación.
-No hubo otra síntesis ni cortes de audio en esta auditoría.
+Limpieza: 1139 archivos derivados de Jason retirados, 245 entradas/referencias
+verificadas por hash; 593 archivos restantes (incluye imágenes y fuentes).
+887 temporales Kitok/pytest cerrados retirados. Neto ~1.80 GiB tras compactar evidencia.
+Manifiestos: `local/cleanup/2026-10-27-jason`. Se eliminaron muestras/cachés y el
+máster limpio anterior, conservando el MP4 subtitulado de referencia. Reeditar
+requerirá renderizar clips de nuevo; no borrar recibos ni fuentes para forzar TTS.
 
-Siguiente: revisar `editorial/auditoria_audio_2026-10-27/revision.html` del episodio,
-resolver añadidos/posibles omisiones y crear una revisión de voz antes de reeditar.
-Conservar cachés; simulación estima 1.09 GiB recuperables, no se aplicó limpieza.
-No repetir producción pagada ni dar por limpia la voz por el QA técnico.
+## Próximo episodio y motores
 
-Rendimiento: mezcla 2 min 34 s, 115 planos 16 min 50 s, unión 8 s, QA base 3 min 54 s, ASS 2 min 41 s.
-NVENC utilizado; cámara/escala 4K/filtros siguen en CPU. Optimización de cámara y
-ASS en una sola pasada siguen propuestas; comparación GTA6 no verificada.
+`content/longform/trazo_004_freddy_krueger`: fase 1: idea creada; STOP antes de
+investigación/canon y escaleta. Perfil guided_exercise activo: explicar entradas,
+operación y salidas, parar cada fase; volver a automático sólo por petición expresa.
+Nuevas referencias del operador: stickman claro, sombras/contraluz/niebla, sangre
+contextual cuando corresponde; escenas tranquilas/diurnas mantienen ese contexto.
 
-Canal: @trazomalditoes/UC9h_aIbnfQUo0ylPsPNnbrg, separado de Loose Thread.
-OAuth read-only comprobado 26/10; no revalidado hoy, sin necesidad para este encargo.
+Loose Thread largo, shorts y stickman generan con Native/Fish/FFmpeg. MPT sólo
+queda para recuperación histórica explícita; no se desinstaló ningún servicio.
+No revalidar YouTube para este trabajo local; OAuth anterior no prueba acceso hoy.

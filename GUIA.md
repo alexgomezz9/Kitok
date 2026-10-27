@@ -631,15 +631,25 @@ Consulta [subtítulos y recuperación](docs/captions.md#reanudar-tras-una-interr
 
 ## Comprobar la voz localmente antes de montar
 
-En episodios stickman nuevos, configura `voice.transcript_verification` como
-`local_asr` en `configuracion.json`. El control reconoce audio sin recibir el guion,
-compara después y bloquea diferencias o actividad sospechosa sin revisar. No sube
-voz, no vuelve a sintetizar y no hace cortes automáticos. `off` conserva episodios
-antiguos; el perfil nuevo no modifica sus archivos por sí solo.
+En episodios stickman nuevos, `init` configura `voice.transcript_verification`
+como `local_asr_autocut`: voz cruda → reconocimiento local → recortes seguros en
+copia → segundo reconocimiento → montaje. No sube voz ni repite Fish. Si faltan
+frases, quedan inserciones ambiguas o hay diferencias sin resolver, bloquea antes
+de montar. `local_asr` sólo diagnostica; `off` conserva episodios antiguos.
 
 ```bash
 .venv/bin/python scripts/verify_stickman_voice.py content/longform/MI_EPISODIO --transcribe
+.venv/bin/python scripts/verify_stickman_voice.py content/longform/MI_EPISODIO --cut-insertions
 ```
 
 Requiere el entorno/modelo local opcional; instalación y revisión de discrepancias
 en [voz y fidelidad](docs/fish-voice.md#comprobacion-local-antes-de-montar).
+
+
+## Recorrido guiado del próximo episodio
+
+Durante el ejercicio pedido por el operador, «siguiente» ejecuta sólo una fase y
+se detiene. Cada fase explica entradas con rutas, qué hace Kitok o el agente,
+salidas reales y comprobación mínima. [Mapa de archivos por fase](docs/youtube-stickman-es.md#entradas-y-salidas-por-fase).
+Se prioriza una muestra real y checks focales; no se repiten suites completas sin
+cambios/fallos que lo justifiquen. Volver al modo automático requiere petición expresa.
