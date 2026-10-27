@@ -38,9 +38,9 @@
     "operator_report": "No inferir precio ni saldo de Fish a partir del nombre del modelo; reutilizar configuración vigente y consultar antes de gasto significativo.",
     "prefer_existing_audio_and_alignment": true,
     "existing_episode_config": "content/longform/stickman_2_michael_myers/configuracion.json",
-    "transcript_verification": "local_asr",
+    "transcript_verification": "local_asr_autocut",
     "performance_instructions": "Consultar docs/fish-voice.md. S2 usa [break], [long-break], [whispering], [emphasis], emociones; no asumir tiempos exactos ni [pausa] documentado. Guion limpio separado de dirección TTS; no añadir etiquetas a episodios ya sintetizados.",
-    "fidelity_policy": "Reconocer audio sin proporcionar guion, comparar después y bloquear discrepancias para revisión antes del montaje. No cortar por cada diferencia ASR ni confiar en subtítulos/alineación como prueba acústica."
+    "fidelity_policy": "Voz cruda Fish → ASR local sin guion → recortes de inserciones con anclas y márgenes acústicos en copia → segunda ASR → tiempos/mezcla/montaje. Bloquear frases ausentes/sustituidas, inserciones ambiguas o sílabas residuales. No borrar originales ni fingir fidelidad por marcas Fish."
   },
   "images": {
     "delivery": "PNG independientes, composición horizontal 16:9, destino de vídeo 1920x1080/30 fps",
@@ -62,10 +62,11 @@
     "style_exploration": {
       "before_full_batch": true,
       "variants": 3,
-      "comparison": "Mismo momento del relato en tres enfoques stickman: limpio contrastado, tinta/sombras, horror de viñeta con rojo selectivo. Mostrar también acción, reacción y plano de objeto antes de fijar enfoque.",
+      "comparison": "Tres enfoques del mismo momento con stickman inequívoco y atmósfera de las miniaturas del operador: nocturno azul con contraluz, rojo/tinta con amenaza, composición de viñeta ambiental. Mostrar acción/reacción/objeto; luz diurna y tono tranquilo donde lo requiera la historia.",
       "approval": "Pedir elección visual inicial si no hay estilo aceptado ni delegación; fijar ancla/referencias al elegir. Si dice siguiente automático o no preguntes, elegir y revisar el agente, registrar decisión sin atribuir aprobación humana.",
       "existing_episode": "No rediseñar Jason ni reemplazar imágenes aprobadas por una regla futura."
-    }
+    },
+    "lighting_and_horror": "Referencias visuales aportadas por el operador27/10: máscaras grandes y reconocibles, cuerpos/extremidades stickman finos, tinta negra marcada, contraluz azul/luna y naranja/rojo, niebla, bosque/lago/casa con profundidad y amenaza, cuchillo/machete ensangrentado y salpicaduras cuando lo cuenta la escena. Viñetas interiores con esa atmósfera y claridad, sin copiar el texto ni flechas de miniatura. No aplicar oscuridad/violencia por defecto a infancia tranquila o escenas de día antes del conflicto."
   },
   "known_episode": "content/longform/stickman_2_michael_myers",
   "known_episode_caveat": "Recuperar decisiones y recursos del episodio real; presencia de archivos o QA técnico no acredita aprobación audiovisual humana.",
@@ -105,7 +106,15 @@
       "enabled": true,
       "style": "MAYÚSCULAS, grupos cortos, palabra activa amarilla y 110%, reloj real",
       "evidence": "Gernsbacher2015 respalda atención/comprensión; no demuestra retención de este canal ni superioridad del amarillo."
-    }
+    },
+    "guided_exercise": {
+      "enabled": true,
+      "episode": "content/longform/trazo_004_freddy_krueger",
+      "stop_after_every_stage": true,
+      "explain": "Qué decisión se toma, entradas exactas, operación Kitok/agente, salidas realmente creadas y comprobación mínima. No avanzar por silencio.",
+      "resume_automatic": "Sólo si el operador pide explícitamente volver al modo automático; esta excepción prevalece sobre siguiente completo durante el ejercicio."
+    },
+    "practical_work": "Una muestra real primero; pruebas focales del cambio y comprobación del recorrido afectado. No repetir suites grandes sin cambios/fallos que lo justifiquen. No añadir código o capas sin demostrar su función en el paso actual."
   },
   "duration_policy": {
     "minimum_seconds": 480,

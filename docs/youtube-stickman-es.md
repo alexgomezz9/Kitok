@@ -260,3 +260,27 @@ Para un artefacto audible de voz entre palabras, conserva el episodio original
 y usa [la reparación local con cortes revisados](audio.md#quitar-ruidos-de-sintesis-confirmados).
 La copia conserva evidencia de los tiempos derivados; no se presenta como
 alineación Fish original ni se solicita otra voz.
+
+
+## Entradas y salidas por fase
+
+Fish recibe el contenido de `guion_final.txt`, con `strip()`; su llamada no lee
+`guion_lectura_limpia.txt`. Ese segundo texto es un derivado del storyboard para
+cobertura/offsets de escenas, no un guion adicional para voz. No cambiar ninguno
+tras generar medios sin crear una revisión consistente.
+
+| Fase | Entradas que se preparan | Salidas que se consumen después |
+| --- | --- | --- |
+| Idea/fuentes | Perfil del canal y encargo | Brief, continuidad y fuentes verificadas |
+| Guion | Brief/fuentes | guion_final.txt y titulo.txt |
+| Voz | guion_final.txt + configuracion.json (modelo, referencia, velocidad) | voz.mp3 cruda y alineación Fish |
+| Control local | Voz cruda + guion | Informe y, si procede, copia PCM recortada; otra ASR antes de permitir montaje |
+| Escenas/prompts | Guion, estilo y referencias | planificacion_visual/plan_visual_prevoz.json y sus posiciones de texto |
+| Ilustración | Prompts y anclas aprobadas | PNG de imagenes/; láminas y manifiestos son trabajo interno |
+| Montaje | Voz aprobada, reloj, plan, imágenes y música local | MP4 subtitulado y QA |
+| Entrega | Vídeo revisado, miniatura, descripción y créditos | Carpeta entrega/ compacta |
+
+El próximo episodio está en ejercicio guiado: una fase cada vez, explicar sus
+rutas/operación/salidas y PARAR. No se ejecuta todo por decir «siguiente» mientras
+`workflow.guided_exercise.enabled` siga activo. La simplificación se decide sobre
+ese recorrido real; no se instalan motores ni se añaden capas por anticipado.

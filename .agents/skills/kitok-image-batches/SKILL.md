@@ -30,6 +30,20 @@ no inventes atrocidades ni aumentes violencia ajena al relato. Conserva el detal
 del entorno sin engrosar el cuerpo hasta perder la silueta stickman. La imagen
 ancla debe mostrar ese criterio antes de producir cien viñetas.
 
+## Referencia visual aportada por el operador27/10
+
+Las cuadrículas de miniaturas de Jason/Michael vistas en el chat fijan una
+atmósfera más intensa: máscaras muy reconocibles, cuerpo/brazos/piernas de trazo
+stickman fino, sombras negras, contraluz azul de luna o naranja/rojo, niebla y
+escenarios con profundidad. Armas con sangre/salpicaduras y consecuencias cuando
+lo justifique la narración. Evitar que stickman se convierta en dibujo infantil
+o ilustración genérica. No copiar titulares/flechas de miniatura al interior.
+
+La iluminación sigue la escena: infancia tranquila de día antes del conflicto
+permanece diurna y sin violencia inventada. Oscuridad, sangre y amenaza se elevan
+cuando el relato lo pide, con legibilidad móvil. Para estilo nuevo, preparar
+muestras antes de ampliar; el ejercicio guiado vigente se detiene en cada fase.
+
 ## Bloque, recorte y revisión
 
 El auxiliar `scripts/batches.py` sólo prepara prompts/manifiestos, recorta con Pillow y guarda PNG revisados. Ejecútalo con el Python/Pillow existente en Kitok, desde su raíz. No llama proveedores. `--help` da los argumentos reales.

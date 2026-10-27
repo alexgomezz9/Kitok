@@ -26,6 +26,20 @@ ni reduzcas todos los momentos a gore. Antes de ampliar un enfoque nuevo prepara
 las variantes y decisión descritas en kitok-youtube; la delegación expresa permite
 que el agente elija y continúe. Referencias aceptadas prevalecen hasta nueva revisión.
 
+## Referencia visual aportada por el operador27/10
+
+Las cuadrículas de miniaturas de Jason/Michael vistas en el chat fijan una
+atmósfera más intensa: máscaras muy reconocibles, cuerpo/brazos/piernas de trazo
+stickman fino, sombras negras, contraluz azul de luna o naranja/rojo, niebla y
+escenarios con profundidad. Armas con sangre/salpicaduras y consecuencias cuando
+lo justifique la narración. Evitar que stickman se convierta en dibujo infantil
+o ilustración genérica. No copiar titulares/flechas de miniatura al interior.
+
+La iluminación sigue la escena: infancia tranquila de día antes del conflicto
+permanece diurna y sin violencia inventada. Oscuridad, sangre y amenaza se elevan
+cuando el relato lo pide, con legibilidad móvil. Para estilo nuevo, preparar
+muestras antes de ampliar; el ejercicio guiado vigente se detiene en cada fase.
+
 ## Decidir primero, compilar después
 
 Identifica promesa, pregunta inicial, acciones, objetos, lugares, fechas/cifras, giros y resolución. Conserva TODOS los hechos, calificadores y palabras. La meta editorial es comprensión, satisfacción y retención para YouTube; no hay promesa de ingresos ni retención medida. Mantén el guion definitivo: no alargues artificialmente para anuncios, no inventes sensacionalismo ni violencia ajena al relato. Sangre estilizada y terror contextual se rigen por el perfil/brief.

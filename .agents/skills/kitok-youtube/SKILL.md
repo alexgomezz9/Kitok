@@ -17,6 +17,20 @@ Ejecuta desde la raíz el lector compacto, sin proveedores ni escrituras:
 
 Lee el [perfil del canal](../../../presets/youtube_historia_stickman_es.json). Consulta sólo la fase necesaria de la [guía editorial](../../../docs/youtube-editorial.md) y las investigaciones allí enlazadas. No vuelvas a pedir preferencias o recursos que ya estén registrados. El perfil no acredita propiedad de un canal ni permisos de publicación.
 
+## Ejercicio guiado vigente y trabajo práctico
+
+El operador pidió el27/10 recorrer el próximo episodio una fase cada vez. Lee
+`workflow.guided_exercise` del perfil y `editorial/estado.json`: mientras esté
+activo, «siguiente» avanza UNA fase y se detiene. Explica entradas con rutas,
+qué hace agente/Kitok, salidas reales y comprobación mínima. No producir guion,
+voz, imágenes o vídeo de fases posteriores. Sólo una petición expresa de volver
+a automático levanta esta pausa entre fases; no preguntar otra vez lo resuelto.
+
+Prioriza pruebas focales y una muestra real útil. No repetir suites grandes sin
+cambio/fallo material. Antes de añadir código, identifica qué operación concreta
+no resuelve Kitok y si basta con reutilizar un comando. Durante el ejercicio se
+retiran capas redundantes sólo tras ver entradas/salidas y comprobar su uso.
+
 ## Encargo completo: «siguiente»
 
 Dentro de este canal, «siguiente» encarga el próximo episodio completo hasta entrega
@@ -75,7 +89,11 @@ separados mediante el contrato realmente soportado; no metas etiquetas a mano en
 `guion_final.txt` si van a contaminar alineación/subtítulos. Nunca resintetices un
 episodio existente sólo para añadirlas. El ASR independiente reconoce SIN recibir
 el guion; después compara, señala discrepancias y bloquea antes de renderizar.
-No demuestra fidelidad una alineación forzada, ni cortes seguros cada error ASR.
+Usa `voice.transcript_verification=local_asr_autocut` en episodios nuevos: Kitok
+recorta inserciones con anclas y silencios en una copia y vuelve a reconocerla
+antes de permitir el montaje. Omisiones/reemplazos y residuos ambiguos bloquean;
+no los borres para conseguir un informe verde. No demuestra fidelidad una
+alineación forzada, ni convierte cada diferencia ASR en un corte seguro.
 No encubras anomalías de voz con música.
 
 ## Aprobar el estilo antes de ampliar

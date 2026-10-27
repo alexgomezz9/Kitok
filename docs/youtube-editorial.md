@@ -13,6 +13,13 @@ La skill dirige al agente y su lector devuelve contexto local; no es un servicio
 
 Verifica el CLI y el estado del episodio antes de continuar. No sobrescribas reparaciones ni registros privados; un archivo presente no equivale a un recurso revisado.
 
+## Ejercicio guiado vigente
+
+El operador pidió27/10 que el próximo episodio se haga por fases. El perfil activa
+`workflow.guided_exercise`: «siguiente» avanza sólo UNA fase, explica entradas,
+operación y salidas reales, y se detiene. El modo completo descrito a continuación
+se recupera sólo por petición expresa de volver a automático.
+
 ## Inicio y continuidad sin explicar todo de nuevo
 
 «Siguiente» dentro de este proyecto encarga elegir y producir el próximo episodio
@@ -28,7 +35,7 @@ en `local/youtube-trazo-maldito`, comprobando el ID remoto. No uses la conexión
 de Loose Thread. El 26/10 se verificó acceso real y cero vídeos; esa fecha no prueba
 acceso futuro y no hay todavía métricas propias con las que ordenar personajes.
 
-La secuencia de trabajo es investigación/paquete → guion fijado → voz y control
+La secuencia de trabajo es investigación/paquete → guion fijado → voz cruda, recortes de inserciones y segunda comprobación
 independiente local → storyboard → comparación inicial de enfoques si el estilo
 es nuevo → lotes 3×3 revisados → muestra de
 montaje → render completo/QA → miniatura/metadatos y entrega. El storyboard puede
