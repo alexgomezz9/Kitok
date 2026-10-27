@@ -101,7 +101,9 @@ def compact_delivery(root: Path, episode: Path) -> dict:
                   f'Fidelidad de audio: {fidelity}. {fidelity_note}\n'
                   'Este paquete técnico no acredita que el episodio esté listo para publicar.\n')
         destination = local_file(episode, 'entrega', exists=False)
-        if destination.exists():
+        if destination.exists() and not destination.is_dir():
+            raise ValueError('Existing entrega must be a directory')
+        if destination.exists() and any(destination.iterdir()):
             expected = set(sources) | {'informe.json', 'LEEME.txt'}
             if (not destination.is_dir() or {p.name for p in destination.iterdir()} != expected
                     or any(p.is_symlink() or not p.is_file() for p in destination.iterdir())
@@ -124,9 +126,13 @@ def compact_delivery(root: Path, episode: Path) -> dict:
                 if metadata_sha and sha256(metadata_path) != metadata_sha:
                     raise ValueError('Editorial audio status changed during delivery preparation')
                 # Under the episode lock another cooperative writer cannot race.
-                # Refuse any existing destination, including a dangling symlink.
-                if destination.exists() or destination.is_symlink():
+                # Only the common empty folder may be replaced.
+                if destination.is_symlink():
                     raise FileExistsError('Delivery destination appeared; preserved existing path')
+                if destination.exists():
+                    # init creates the common empty folder. Never remove a file
+                    # or any operator content that appeared since preflight.
+                    destination.rmdir()
                 staged.rename(destination)
             finally:
                 if staged.exists():

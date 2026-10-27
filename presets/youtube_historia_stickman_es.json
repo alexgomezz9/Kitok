@@ -112,7 +112,8 @@
       "episode": "content/longform/trazo_004_freddy_krueger",
       "stop_after_every_stage": true,
       "explain": "Qué decisión se toma, entradas exactas, operación Kitok/agente, salidas realmente creadas y comprobación mínima. No avanzar por silencio.",
-      "resume_automatic": "Sólo si el operador pide explícitamente volver al modo automático; esta excepción prevalece sobre siguiente completo durante el ejercicio."
+      "resume_automatic": "Sólo si el operador pide explícitamente volver al modo automático; esta excepción prevalece sobre siguiente completo durante el ejercicio.",
+      "current_stage": "research_outline_completed_waiting_operator"
     },
     "practical_work": "Una muestra real primero; pruebas focales del cambio y comprobación del recorrido afectado. No repetir suites grandes sin cambios/fallos que lo justifiquen. No añadir código o capas sin demostrar su función en el paso actual."
   },

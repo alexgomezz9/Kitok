@@ -620,6 +620,13 @@ recibos y vídeos finales; bloquea trabajos activos y rutas enlazadas simbólica
 Borrar clips elimina su reutilización rápida: no hacerlo antes de decidir reparaciones.
 La auditoría explica [etapas, costes e intervención manual](docs/youtube-production-audit.md).
 
+Cada episodio usa el mismo índice `LEEME.md`, entradas en raíz y carpetas comunes
+de imágenes, referencias, planificación, miniaturas, editorial y entrega.
+`scripts/stickman_delivery.py organize EPISODIO` inspecciona auxiliares;
+`--apply` retira los comprobados. `--archive-revisions` archiva revisiones cerradas
+fuera de la carpeta diaria, conservando fuentes y vídeos únicos. No se activa
+al guardar. [Estructura, limpieza y restauración](docs/episode-files.md).
+
 
 ## Retomar subtítulos tras una interrupción
 

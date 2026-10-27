@@ -1,57 +1,70 @@
 # Estado vigente de Kitok
 
-Actualizado: **2026-10-27**. Rama **main**. Corrección de voz cruda y comparación
-Fish realizadas; próximo episodio en recorrido guiado, una fase cada vez.
-Sin publicación ni push en este encargo. Manual: [GUIA](GUIA.md),
-[archivos por fase](docs/youtube-stickman-es.md#entradas-y-salidas-por-fase),
-[voz](docs/fish-voice.md), [flujo editorial](docs/youtube-editorial.md).
+Actualizado: **2026-10-27**. Rama **main**, tres checkpoints locales previos sobre
+origin/main al comenzar esta unidad. Organización de episodios y Freddy guiado.
+Sin publicación, merge ni push en este encargo. Manual: [GUIA](GUIA.md),
+[carpetas](docs/episode-files.md), [voz](docs/fish-voice.md),
+[flujo editorial](docs/youtube-editorial.md).
 
-## Voz y procedencia
+## Capacidades y evidencia
 
-- Stickman envía a Fish `guion_final.txt.strip()`. `guion_lectura_limpia.txt`
-  pertenece al storyboard, no es la entrada de voz. Guion/hash originales conservados.
-- Prueba real: 64 palabras idénticas, Jason/Loose Thread, S2.1-free, directo y con
-  timestamps. Jason tiene inserciones en ambas rutas; LT también difiere al leer
-  español (referencia inglesa). La respuesta directa se guarda sin montaje.
-  La captura del operador usa Drama3; muestra API Drama3 devolvió HTTP402, sin retry.
-  No aislar causa universal de modelo/voz ni equiparar web y API con modelos distintos.
-- `local_asr_autocut`: voz cruda → ASR local → recortes anclados en copia PCM →
-  otra ASR → sólo entonces reloj/mezcla/montaje. Es el valor de init nuevo.
-  Reemplazos, omisiones y ambigüedades bloquean; off conserva episodios antiguos.
-  Runtime/modelo ASR compartidos en local/, sin enviar audio ni modificar Fish crudo.
-- Validación actual: checks focales de motor/empalmes/integración, 42 últimos tests
-  pasados; 40 del motor y 43 de fronteras Native/MPT pasados durante el encargo.
-  studio-check, docs-check e higiene correctos. No repetir suite completa sin motivo.
-  Baseline histórico anterior: make verify 1194 Python/25 React (no gate del nuevo código).
+- Stickman envía `guion_final.txt.strip()` a Fish. `guion_lectura_limpia.txt` sirve
+  al storyboard, no a TTS. `[]` se transmiten; el texto limpio excluye etiquetas.
+  Sintaxis documentada; muestra real con etiquetas aún pendiente, no repetir Jason.
+- `local_asr_autocut` en init nuevo: voz cruda → ASR local → cortes anclados en
+  copia PCM → nueva ASR → sólo después reloj/mezcla/montaje. Reemplazos, omisiones
+  y ambigüedades bloquean; no prometemos reparar cualquier fallo sin revisión.
+- Pruebas reales anteriores: Jason/Loose Thread × directo/timestamps sobre64
+  palabras, S2.1-free. Habla extra presente en respuesta cruda; no sólo montaje.
+  No equivaler web Drama3 y API S2.1. Muestra Drama3 API: HTTP402, sin retry.
+- Loose Thread largo, shorts y stickman generan con Native/Fish/FFmpeg. MPT sólo
+  recuperación histórica explícita; no se desinstaló servicio alguno.
+- `scripts/stickman_delivery.py organize`: índice/carpetas comunes, limpieza
+  explícita de cachés y láminas resueltas, archivo de revisiones cerradas con
+  fuentes/hashes y restauración. init/montaje generan/actualizan índice; no borran
+  al guardar ni archivan trabajos automáticamente. Contrato en docs/episode-files.md.
 
-## Jason
+## Jason — STANDBY por encargo del operador
 
-Base: `content/longform/trazo_003_jason_voorhees`. Entradas y usos en su `FLUJO.md`.
-Voz reparada: `editorial/autocorreccion_audio_2026-10-27/voz_reparada/audio.wav`.
-Se aplicaron 24 cortes automáticos, 1 editorial por nombre ambiguo y 2 frases/19 palabras
-recuperadas con la misma voz. Fuente original intacta. WAV 435.728708 s; segunda ASR
-completa: 0 inserciones, 14 diferencias de reconocimiento. Escucha humana pendiente;
-no declarar coincidencia acústica perfecta ni cumplimiento del mínimo 8 min.
-NO se ha montado un vídeo nuevo con esta voz. El subtitulado anterior en
-`revisiones/voz_limpia_8min/entrega/video.mp4` conserva errores: referencia visual,
-`final_video_ready=false`. No ofrecerlo como vídeo nuevo corregido.
+`content/longform/trazo_003_jason_voorhees/LEEME.md` es el índice actual.
+`voz_reparada.wav`:435.728708s (7:16), PCM48k mono; original Fish MP3 intacto.
+24cortes automáticos +1corte editorial ambiguo +2frases/19palabras recuperadas.
+Segunda ASR completa anterior:0inserciones,14diferencias; no escucha del agente
+ni coincidencia acústica perfecta demostrada. NO hay vídeo nuevo con esta voz.
+`entrega/voz_limpia_8min__video.mp4` conserva errores: referencia visual anterior,
+no final corregido. Diagnósticos en `local/pruebas/trazo_003_jason_voorhees/`.
+No seguir reparándolo/renderizarlo ahora. Rehacer en futuro encargo con estética
+stickman más terrorífica y duración útil real >480s, sin ralentizar para cumplir.
 
-Limpieza: 1359 archivos de Jason retirados, incluidos220duplicados exactos de
-imágenes/referencias de rutas históricas. Se verificaron245entradas por hash y
-se conservó cada contenido canónico; quedan374archivos (imágenes/fuentes/recibos).
-887 temporales Kitok/pytest cerrados retirados. Neto ~1.86 GiB tras compactar evidencia.
-Manifiestos: `local/cleanup/2026-10-27-jason`. Se eliminaron muestras/cachés y el
-máster limpio anterior, conservando el MP4 subtitulado de referencia. Reeditar
-requerirá renderizar clips de nuevo; no borrar recibos ni fuentes para forzar TTS.
+## Organización aplicada
 
-## Próximo episodio y motores
+Siete episodios comparten carpetas e índice; los tres Native históricos tienen
+`configuracion.json`, `guion_final.txt`, `titulo.txt`. Sus rutas script_file obsoletas
+se corrigieron; las tres definiciones cargan sin proveedores. Originales en archivo.
+Se comprobaron419fuentes por SHA256 sin pérdidas/cambios de contenido.
+Revisiones cerradas de Jason/Myers/Antigüedad archivadas fuera del árbol diario;
+vídeos únicos conservados visibles, PNG definitivos intactos, láminas resueltas
+retiradas. Pruebas de voz y configs de ensayo fuera de episodios. Intermedios de
+pruebas cerradas, mezclas regenerables y temporales Kitok retirados; recursos ASR,
+stock, música, credenciales y galerías útiles conservados. Manifiestos y recuentos:
+`local/cleanup/2026-10-27-organizacion/summary.json` y reportes asociados.
+Limpieza anterior de Jason/tmp: `local/cleanup/2026-10-27-jason/`, no repetirla.
 
-`content/longform/trazo_004_freddy_krueger`: fase 1: idea creada; STOP antes de
-investigación/canon y escaleta. Perfil guided_exercise activo: explicar entradas,
-operación y salidas, parar cada fase; volver a automático sólo por petición expresa.
-Nuevas referencias del operador: stickman claro, sombras/contraluz/niebla, sangre
-contextual cuando corresponde; escenas tranquilas/diurnas mantienen ese contexto.
+## Freddy — fase2 terminada, PARADA
 
-Loose Thread largo, shorts y stickman generan con Native/Fish/FFmpeg. MPT sólo
-queda para recuperación histórica explícita; no se desinstaló ningún servicio.
-No revalidar YouTube para este trabajo local; OAuth anterior no prueba acceso hoy.
+`content/longform/trazo_004_freddy_krueger/editorial/investigacion_y_escaleta.md`:
+seis fuentes, continuidad clásica,10bloques y presupuesto aproximado1950palabras.
+Guion/voz/imágenes/vídeo todavía no generados. Perfil guided_exercise activo.
+Próximo «siguiente»: escribir/revisar guion, explicar inputs/outputs y parar antes
+de voz/imágenes. Automático sólo por petición expresa del operador.
+
+## Verificación y límites
+
+Unidad organización:20tests workspace/delivery y14pipeline/word_pipeline pasados;
+revisión independiente cerró tres riesgos de limpieza tras corrección/regresiones.
+docs-check, higiene y validación de2skills pasados;7dry-runs posteriores vacíos,
+5archivos ZIP verificados por CRC/SHA y rutas actuales.419fuentes conservadas.
+Voz anterior:42tests empalmes/integración,40motor y43Native/MPT pasados durante el
+encargo anterior. Baseline histórico make verify1194Python/25React no es un gate
+completo del código nuevo. No repetir suite global sin motivo. No se ha validado
+publicación ni OAuth en esta tarea local; tampoco calidad audiovisual nueva de Freddy.

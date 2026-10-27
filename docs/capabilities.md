@@ -310,3 +310,8 @@ La [auditoría de producción](youtube-production-audit.md) distingue decisiones
 agente, pasos de Kitok y reparaciones de ingeniería. Entrega compacta local y
 limpieza explícita de caché visual están disponibles en `scripts/stickman_delivery.py`;
 no equivalen a una política automática de borrado ni a un frontend stickman completo.
+
+El mismo auxiliar ofrece `organize`: índice/estructura común, retirada comprobada
+de láminas y cachés y archivo explícito de revisiones cerradas. Conserva rutas de
+entradas vigentes; bloquea referencias activas, enlaces simbólicos y locks ocupados.
+Las pruebas quedan fuera del episodio. [Contrato y restauración](episode-files.md).

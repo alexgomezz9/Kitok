@@ -31,6 +31,25 @@ cambio/fallo material. Antes de añadir código, identifica qué operación conc
 no resuelve Kitok y si basta con reutilizar un comando. Durante el ejercicio se
 retiran capas redundantes sólo tras ver entradas/salidas y comprobar su uso.
 
+## Organización y reparto de trabajo
+
+Sigue [carpetas de episodios](../../../docs/episode-files.md): entradas y entrega
+visibles, índice `LEEME.md`, carpetas comunes; pruebas en `local/pruebas/EPISODIO/`.
+Usa `scripts/stickman_delivery.py organize EPISODIO` para inspeccionar y `--apply`
+para limpieza autorizada tras revisar el informe. Archiva revisiones cerradas con
+`--archive-revisions`; no archivar rutas que consuman entradas vigentes.
+Conserva PNG finales, guion, voz original, prompts, manifiestos y licencias.
+Retira láminas/crops resueltos; no acumular variantes y muestras en el episodio.
+El agente investiga, escribe guion, decide prompts y genera/revisa imágenes;
+Kitok procesa voz, tiempos, mezcla, subtítulos y montaje con sus comandos.
+Si falla un comando, corregir el defecto reutilizable y reanudar sin repetir
+proveedores. Documentar cualquier recuperación manual; no presentarla como
+capacidad automática ni repetirla como rutina en cada vídeo.
+
+Jason `trazo_003_jason_voorhees` está en standby por encargo27/10: rehacer sólo en
+un encargo futuro con nueva estética y duración útil real >8min. Continuar ahora
+Freddy por fases; el audio reparado7:16 no autoriza volver a montar Jason.
+
 ## Encargo completo: «siguiente»
 
 Dentro de este canal, «siguiente» encarga el próximo episodio completo hasta entrega

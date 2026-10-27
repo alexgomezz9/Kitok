@@ -44,6 +44,8 @@ def initialize(root: Path, value: Path) -> dict:
     config = Config()
     config.voice.transcript_verification = 'local_asr_autocut'
     write(local_file(folder,'configuracion.json',exists=False),config.model_dump())
+    from .workspace import index_episode
+    index_episode(folder)
     return {'episode':str(folder.relative_to(root)),'status':'inputs_required',
             'required':['guion_final.txt','titulo.txt','referencias/ with interior-frame role in configuracion.json'],
             'optional':['voz.mp3','voz.srt','direccion_visual.json'],
@@ -283,6 +285,8 @@ def execute(root: Path, episode: Path, command: str, *, settings=None, on_stage=
                 from .subtitle_delivery import caption_video
                 report['subtitled'] = caption_video(folder, root=root, settings=settings,
                     on_stage=on_stage, revision=options.get('revision'))
+            from .workspace import index_episode
+            index_episode(folder)
             return report
         if command == 'subtitles':
             from .subtitle_delivery import caption_video

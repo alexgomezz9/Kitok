@@ -170,3 +170,13 @@ segunda ASR completa no encontró inserciones y dejó14diferencias(nombres/cifra
 variantes de reconocimiento). No acredita escucha humana ni guion acústicamente
 perfecto. El WAV resultante dura435.728708s; todavía no es un MP4 final ni cumple
 por sí solo el objetivo de duración del canal. No alargar con cánticos/silencios.
+
+
+Jason está en **standby** por encargo27/10: no montar otra vez ahora. La copia
+reparada está visible como `voz_reparada.wav` en su raíz; pruebas y recibos del
+experimento están en `local/pruebas/trazo_003_jason_voorhees/`. PCM evita otra
+compresión al cortar por muestras; el MP3 Fish original se conserva. El motor de
+cortes es determinista, pero Jason necesitó1decisión de corte y2recuperaciones
+focales dirigidas por el agente. No presentar esa intervención como flujo
+totalmente automático. La futura reconstrucción exige nueva estética y >480s
+útiles. [Organización de archivos](episode-files.md).

@@ -55,7 +55,7 @@ El auxiliar `scripts/batches.py` sólo prepara prompts/manifiestos, recorta con 
 
 Elige nueve escenas consecutivas pendientes en el orden del JSON y numéralas 1–9. `plan` conserva esa asignación y genera `prompt.txt` con ÚNICAMENTE esos nueve prompts más estilo/referencias; no envíes el guion completo, otras escenas, una cuadrícula anterior ni todo el historial. Invoca la herramienta con ese texto y las referencias fijadas explícitamente, evitando incluir imágenes de conversación adicionales. Cuadrícula exacta 123 / 456 / 789, nueve casillas iguales, cada una 16:9, sin bordes ni texto de numeración. Cada casilla es independiente y exclusiva de su prompt. El texto intencional de una escena prevalece sobre prohibiciones genéricas de texto. No reescribas el archivo original.
 
-Genera y guarda dos lotes primero cuando se esté validando un estilo/método nuevo; inspecciona sus resultados y continúa si son adecuados. Copia cada lámina al lote antes de la siguiente llamada. Para el último bloque, usa las escenas restantes y casillas vacías declaradas; nunca inventes escenas para rellenar. El manifiesto preserva las posiciones.
+Genera y guarda dos lotes primero cuando se esté validando un estilo/método nuevo; inspecciona sus resultados y continúa si son adecuados. Copia cada lámina al lote antes de la siguiente llamada; es temporal hasta validar y aceptar los PNG finales. Para el último bloque, usa las escenas restantes y casillas vacías declaradas; nunca inventes escenas para rellenar. El manifiesto preserva las posiciones.
 
 ```bash
 .venv/bin/python RUTA_SKILL/scripts/batches.py crop EPISODIO --batch lote-001 --atlas SALIDA_REAL --inset 8 --source-kind builtin_imagegen
@@ -76,3 +76,17 @@ En `imagenes/`, entrega sólo PNG con IDs originales, según `image_file`. Lámi
 Antes de dar las imágenes por listas para montaje, valida TODOS los PNG finales con `ImageBatch.inspect`, también los existentes que no has generado en este turno. Validar sólo `source_spans` no comprueba su resolución. Si hay una revisión de entrega ya preparada (por ejemplo `revisiones/montaje_720p`), verifica sus archivos y hashes y comunica esa ruta exacta; no vuelvas a señalar los recortes nativos de la carpeta original como entrada lista. Mantén límites de seguridad y decodificación, y no atribuyas detalle nuevo al escalado.
 
 Informa de cantidad realmente generada, aceptada, conservada y pendiente, tamaño nativo y ruta. Las skills se invocan en Codex con `$kitok-image-batches`; ese nombre no es un comando del renderer.
+
+
+## Cierre de auxiliares
+
+Tras aceptar y validar todos los PNG de los lotes resueltos, usa
+`scripts/stickman_delivery.py organize EPISODIO` y revisa/aplica su limpieza.
+Conserva PNG definitivos, prompts, cajas, revisiones, manifiestos y hashes;
+las láminas, contactos y crops redundantes no son una segunda entrega permanente.
+Un lote pendiente conserva sus fuentes. Si un recorte antiguo fue sustituido,
+registra `cleanup_superseded_by` con el lote de reparación aceptado, nunca sólo
+por coincidencia de ID. No volver a generar por la ausencia deliberada del atlas:
+`pending` comprueba la aceptación contra el PNG final. Para otra reparación, lote
+nuevo. Pruebas/muestras de diagnóstico en `local/pruebas/EPISODIO/`, con limpieza
+al cerrarlas; no manipular recibos de voz o render para simular aprobación.

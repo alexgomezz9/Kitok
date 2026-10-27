@@ -47,6 +47,15 @@ def test_bundle_six_files_reuses_video_storage_and_is_idempotent(episode):
     assert (folder / 'descripcion_youtube_final.txt').read_text() == 'description'
 
 
+def test_bundle_accepts_empty_common_delivery_folder(episode):
+    from kitok.youtube_stickman_es.workspace import index_episode
+    root, folder = episode
+    index_episode(folder)
+    assert not list((folder / 'entrega').iterdir())
+    assert compact_delivery(root, folder)['files'] == 6
+    assert len(list((folder / 'entrega').iterdir())) == 6
+
+
 def test_bundle_rejects_changed_video_rejected_qa_and_active_work(episode):
     root, folder = episode
     with episode_lock(folder), pytest.raises(ValueError, match='already being processed'):

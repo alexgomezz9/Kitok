@@ -3,8 +3,8 @@
 Revisión del episodio Jason y del código actual. Los tiempos proceden del log de
 su producción real, no de estimaciones ni de la suite. Reglas y comandos vigentes:
 [guía](../GUIA.md), [flujo editorial](youtube-editorial.md), [voz](fish-voice.md),
-[audio](audio.md). No se volvió a sintetizar voz ni renderizar el episodio completo
-para esta auditoría. No se publica contenido.
+[audio](audio.md). Conserva las mediciones del render anterior y la reparación
+posterior. No se ha vuelto a renderizar el episodio completo ni publicado contenido.
 
 ## Orden real y reparto de trabajo
 
@@ -13,12 +13,12 @@ para esta auditoría. No se publica contenido.
 | Idea e investigación | Decide personaje, continuidad, fuentes y promesa; no une versiones incompatibles. | Lector compacto recupera perfil y estado; no investiga por sí solo. |
 | Guion | Escribe relato causal e inmersivo; títulos/canon quedan en notas. | Conserva texto y hashes. No escribe ni corrige hechos. |
 | Enfoque visual nuevo | Propone tres enfoques stickman del mismo momento; operador elige, o agente si está delegado. | Importa anclas y conserva referencias; no inventa aprobación. |
-| Voz | Decide interpretación y revisa pronunciación/anomalías. | Fish sólo con opción expresa si falta voz; caché y resultados inciertos conservados. Control ASR local opcional antes del montaje. |
+| Voz | Decide interpretación y revisa pronunciación/anomalías. | Fish sólo con opción expresa si falta voz; caché y resultados inciertos conservados. ASR local con recortes de inserciones en copia y segunda comprobación antes de montaje; predeterminado en init nuevo. |
 | Storyboard | Decide cortes semánticos, acción, composición, personajes y prompts. | Helper calcula cobertura, IDs, fragmentos y reloj desde palabras reales. |
 | Imágenes | Invoca ImageGen integrado y revisa correspondencia de todos los recortes. | Prepara lotes, recorta, valida, registra hashes y conserva relación panel/escena. |
 | Montaje | Entrega inputs fijados; revisa muestra y sólo cambia dirección cuando aporta. | Valida, mezcla, anima, transiciona, une, añade ASS y ejecuta QA. Sin LLM por plano ni fotograma. |
 | Entrega | Fija miniatura, descripción, capítulos y créditos reales. | Empaquetado compacto de seis archivos con recibos/hashes, sin recodificar. |
-| Limpieza | Decide cuándo deja de necesitar reusar cachés para reparaciones. | Comando explícito simula y borra sólo derivados visuales permitidos, con locks. |
+| Limpieza | Decide cuándo deja de necesitar reusar cachés para reparaciones. | Comando explícito inspecciona/retira derivados comprobados y archiva revisiones cerradas con fuentes/hashes, con locks. |
 
 Las skills coordinan una sesión del agente; no son un servicio ejecutándose cuando
 Codex está cerrado. El CLI stickman y sus herramientas existen; el frontend diario
@@ -40,8 +40,10 @@ Intervenciones que pertenecen a ingeniería o control automático:
   interior y derivar reloj/subtítulos. La raíz modelo/voz/parámetros no está aislada.
   La anomalía está en la voz seca guardada por Fish, cuyo hash coincide con el
   recibo de la solicitud; el guion solicitado no contiene esas expresiones.
-  El control ASR local añadido compara reconocimiento independiente con el texto;
-  bloquea diferencias para revisión, no declara automáticamente segura una tijera.
+  El control ASR local compara reconocimiento independiente con el texto. El modo
+  nuevo recorta inserciones ancladas, reconoce de nuevo y bloquea omisiones o
+  diferencias ambiguas. En la reparación real hubo24cortes automáticos,1corte
+  editorial y2frases recuperadas con Fish: no fue una reparación100%automática.
 - El mezclador había acortado un MP3 al negociar el reloj de muestras. La reparación
   ya incorporada en el motor conserva duración y margen AAC; no fue edición manual
   de cada plano. Se comprobó con la voz existente.
@@ -97,23 +99,29 @@ con el vídeo citado por el operador; atribuirle una velocidad concreta sería i
 
 ## Archivos y espacio
 
-Jason tenía1616 archivos en su árbol antes de la entrega compacta. `.editorial-work`
-concentra764 archivos/~1.17 GB: clips, continuaciones, láminas preparadas y recibos.
-Algunos nombres grandes comparten inode; sumarlos duplicaría el espacio reclamable.
-Por ejemplo, la revisión `.stickman` representa548 MB lógicos pero sólo unos15.8 MB
-adicionales tras descontar hardlinks ya contados.
+La limpieza ya está aplicada. Cada episodio tiene un índice `LEEME.md`, entradas
+visibles y las carpetas comunes de [organización](episode-files.md). Los vídeos
+conservados se encuentran en `entrega/`, sin volver a codificarlos. Una referencia
+histórica no se presenta como una entrega nueva aprobada.
 
-`entrega/` muestra seis archivos: vídeo, miniatura, descripción, créditos, informe
-y LEEME. El vídeo comparte bytes con el máster; textos y miniatura son copias
-independientes. Los archivos técnicos quedan fuera, conservando reanudación y fuentes.
+El comando `organize` retiró1501derivados/láminas/crops en las revisiones cerradas
+de Jason, Myers y Antigüedad; archivó fuentes únicas y metadatos, con duplicados
+referidos por hash a sus originales. Se comprobaron419fuentes protegidas sin deriva.
+Las pruebas de voz se movieron a `local/pruebas/`; los ZIP históricos están en
+`local/archivo_episodios/`. La evidencia completa está en
+`local/cleanup/2026-10-27-organizacion/`. La limpieza anterior se conserva en
+`local/cleanup/2026-10-27-jason/`; no volver a aplicarla como si siguiera pendiente.
 
-La simulación inicial identificó403 derivados visuales y1,170,948,096 bytes físicos
-recuperables (~1.09GiB). No se ha aplicado mientras la investigación de voz pueda
-requerir editar el montaje. Se conservan voz original/reparada, imágenes/atlas,
-fuentes, licencias, planes, ASS, recibos, muestras útiles y vídeos finales. Tras
-limpiar, una reedición necesitará renderizar otra vez los clips eliminados.
+Se conservaron guiones, voz Fish cruda, voz reparada, PNG definitivos, referencias,
+licencias, planes y hashes. Los clips retirados requieren renderizar otra vez si
+se cambia el montaje. `--archive-revisions` bloquea una revisión consumida por
+entradas actuales. No archiva ni borra automáticamente al guardar un borrador.
 
-## Comprobación real de voz
+Jason queda en standby: futuro remake con estética nueva y >8min de duración útil.
+El WAV reparado7:16 está visible en raíz; su vídeo anterior conserva errores.
+
+
+## Diagnóstico inicial de voz, antes de la reparación actual
 
 Se transcribieron completos el original y la versión con corte/tempo mediante
 Whisper small CPU/int8, sin proporcionar el guion al reconocedor y sin subir audio.
@@ -130,9 +138,10 @@ sustitución/omisión durante síntesis, pendiente de escucha; no demuestra que 
 corte retirara narración auténtica. Cortar inserciones no reconstruye palabras
 que falten. El reconocimiento puede fallar y requiere criterio acústico/editorial.
 
-Los reportes y el índice de escucha están en el episodio, bajo
-`editorial/auditoria_audio_2026-10-27/`. Se conservan originales y derivado;
-`final_video_ready` sigue enfalse. No se sintetizó ni cortó audio en esta auditoría.
+El diagnóstico inicial se conservó como evidencia; la reparación posterior está
+en `local/pruebas/trazo_003_jason_voorhees/autocorreccion_audio_2026-10-27/`.
+No confundir esas38diferencias iniciales con el resultado posterior0inserciones.
+`final_video_ready` sigue enfalse; Jason está en pausa.
 El entorno/modelo local ocupa~0.94GB una vez, compartido entre episodios.
 
 ## Optimización por prioridad
