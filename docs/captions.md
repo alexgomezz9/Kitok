@@ -32,3 +32,15 @@ lingüístico. Atención, aprendizaje y retención en YouTube son medidas distin
 La decisión editorial aquí es una opción legible y discreta para probar, no
 una promesa de crecimiento. En un vídeo horizontal de doce minutos conviene
 comparar con la versión limpia y consultar después la retención real del canal.
+
+## Reanudar tras una interrupción de QA
+
+En trabajos nuevos, Kitok guarda identidad de entradas antes de codificar y hash
+al terminar el encoder, antes de ejecutar QA. Si se interrumpe después, repetir
+el comando de subtítulos recupera ese MP4, verifica reloj/audio/hash y retoma QA
+sin recodificar ni requerir que siga disponible la GPU. Una codificación corrupta
+o varias variantes distintas bloquean la recuperación.
+
+Un MP4 antiguo sin esos recibos no se promueve por su nombre. Una entrega final
+parcialmente publicada tampoco se reemplaza automáticamente: se conserva para
+revisión. Este mecanismo evita repetir codificación; no omite el QA fuerte.

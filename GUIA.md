@@ -579,3 +579,11 @@ con los recursos preparados. Los recortes conservan el tamaño real de la lámin
 aceptan a tamaño nativo con avisos si son pequeñas; Native escala al exportar.
 El mínimo 1280×720 sigue aplicándose a nuevas entregas individuales y miniaturas.
 El escalado no recupera detalle; la revisión visual del montaje sigue siendo necesaria.
+
+
+## Retomar subtítulos tras una interrupción
+
+Para trabajos nuevos, repetir `subtitles` recupera una codificación terminada
+con identidad/hash válidos y retoma QA sin recodificar. Se conservan archivos
+antiguos sin recibos o entregas parciales para revisión; no se adivina su validez.
+Consulta [subtítulos y recuperación](docs/captions.md#reanudar-tras-una-interrupcion-de-qa).

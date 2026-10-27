@@ -180,3 +180,40 @@ def test_completed_delivery_reuses_recorded_encoder_without_probing_current_gpu(
     assert run(delivery) == result
     assert digest(root / result['video']) == original
     assert (root / result['receipt']).read_bytes() == receipt_before
+
+
+def test_interrupted_caption_qa_resumes_same_encoding_without_gpu_probe(delivery, monkeypatch):
+    _, folder, _, _, calls = delivery
+    original_qa = subtitle_delivery.inspect_delivery
+    monkeypatch.setattr(subtitle_delivery, 'inspect_delivery',
+                        lambda *a, **kw: (_ for _ in ()).throw(RuntimeError('interrupted during QA')))
+    with pytest.raises(RuntimeError, match='interrupted during QA'):
+        run(delivery)
+    staged = list((folder / '.stickman/caption-work').glob('*/video_subtitulado.mp4'))
+    assert len(staged) == 1
+    encoded_sha = digest(staged[0])
+    assert (staged[0].parent / 'encoded.json').exists()
+    monkeypatch.setattr(subtitle_delivery, 'inspect_delivery', original_qa)
+    monkeypatch.setattr(subtitle_delivery, 'choose_encoder',
+                        lambda *a, **kw: pytest.fail('Recovering a completed encoding must not probe the GPU'))
+    result = run(delivery)
+    assert result['technical_status'] == 'passed'
+    assert digest(folder / 'video_subtitulado.mp4') == encoded_sha
+    assert len(calls) == 1
+    assert list((folder / '.stickman/caption-work').glob('*/video_subtitulado.mp4')) == staged
+
+
+def test_corrupt_preserved_encoding_blocks_instead_of_reencoding(delivery, monkeypatch):
+    _, folder, _, _, _ = delivery
+    monkeypatch.setattr(subtitle_delivery, 'inspect_delivery',
+                        lambda *a, **kw: (_ for _ in ()).throw(RuntimeError('interrupted')))
+    with pytest.raises(RuntimeError, match='interrupted'):
+        run(delivery)
+    staged = next((folder / '.stickman/caption-work').glob('*/video_subtitulado.mp4'))
+    staged.write_bytes(b'changed preserved encoding')
+    monkeypatch.setattr(subtitle_delivery, 'choose_encoder',
+                        lambda *a, **kw: pytest.fail('Corruption must not trigger an encode'))
+    with pytest.raises(ValueError, match='encoding changed'):
+        run(delivery)
+    assert staged.read_bytes() == b'changed preserved encoding'
+    assert not (folder / 'video_subtitulado.mp4').exists()

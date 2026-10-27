@@ -42,6 +42,39 @@ def _check_media(video, *, settings, plan, audio_duration):
             'audio_duration': duration, 'full_decode': 'passed'}
 
 
+def _recover_encoded(episode: Path, identity: dict):
+    """Find a completed encoding with exact input identity; never trust a bare MP4.
+
+    The tiny receipts are persisted before/after encoding so interruptions during
+    expensive QA can resume without spending another encode or probing the GPU.
+    Older work without these receipts remains untouched for explicit review.
+    """
+    parent = local_file(episode, '.stickman/caption-work', exists=False)
+    if not parent.exists():
+        return None
+    matches = []
+    for folder in sorted(parent.iterdir()):
+        if folder.is_symlink() or not folder.is_dir():
+            raise ValueError('Caption work cannot contain symlinks or unexpected files')
+        request = local_file(episode, str((folder / 'request.json').relative_to(episode)), exists=False)
+        encoded = local_file(episode, str((folder / 'encoded.json').relative_to(episode)), exists=False)
+        if not request.exists() or not encoded.exists():
+            continue
+        recorded = json.loads(request.read_text())
+        encoder = recorded.get('encoder') if isinstance(recorded, dict) else None
+        if (not isinstance(encoder, dict) or encoder.get('codec') not in {'libx264', 'h264_nvenc'}
+                or recorded != {**identity, 'encoder': encoder}):
+            continue
+        staged = local_file(episode, str((folder / 'video_subtitulado.mp4').relative_to(episode)))
+        receipt = json.loads(encoded.read_text())
+        if receipt != {'status': 'encoded', 'video_sha256': digest(staged)}:
+            raise ValueError('Preserved caption encoding changed; review it before retrying')
+        matches.append((staged, recorded))
+    if len({digest(path) for path, _ in matches}) > 1:
+        raise ValueError('Multiple caption encodings match; choose a reviewed revision')
+    return matches[0] if matches else None
+
+
 def caption_video(episode: Path, *, root: Path, settings, on_stage=None,
                   revision: str | None = None) -> dict:
     """Caller holds episode_lock; never render the base or request providers.
@@ -108,23 +141,31 @@ def caption_video(episode: Path, *, root: Path, settings, on_stage=None,
         _check_media(output, settings=settings, plan=plan, audio_duration=source_media['audio_duration'])
         emit('Subtítulos existentes: identidad, reloj y decodificación comprobados')
     else:
-        encoder = choose_encoder(settings.ffmpeg_binary, nvenc_preset='p5')
-        if not encoder.is_nvenc:
-            encoder = replace(encoder, preset='fast', cq=20)
-        identity['encoder'] = {**asdict(encoder), 'arguments': encoder_arguments(encoder), 'threads': 2,
-                               'audio': 'copy', 'width': 1920, 'height': 1080, 'fps': 30}
-        work_parent = local_file(episode, '.stickman/caption-work', exists=False)
-        work_parent.mkdir(parents=True, exist_ok=True)
-        work = Path(tempfile.mkdtemp(prefix='delivery-', dir=work_parent))
-        staged = work / 'video_subtitulado.mp4'
-        emit(f'Subtítulos: incrustando ASS con {encoder.codec} ({encoder.preset}); audio AAC copiado')
-        subprocess.run(
-            [settings.ffmpeg_binary, '-nostdin', '-v', 'error', '-n', '-threads', '2',
-             '-i', str(base), '-map', '0:v:0', '-map', '0:a:0',
-             '-vf', "ass=filename='" + filter_path(ass) + "'", *encoder_arguments(encoder),
-             '-threads', '2', '-pix_fmt', 'yuv420p',
-             '-c:a', 'copy', '-movflags', '+faststart', str(staged)],
-            capture_output=True, text=True, check=True, timeout=7200)
+        recovered = _recover_encoded(episode, identity)
+        if recovered:
+            staged, identity = recovered
+            work = staged.parent
+            emit('Subtítulos: recuperando codificación terminada; repitiendo QA sin recodificar')
+        else:
+            encoder = choose_encoder(settings.ffmpeg_binary, nvenc_preset='p5')
+            if not encoder.is_nvenc:
+                encoder = replace(encoder, preset='fast', cq=20)
+            identity['encoder'] = {**asdict(encoder), 'arguments': encoder_arguments(encoder), 'threads': 2,
+                                   'audio': 'copy', 'width': 1920, 'height': 1080, 'fps': 30}
+            work_parent = local_file(episode, '.stickman/caption-work', exists=False)
+            work_parent.mkdir(parents=True, exist_ok=True)
+            work = Path(tempfile.mkdtemp(prefix='delivery-', dir=work_parent))
+            staged = work / 'video_subtitulado.mp4'
+            write(work / 'request.json', identity)
+            emit(f'Subtítulos: incrustando ASS con {encoder.codec} ({encoder.preset}); audio AAC copiado')
+            subprocess.run(
+                [settings.ffmpeg_binary, '-nostdin', '-v', 'error', '-n', '-threads', '2',
+                 '-i', str(base), '-map', '0:v:0', '-map', '0:a:0',
+                 '-vf', "ass=filename='" + filter_path(ass) + "'", *encoder_arguments(encoder),
+                 '-threads', '2', '-pix_fmt', 'yuv420p',
+                 '-c:a', 'copy', '-movflags', '+faststart', str(staged)],
+                capture_output=True, text=True, check=True, timeout=7200)
+            write(work / 'encoded.json', {'status': 'encoded', 'video_sha256': digest(staged)})
         media = _check_media(staged, settings=settings, plan=plan,
                              audio_duration=source_media['audio_duration'])
         if decoded_audio_hash(base, settings.ffmpeg_binary) != decoded_audio_hash(staged, settings.ffmpeg_binary):
