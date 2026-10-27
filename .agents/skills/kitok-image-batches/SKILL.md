@@ -13,6 +13,23 @@ Comprueba la skill oficial `imagegen` y la herramienta integrada disponibles en 
 
 Inspecciona las referencias locales con `view_image`. Fija referencias de estilo y un ancla visual del protagonista proporcionada o aceptada, conservando esos mismos archivos y hashes durante los lotes. Si falta ancla, crea primero una muestra con autorización vigente y revísala antes de ampliar. Referencias fijan estilo/identidad, no composiciones. Distingue máscara/rostro, vestuario y personajes secundarios; no fuerces al protagonista en planos de objetos, documentos ilustrativos, mapas, fechas, gráficos u otros personajes. No transfieras el tono entre canales.
 
+## Muestra de enfoque y horror stickman
+
+Antes de lotes completos de un estilo NUEVO, muestra tres enfoques del mismo
+momento según kitok-youtube/perfil: línea limpia, tinta/sombras y viñeta con rojo
+selectivo, todos con cuerpo de trazo fino, cabeza simple y máscara/ropa constantes.
+Una ilustración cartoon genérica no cumple stickman. Prueba acción, reacción y
+objeto con el enfoque elegido. Si el operador delega «siguiente automático» o
+«no preguntes», elige/revisa y sigue, registrando decisión del agente. Sin esa
+delegación ni ancla aceptada, espera elección inicial antes de ampliar. No vuelvas
+a pedirla cada episodio si sigue vigente.
+
+Aplica terror contextual: oscuridad legible, amenaza, persecución, armas y sangre
+estilizada cuando corresponda al guion. No suavices siempre a ilustración infantil;
+no inventes atrocidades ni aumentes violencia ajena al relato. Conserva el detalle
+del entorno sin engrosar el cuerpo hasta perder la silueta stickman. La imagen
+ancla debe mostrar ese criterio antes de producir cien viñetas.
+
 ## Bloque, recorte y revisión
 
 El auxiliar `scripts/batches.py` sólo prepara prompts/manifiestos, recorta con Pillow y guarda PNG revisados. Ejecútalo con el Python/Pillow existente en Kitok, desde su raíz. No llama proveedores. `--help` da los argumentos reales.

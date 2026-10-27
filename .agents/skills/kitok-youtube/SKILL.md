@@ -56,11 +56,64 @@ secuencias relevantes y anota los intervalos realmente vistos, audio escuchado y
 limitaciones. Un título/transcript no demuestra montaje ni sonido. Guarda análisis
 propios, no copias de guiones ajenos. Sin métricas propias, declara esa limitación.
 
+## Voz narrativa y dirección Fish
+
+En Trazo Maldito se cuenta la historia desde dentro: «Jason volvió al lago», no
+«en la segunda película Jason vuelve». Títulos/continuidad/fuentes quedan en notas;
+no ocultes contradicciones entre versiones inventando puentes. No hagas reseña,
+resumen de entregas ni explicación del rodaje salvo encargo expreso. Lee las reglas
+actuales del perfil antes de escribir. Terror admite amenaza, persecución, sangre
+estilizada y consecuencias cuando lo exige la historia; no infantilices el relato
+ni añadas atrocidades que el canon no cuenta.
+
+Para interpretación Fish consulta [voz y fidelidad](../../../docs/fish-voice.md).
+Comprueba el modelo efectivo: S2 usa corchetes como `[break]`,
+`[long-break]`, `[whispering]`, `[emphasis]`, `[scared]` o `[sad]`; no asumir `[pausa]`
+ni una duración exacta. Dosifica instrucciones y prueba una muestra cuando se
+autorice voz nueva. Mantén guion hablado, instrucciones TTS y transcript esperados
+separados mediante el contrato realmente soportado; no metas etiquetas a mano en
+`guion_final.txt` si van a contaminar alineación/subtítulos. Nunca resintetices un
+episodio existente sólo para añadirlas. El ASR independiente reconoce SIN recibir
+el guion; después compara, señala discrepancias y bloquea antes de renderizar.
+No demuestra fidelidad una alineación forzada, ni cortes seguros cada error ASR.
+No encubras anomalías de voz con música.
+
+## Aprobar el estilo antes de ampliar
+
+Para un estilo nuevo muestra tres enfoques del MISMO momento narrativo, todos
+stickman (limpio contrastado, tinta/sombras, viñeta con rojo selectivo); después
+comprueba acción/reacción/objeto con el elegido. Cuerpos de trazo fino y cabezas
+simples reconocibles, máscara/vestuario coherentes; cartoon de cuerpo ancho o una
+ilustración sencilla no bastan. Sangre estilizada/armas/sombras cuando correspondan,
+sin uniformar todos los planos ni perder claridad móvil. Fija ancla y referencias
+tras la elección antes de los lotes. Con estilo ya aceptado, reutilízalo.
+
+Si no hay delegación, espera la elección visual inicial antes de producir el lote
+completo. «Siguiente automático», «no preguntes» o delegación equivalente autorizan
+al agente a elegir/revisar y seguir; registra elección del agente, nunca aprobación
+humana inventada. No reabras decisiones resueltas ni rediseñes episodios terminados.
+
 ## Escribir y visualizar
 
 Verifica las afirmaciones importantes con fuentes históricas sólidas. Abre con acción, riesgo o pregunta concreta y cumple esa promesa; evita una introducción biográfica larga. La estructura y los giros deben surgir de los hechos. No inventes pensamientos, diálogos ni escenas documentales; declara reconstrucciones. El esquema de trabajo y los puntos de revisión están en la guía.
 
 Comprueba guion → descripción de escena → prompt antes de generar. Conserva identidad editorial estable, palabras de origen y PNG propio por escena. Define antes de la solicitud qué escena corresponde a cada panel. No generes temas genéricos para asignarlos después. Cada recorte necesita revisión narrativa; hashes y dimensiones no entienden la imagen.
+
+## Montaje con una entrada y entrega compacta
+
+Con guion/voz/ASR, storyboard, imágenes y configuración fijados, invoca el recorrido
+Kitok `prepare --reuse-images` y `produce --reuse-images --subtitles`. No rehagas
+mezcla, cámara, timestamps, concatenación, ASS o QA con scripts ad hoc. Un defecto
+reproducible se corrige en Kitok y se reanuda con recibos; no repetir proveedores
+para resolver un fallo local. Consulta progreso por etapas y recibo final sin
+volcar planes/logs enteros ni hacer llamadas de modelo por plano.
+
+Fija música `horror` para episodios nuevos según el perfil antes de mezclar. Al
+terminar, prepara metadatos finales y usa `scripts/stickman_delivery.py bundle`:
+operador recibe `entrega/`, no miles de archivos internos. Los originales y
+licencias permanecen fuera; `clean-cache` primero simula y sólo se aplica tras
+resolver reparaciones, con hashes/locks y sin borrar fuentes. No afirmes que esta
+organización constituye una limpieza automática ni que un QA técnico pasó el ASR.
 
 ## Producir y continuar
 

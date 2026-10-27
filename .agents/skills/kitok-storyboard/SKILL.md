@@ -13,9 +13,22 @@ Trabaja sobre el episodio indicado y sus reglas de canal. Lee el guion COMPLETO 
 
 Conserva el método visual existente: mismas referencias interiores y ancla aprobada en todos los lotes, sin sustituirlas por la última escena ni rediseñar personajes. Reutiliza `configuracion.json`: `style_prompt`, `characters`, `references`. Si ya están definidos, no los cambies; sólo completa identidades imprescindibles ausentes una vez por episodio; no impongas personajes ni tono de otro canal. Si no hay perfil, busca el perfil local vigente antes de preguntar. Una referencia de estilo aceptada puede bastar; un personaje reconocible necesita descripción/ancla fiable. Pide sólo referencias imprescindibles ausentes. No exige foto para mapas, objetos o personajes originales bien definidos. No sintetices, generes imágenes, renderices ni consumas investigación vidIQ.
 
+## Identidad stickman y terror del canal
+
+Consulta las reglas narrativas y visuales del perfil vigente. Trazo Maldito narra
+la vida del personaje desde dentro del relato, sin «en la película», reseña ni
+resumen de entregas. La continuidad se fija en notas. Las figuras necesitan cabeza
+simple/circular, torso y extremidades de trazo fino visibles, postura/expresión
+legibles y máscara/vestuario constantes; no basta pedir simple cartoon o dibujo.
+Define acción, amenaza, sombra y consecuencias. La sangre estilizada, armas y
+escenas más duras se permiten cuando el relato las justifique; no inventes violencia
+ni reduzcas todos los momentos a gore. Antes de ampliar un enfoque nuevo prepara
+las variantes y decisión descritas en kitok-youtube; la delegación expresa permite
+que el agente elija y continúe. Referencias aceptadas prevalecen hasta nueva revisión.
+
 ## Decidir primero, compilar después
 
-Identifica promesa, pregunta inicial, acciones, objetos, lugares, fechas/cifras, giros y resolución. Conserva TODOS los hechos, calificadores y palabras. La meta editorial es comprensión, satisfacción y retención para YouTube; no hay promesa de ingresos ni retención medida. Mantén el guion definitivo: no alargues artificialmente para anuncios, no inventes sensacionalismo ni gore. Perfil/brief decide el tono.
+Identifica promesa, pregunta inicial, acciones, objetos, lugares, fechas/cifras, giros y resolución. Conserva TODOS los hechos, calificadores y palabras. La meta editorial es comprensión, satisfacción y retención para YouTube; no hay promesa de ingresos ni retención medida. Mantén el guion definitivo: no alargues artificialmente para anuncios, no inventes sensacionalismo ni violencia ajena al relato. Sangre estilizada y terror contextual se rigen por el perfil/brief.
 
 Escribe una lista JSON compacta de decisiones en `planificacion_visual/decisiones_storyboard.json`. Cada elemento aporta sólo el final literal del fragmento (`through`: una cita suficientemente larga y única en lo que queda del guion), descripción visual, prompt específico EN INGLÉS, personajes y tipo visual. También admite `narration` exacta en lugar de `through`. El auxiliar calcula narración completa, posiciones, IDs, rutas y prompts finales con estilo/identidades; no calcules estos campos ni repitas el estilo manualmente. Consulta [el contrato y un ejemplo](references/contract.md) al escribir el JSON.
 

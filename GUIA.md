@@ -581,15 +581,24 @@ El mínimo 1280×720 sigue aplicándose a nuevas entregas individuales y miniatu
 El escalado no recupera detalle; la revisión visual del montaje sigue siendo necesaria.
 
 
-## Retomar subtítulos tras una interrupción
+## Estilo y entrega de Trazo Maldito
 
-Para trabajos nuevos, repetir `subtitles` recupera una codificación terminada
-con identidad/hash válidos y retoma QA sin recodificar. Se conservan archivos
-antiguos sin recibos o entregas parciales para revisión; no se adivina su validez.
-Consulta [subtítulos y recuperación](docs/captions.md#reanudar-tras-una-interrupcion-de-qa).
+El canal cuenta la historia del personaje desde dentro del relato: acciones,
+peligros y consecuencias, con las fuentes y continuidad en notas. Evita «en la
+película», reseña de entregas y anécdotas de rodaje en la narración principal.
+El estilo requiere stickman de cabeza simple y extremidades de trazo fino,
+reconocibles incluso con máscara/vestuario. Admite sangre estilizada y escenas
+más duras cuando correspondan a la historia.
 
+Antes de ampliar un estilo nuevo, el agente presenta tres enfoques del mismo
+momento y conserva el elegido como ancla. Con «siguiente automático» o «no
+preguntes», elige/revisa el agente y continúa sin otra confirmación visual; su
+decisión queda identificada. No se rediseñan imágenes ya aceptadas por defecto.
 
-## Entrega compacta de un episodio stickman
+Las instrucciones de Fish y el control local de voz están en
+[voz y fidelidad](docs/fish-voice.md). La música nueva se selecciona con perfil
+`horror`: hay ocho candidatas de terror bajo CC BY4.0, con créditos obligatorios;
+consulta [audio](docs/audio.md). No se descargan pistas mientras se monta.
 
 La entrega compacta conserva sólo seis archivos en `entrega/`: vídeo subtitulado,
 miniatura, descripción, créditos, informe y un texto de lectura. Se crea sin
@@ -609,6 +618,15 @@ el máster compartido.
 entregas distintas. `clean-cache` conserva voz, imágenes fuente, láminas, planes,
 recibos y vídeos finales; bloquea trabajos activos y rutas enlazadas simbólicamente.
 Borrar clips elimina su reutilización rápida: no hacerlo antes de decidir reparaciones.
+La auditoría explica [etapas, costes e intervención manual](docs/youtube-production-audit.md).
+
+
+## Retomar subtítulos tras una interrupción
+
+Para trabajos nuevos, repetir `subtitles` recupera una codificación terminada
+con identidad/hash válidos y retoma QA sin recodificar. Se conservan archivos
+antiguos sin recibos o entregas parciales para revisión; no se adivina su validez.
+Consulta [subtítulos y recuperación](docs/captions.md#reanudar-tras-una-interrupcion-de-qa).
 
 
 ## Comprobar la voz localmente antes de montar

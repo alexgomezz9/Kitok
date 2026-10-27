@@ -29,10 +29,10 @@ con las tareas editoriales; el operador también puede hacerlas sin agente.
 | Recuperación de largo | Auditoría de trabajos Native fallidos/interrumpidos del estudio y recuperación explícita del mismo ID usando narración confirmada, sólo caché local. | Revisar identidad, hashes y recursos antes de retomar. | No llama a Fish ni descarga; valida las consultas usadas en el timeline y detiene faltantes necesarios. Requiere recibo Fish v2 y alineación completos; no cubre trabajos CLI antiguos ni MPT. [Procedimiento](../GUIA.md#recuperar-un-largo-fallido-conservando-la-voz-pagada). |
 | Recursos específicos | Fotos JPG/PNG/WebP por archivo y frase en images/ o real_images/, upload del estudio y JSON opcional; catálogo Commons y Pexels anotado siguen disponibles. | Comprobar identidad, contexto, derechos y utilidad; anotar entidad y función exactas. | Descargar/revisar los recursos faltantes. Buscar candidatos no verifica quién aparece en la imagen. |
 | Nuevo montaje con voz confirmada | Audita una narración Native previa y genera otro ID sin Fish ni red, con la misma voz y guion. | Cambiar fotos/JSON y revisar el resultado. | Requiere recibo Fish, alineación y cachés completos; preserva el trabajo original. |
-| YouTube stickman ES | CLI de preparación/producción/reanudación, cortes por palabras Fish reales ~5 s (SRT como alternativa), reutilización por fragmentos, muestra y lotes, Native, música/SFX, miniaturas y metadatos. | Para Trazo Maldito, «siguiente» delega coordinación editorial por skills y entrega local; el agente investiga, decide y revisa, Kitok ejecuta operaciones deterministas. Revisión del agente y aprobación humana se distinguen. | No es un servicio autónomo ni publica. No ASR local: audio externo necesita SRT/alineación real. Un lote 3×3 no acredita detalle 1080p nativo por panel ni calidad audiovisual. [Contrato](youtube-stickman-es.md), [flujo editorial](youtube-editorial.md). |
+| YouTube stickman ES | CLI de preparación/producción/reanudación, cortes por palabras Fish reales ~5 s (SRT como alternativa), reutilización por fragmentos, muestra y lotes, Native, música/SFX, miniaturas y metadatos. | Para Trazo Maldito, «siguiente» delega coordinación editorial por skills y entrega local; el agente investiga, decide y revisa, Kitok ejecuta operaciones deterministas. Revisión del agente y aprobación humana se distinguen. | No es un servicio autónomo ni publica. Control ASR local opcional previo al montaje; no sustituye SRT/alineación real ni garantiza detectar todas las anomalías. Un lote 3×3 no acredita detalle 1080p nativo por panel ni calidad audiovisual. [Contrato](youtube-stickman-es.md), [flujo editorial](youtube-editorial.md). |
 | Dirección por escenas | Compila un brief explícito, comprueba cobertura y recursos y produce un plan determinista. | Escribir beats con tiempos, afirmación, fuente, intención y recurso/composición. | Sin editor de timeline ni interpretación de un guion arbitrario. Un faltante bloquea la preparación. |
 | Montaje avanzado | Gráficos de identidad/cifra/información oculta, fotografía animada, rótulos, movimiento, render incremental y comparación A/B. | Elegir qué explica cada plano, legibilidad, ritmo y sincronía; reparar escenas concretas. | Los gráficos usan datos aportados. Los planos de mesa/informes tienen reparto UltimateBet fijo. |
-| Música y SFX | CLI con 20 pistas auditadas, elección reproducible por trabajo/canal/ambiente, rotación, crossfade, ducking, medidas y seis SFX sintéticos. | Elegir intención musical y escuchar la mezcla; conservar créditos. | Formulario largo con Automática/Desactivada/Manual; pistas cacheadas y créditos descargables. Cambia dos ambientes, no compone música nueva ni entiende el tono de cada frase. |
+| Música y SFX | CLI con 24 pistas auditadas, elección reproducible por trabajo/canal/ambiente, rotación, crossfade, ducking, medidas y seis SFX sintéticos. | Elegir intención musical y escuchar la mezcla; conservar créditos. | Formulario largo con Automática/Desactivada/Manual; pistas cacheadas y créditos descargables. Cambia dos ambientes, no compone música nueva ni entiende el tono de cada frase. |
 | QA | Decodificación, geometría, duración, negros, sonoridad/pico, hashes, contacto visual y comparación del audio. | Ver el montaje y escuchar: semántica, continuidad, encuadre, contraste, pronunciación y ritmo. | Informe verde no acredita calidad narrativa ni ausencia de reclamaciones. |
 | Entrega | Descarga local; shorts con fecha local, preview, confirmación Buffer y reconciliación de IDs guardados. | Preparar metadatos y revisar destino. | Confirmar publicación. Largos fuera de Buffer; subida manual a YouTube Studio. |
 | Métricas | CLI YouTube oficial de lectura: OAuth, identidad/catálogo, consultas Analytics y enumeración Reporting. | Interpretar resultados cuando exista conexión real. | Consentimiento Google pendiente de comprobación real; CTR/CSV y dashboard no implementados. No hay optimización autónoma de retención. |
@@ -188,7 +188,7 @@ aprobada. Si eliges esa mezcla para el vídeo, apruébala y úsala también en u
 nueva referencia A para exigir igualdad de audio. El formulario largo tiene
 su opción histórica de archivo de música local; no activa este selector.
 
-El catálogo musical conserva 20 pistas de Kevin MacLeod bajo CC BY 4.0,
+El catálogo musical conserva 24 pistas de Kevin MacLeod bajo CC BY 4.0,
 con procedencia y créditos. Incluye las atribuciones y avisos de cambios de los
 recibos al distribuir el resultado. Content ID permanece `unknown`: licencia,
 hash y QA no garantizan ausencia de reclamaciones o monetización.
@@ -284,7 +284,9 @@ se declaran desconocidos. Las APIs independientes de pago requieren autorizació
 
 Los ruidos de voz confirmados por el operador pueden retirarse en una copia
 con cortes entre palabras y tiempos derivados verificables, sin nueva síntesis.
-No hay detección ni realineación acústica automática; ver [audio](audio.md#quitar-ruidos-de-sintesis-confirmados).
+Hay control independiente local opcional que compara voz/guion y bloquea discrepancias;
+no realinea el montaje ni corta automáticamente diferencias ASR. Ver
+[voz](fish-voice.md) y [reparación](audio.md#quitar-ruidos-de-sintesis-confirmados).
 
 Los recursos existentes pequeños se admiten sin ampliación previa mediante
 `--reuse-images`, con avisos de resolución. La exportación de subtítulos es
@@ -301,3 +303,9 @@ segundos para episodios antiguos. La skill de imágenes consume el mismo JSON;
 los prefijos compartidos verificables se envían una vez por lote, conservando
 prompts completos en el manifiesto. No hay métrica de ahorro exacto de tokens
 ni prueba de mejora real de retención/ingresos. [Uso](../GUIA.md#preparar-escenas-desde-un-guion).
+
+
+La [auditoría de producción](youtube-production-audit.md) distingue decisiones del
+agente, pasos de Kitok y reparaciones de ingeniería. Entrega compacta local y
+limpieza explícita de caché visual están disponibles en `scripts/stickman_delivery.py`;
+no equivalen a una política automática de borrado ni a un frontend stickman completo.

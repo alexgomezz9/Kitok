@@ -57,7 +57,8 @@ Una voz ya generada se conserva aunque falle la preparación posterior.
 No se fabrican tiempos por velocidad de lectura. Si falta SRT, sólo se deriva de
 timestamps Fish reales cuyo transcript completo coincide. **Audio importado sin
 SRT ni alineación compatible necesita un SRT alineado antes de continuar**; este
-adaptador no incluye transcripción ASR/forced alignment local. Un SRT importado se
+adaptador permite control ASR local opcional de fidelidad; no forced alignment
+local que sustituya el reloj Fish. Véase [voz y fidelidad](fish-voice.md). Un SRT importado se
 comprueba contra guion/duración y se fija por hashes, pero su sincronía acústica
 sigue necesitando revisión. No se presenta esa comparación textual como ASR.
 

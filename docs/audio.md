@@ -10,10 +10,10 @@ una acción distinta y puede consumir Fish.
 El catálogo `presets/music_sources.json` contiene **24 pistas de Kevin MacLeod**.
 Las 16 incorporadas el 20 de octubre de 2026 se descargaron desde Incompetech y
 se comprobaron contra su catálogo oficial y su página individual de licencia.
-El27/10 se añadieron This House, Unnatural Situation, The Dread y Dark Fog,
-con catálogo oficial, licencia individual, MP3 y SHA256 verificados. Las ocho
-candidatas de horror están en caché local en esa fecha; una instalación nueva
-debe ejecutar `fetch` para las pistas que necesite.
+El 27/10 se añadieron This House, Unnatural Situation, The Dread y Dark Fog
+tras descargar y validar catálogo oficial, licencia individual, MP3 y SHA256.
+Las ocho candidatas de horror están disponibles en caché local en esa fecha;
+una instalación nueva debe ejecutar `fetch` para las que necesite.
 Todas están bajo CC BY 4.0: permiten uso comercial con atribución, enlace a licencia
 e indicación de los cambios. No se suben los MP3 a Git.
 
@@ -55,6 +55,27 @@ Fuentes evaluadas para esta fase:
 | [Licencia Pixabay](https://pixabay.com/service/license-summary/) | Permite adaptación y uso bajo sus condiciones; no se incorporaron pistas sin evidencia individual. No redistribuir el recurso aislado como producto propio. |
 | [Licencias Mixkit](https://mixkit.co/license/) | Tiene licencias diferentes por recurso. No se auditó ningún MP3 individual ni se añadió un descargador; no se presume una licencia común para todo el sitio. |
 | [Free Music Archive](https://freemusicarchive.org/Help) | Consulta oficial devolvió HTTP 403 en esta sesión. Sin evidencia actual suficiente para incorporar pistas de esa fuente. |
+
+## Terror de Trazo Maldito
+
+El perfil del canal prescribe `music.mode=auto`, `channel=horror`, `mood=horror`
+y dos pistas; se trasladan a `configuracion.json` de episodios nuevos, sin cambiar
+música de episodios ya producidos. No heredar el perfil documental de Loose Thread.
+El selector usa sólo la caché verificada y no descarga durante render.
+
+Usar un fondo instrumental discreto con ducking, tensión que cambie con el relato
+y descansos breves donde el silencio ayude. The Dread y Unnatural Situation son
+candidatas de ambiente; This House añade texturas más inquietantes y Dark Fog un
+pulso más marcado, según los descriptores del autor. Hay que escuchar la muestra:
+no se ha acreditado audición del agente ni una mejora medida de retención. Evitar
+coros/vocalizaciones que puedan confundirse con habla del narrador; la música no
+sirve para tapar anomalías. El mezclador normaliza las ramas a −19 LUFS para voz
+y −29 LUFS para música antes de ducking y normalización final; no configura
+todavía una curva musical editorial distinta por cada giro.
+
+Voz: [instrucciones Fish y fidelidad acústica local](fish-voice.md). Las etiquetas
+de interpretación no son palabras de subtítulos. El ASR de control no sustituye
+la alineación de palabras del montaje ni autoriza cortes semánticos por sí solo.
 
 ## Comandos locales
 

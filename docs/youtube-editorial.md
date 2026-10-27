@@ -28,8 +28,9 @@ en `local/youtube-trazo-maldito`, comprobando el ID remoto. No uses la conexión
 de Loose Thread. El 26/10 se verificó acceso real y cero vídeos; esa fecha no prueba
 acceso futuro y no hay todavía métricas propias con las que ordenar personajes.
 
-La secuencia de trabajo es investigación/paquete → guion fijado → voz y auditoría
-del reloj → storyboard → muestra de imágenes → lotes 3×3 revisados → muestra de
+La secuencia de trabajo es investigación/paquete → guion fijado → voz y control
+independiente local → storyboard → comparación inicial de enfoques si el estilo
+es nuevo → lotes 3×3 revisados → muestra de
 montaje → render completo/QA → miniatura/metadatos y entrega. El storyboard puede
 esbozarse antes de la voz; sus tiempos se revisan con palabras reales. Evita
 producir todo el lote antes de detectar un fallo de voz o alineación. Mantén las
@@ -83,6 +84,27 @@ origen, infancia cuando exista, crecimiento y transformaciones. No rellenar año
 sin relato en las obras ni reemplazar esta historia por anécdotas de rodaje.
 No elegir un tema sólo por ser el mayor número de una tabla.
 
+## Relato inmersivo y estilo del canal
+
+La voz narra la historia del personaje desde dentro, sin «en las películas»,
+«en esta entrega», comentarios al espectador ni resumen de saga. Registrar canon,
+títulos y fuentes en notas; resolver contradicciones sin inventar puentes. Las
+instrucciones Fish van separadas del texto hablado y de los subtítulos según
+el contrato soportado; ver [voz](fish-voice.md).
+
+Stickman significa cabeza simple y cuerpo/extremidades de trazo fino visibles,
+con máscara/vestuario como identidad. Una ilustración cartoon genérica no basta.
+Terror contextual permite sombras, amenazas, armas y sangre estilizada; no borrar
+las consecuencias de una escena violenta ni inventarlas sólo para impresionar.
+Antes de un estilo nuevo se comparan tres enfoques del mismo momento: línea limpia,
+tinta/sombras y viñeta con rojo selectivo. Después se verifica acción/reacción/objeto
+con el elegido y se fijan referencias. Con estilo aceptado se reutiliza.
+
+Sin delegación se espera la elección inicial; con «siguiente automático» o «no
+preguntes», el agente elige, registra su revisión y sigue. No atribuir al operador
+una aprobación que no dio. La música se prepara con perfil horror antes del montaje,
+con baja presencia bajo la voz y escucha de muestra; ver [audio](audio.md).
+
 ## Guiones con historia y hooks
 
 Empezar donde existe una decisión, un riesgo o una contradicción comprensible sin conocer al personaje. Dar pronto el objetivo y qué se puede perder. Retrasar antecedentes hasta que aclaren lo que está ocurriendo. Cada bloque debe cambiar la situación, añadir una dificultad o resolver una pregunta; evitar una lista de fechas disfrazada de narración.
@@ -104,5 +126,9 @@ La herramienta integrada aquí no expone `n` ni lista de prompts independientes.
 ## Entrega y aprendizaje
 
 Conservar una imagen distinta por escena editorial y separar IDs de los tiempos. Reutilizar voz/alineación y mantener límites de duración, integridad y hashes. Utilizar el motor actual y los procedimientos vigentes para importar, aprobar estilo, renderizar y revisar. No editar recibos para forzar que el sistema continúe.
+
+La carpeta `entrega/` separa los seis archivos de uso del trabajo interno mediante
+`scripts/stickman_delivery.py`; consultar [guía](../GUIA.md#estilo-y-entrega-de-trazo-maldito).
+No borrar cachés mientras queden reparaciones que puedan necesitarlas.
 
 Una muestra de 45–60 segundos valida aspectos concretos, después hay que comprobar el MP4 completo: sincronización, pronunciación, legibilidad, continuidad, mezcla y ausencia de errores semánticos. Tras publicar manualmente, si el usuario aporta métricas autorizadas, contrastar promesa, clics y retención sin atribuir causalidad a una miniatura por un solo resultado. Este flujo no publica ni cambia el canal por su cuenta.

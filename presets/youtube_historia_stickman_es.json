@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-10-26",
+  "updated": "2026-10-27",
   "profile_id": "historia_stickman_es",
   "language": "es",
   "channel_handle": "@trazomalditoes",
@@ -9,7 +9,7 @@
     9,
     12
   ],
-  "editorial_direction": "Contar con ilustraciones stickman la historia de los personajes famosos de terror: origen, infancia cuando esté narrada, crecimiento y transformaciones hasta convertirse en iconos. Se acabarán cubriendo todos; priorizar claridad narrativa y evolución visual sobre perseguir tendencias. Fijar película/continuidad y no inventar etapas que las obras no cuentan. La creación detrás de cámaras es contexto opcional, no sustituye la historia del personaje.",
+  "editorial_direction": "Contar desde dentro del relato la historia de los personajes de terror con stickman reconocibles: origen, infancia sólo cuando exista en el canon, evolución y consecuencias. Fijar continuidad en la investigación, sin convertir la voz en un resumen de películas ni interrumpirla con en la película, en la saga, el director o el espectador. Resolver cambios de continuidad antes de escribir; no inventar hechos para unir versiones.",
   "preferences": {
     "preserve_native_kitok_renderer": true,
     "one_distinct_final_image_per_editorial_scene": true,
@@ -37,7 +37,10 @@
     "existing_provider": "fish",
     "operator_report": "No inferir precio ni saldo de Fish a partir del nombre del modelo; reutilizar configuración vigente y consultar antes de gasto significativo.",
     "prefer_existing_audio_and_alignment": true,
-    "existing_episode_config": "content/longform/stickman_2_michael_myers/configuracion.json"
+    "existing_episode_config": "content/longform/stickman_2_michael_myers/configuracion.json",
+    "transcript_verification": "local_asr",
+    "performance_instructions": "Consultar docs/fish-voice.md. S2 usa [break], [long-break], [whispering], [emphasis], emociones; no asumir tiempos exactos ni [pausa] documentado. Guion limpio separado de dirección TTS; no añadir etiquetas a episodios ya sintetizados.",
+    "fidelity_policy": "Reconocer audio sin proporcionar guion, comparar después y bloquear discrepancias para revisión antes del montaje. No cortar por cada diferencia ASR ni confiar en subtítulos/alineación como prueba acústica."
   },
   "images": {
     "delivery": "PNG independientes, composición horizontal 16:9, destino de vídeo 1920x1080/30 fps",
@@ -53,11 +56,20 @@
     "semantic_review_required": true,
     "provided_sources": "Native resolution preserved; safety/hash checks; renderer scales and frames at export.",
     "selected_columns": 3,
-    "repair": "2x2 o individual sólo para escenas fallidas; conservar manifiestos y originales."
+    "repair": "2x2 o individual sólo para escenas fallidas; conservar manifiestos y originales.",
+    "style": "Stickman de terror: cabeza circular/simple, torso y extremidades de trazo fino visibles, expresiones y postura legibles, máscara/vestuario como anclas. No reemplazar por personajes de cuerpo ancho cartoon, ilustración genérica ni realismo. Entornos con detalle subordinado a la silueta.",
+    "violence": "Sangre gráfica estilizada, salpicaduras, armas, sombras y secuelas cuando el guion lo justifique; miedo mediante amenaza y composición. No suavizar todo a dibujos infantiles ni pedir gore gratuito.",
+    "style_exploration": {
+      "before_full_batch": true,
+      "variants": 3,
+      "comparison": "Mismo momento del relato en tres enfoques stickman: limpio contrastado, tinta/sombras, horror de viñeta con rojo selectivo. Mostrar también acción, reacción y plano de objeto antes de fijar enfoque.",
+      "approval": "Pedir elección visual inicial si no hay estilo aceptado ni delegación; fijar ancla/referencias al elegir. Si dice siguiente automático o no preguntes, elegir y revisar el agente, registrar decisión sin atribuir aprobación humana.",
+      "existing_episode": "No rediseñar Jason ni reemplazar imágenes aprobadas por una regla futura."
+    }
   },
   "known_episode": "content/longform/stickman_2_michael_myers",
   "known_episode_caveat": "Recuperar decisiones y recursos del episodio real; presencia de archivos o QA técnico no acredita aprobación audiovisual humana.",
-  "source": "Canal confirmado por el operador y por OAuth oficial el 26/10/2026. Encargo completo y decisiones delegadas en esa fecha. No contiene credenciales. Aclaración del operador 26/10: cubrir todos los personajes y mostrar su evolución, desde pequeños cuando corresponda.",
+  "source": "Canal confirmado por el operador y por OAuth oficial el 26/10/2026. Encargo completo y decisiones delegadas en esa fecha. No contiene credenciales. Aclaración del operador 26/10: cubrir todos los personajes y mostrar su evolución, desde pequeños cuando corresponda. Preferencias27/10: relato inmersivo, stickman más marcado, terror/sangre contextual, música baja, exploración visual y verificación independiente de voz.",
   "channel_id": "UC9h_aIbnfQUo0ylPsPNnbrg",
   "youtube_connection": {
     "directory": "local/youtube-trazo-maldito",
@@ -87,8 +99,8 @@
       "fallo o resultado ambiguo que no pueda reconciliarse"
     ],
     "publication_authorized": false,
-    "quality": "Muestra antes de ampliar un estilo nuevo; todos los recortes inspeccionados y QA técnico final. Revisión del agente y aprobación humana registradas por separado.",
-    "final_delivery": "Una única entrega final subtitulada; base limpia sólo intermedio técnico de Kitok.",
+    "quality": "Comparar tres enfoques antes de ampliar estilo nuevo, salvo elección delegada. Verificar audio independientemente ANTES del montaje; todos los recortes revisados y QA técnico final. Separar revisión del agente de aprobación humana.",
+    "final_delivery": "Carpeta entrega con un único MP4 subtitulado, miniatura, descripción con créditos e informe breve. Fuentes y trabajo interno fuera de la entrega; limpieza sólo de intermedios verificados regenerables tras terminar.",
     "subtitles": {
       "enabled": true,
       "style": "MAYÚSCULAS, grupos cortos, palabra activa amarilla y 110%, reloj real",
@@ -104,5 +116,26 @@
     "current_episode": "Se permite aprovechar la voz existente con tempo0.94 conservando tono, guion e imágenes, tras retirar añadido de síntesis confirmado.",
     "monetization": "YouTube permite anuncios intermedios en vídeos monetizados de8min o más; no garantiza monetización ni inserciones.",
     "source": "https://support.google.com/youtube/answer/6175006?hl=es"
+  },
+  "narrative_rules": {
+    "voice": "Narrador inmersivo de la historia del personaje; acciones, peligros y consecuencias concretas.",
+    "avoid_spoken": [
+      "en las películas",
+      "en la película",
+      "en esta entrega",
+      "la saga nos muestra",
+      "el director decidió",
+      "el espectador ve"
+    ],
+    "source_notes": "Títulos, canon, versiones y fuentes en notas editoriales/descripción cuando hagan falta; precisión por encima de ocultar una contradicción.",
+    "horror": "Tensión, persecución, amenaza y violencia ficticia cuando corresponda al relato; sangre estilizada y consecuencias claras, sin convertir todas las viñetas en violencia ni inventarla para retención."
+  },
+  "music": {
+    "mode": "auto",
+    "channel": "horror",
+    "mood": "horror",
+    "count": 2,
+    "policy": "Ambiente instrumental de terror bajo, sin voz/coros reconocibles que puedan confundirse con narración; ducking, variación por tensión y silencios con intención. Usar biblioteca local verificada, créditos y escucha de muestra; no prometer retención medida.",
+    "selection_timing": "Elegir antes del montaje, no descargar ni cambiar de música durante render."
   }
 }
