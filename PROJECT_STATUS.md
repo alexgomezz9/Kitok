@@ -23,6 +23,10 @@ Manual: [GUIA](GUIA.md), [flujo editorial](docs/youtube-editorial.md),
   codificación/GPU. 24tests focales de recuperación/entrega pasados y revisión
   independiente cerrada.
 
+- Entrega compacta de seis archivos y limpieza visual explícita con simulación,
+  locks y protección de fuentes/revisiones. 24tests de entrega/subtítulos pasados;
+  revisión independiente cerrada. Cachés Jason conservadas por reparación pendiente.
+
 ## Jason: QA técnico pasado, voz pendiente
 
 `content/longform/trazo_003_jason_voorhees/revisiones/voz_limpia_8min` conserva

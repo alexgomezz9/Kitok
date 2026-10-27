@@ -587,3 +587,25 @@ Para trabajos nuevos, repetir `subtitles` recupera una codificación terminada
 con identidad/hash válidos y retoma QA sin recodificar. Se conservan archivos
 antiguos sin recibos o entregas parciales para revisión; no se adivina su validez.
 Consulta [subtítulos y recuperación](docs/captions.md#reanudar-tras-una-interrupcion-de-qa).
+
+
+## Entrega compacta de un episodio stickman
+
+La entrega compacta conserva sólo seis archivos en `entrega/`: vídeo subtitulado,
+miniatura, descripción, créditos, informe y un texto de lectura. Se crea sin
+volver a codificar ni copiar los bytes del vídeo; el resto del trabajo permanece
+fuera de esa carpeta. Para editar el vídeo, exporta otra versión sin modificar
+el máster compartido.
+
+```bash
+.venv/bin/python scripts/stickman_delivery.py bundle content/longform/MI_EPISODIO
+.venv/bin/python scripts/stickman_delivery.py inventory content/longform/MI_EPISODIO
+.venv/bin/python scripts/stickman_delivery.py clean-cache content/longform/MI_EPISODIO
+# Sólo tras revisar la lista anterior: elimina cachés visuales regenerables.
+.venv/bin/python scripts/stickman_delivery.py clean-cache content/longform/MI_EPISODIO --apply
+```
+
+`bundle` requiere QA subtitulado pasado y recibos/hashes coincidentes. No sustituye
+entregas distintas. `clean-cache` conserva voz, imágenes fuente, láminas, planes,
+recibos y vídeos finales; bloquea trabajos activos y rutas enlazadas simbólicamente.
+Borrar clips elimina su reutilización rápida: no hacerlo antes de decidir reparaciones.
