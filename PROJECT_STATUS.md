@@ -60,10 +60,13 @@ de voz/imágenes. Automático sólo por petición expresa del operador.
 
 ## Verificación y límites
 
-Unidad organización:20tests workspace/delivery y14pipeline/word_pipeline pasados;
+Unidad organización:21tests workspace/delivery y14pipeline/word_pipeline pasados;
 revisión independiente cerró tres riesgos de limpieza tras corrección/regresiones.
 docs-check, higiene y validación de2skills pasados;7dry-runs posteriores vacíos,
 5archivos ZIP verificados por CRC/SHA y rutas actuales.419fuentes conservadas.
+Se añadió además exclusión con el lease global Native para el mantenimiento de
+los proyectos históricos normalizados: regresión y revisión independiente pasadas;
+3dry-runs actuales con ese bloqueo, sin candidatos.
 Voz anterior:42tests empalmes/integración,40motor y43Native/MPT pasados durante el
 encargo anterior. Baseline histórico make verify1194Python/25React no es un gate
 completo del código nuevo. No repetir suite global sin motivo. No se ha validado

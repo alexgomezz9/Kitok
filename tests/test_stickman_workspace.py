@@ -132,3 +132,15 @@ def test_active_atlas_and_referenced_revision_paths_survive(tmp_path):
     with pytest.raises(ValueError, match='current input references'):
         organize(tmp_path, ep, apply=True, archive_revisions=True)
     assert source.exists() and atlas.exists()
+
+
+def test_native_generation_lease_blocks_housekeeping(tmp_path):
+    from kitok.config import Settings
+    from kitok.locks import generation_lock
+    ep = tmp_path / 'native'
+    ep.mkdir()
+    (ep / 'configuracion.json').write_text(json.dumps({'id': 'native_001', 'script_file': 'guion_final.txt'}))
+    with generation_lock(Settings(data_root=tmp_path), 'longform-native_001'):
+        with pytest.raises(ValueError, match='Native video is running'):
+            organize(tmp_path, ep, apply=True)
+    assert not (ep / 'LEEME.md').exists()

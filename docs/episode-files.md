@@ -54,6 +54,8 @@ una sustitución aceptada y declarada mediante `cleanup_superseded_by` con el ID
 del lote que lo reemplazó. Se conservan prompts, cajas, revisiones y hashes de las
 láminas retiradas en los manifiestos y `.stickman/workspace-history.json`.
 Los recursos referenciados por planes/configuración se conservan.
+En proyectos Native también se toma el bloqueo global `longform-ID`; no basta
+con comprobar el bloqueo de episodio usado por stickman.
 
 `--archive-revisions` saca las revisiones cerradas del árbol diario: conserva los
 vídeos únicos en `entrega/`, fuentes únicas en ZIP verificado y duplicados como

@@ -134,6 +134,19 @@ def organize(root: Path, episode: Path, *, apply=False, archive_revisions=False)
     episode = episode_path(root, episode)
     with ExitStack() as locks:
         locks.enter_context(episode_lock(episode))
+        config_path = local_file(episode, 'configuracion.json', exists=False)
+        config = json.loads(config_path.read_text()) if config_path.is_file() else {}
+        if config.get('script_file') and config.get('id'):
+            # Native projects use a global job lease rather than .stickman's
+            # episode lease. Housekeeping must respect both production paths.
+            if not isinstance(config['id'], str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,100}', config['id']):
+                raise ValueError('Invalid Native episode ID')
+            from ..config import Settings
+            from ..locks import generation_lock, GenerationBusy
+            try:
+                locks.enter_context(generation_lock(Settings(data_root=root), 'longform-' + config['id']))
+            except GenerationBusy as error:
+                raise ValueError('A Native video is running; housekeeping blocked') from error
         revisions = local_file(episode, 'revisiones', exists=False)
         children = sorted(p for p in revisions.iterdir()) if revisions.is_dir() and archive_revisions else []
         if any(not p.is_dir() or p.is_symlink() for p in children):
