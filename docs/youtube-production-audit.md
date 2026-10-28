@@ -232,5 +232,19 @@ Entrega: `content/longform/trazo_004_freddy_krueger/entrega/`, seis archivos.
 Vídeo de 599.627.106 bytes. Limpieza: 869 auxiliares retirados (1457,8 MiB lógicos)
 y 266 rutas fuente con SHA intacto. No se midió liberación física con otros
 hardlinks. Se conservan la revisión activa, originales, másteres, PNG, prompts,
-recibos y licencias. La escucha y el criterio editorial del operador siguen
-pendientes. No se ha publicado nada.
+recibos y licencias. El operador comunicó después feedback muy positivo del vídeo y audio, y pidió
+reforzar aún más las figuras stickman y su crecimiento en próximos episodios.
+No se ha publicado nada.
+
+### Coste del cierre del agente
+
+El QA del subtitulado consumió 4:44 después de codificarlo. Además transcurrieron
+20:56 entre terminar el comando y el último commit documental de la entrega
+(comparación del mtime de montage_exitcode y la fecha del commit 43e55c3).
+Ese intervalo incluyó comprobaciones de navegador, empaquetado, limpieza,
+revisión independiente y documentación; no fue sólo espera del QA.
+Las intervenciones del agente consumen tokens aunque los procesos locales
+no necesiten llamadas a un modelo de lenguaje. No hay una medición de tokens
+de ese cierre. Para producción repetida, preparar el registro durante las fases,
+reducir consultas a progreso compacto y reservar auditorías adicionales para
+cambios/fallos. El cierre automático es la primera prioridad de la [hoja de ruta](roadmap.md).

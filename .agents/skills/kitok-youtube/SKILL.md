@@ -99,6 +99,8 @@ actuales del perfil antes de escribir. Terror admite amenaza, persecución, sang
 estilizada y consecuencias cuando lo exige la historia; no infantilices el relato
 ni añadas atrocidades que el canon no cuenta.
 
+Aplica `narrative_rules.natural_prose` del perfil: acciones y causas concretas, sintaxis variada; evita encadenar «No era X. No era Y. Era Z». No suprimas negaciones necesarias con regex. Para figuras y crecimiento sigue `images.character_continuity` en protagonistas y secundarios.
+
 Para interpretación Fish consulta [voz y fidelidad](../../../docs/fish-voice.md).
 Comprueba el modelo efectivo: S2 usa corchetes como `[break]`,
 `[long-break]`, `[whispering]`, `[emphasis]`, `[scared]` o `[sad]`; no asumir `[pausa]`
@@ -144,6 +146,8 @@ mezcla, cámara, timestamps, concatenación, ASS o QA con scripts ad hoc. Un def
 reproducible se corrige en Kitok y se reanuda con recibos; no repetir proveedores
 para resolver un fallo local. Consulta progreso por etapas y recibo final sin
 volcar planes/logs enteros ni hacer llamadas de modelo por plano.
+
+Sigue `workflow.efficient_close`: espera procesos locales con consultas compactas; prepara notas durante las fases y cierra una vez QA y bundle estén listos. Reserva auditorías adicionales, reproducción completa en navegador y revisiones independientes para cambios/fallos o encargos que lo justifiquen; conserva los controles automáticos de cada entrega.
 
 Fija música `horror` para episodios nuevos según el perfil antes de mezclar. Al
 terminar, prepara metadatos finales y usa `scripts/stickman_delivery.py bundle`:

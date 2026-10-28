@@ -51,3 +51,23 @@ No habilitar paralelismo multicanal sin probar límites de memoria, locks y cach
 La recuperación MPT se conserva para datos históricos; nuevos vídeos son nativos.
 Los diseños anteriores están aislados en el [archivo](archive/README.md), sin
 instrucciones de operación vigentes duplicadas.
+
+## 6. Escalar la producción tras Freddy (28/10)
+
+Prioridades propuestas, todavía sin implementar en el motor:
+
+1. Cierre automático de `produce`: con los inputs editoriales finales presentes,
+   crear el bundle de seis archivos en la carpeta común y ejecutar limpieza
+   segura de derivados tras QA. Conservar hashes, revisión activa y originales;
+   cualquier fallo se reanuda sin otra voz ni recodificación.
+2. Consolidar recorridos del QA final para reducir lecturas/decodificaciones
+   repetidas, preservando controles de fotogramas, audio, negros y reloj.
+3. Comparar una muestra de cámara a resolución de entrega frente al escalado
+   interno 2× y estudiar subtítulos en una sola pasada. Adoptar sólo si conserva
+   movimiento, legibilidad y sincronía; no extrapolar una ganancia sin medir.
+
+Preferencias ya fijadas en perfil/skills: prosa sin antítesis o tríadas mecánicas;
+figuras stickman en todos los personajes, con fichas y etapas reconocibles.
+Las esperas de procesos locales no requieren análisis continuo del agente.
+Auditorías adicionales y revisiones completas de navegador se reservan para
+cambios/fallos o encargos que lo justifiquen; el QA automático sigue por entrega.

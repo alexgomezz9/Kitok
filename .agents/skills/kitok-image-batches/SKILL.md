@@ -30,6 +30,8 @@ no inventes atrocidades ni aumentes violencia ajena al relato. Conserva el detal
 del entorno sin engrosar el cuerpo hasta perder la silueta stickman. La imagen
 ancla debe mostrar ese criterio antes de producir cien viñetas.
 
+Comprueba `images.character_continuity` del perfil al revisar cada lote: todos los personajes mantienen silueta stickman y sus anclas, también al cambiar de edad/etapa. Rechaza una deriva a cuerpo cartoon ancho o rostro realista antes de ampliar; conserva las variantes válidas sin regenerar por rutina.
+
 ## Referencia visual aportada por el operador27/10
 
 Las cuadrículas de miniaturas de Jason/Michael vistas en el chat fijan una

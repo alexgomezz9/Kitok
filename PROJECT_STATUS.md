@@ -23,7 +23,7 @@ Sin push, merge ni publicación en este encargo. Fuentes: [guía](GUIA.md),
   explícita con hashes/locks. No borra automáticamente al guardar. El helper de
   imágenes crea contactos nativos; las claves de miniatura se validan antes de Fish.
 
-## Freddy — entrega local para revisar
+## Freddy — entregado con feedback positivo
 
 Carpeta: `content/longform/trazo_004_freddy_krueger/entrega/`.
 Contiene vídeo subtitulado, miniatura, descripción, créditos, informe y LEEME.
@@ -39,7 +39,8 @@ son de 541–542 × 297–298; Native escala sin crear detalle. Última imagen i
 La nueva voz continua dura 630,517 s y no necesitó cortes. ASR: cinco diferencias
 iniciales y cero huecos; ventanas automáticas resolvieron cuatro. Krueger/Kruger
 se aceptó documentalmente con otra ventana local que recuperaba el nombre.
-No hubo escucha humana ni se garantiza fidelidad acústica perfecta. GTA adjunto
+El agente no escuchó audio; el operador comunicó después que quedó perfecto.
+Esto no convierte al control automático en garantía universal. GTA adjunto
 coincide con el guion guardado y también usa saltos/etiquetas; falta su recibo
 histórico para atribuir modelo o parámetros exactos. No se demostró degradación
 intencional del plan gratis ni que los saltos fueran la única causa.
@@ -74,5 +75,11 @@ revisiones cerradas archivadas con restauración. No repetirla como pendiente.
 64 pruebas focales de audio/refinamiento y revisión independiente sin P0/P1;
 20 de packaging para validación temprana. `make docs-check` vigente. No se repitió
 suite global ni se verificó CI remoto, publicación u OAuth en esta tarea local.
-Siguiente: escucha y criterio editorial del operador sobre Freddy. No publicar,
-regenerar proveedores ni continuar Jason por rutina.
+Operador28/10: feedback muy positivo del vídeo/audio; próximas producciones
+deben reforzar figuras stickman y etapas reconocibles, y evitar prosa formularia.
+Perfil y tres skills actualizados; cierre eficiente registrado en AGENTS.
+Git auditado: un worktree,11ramas locales históricas sin commits fuera de main;
+8ramas históricas remotas consultadas, también contenidas en main43e55c3.
+No se borraron ramas. Nuevas reglas guardadas localmente, sin push.
+Siguiente: siguiente encargo editorial o mejora acotada del cierre automático;
+remakes futuros siguen pendientes de encargo concreto. No publicar ni regenerar.

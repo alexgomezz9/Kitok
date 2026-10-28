@@ -26,6 +26,8 @@ ni reduzcas todos los momentos a gore. Antes de ampliar un enfoque nuevo prepara
 las variantes y decisión descritas en kitok-youtube; la delegación expresa permite
 que el agente elija y continúe. Referencias aceptadas prevalecen hasta nueva revisión.
 
+Aplica `images.character_continuity` del perfil: ficha por personaje y etapa, rasgos persistentes y evolución reconocible sin anticipar máscaras o lesiones. Revisa protagonistas y secundarios con la misma exigencia de silueta stickman; fondos detallados no justifican cuerpos cartoon anchos.
+
 ## Referencia visual aportada por el operador27/10
 
 Las cuadrículas de miniaturas de Jason/Michael vistas en el chat fijan una

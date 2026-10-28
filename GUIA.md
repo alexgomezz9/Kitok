@@ -677,3 +677,14 @@ se detiene. Cada fase explica entradas con rutas, qué hace Kitok o el agente,
 salidas reales y comprobación mínima. [Mapa de archivos por fase](docs/youtube-stickman-es.md#entradas-y-salidas-por-fase).
 Se prioriza una muestra real y checks focales; no se repiten suites completas sin
 cambios/fallos que lo justifiquen. Volver al modo automático requiere petición expresa.
+
+## Producción repetida de Trazo Maldito
+
+El perfil del canal fija la prosa natural y la identidad stickman de todos los
+personajes, incluidas sus etapas de crecimiento. Las skills existentes lo aplican
+sin modificar retroactivamente guiones, imágenes o voces aceptados.
+Durante render/ASR/QA locales, el agente espera y consulta progreso compacto.
+El QA automático mantiene sus controles; las auditorías extra y recorridos
+completos adicionales se reservan para cambios, fallos o encargos específicos.
+El cierre automático del bundle y limpieza está propuesto en la
+[hoja de ruta](docs/roadmap.md#6-escalar-la-produccion-tras-freddy-2810).
