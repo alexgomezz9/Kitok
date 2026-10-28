@@ -142,7 +142,7 @@
     ],
     "source_notes": "Títulos, canon, versiones y fuentes en notas editoriales/descripción cuando hagan falta; precisión por encima de ocultar una contradicción.",
     "horror": "Tensión, persecución, amenaza y violencia ficticia cuando corresponda al relato; sangre estilizada y consecuencias claras, sin convertir todas las viñetas en violencia ni inventarla para retención.",
-    "natural_prose": "Evitar fórmulas retóricas reconocibles y repetitivas como «No era X. No era Y. Era Z», «No se trataba de X, sino de Y», tríadas de negaciones y revelaciones enfáticas genéricas. Contar acciones y causas concretas con sintaxis variada. Conservar negaciones o contrastes necesarios para los hechos; no borrarlos con regex."
+    "natural_prose": "Evitar fórmulas retóricas reconocibles y repetitivas como «No era X. No era Y. Era Z», «No se trataba de X, sino de Y», tríadas de negaciones y revelaciones enfáticas genéricas. Contar acciones y causas concretas con sintaxis variada. Aplicarlo editorialmente durante la escritura y relectura con yt-script, sin comprobaciones regex, linters, detectores ni filtros posteriores. Conservar negaciones o contrastes necesarios para los hechos."
   },
   "music": {
     "mode": "auto",

@@ -79,6 +79,7 @@ suite global ni se verificó CI remoto, publicación u OAuth en esta tarea local
 Operador28/10: feedback muy positivo del vídeo/audio; próximas producciones
 deben reforzar figuras stickman y etapas reconocibles, y evitar prosa formularia.
 Perfil y tres skills actualizados; cierre eficiente registrado en AGENTS.
+La prosa se decide al escribir con yt-script; sin regex, detectores ni filtros.
 Git auditado: un worktree,11ramas locales históricas sin commits fuera de main;
 8ramas históricas remotas consultadas, también contenidas en main43e55c3.
 No se borraron ramas. Nuevas reglas guardadas localmente, sin push.
