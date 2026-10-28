@@ -1,4 +1,4 @@
-# Auditoría del flujo de Trazo Maldito — 27/10/2026
+# Auditoría del flujo de Trazo Maldito — 28/10/2026
 
 Revisión del episodio Jason y del código actual. Los tiempos proceden del log de
 su producción real, no de estimaciones ni de la suite. Reglas y comandos vigentes:
@@ -164,3 +164,73 @@ La música baja de terror y las imágenes más inquietantes son decisiones edito
 coherentes con el canal, no una prueba de mayor retención. La claridad del narrador,
 una amenaza comprensible y variación de tensión deben prevalecer sobre subir volumen,
 añadir sangre continuamente o multiplicar efectos.
+
+## Freddy — cierre del 28/10
+
+Guion de 1.984 palabras con tres `[break]`, 124 escenas editoriales y 124 PNG
+revisados. Kitok compiló 132 planos sobre marcas Fish reales: 630,533 s (10:30),
+sin ralentizar ni alargar silencios. Las imágenes de atlas conservan tamaño
+nativo de 541–542 × 297–298; la salida 1080p escala, sin crear detalle.
+Última imagen individual: 1656×925. Miniatura: 1672×941 → 1280×720.
+El registro por fases está en el `editorial/produccion.md` del episodio.
+
+Las solicitudes nuevas Fish colapsan espacios sin quitar etiquetas; conservan
+el guion fuente y guardan el hash del texto realmente enviado. La revisión larga
+continua dejó cinco discrepancias ASR y cero huecos energéticos. Las ventanas
+locales automáticas resolvieron cuatro: una palabra fantasma del ASR, diez
+palabras omitidas por el ASR y dos uniones de clíticos. No se recortó audio para
+hacer coincidir el guion. Krueger/Kruger siguió pendiente y se aceptó mediante
+revisión documental de otra ventana que recuperaba literalmente el nombre.
+Los informes y tiempos originales permanecen. No hubo escucha humana ni se
+promete reparar cualquier fallo de Fish. Se verificaron 64 pruebas focales,
+revisión independiente y reutilización de caché sin otra ejecución ASR.
+
+El adjunto de GTA coincide al leer texto con el guion de `1_gta6`, incluidos
+muchos saltos y etiquetas. Es inglés y la configuración actual usa Loose Thread;
+no hay recibo histórico para atribuir modelo o parámetros exactos. La prueba
+previa con Loose Thread leyendo español no equivale a ese vídeo. La documentación
+oficial de Fish no aporta evidencia de degradación deliberada del plan gratis.
+Tampoco se demostró que los saltos fueran la única causa del fallo.
+
+Intervenciones adicionales del agente:
+
+- Corregir un salto final introducido al escribir a mano el archivo limpio: debe
+  generarlo el compilador. Corregir claves incorrectas de miniatura que preparó
+  el agente; la configuración ahora las rechaza antes de solicitar voz.
+- Adaptar tres viñetas a consecuencias sin heridas tras rechazo del generador y
+  regenerar sólo la casilla 124 que salió vacía. Los demás PNG se conservaron.
+- Reanudar el comando fuera del sandbox: allí NVML estaba bloqueado, mientras la
+  RTX 3050 de 4 GB funcionaba fuera. El FFmpeg y el recibo definitivo confirmaron
+  `h264_nvenc`. No es una carencia de NVIDIA del uso diario de Kitok.
+- Exportar a la carpeta común los seis archivos del bundle creado por Kitok;
+  vídeo mediante hardlink, textos y miniatura mediante copias independientes.
+  El montaje de planos, mezcla, unión y subtítulos fue íntegramente de Kitok.
+
+| Fase medida | Tiempo |
+| --- | --- |
+| Mezcla | 2:47 |
+| Render, unión y reloj de 132 planos | 16:40 (1000,42 s) |
+| QA base | 4:04 |
+| Preparación de exportación | 1:07 |
+| Incrustar ASS con NVENC | 2:57 |
+| QA subtitulado | 4:44 |
+| Comando completo | 32:17 |
+
+La unión propiamente dicha duró unos diez segundos. Los filtros y varios
+recorridos del QA siguen en CPU. No se adoptó una cámara más económica sin
+prueba visual suficiente; las propuestas anteriores siguen siendo propuestas.
+
+Ambos QA pasaron: 18.916 fotogramas, 1920×1080/30 fps, −16,02 LUFS y −2,24 dBTP.
+El audio del subtitulado coincide con el base. Se vieron contactos y muestras de
+transición, inicio, medio y cierre. Chromium completó el archivo a 4× silenciado,
+con saltos de fotogramas; tramo a velocidad normal 0–80,174 s con 2.406 frames y
+cero perdidos. No equivale a escuchar ni comprobar fluidez a 1× de todo el vídeo.
+Revisión independiente de entrega sin inconsistencias materiales; no repitió
+ASR, render ni decodificación.
+
+Entrega: `content/longform/trazo_004_freddy_krueger/entrega/`, seis archivos.
+Vídeo de 599.627.106 bytes. Limpieza: 869 auxiliares retirados (1457,8 MiB lógicos)
+y 266 rutas fuente con SHA intacto. No se midió liberación física con otros
+hardlinks. Se conservan la revisión activa, originales, másteres, PNG, prompts,
+recibos y licencias. La escucha y el criterio editorial del operador siguen
+pendientes. No se ha publicado nada.

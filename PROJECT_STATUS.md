@@ -1,100 +1,78 @@
 # Estado vigente de Kitok
 
-Actualizado: **2026-10-28**. Rama **main**, tres checkpoints locales previos sobre
-origin/main al comenzar esta unidad. Organización de episodios y Freddy guiado.
-Sin publicación, merge ni push en este encargo. Manual: [GUIA](GUIA.md),
-[carpetas](docs/episode-files.md), [voz](docs/fish-voice.md),
-[flujo editorial](docs/youtube-editorial.md).
+Actualizado: **28/10/2026**. Rama **main**; cambios verificados en commits locales.
+Sin push, merge ni publicación en este encargo. Fuentes: [guía](GUIA.md),
+[voz](docs/fish-voice.md), [carpetas](docs/episode-files.md),
+[auditoría de producción](docs/youtube-production-audit.md).
 
-## Capacidades y evidencia
+## Capacidades comprobadas
 
-- Nuevas peticiones Fish compilan `guion_final.txt` con espacios únicos y `[]`
-  conservados; hash/política quedan en voice_request. Peticiones previas conservan
-  strip-only para reutilizar caché. `guion_lectura_limpia.txt` sirve
-  al storyboard, no a TTS. `[]` se transmiten; el texto limpio excluye etiquetas.
-  Muestras reales con etiquetas probadas en Freddy; no repetir Jason.
-- `local_asr_autocut` en init nuevo: voz cruda → ASR local → cortes anclados en
-  copia PCM → nueva ASR → sólo después reloj/mezcla/montaje. Reemplazos, omisiones
-  y ambigüedades bloquean; no prometemos reparar cualquier fallo sin revisión.
-- Pruebas reales anteriores: Jason/Loose Thread × directo/timestamps sobre64
-  palabras, S2.1-free. Habla extra presente en respuesta cruda; no sólo montaje.
-  No equivaler web Drama3 y API S2.1. Muestra Drama3 API: HTTP402, sin retry.
-- Loose Thread largo, shorts y stickman generan con Native/Fish/FFmpeg. MPT sólo
-  recuperación histórica explícita; no se desinstaló servicio alguno.
-- `scripts/stickman_delivery.py organize`: índice/carpetas comunes, limpieza
-  explícita de cachés y láminas resueltas, archivo de revisiones cerradas con
-  fuentes/hashes y restauración. init/montaje generan/actualizan índice; no borran
-  al guardar ni archivan trabajos automáticamente. Contrato en docs/episode-files.md.
+- Nuevos episodios stickman: voz Fish → ASR local → cortes anclados cuando son
+  seguros → segunda ASR estricta → planificación, mezcla y montaje Native.
+  Omisiones, sustituciones y actividad ambigua bloquean. No hay reparación universal.
+- TTS recibe `guion_final.txt` con espacios únicos y etiquetas `[]` conservadas;
+  registra política y hash del texto enviado. Solicitudes previas conservan su
+  identidad. `guion_lectura_limpia.txt` sirve al storyboard y los subtítulos.
+- El ASR puede revisar discrepancias en ventanas cortas con anclas únicas y caché,
+  sin recibir el guion ni modificar relojes. Conserva resultados originales.
+  Una revisión explícita tiene hash y estado propio; no acepta actividad pendiente
+  en autocut ni sustituye la segunda ASR tras cortes.
+- Shorts, largos Loose Thread y stickman nuevos usan Native/Fish/FFmpeg.
+  MPT sólo permite recuperación histórica explícita; no se desinstaló su servicio.
+- `scripts/stickman_delivery.py` ofrece bundle de seis archivos y organización
+  explícita con hashes/locks. No borra automáticamente al guardar. El helper de
+  imágenes crea contactos nativos; las claves de miniatura se validan antes de Fish.
 
-## Jason — STANDBY por encargo del operador
+## Freddy — entrega local para revisar
 
-`content/longform/trazo_003_jason_voorhees/LEEME.md` es el índice actual.
-`voz_reparada.wav`:435.728708s (7:16), PCM48k mono; original Fish MP3 intacto.
-24cortes automáticos +1corte editorial ambiguo +2frases/19palabras recuperadas.
-Segunda ASR completa anterior:0inserciones,14diferencias; no escucha del agente
-ni coincidencia acústica perfecta demostrada. NO hay vídeo nuevo con esta voz.
-`entrega/voz_limpia_8min__video.mp4` conserva errores: referencia visual anterior,
-no final corregido. Diagnósticos en `local/pruebas/trazo_003_jason_voorhees/`.
-No seguir reparándolo/renderizarlo ahora. Rehacer en futuro encargo con estética
-stickman más terrorífica y duración útil real >480s, sin ralentizar para cumplir.
+Carpeta: `content/longform/trazo_004_freddy_krueger/entrega/`.
+Contiene vídeo subtitulado, miniatura, descripción, créditos, informe y LEEME.
+Entrada activa: `revisiones/voz_texto_continuo/`; su configuración está corregida.
+El `voz.mp3` de la raíz es el original defectuoso conservado: no usarlo como entrega.
+Fases, inputs, outputs, skills e intervenciones: `editorial/produccion.md`.
 
-## Organización aplicada
+Guion de 1.984 palabras y tres `[break]`; 124 PNG vistos y validados. El agente
+eligió el estilo B bajo delegación, sin aprobación humana. 123 imágenes de atlas
+son de 541–542 × 297–298; Native escala sin crear detalle. Última imagen individual:
+1656×925. Miniatura final: 1280×720, original 1672×941; vista grande y móvil.
 
-Siete episodios comparten carpetas e índice; los tres Native históricos tienen
-`configuracion.json`, `guion_final.txt`, `titulo.txt`. Sus rutas script_file obsoletas
-se corrigieron; las tres definiciones cargan sin proveedores. Originales en archivo.
-Se comprobaron419fuentes por SHA256 sin pérdidas/cambios de contenido.
-Revisiones cerradas de Jason/Myers/Antigüedad archivadas fuera del árbol diario;
-vídeos únicos conservados visibles, PNG definitivos intactos, láminas resueltas
-retiradas. Pruebas de voz y configs de ensayo fuera de episodios. Intermedios de
-pruebas cerradas, mezclas regenerables y temporales Kitok retirados; recursos ASR,
-stock, música, credenciales y galerías útiles conservados. Manifiestos y recuentos:
-`local/cleanup/2026-10-27-organizacion/summary.json` y reportes asociados.
-Limpieza anterior de Jason/tmp: `local/cleanup/2026-10-27-jason/`, no repetirla.
+La nueva voz continua dura 630,517 s y no necesitó cortes. ASR: cinco diferencias
+iniciales y cero huecos; ventanas automáticas resolvieron cuatro. Krueger/Kruger
+se aceptó documentalmente con otra ventana local que recuperaba el nombre.
+No hubo escucha humana ni se garantiza fidelidad acústica perfecta. GTA adjunto
+coincide con el guion guardado y también usa saltos/etiquetas; falta su recibo
+histórico para atribuir modelo o parámetros exactos. No se demostró degradación
+intencional del plan gratis ni que los saltos fueran la única causa.
 
-## Freddy — producción nocturna autorizada entre fases
+Kitok produjo 132 planos, música y subtítulos: **630,533 s, 18.916 fotogramas,
+1920×1080/30 fps**. QA base y subtitulado pasaron; audio decodificado idéntico,
+−16,02 LUFS y −2,24 dBTP. NVENC p5 confirmado por proceso y recibo. Total del
+comando: 32:17; render/unión/reloj: 1000,42 s. Una ejecución inicial se interrumpió
+porque el sandbox bloqueaba GPU; la definitiva se lanzó fuera, sin otra síntesis.
+Hash final: `a920047afd15a54cf98f6f56ec9903ad028e44d4e5e1390b504afadad5adbf29`.
 
-Operador27/10revocó la pausa: continuar con registro antes/después en
-`content/longform/trazo_004_freddy_krueger/editorial/produccion.md`.
-Guion1984palabras,3[break]; estilo B elegido por agente entre3muestras, no
-aprobación humana. Storyboard124escenas/1984palabras con cobertura completa,
-reloj pendiente. PNG en producción desde el plan fijo; progreso exacto en editorial/estado.json.
-El helper de recorte crea un contacto de los PNG reales sin escalarlos, evitando
-montajes manuales de hojas para cada lote; nueve pruebas existentes pasadas.
-Miniatura nativa1672×941/final1280×720 vista grande y160×90.
-Muestra Fish: con énfasis falla el nombre; sin él85/85pero5s actividad sin palabras
-ASR/Fish. Kitok recorta4.699s, segundo ASR85/85y controlenergía correcto.
-Nueva ampliación `untranscribed_activity`:42tests y revisión independiente
-sin hallazgos, muestra real reanudada sin otro Fish. No escucha humana.
-Voz larga solicitada UNA vez; audio/SRT/alineación guardados. Proceso externo143
-durante ASRlocal; retomado prepare SIN--generate-voice, no otra síntesis.
-Voz larga base:13cortes automáticos,13diferencias restantes, montaje bloqueado.
-16/16INSERT en párrafos; A/Bcorto84palabras amboslimpios. Nueva revisión
-`revisiones/voz_texto_continuo`: MISMOguion/voz/modelo, política nueva espacios
-únicos, una solicitud distinta autorizada, proceso desacoplado y exitcode duradero.
-Terminó:5discrepancias ASR y0huecos de actividad; ventanas locales recuperan frase
-omitida por ASR y grafías. Refinamiento automático acotado probado:4de5 resueltas,
-Krueger/Kruger pendiente. Revisión documental explícita del nombre usa otra
-ventana local que sí recupera Krueger, sin afirmar escucha humana.64tests
-y revisión independiente sin P0/P1; replay de caché sin llamadas ASR. GTA adjunto coincide con texto guardado; también contiene
-saltos/etiquetas, así que su presencia sola no prueba causa del defecto.
-124PNG completos/validados; prepare real ready_to_render:132planos/630.533s.
-Claves de miniatura inválidas del agente corregidas en revisión activa; schema
-las rechaza antes de Fish (20pruebas packaging). Siguiente: montaje con voz revisada,
-sin otro Fish. El modo autocut conserva aceptación explícita con ruta/hash y
-bloquea actividad pendiente; nunca recorta INSERT desmentidos por refinamiento.
-No borrar ni volver a escuchar cientos de veces el MP3 crudo de la base. Jason pausa.
+Chromium terminó el archivo completo a 4×, silenciado, sin error de medios y con
+9.496 fotogramas perdidos. Tramo normal 0–80,174 s: 2.406 frames, cero perdidos.
+No demuestra fluidez completa a 1×. Revisión independiente de entrega sin
+inconsistencias materiales; no escuchó audio ni repitió ASR/render/decodes.
 
-## Verificación y límites
+Limpieza: 869 auxiliares retirados, 1457,8 MiB lógicos; 266 rutas fuente con SHA
+intacto. Se conservan revisión activa, PNG, audios, másteres, recibos y licencias.
+El vídeo exportado usa hardlink. No se midieron bloques libres ni se barrió /tmp.
 
-Unidad organización:21tests workspace/delivery y14pipeline/word_pipeline pasados;
-revisión independiente cerró tres riesgos de limpieza tras corrección/regresiones.
-docs-check, higiene y validación de2skills pasados;7dry-runs posteriores vacíos,
-5archivos ZIP verificados por CRC/SHA y rutas actuales.419fuentes conservadas.
-Se añadió además exclusión con el lease global Native para el mantenimiento de
-los proyectos históricos normalizados: regresión y revisión independiente pasadas;
-3dry-runs actuales con ese bloqueo, sin candidatos.
-Voz anterior:42tests empalmes/integración,40motor y43Native/MPT pasados durante el
-encargo anterior. Baseline histórico make verify1194Python/25React no es un gate
-completo del código nuevo. No repetir suite global sin motivo. No se ha validado
-publicación ni OAuth en esta tarea local; tampoco calidad audiovisual nueva de Freddy.
+## Jason y organización anterior
+
+Jason sigue **STANDBY**: futuro remake con nueva estética y duración útil >480 s.
+`voz_reparada.wav` dura 435,729 s; no hay vídeo nuevo con ella. El vídeo conservado
+sigue siendo referencia anterior con errores, no una entrega corregida.
+Siete episodios ya tienen estructura e índice comunes. Limpieza anterior:
+`local/cleanup/2026-10-27-organizacion/`, 419 fuentes verificadas sin deriva;
+revisiones cerradas archivadas con restauración. No repetirla como pendiente.
+
+## Verificación y siguiente paso
+
+64 pruebas focales de audio/refinamiento y revisión independiente sin P0/P1;
+20 de packaging para validación temprana. `make docs-check` vigente. No se repitió
+suite global ni se verificó CI remoto, publicación u OAuth en esta tarea local.
+Siguiente: escucha y criterio editorial del operador sobre Freddy. No publicar,
+regenerar proveedores ni continuar Jason por rutina.
