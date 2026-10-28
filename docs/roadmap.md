@@ -62,9 +62,18 @@ Prioridades propuestas, todavía sin implementar en el motor:
    cualquier fallo se reanuda sin otra voz ni recodificación.
 2. Consolidar recorridos del QA final para reducir lecturas/decodificaciones
    repetidas, preservando controles de fotogramas, audio, negros y reloj.
-3. Comparar una muestra de cámara a resolución de entrega frente al escalado
-   interno 2× y estudiar subtítulos en una sola pasada. Adoptar sólo si conserva
-   movimiento, legibilidad y sincronía; no extrapolar una ganancia sin medir.
+3. Integrar y ampliar cobertura de la placa 4K preparada una vez, manteniendo
+   supersampling 2×. Prueba aislada de Michael: 33,7 s/seis planos, 47,79→37,15 s
+   (22,27 % menos tiempo Native), 1.011 fotogramas y PCM idénticos. Una sola
+   ejecución por variante: no demuestra la ganancia de un episodio completo.
+   Cuatro hilos dio sólo 4,21 % en esa prueba; no es la prioridad por sí solo.
+4. Probar ASS después de transición y compartir el cálculo de cámara para las
+   salidas normal/subtitulada. Conservar ambas requiere codificar dos vídeos;
+   evitar decodificaciones repetidas sin cambiar reloj, estilo o audio.
+5. Después del cierre headless de un episodio: cola persistente separada, estados
+   `needs_review/failed/technical_complete`, un trabajo pesado a la vez y locks
+   global/por episodio. Agentes pueden preparar otros guiones/prompts mientras
+   Kitok trabaja. No generar aceptaciones ASR automáticamente para desbloquear.
 
 Preferencias ya fijadas en perfil/skills: prosa sin antítesis o tríadas mecánicas;
 figuras stickman en todos los personajes, con fichas y etapas reconocibles.

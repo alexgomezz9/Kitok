@@ -693,3 +693,12 @@ El QA automático mantiene sus controles; las auditorías extra y recorridos
 completos adicionales se reservan para cambios, fallos o encargos específicos.
 El cierre automático del bundle y limpieza está propuesto en la
 [hoja de ruta](docs/roadmap.md#6-escalar-la-produccion-tras-freddy-2810).
+
+Con el paquete editorial y la voz revisados, el CLI puede realizar el montaje
+sin que el agente permanezca consultando el progreso. Todavía puede detenerse
+por discrepancias de voz o entradas pendientes; el empaquetado editorial final
+y `bundle` son pasos separados. La [auditoría](docs/youtube-production-audit.md)
+registra las intervenciones reales y la muestra de rendimiento de Michael.
+Tras cerrar reparaciones y verificar la entrega, el operador autoriza retirar
+auxiliares regenerables con `organize`; conservar ambos MP4, PNG finales, voz,
+alineación, prompts, manifiestos y licencias. No borrar carpetas históricas enteras.

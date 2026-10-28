@@ -1,6 +1,6 @@
 # Estado vigente de Kitok
 
-Actualizado: **28/10/2026**. Rama **main**, base de esta unidad 73adb8d.
+Actualizado: **28/10/2026**. Rama **main**, base de esta auditoría bc57c04.
 Esta unidad actualiza documentación y entrega contenido local ignorado.
 Sin push ni publicación. El motor se reutilizó sin cambios. Fuentes: [guía](GUIA.md),
 [voz](docs/fish-voice.md), [carpetas](docs/episode-files.md).
@@ -30,12 +30,12 @@ Una solicitud Fish con `collapse_whitespace_v1`, texto enviado/hash comprobados,
 sin cortes ni nueva síntesis por el bloqueo ASR. 68 discrepancias revisadas por fila
 (nombres/cifras/segmentación); 0 actividad sin palabras. Ventanas no corroboran
 3 inserciones. Revisión documental independiente permite continuar; NO es una
-coincidencia automática ni prueba de fidelidad acústica perfecta. Dos dicciones
-exactas pendientes: **Laurie/Laura 6:11** y **aquel escondite 8:37**.
+coincidencia automática ni prueba de fidelidad acústica perfecta. El operador
+confirmó después el buen audio y como perfectas las dicciones de **6:11 y 8:37**.
 
 El agente vio todos los PNG, un fotograma normal y dos del subtitulado. No hubo
-escucha ni reproducción completa de este remake. Siguiente: revisión/escucha del
-operador, especialmente esos dos puntos. No publicar, repetir proveedores ni
+escucha ni reproducción completa del agente en este remake. La escucha posterior
+del operador resuelve aquellos dos puntos. No publicar, repetir proveedores ni
 continuar Jason por rutina. Registro: `editorial/produccion.md` y `estado.json`.
 
 ## Conservación indicada por el operador
@@ -44,7 +44,10 @@ continuar Jason por rutina. Registro: `editorial/produccion.md` y `estado.json`.
 mantener AMBOS MP4 (normal/subtitulado). El inventario se canceló antes de borrar:
 **0 borrados, 1.134 rutas inventariadas con SHA intacto**.
 Recibo: `local/cleanup/2026-10-28-pre-remake/cancelled-verification.json`.
-No se aplicó limpieza ni archivo a los episodios anteriores en este encargo.
+No se aplicó limpieza ni archivo a los episodios anteriores en aquel encargo.
+En la auditoría posterior el operador autoriza auxiliares resueltos: se retiraron
+765 archivos de Michael, 1.325,3 MiB lógicos; 122 rutas protegidas con SHA intacto,
+incluidos los 109 PNG y ambos MP4. Recibos: `local/cleanup/2026-10-28-michael-post/`.
 
 ## Capacidades y límites vigentes
 
@@ -73,3 +76,19 @@ Kitok prepare exit 0/ready_to_render; produce exit 0; QA de ambos MP4 pasado; 10
 intactos; bundle de 6 archivos/hashes y 9 capítulos comprobados. `make docs-check` y
 `git diff --check` pasados el 28/10. Sin cambio de motor: no suite global por rutina.
 No se verificaron OAuth, CI remoto ni publicación en este encargo.
+
+
+## Auditoría posterior y propuesta medida
+
+Voz original Fish intacta y texto enviado exportado con el hash del recibo;
+Michael se envió sin marcadores, por decisión editorial. El perfil central pide
+pausas/tono dosificados en guiones nuevos; no se altera esta voz aprobada.
+QA normal/subtitulado: 15:36 de los 44:44 totales. La prueba nueva de seis planos
+(33,7 s) dio 47,79 s actual, 45,78 s con cuatro hilos y 37,15 s preparando la
+placa 4K una vez. Los 1.011 fotogramas decodificados y el PCM coinciden exactamente.
+Una ejecución por variante; sólo experimento de proceso, sin cambios del motor.
+Informe/MP4: `local/pruebas/trazo_005_michael_myers_historia/auditoria_20261028/`.
+Prueba y fuentes preservadas; cachés experimentales resueltas retiradas.
+Siguiente propuesto: cierre headless, QA consolidado y placa 4K única, con pruebas
+antes de integrar; cola persistente después. No se implementaron ahora esas
+capacidades. Detalle: [auditoría](docs/youtube-production-audit.md).

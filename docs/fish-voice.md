@@ -31,6 +31,12 @@ normalizados a un único espacio, conservando palabras y `[]`. Guarda la políti
 No modifica el guion legible ni voces existentes; los recibos antiguos conservan
 el formato strip-only para recuperar su caché original.
 Esta preparación es la regla de todas las síntesis nuevas del flujo stickman.
+Normalizar espacios no exige omitir indicaciones de interpretación. El perfil
+central, en `narrative_rules.voice_direction`, pide decidir pausas y tono durante
+la escritura de los guiones nuevos, sin una cuota fija ni añadir tags por regex.
+Michael se envió sin `[]`: fue una decisión editorial conservadora, no un efecto
+del normalizador. La auditoría posterior confirmó una sola petición y el MP3
+original intacto, sin cortes; el operador confirmó los dos puntos de dicción.
 Ejemplo: `Primera frase.\n\nSegunda frase. [break] Tercera frase.` se envía como
 `Primera frase. Segunda frase. [break] Tercera frase.`. Los párrafos se conservan
 en el archivo fuente. No sustituye la verificación local ni demuestra una causa

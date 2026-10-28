@@ -75,6 +75,10 @@ Encargo del operador el 28/10: los remakes nuevos usan otra carpeta de episodio 
 conservan ambos vídeos, normal y subtitulado. No retirar el máster normal al
 exportar el bundle subtitulado. Las carpetas anteriores se mantienen para borrado
 manual del operador; el inventario preparado antes de esta aclaración no se aplicó.
+En la auditoría posterior el operador autoriza limpiar auxiliares resueltos al
+terminar. `organize` se aplicó a Michael después de comprobar la entrega: retiró
+765 archivos de trabajo, manteniendo 122 rutas fuente/finales con el mismo SHA.
+Esto conserva las carpetas anteriores y ambos MP4; no elimina los PNG definitivos.
 
 Las pruebas nuevas van en `local/pruebas/EPISODIO/`; las galerías globales útiles
 siguen en `outputs/evaluation/` y `outputs/motion-gallery/`. No llenar episodios ni

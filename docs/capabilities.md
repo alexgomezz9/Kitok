@@ -227,6 +227,12 @@ terminados. Los servidores se abren sólo en `127.0.0.1`.
 
 ## Brecha entre la autonomía deseada y lo entregado
 
+Para stickman, el CLI ya ejecuta el montaje determinista con los inputs y la voz
+aceptados, sin supervisión continua del agente. Michael necesitó además revisión
+documental de discrepancias ASR y preparación editorial de los archivos finales
+para `bundle`. Un único comando headless con estados persistentes, cierre y cola
+de episodios sigue siendo propuesta; no equivale al publicador de shorts.
+
 La revisión visual se concentra en pilotos y muestras, incluidas las candidatas
 actuales de [la galería documental](motion.md). El 20/10 se reparó además un intento
 completo del operador: 120 escenas y 654,733 s, reutilizando 113 clips y la mezcla,

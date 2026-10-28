@@ -248,3 +248,59 @@ no necesiten llamadas a un modelo de lenguaje. No hay una medición de tokens
 de ese cierre. Para producción repetida, preparar el registro durante las fases,
 reducir consultas a progreso compacto y reservar auditorías adicionales para
 cambios/fallos. El cierre automático es la primera prioridad de la [hoja de ruta](roadmap.md).
+
+## Michael — auditoría posterior y prueba de rendimiento
+
+El operador confirma el audio y los puntos 6:11/8:37. Una petición Fish, política
+`collapse_whitespace_v1` y MP3 con el hash original: **cero cortes**. El texto se
+construyó en memoria desde `guion_final.txt`; la copia exportada y verificada está
+junto al informe local `auditoria_20261028/fish_texto_enviado.txt`. Tenía 1.915
+palabras y ningún `[]`; la normalización habría conservado los marcadores.
+
+| Etapa del comando de Michael | Intervalo medido |
+| --- | ---: |
+| Mezcla local | 3:09 |
+| 112 planos y sus transiciones/controles | 18:08 |
+| Unión/mux/validación | 0:15 |
+| QA normal | 7:24 |
+| Preparación/revalidación antes de subtítulos | 1:58 |
+| ASS y controles hasta el aviso siguiente | 5:25 |
+| QA subtitulado/cierre | 8:12 |
+| Total, incluida preparación inicial | 44:44 |
+
+Los dos intervalos QA suman 15:36 (34,9 %); no se cronometró cada subcomando.
+La cámara se amplía a 4K en CPU en 96 planos; 16 son estáticos. Hay 89 `dissolve`
+que recodifican el entrante entero. Los fundidos globales ya se integran por plano;
+la unión final copia streams. Se detectaron decodes/PCM repetidos y hasta 80
+extracciones de imagen por QA; consolidarlos exige probar equivalencia por SHA,
+conservando controles, no suprimirlos por tiempo.
+
+Prueba aislada con el mismo motor, seis planos consecutivos, 33,7 s, 1080p30 y
+NVENC p5; no se cambió `src/`. La variante experimental intercepta comandos sólo
+en su proceso; conservar planes/comandos/resultados junto al script.
+
+| Variante | Tiempo Native | Cambio |
+| --- | ---: | ---: |
+| Actual, un hilo | 47,79 s | — |
+| Cuatro hilos | 45,78 s | −4,21 % |
+| Placa YUV 4K preparada una vez | 37,15 s | −22,27 % |
+
+Las tres salidas tienen 1.011 fotogramas decodificados idénticos y el mismo PCM;
+fuentes intactas. Preparar las placas costó 1,04 s, incluido en 37,15 s. Una sola
+prueba secuencial por variante, sin rotación, fades ni motion_design. La medición
+no incluye ASR, mezcla completa, ASS o QA de entrega. No extrapolar ese porcentaje
+al episodio ni afirmar que ya se integró la mejora. Evidencia y tres MP4:
+`local/pruebas/trazo_005_michael_myers_historia/auditoria_20261028/`.
+
+El CLI hace el montaje con paquete/voz aceptados. En Michael el agente resolvió
+la revisión documental ASR, reparó seis recortes y preparó miniatura/capítulos/
+metadatos; `finalizar_entrega.py` completó el bundle. Ni el empaquetado final ni una
+cola headless están automatizados por ese CLI. `exit 0` puede acompañar un estado
+de entradas pendientes: un supervisor debe leer estado y recibos.
+
+Limpieza posterior autorizada: 765 auxiliares de Michael, 1.325,3 MiB lógicos;
+122 rutas protegidas con SHA intacto, ambos MP4 y 109 PNG conservados. Recibos en
+`local/cleanup/2026-10-28-michael-post/`. También se retiraron 199,7 MiB lógicos de
+cachés de la prueba, conservando los tres MP4 y toda la evidencia de comandos.
+No se borraron carpetas históricas. El cierre/cola propuestos se describen en
+[roadmap](roadmap.md#6-escalar-la-produccion-tras-freddy-2810).
