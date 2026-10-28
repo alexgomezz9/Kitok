@@ -1,6 +1,6 @@
 # Estado vigente de Kitok
 
-Actualizado: **2026-10-27**. Rama **main**, tres checkpoints locales previos sobre
+Actualizado: **2026-10-28**. Rama **main**, tres checkpoints locales previos sobre
 origin/main al comenzar esta unidad. Organización de episodios y Freddy guiado.
 Sin publicación, merge ni push en este encargo. Manual: [GUIA](GUIA.md),
 [carpetas](docs/episode-files.md), [voz](docs/fish-voice.md),
@@ -8,9 +8,11 @@ Sin publicación, merge ni push en este encargo. Manual: [GUIA](GUIA.md),
 
 ## Capacidades y evidencia
 
-- Stickman envía `guion_final.txt.strip()` a Fish. `guion_lectura_limpia.txt` sirve
+- Nuevas peticiones Fish compilan `guion_final.txt` con espacios únicos y `[]`
+  conservados; hash/política quedan en voice_request. Peticiones previas conservan
+  strip-only para reutilizar caché. `guion_lectura_limpia.txt` sirve
   al storyboard, no a TTS. `[]` se transmiten; el texto limpio excluye etiquetas.
-  Sintaxis documentada; muestra real con etiquetas aún pendiente, no repetir Jason.
+  Muestras reales con etiquetas probadas en Freddy; no repetir Jason.
 - `local_asr_autocut` en init nuevo: voz cruda → ASR local → cortes anclados en
   copia PCM → nueva ASR → sólo después reloj/mezcla/montaje. Reemplazos, omisiones
   y ambigüedades bloquean; no prometemos reparar cualquier fallo sin revisión.
@@ -50,13 +52,26 @@ stock, música, credenciales y galerías útiles conservados. Manifiestos y recu
 `local/cleanup/2026-10-27-organizacion/summary.json` y reportes asociados.
 Limpieza anterior de Jason/tmp: `local/cleanup/2026-10-27-jason/`, no repetirla.
 
-## Freddy — fase2 terminada, PARADA
+## Freddy — producción nocturna autorizada entre fases
 
-`content/longform/trazo_004_freddy_krueger/editorial/investigacion_y_escaleta.md`:
-seis fuentes, continuidad clásica,10bloques y presupuesto aproximado1950palabras.
-Guion/voz/imágenes/vídeo todavía no generados. Perfil guided_exercise activo.
-Próximo «siguiente»: escribir/revisar guion, explicar inputs/outputs y parar antes
-de voz/imágenes. Automático sólo por petición expresa del operador.
+Operador27/10revocó la pausa: continuar con registro antes/después en
+`content/longform/trazo_004_freddy_krueger/editorial/produccion.md`.
+Guion1984palabras,3[break]; estilo B elegido por agente entre3muestras, no
+aprobación humana. Storyboard124escenas/1984palabras con cobertura completa,
+reloj pendiente. PNG en producción desde el plan fijo; progreso exacto en editorial/estado.json.
+Miniatura nativa1672×941/final1280×720 vista grande y160×90.
+Muestra Fish: con énfasis falla el nombre; sin él85/85pero5s actividad sin palabras
+ASR/Fish. Kitok recorta4.699s, segundo ASR85/85y controlenergía correcto.
+Nueva ampliación `untranscribed_activity`:42tests y revisión independiente
+sin hallazgos, muestra real reanudada sin otro Fish. No escucha humana.
+Voz larga solicitada UNA vez; audio/SRT/alineación guardados. Proceso externo143
+durante ASRlocal; retomado prepare SIN--generate-voice, no otra síntesis.
+Voz larga base:13cortes automáticos,13diferencias restantes, montaje bloqueado.
+16/16INSERT en párrafos; A/Bcorto84palabras amboslimpios. Nueva revisión
+`revisiones/voz_texto_continuo`: MISMOguion/voz/modelo, política nueva espacios
+únicos, una solicitud distinta autorizada, proceso desacoplado y exitcode duradero.
+Siguiente: verificar esa revisión, completar124PNG; montar sólo con audio válido.
+No borrar ni volver a escuchar cientos de veces el MP3 crudo de la base. Jason pausa.
 
 ## Verificación y límites
 

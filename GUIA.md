@@ -649,6 +649,13 @@ de montar. `local_asr` sólo diagnostica; `off` conserva episodios antiguos.
 .venv/bin/python scripts/verify_stickman_voice.py content/longform/MI_EPISODIO --cut-insertions
 ```
 
+Las solicitudes nuevas envían el guion con espacios únicos conservando `[]`,
+sin cambiar el archivo fuente; los recibos guardan el hash del texto enviado.
+
+El recorte incluye inserciones reconocidas y actividad no transcrita sólo con
+coincidencia completa del guion y anclas/relojes seguros. La segunda ASR comprueba
+también actividad residual fuera de las palabras.
+
 Requiere el entorno/modelo local opcional; instalación y revisión de discrepancias
 en [voz y fidelidad](docs/fish-voice.md#comprobacion-local-antes-de-montar).
 

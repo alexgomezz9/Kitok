@@ -27,6 +27,16 @@ class StickmanAudioError(ValueError):
 
 _TIMECODE = r"(?P<{}>\d{{2,}}:[0-5]\d:[0-5]\d,\d{{3}})"
 _TIMING = re.compile(_TIMECODE.format("start") + r"\s+-->\s+" + _TIMECODE.format("end"))
+_TTS_TEXT_POLICY = 'collapse_whitespace_v1'
+
+
+def _tts_text(script: str, policy: str = _TTS_TEXT_POLICY) -> str:
+    """Compile transport whitespace only; retain spoken words and Fish markers."""
+    if policy == _TTS_TEXT_POLICY:
+        return ' '.join(script.split())
+    if policy == 'strip_v1':
+        return script.strip()
+    raise StickmanAudioError('Unknown Fish text preprocessing policy; existing audio was preserved')
 
 
 def _seconds(value: str) -> float:
@@ -271,6 +281,12 @@ def prepare_narration(episode: Path, *, root: Path, settings, voice: dict | None
         raise StickmanAudioError("Narration inputs changed after validation; preserve receipts and use a new episode revision")
     if request and request.get("script_sha256") != script_sha:
         raise StickmanAudioError("The script changed after a Fish request; review the original paid audio")
+    policy = request.get('tts_text_policy', 'strip_v1') if request else _TTS_TEXT_POLICY
+    tts_text = _tts_text(script, policy)
+    tts_sha = hashlib.sha256(tts_text.encode('utf-8')).hexdigest()
+    if request and ('tts_text_policy' in request or 'tts_text_sha256' in request):
+        if request.get('tts_text_policy') != _TTS_TEXT_POLICY or request.get('tts_text_sha256') != tts_sha:
+            raise StickmanAudioError('Fish text preprocessing policy or text hash changed; existing audio was preserved')
     if not audio.is_file():
         if not generate:
             raise StickmanAudioError("Missing voz.mp3: import existing audio or explicitly generate with configured Fish voice")
@@ -282,14 +298,17 @@ def prepare_narration(episode: Path, *, root: Path, settings, voice: dict | None
                     "speed": voice.get("speed", 1.0)}
         if request and request.get("voice") != identity:
             raise StickmanAudioError("Fish voice settings changed after a request; inspect the original operation")
-        if not request:
-            write_json_atomic(request_path, {"version": 1, "script_sha256": script_sha, "voice": identity})
         # A paid result is written to private state before exclusive promotion.
         # An operator-created voz.mp3 appearing during the request is preserved.
         staged_audio = state / "fish-voz.mp3"
         staged_alignment = staged_audio.with_suffix(".alignment.json")
         if staged_audio.is_symlink() or staged_alignment.is_symlink():
             raise StickmanAudioError("Staged Fish audio cannot be a symlink")
+        if not request:
+            if staged_audio.exists():
+                raise StickmanAudioError('Staged Fish audio has no request identity; preserve it for review')
+            write_json_atomic(request_path, {"version": 1, "script_sha256": script_sha, "voice": identity,
+                                             'tts_text_policy': _TTS_TEXT_POLICY, 'tts_text_sha256': tts_sha})
         client = FishVoiceClient(
             settings.fish_api_key.get_secret_value(), identity["model"],
             timeout=settings.fish_tts_timeout_seconds, cache_dir=settings.audio_cache_dir,
@@ -298,7 +317,7 @@ def prepare_narration(episode: Path, *, root: Path, settings, voice: dict | None
         try:
             if not staged_audio.exists():
                 report('Voz: solicitando síntesis Fish; puede consumir saldo. Esperando audio')
-                client.synthesize(script.strip(), reference_id, staged_audio, speed=identity["speed"])
+                client.synthesize(tts_text, reference_id, staged_audio, speed=identity["speed"])
         finally:
             client.close()
         try:

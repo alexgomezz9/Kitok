@@ -37,7 +37,7 @@
     "existing_provider": "fish",
     "operator_report": "No inferir precio ni saldo de Fish a partir del nombre del modelo; reutilizar configuración vigente y consultar antes de gasto significativo.",
     "prefer_existing_audio_and_alignment": true,
-    "existing_episode_config": "content/longform/stickman_2_michael_myers/configuracion.json",
+    "existing_episode_config": "content/longform/trazo_002_mychael_myers/configuracion.json",
     "transcript_verification": "local_asr_autocut",
     "performance_instructions": "Consultar docs/fish-voice.md. S2 usa [break], [long-break], [whispering], [emphasis], emociones; no asumir tiempos exactos ni [pausa] documentado. Guion limpio separado de dirección TTS; no añadir etiquetas a episodios ya sintetizados.",
     "fidelity_policy": "Voz cruda Fish → ASR local sin guion → recortes de inserciones con anclas y márgenes acústicos en copia → segunda ASR → tiempos/mezcla/montaje. Bloquear frases ausentes/sustituidas, inserciones ambiguas o sílabas residuales. No borrar originales ni fingir fidelidad por marcas Fish."
@@ -68,7 +68,7 @@
     },
     "lighting_and_horror": "Referencias visuales aportadas por el operador27/10: máscaras grandes y reconocibles, cuerpos/extremidades stickman finos, tinta negra marcada, contraluz azul/luna y naranja/rojo, niebla, bosque/lago/casa con profundidad y amenaza, cuchillo/machete ensangrentado y salpicaduras cuando lo cuenta la escena. Viñetas interiores con esa atmósfera y claridad, sin copiar el texto ni flechas de miniatura. No aplicar oscuridad/violencia por defecto a infancia tranquila o escenas de día antes del conflicto."
   },
-  "known_episode": "content/longform/stickman_2_michael_myers",
+  "known_episode": "content/longform/trazo_002_mychael_myers",
   "known_episode_caveat": "Recuperar decisiones y recursos del episodio real; presencia de archivos o QA técnico no acredita aprobación audiovisual humana.",
   "source": "Canal confirmado por el operador y por OAuth oficial el 26/10/2026. Encargo completo y decisiones delegadas en esa fecha. No contiene credenciales. Aclaración del operador 26/10: cubrir todos los personajes y mostrar su evolución, desde pequeños cuando corresponda. Preferencias27/10: relato inmersivo, stickman más marcado, terror/sangre contextual, música baja, exploración visual y verificación independiente de voz.",
   "channel_id": "UC9h_aIbnfQUo0ylPsPNnbrg",
@@ -108,12 +108,13 @@
       "evidence": "Gernsbacher2015 respalda atención/comprensión; no demuestra retención de este canal ni superioridad del amarillo."
     },
     "guided_exercise": {
-      "enabled": true,
+      "enabled": false,
       "episode": "content/longform/trazo_004_freddy_krueger",
-      "stop_after_every_stage": true,
+      "stop_after_every_stage": false,
       "explain": "Qué decisión se toma, entradas exactas, operación Kitok/agente, salidas realmente creadas y comprobación mínima. No avanzar por silencio.",
       "resume_automatic": "Sólo si el operador pide explícitamente volver al modo automático; esta excepción prevalece sobre siguiente completo durante el ejercicio.",
-      "current_stage": "research_outline_completed_waiting_operator"
+      "current_stage": "production_in_progress_voice_validation",
+      "authorization": "Operador27/10: dormir y continuar entre fases con registro escrito antes/después para auditar mañana"
     },
     "practical_work": "Una muestra real primero; pruebas focales del cambio y comprobación del recorrido afectado. No repetir suites grandes sin cambios/fallos que lo justifiquen. No añadir código o capas sin demostrar su función en el paso actual."
   },

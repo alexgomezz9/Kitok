@@ -25,10 +25,15 @@ milisegundos exactos; no reemplazan la comprobación del audio. Usar pocas seña
 normalmente al inicio de la frase, y reservar susurro/énfasis para giros concretos.
 No fabricar voces de fondo, cánticos, risas ni respiraciones que el relato no pide.
 
-El cliente actual transmite el texto de síntesis con `[]`; `clean_script` retira
-esas señales al calcular texto hablado y subtítulos. **No se ha sintetizado una
-muestra real con etiquetas en este encargo**, ni demostrado su expresividad o
-alineación acústica con esta voz. No añadirlas retrospectivamente a Jason ni
+En solicitudes nuevas, Kitok envía `guion_final.txt` con espacios/saltos
+normalizados a un único espacio, conservando palabras y `[]`. Guarda la política
+`collapse_whitespace_v1` y el SHA256 del texto enviado en `.stickman/voice_request.json`.
+No modifica el guion legible ni voces existentes; los recibos antiguos conservan
+el formato strip-only para recuperar su caché original.
+El cliente transmite el texto de síntesis con `[]`; `clean_script` retira
+esas señales al calcular texto hablado y subtítulos. **Se probaron etiquetas en las muestras de Freddy**: una muestra con énfasis
+falló; sin él y con pausa hubo actividad extra que Kitok recortó en copia. No se
+ha demostrado expresividad subjetiva por escucha del agente. No añadirlas retrospectivamente a Jason ni
 presentar esa combinación como verificada. Conservar guion hablado limpio y
 decisiones de interpretación aparte hasta validar una muestra corta y el
 contrato texto limpio → texto TTS → timestamps. No mezclar la sintaxis de Drama3,
@@ -80,6 +85,15 @@ En el modo de diagnóstico, las diferencias y ventanas con energía suficiente
 bloquean la continuación. El modo de recorte intenta quitar sólo inserciones
 con anclas y separaciones válidas y vuelve a comprobar todo el audio.
 Una ventana energética puede ser respiración, música o voz: **no demuestra habla**.
+Si el ASR reconoce TODO el guion pero omite un tramo con energía, Kitok también
+puede recortarlo: exige reloj ASR individual positivo, dos palabras de ancla
+únicas por lado, hueco interior libre de palabras ASR y Fish y márgenes40ms.
+El plan lo etiqueta `untranscribed_activity`, nunca inventa palabras reconocidas.
+Cualquier hueco ambiguo/protegido conserva el bloqueo. Después comprueba otra
+ASR completa y energía fuera de sus palabras observadas antes de aceptar.
+Los umbrales actuales son hueco≥750ms y actividad≥500ms sobre−40dB; no detectan
+todos los sonidos posibles. Una pausa silenciosa no autoriza un corte.
+
 El ASR puede confundir nombres, cifras o sonidos: **una diferencia sola no
 autoriza un corte**. Reemplazos y omisiones no se eliminan automáticamente.
 Las voces/susurros que coincidan temporalmente con palabras pueden escapar al
@@ -180,3 +194,20 @@ cortes es determinista, pero Jason necesitó1decisión de corte y2recuperaciones
 focales dirigidas por el agente. No presentar esa intervención como flujo
 totalmente automático. La futura reconstrucción exige nueva estética y >480s
 útiles. [Organización de archivos](episode-files.md).
+
+
+Prueba real Freddy28/10: muestra85palabras con[emphasis] falló en el nombre.
+La comparación conservando[break] y quitando sólo énfasis dio85/85pero un hueco
+con3.714s de energía. Kitok retiró4.699s en copia, volvió a reconocer85/85y pasó
+el control energético del segundo reloj, sin otra síntesis. No demuestra que
+[emphasis] sea la causa universal ni escucha subjetiva. Se conservan muestras
+en local/pruebas/trazo_004_freddy_krueger/.
+
+
+28/10, pista de los párrafos:16de16inserciones del ASR largo coinciden con
+fronteras de párrafo. Dos muestras controladas84palabras (con párrafos/una línea)
+salieron ambas84/84sin huecos. No demuestra causalidad universal. La normalización
+del transporte previene esa fragmentación sin contratar otro modelo y se valida
+con el mismo control de contenido; no se declara resuelta una voz sólo por quitarLF.
+`yt-edit` propone silencios/muletillas, no sustituye esta comparación ni edita
+medios por sí sola. Un tramo sustituido no se recupera cortándolo.

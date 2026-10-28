@@ -315,3 +315,9 @@ El mismo auxiliar ofrece `organize`: índice/estructura común, retirada comprob
 de láminas y cachés y archivo explícito de revisiones cerradas. Conserva rutas de
 entradas vigentes; bloquea referencias activas, enlaces simbólicos y locks ocupados.
 Las pruebas quedan fuera del episodio. [Contrato y restauración](episode-files.md).
+
+
+El control stickman de voz también puede retirar actividad no transcrita entre
+anclas únicas cuando ASR coincide completamente y ambos relojes dejan libre el
+intervalo. Segunda ASR y control de energía residual obligatorios; no reconstruye
+palabras omitidas. [Condiciones y evidencia](fish-voice.md).

@@ -101,7 +101,12 @@ def uncovered_activity(audio: Path, alignment: Path, *, ffmpeg: str,
     data = json.loads(alignment.read_text())
     if not isinstance(data, dict) or data.get('method') not in {'fish_provider_timestamps', 'fish_provider_timestamps_after_audio_cuts'}:
         raise ValueError('Cannot audit activity against unrecognized word alignment')
-    words = data.get('words')
+    return activity_outside_words(audio, data.get('words'), ffmpeg=ffmpeg, duration=duration)
+
+
+def activity_outside_words(audio: Path, words: list[dict], *, ffmpeg: str,
+                           duration: float | None = None) -> list[dict]:
+    """Measure energy outside observed word times without inventing a transcript."""
     if not isinstance(words, list) or not words:
         raise ValueError('Cannot audit activity without word marks')
     process = subprocess.run([ffmpeg, '-hide_banner', '-nostdin', '-i', str(audio),

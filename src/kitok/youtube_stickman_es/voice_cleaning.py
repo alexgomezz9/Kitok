@@ -17,7 +17,7 @@ from ..editing.manifest import clean_script
 from ..media.ffprobe import probe_media
 from .audio_autoclean import apply_autocuts, plan_autocuts
 from .files import digest, local_file, write
-from .voice_fidelity import tokens, verify_voice
+from .voice_fidelity import activity_outside_words, tokens, verify_voice
 
 
 MODE = 'local_asr_autocut'
@@ -137,6 +137,76 @@ def _word_clock(script: str, asr: dict, duration: float) -> list[dict]:
     return words
 
 
+def _activity_cuts(episode: Path, script: str, asr: dict, before: dict, plan: dict) -> dict:
+    """Remove only energy in uniquely anchored gaps in two observed word clocks.
+
+    Energy is not interpreted as speech or given invented transcript tokens.
+    All reported gaps must qualify: the second ASR cannot detect omitted energy.
+    """
+    activity = before.get('uncovered_activity', [])
+    if (not activity or before.get('differences') != [] or plan['cuts'] or plan['unresolved']
+            or tokens(asr['text']) != tokens(script)):
+        return plan
+    from .audio import _provider_segments
+    try:
+        words = _word_clock(script, asr, asr['duration'])
+        alignment = local_file(episode, 'voz.alignment.json')
+        if digest(alignment) != before.get('alignment_sha256'):
+            return plan
+        provider = _provider_segments(alignment, script, asr['duration'])
+    except (ValueError, KeyError, TypeError, OSError):
+        return plan
+    expected, cuts = tokens(script), []
+    margin, rate = plan['policy']['margin_seconds'], plan['sample_rate']
+    for evidence in activity:
+        a, b, active = (evidence.get(k) for k in ('start', 'end', 'active_seconds'))
+        if (any(type(v) not in (int, float) or not math.isfinite(v) for v in (a, b, active))
+                or not 0 <= a < b <= asr['duration'] or not .5 <= active <= b-a+.001):
+            return plan
+        candidates = []
+        for i in range(2, len(words)-1):
+            left, right = expected[i-2:i], expected[i:i+2]
+            if any(sum(expected[k:k+2] == anchor for k in range(len(expected)-1)) != 1
+                   for anchor in (left, right)):
+                continue
+            start, end = max(a, words[i-1]['end']+margin), min(b, words[i]['start']-margin)
+            # Aggregate measured energy gives a conservative lower bound within
+            # the intersection, even if all excluded time was audible.
+            if end-start < .025 or active - ((b-a)-(end-start)) < .5:
+                continue
+            boundaries = []
+            for point in (start, end):
+                midpoints = [(p+q)/2 for p, q in plan['measured_silences']
+                             if p <= point <= q and start <= (p+q)/2 <= end]
+                boundaries.append(midpoints[0] if len(midpoints) == 1 else point)
+            if (boundaries[1]-boundaries[0] >= .025
+                    and active - ((b-a)-(boundaries[1]-boundaries[0])) >= .5):
+                start, end = boundaries
+            begin, finish = math.ceil(start*rate), math.floor(end*rate)
+            if (finish-begin < round(.025*rate)
+                    or active - ((b-a)-(finish-begin)/rate) < .5
+                    or any(begin/rate < w['end']+margin and finish/rate > w['start']-margin
+                           for w in provider)):
+                continue
+            candidates.append({'kind': 'untranscribed_activity', 'script_range': [i, i],
+                'asr_range': [i, i], 'expected': '', 'recognized': '',
+                'start_sample': begin, 'end_sample': finish,
+                'left_anchor': left, 'right_anchor': right, 'activity_evidence': evidence,
+                'minimum_active_seconds': active - ((b-a)-(finish-begin)/rate),
+                'boundary_method': 'observed_asr_gap_provider_guards_and_measured_energy'})
+        if len(candidates) != 1:
+            return plan
+        cuts.extend(candidates)
+    cuts.sort(key=lambda row: row['start_sample'])
+    if any(a['end_sample'] > b['start_sample'] for a, b in zip(cuts, cuts[1:])):
+        return plan
+    result = {**plan, 'cuts': cuts, 'status': 'cuts_available',
+              'protected_word_intervals': [[w['start'], w['end']] for w in provider],
+              'provider_alignment_sha256': digest(alignment), 'activity_report_sha256': digest(before)}
+    result['plan_sha256'] = digest({k: v for k, v in result.items() if k != 'plan_sha256'})
+    return result
+
+
 def _cues(script: str, words: list[dict]) -> list[dict]:
     text = clean_script(script)
     spans = list(re.finditer(r'\w+', text))
@@ -210,6 +280,7 @@ def clean_narration(episode: Path, *, settings, raw: dict, require_ready: bool =
         emit('Voz cruda: afinando ventanas ambiguas con ASR local, sin enviar el guion al reconocedor')
         windows = _window_evidence(episode, source, script, asr, plan, settings)
         plan = plan_autocuts(script, asr, source_audio_sha256=raw['audio_sha256'], silences=silences, windows=windows)
+    plan = _activity_cuts(episode, script, asr, before, plan)
     if not plan['cuts']:
         if before['status'] == 'matched':
             return raw
@@ -237,6 +308,14 @@ def clean_narration(episode: Path, *, settings, raw: dict, require_ready: bool =
         corrected = json.loads((Path(after['report_path']).parent / 'asr.json').read_text())
         duration = probe_media(Path(edit['audio_path']), settings.ffprobe_binary).duration
         words = _word_clock(script, corrected, duration)
+        remaining_activity = activity_outside_words(Path(edit['audio_path']), words,
+            ffmpeg=settings.ffmpeg_binary, duration=duration)
+        detail['remaining_untranscribed_activity'] = remaining_activity
+        if remaining_activity:
+            write(destination / 'preprocessing.json', detail)
+            if require_ready:
+                raise ValueError(f'Corrected voice still contains untranscribed activity; montage blocked. Review {after["report_path"]}')
+            return detail
         from .audio import format_srt, parse_srt
         srt = destination / 'clean.srt'
         write(srt, format_srt(_cues(script, words)))
