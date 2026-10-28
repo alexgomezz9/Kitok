@@ -1,7 +1,8 @@
 # Estado vigente de Kitok
 
 Actualizado: **28/10/2026**. Rama **main**; cambios verificados en commits locales.
-Operador autorizó ahora commit y push a main; pendiente verificar resultado remoto y CI.
+Push autorizado completado: main remoto verificado en 73adb8d; CI de ese commit
+completada correctamente ([ejecución](https://github.com/alexgomezz9/Kitok/actions/runs/40693393540)).
 Sin publicación de vídeos. Fuentes: [guía](GUIA.md),
 [voz](docs/fish-voice.md), [carpetas](docs/episode-files.md),
 [auditoría de producción](docs/youtube-production-audit.md).
