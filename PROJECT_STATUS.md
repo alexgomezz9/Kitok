@@ -59,6 +59,8 @@ Operador27/10revocó la pausa: continuar con registro antes/después en
 Guion1984palabras,3[break]; estilo B elegido por agente entre3muestras, no
 aprobación humana. Storyboard124escenas/1984palabras con cobertura completa,
 reloj pendiente. PNG en producción desde el plan fijo; progreso exacto en editorial/estado.json.
+El helper de recorte crea un contacto de los PNG reales sin escalarlos, evitando
+montajes manuales de hojas para cada lote; nueve pruebas existentes pasadas.
 Miniatura nativa1672×941/final1280×720 vista grande y160×90.
 Muestra Fish: con énfasis falla el nombre; sin él85/85pero5s actividad sin palabras
 ASR/Fish. Kitok recorta4.699s, segundo ASR85/85y controlenergía correcto.
@@ -70,6 +72,10 @@ Voz larga base:13cortes automáticos,13diferencias restantes, montaje bloqueado.
 16/16INSERT en párrafos; A/Bcorto84palabras amboslimpios. Nueva revisión
 `revisiones/voz_texto_continuo`: MISMOguion/voz/modelo, política nueva espacios
 únicos, una solicitud distinta autorizada, proceso desacoplado y exitcode duradero.
+Terminó:5discrepancias ASR y0huecos de actividad; ventanas locales recuperan frase
+omitida por ASR y grafías. Refinamiento automático acotado en desarrollo, sin
+aceptar voz aún. GTA adjunto coincide con texto guardado; también contiene
+saltos/etiquetas, así que su presencia sola no prueba causa del defecto.
 Siguiente: verificar esa revisión, completar124PNG; montar sólo con audio válido.
 No borrar ni volver a escuchar cientos de veces el MP3 crudo de la base. Jason pausa.
 

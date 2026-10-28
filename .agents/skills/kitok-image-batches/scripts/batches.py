@@ -209,8 +209,15 @@ def crop(ep, args):
                  dhash=f'{perceptual:016x}', crop='crops/'+s['id']+'.png')
         prepared.append((s['crop'], payload))
     exclusive(folder/'atlas.png', raw)
-    for rel, payload in prepared:
+    contact = Image.new('RGB', (w, h), 'black')
+    for index, (rel, payload) in enumerate(prepared):
         exclusive(local(folder, rel), payload)
+        with Image.open(io.BytesIO(payload)) as tile:
+            contact.paste(tile, (round(index % columns*w/columns)+args.inset,
+                                 round(index // columns*h/rows)+args.inset))
+    buffer = io.BytesIO()
+    contact.save(buffer, format='PNG')
+    exclusive(folder/'contacto_recortes.png', buffer.getvalue())
     data.update(atlas_sha256=digest(folder/'atlas.png'), atlas_size=[w, h], generation_tool=args.source_kind)
     write_json(folder/'manifest.json', data)
     return {'cropped': len(prepared), 'accepted': 0, 'warnings': data['warnings']}

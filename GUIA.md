@@ -560,6 +560,8 @@ Invoca «Usa $kitok-image-batches para generar o continuar las imágenes de
 content/longform/MI_EPISODIO». La [skill de proyecto](.agents/skills/kitok-image-batches/SKILL.md)
 lee los prompts originales, usa referencias fijas y entrega PNG por ID en
 `imagenes/`; conserva láminas, recortes y manifiestos fuera de esa carpeta.
+El recorte crea `contacto_recortes.png` automáticamente, con los PNG nativos
+sin escalarlos, para su revisión visual.
 No genera voz ni monta el vídeo. El auxiliar de recorte y su ayuda están en:
 
 ```bash
