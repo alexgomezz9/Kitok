@@ -99,7 +99,7 @@ actuales del perfil antes de escribir. Terror admite amenaza, persecución, sang
 estilizada y consecuencias cuando lo exige la historia; no infantilices el relato
 ni añadas atrocidades que el canon no cuenta.
 
-Aplica `narrative_rules.natural_prose` del perfil: acciones y causas concretas, sintaxis variada; evita encadenar «No era X. No era Y. Era Z». Esta preferencia se aplica al redactar y releer con `yt-script`; no implementar comprobaciones regex, linters ni filtros posteriores para imponerla. Conservar negaciones necesarias para los hechos. Para figuras y crecimiento sigue `images.character_continuity` en protagonistas y secundarios.
+Al redactar y releer guiones con `yt-script`, aplica `narrative_rules` del perfil del canal como criterios editoriales. Esa es la fuente principal de las preferencias de escritura. Para figuras y crecimiento sigue `images.character_continuity` en protagonistas y secundarios.
 
 En TODA síntesis nueva de este flujo, usa Kitok con `collapse_whitespace_v1`:
 parte de `guion_final.txt`, convierte saltos/tabulaciones/espacios repetidos en un

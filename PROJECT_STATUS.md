@@ -1,7 +1,8 @@
 # Estado vigente de Kitok
 
 Actualizado: **28/10/2026**. Rama **main**; cambios verificados en commits locales.
-Sin push, merge ni publicación en este encargo. Fuentes: [guía](GUIA.md),
+Operador autorizó ahora commit y push a main; pendiente verificar resultado remoto y CI.
+Sin publicación de vídeos. Fuentes: [guía](GUIA.md),
 [voz](docs/fish-voice.md), [carpetas](docs/episode-files.md),
 [auditoría de producción](docs/youtube-production-audit.md).
 
@@ -82,6 +83,7 @@ Perfil y tres skills actualizados; cierre eficiente registrado en AGENTS.
 La prosa se decide al escribir con yt-script; sin regex, detectores ni filtros.
 Git auditado: un worktree,11ramas locales históricas sin commits fuera de main;
 8ramas históricas remotas consultadas, también contenidas en main43e55c3.
-No se borraron ramas. Nuevas reglas guardadas localmente, sin push.
+No se borraron ramas. Reglas editoriales centralizadas en el perfil que consulta yt-script; la skill
+de coordinación remite a esa fuente. Push a main autorizado en el último encargo.
 Siguiente: siguiente encargo editorial o mejora acotada del cierre automático;
 remakes futuros siguen pendientes de encargo concreto. No publicar ni regenerar.
