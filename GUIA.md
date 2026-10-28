@@ -562,6 +562,8 @@ lee los prompts originales, usa referencias fijas y entrega PNG por ID en
 `imagenes/`; conserva láminas, recortes y manifiestos fuera de esa carpeta.
 El recorte crea `contacto_recortes.png` automáticamente, con los PNG nativos
 sin escalarlos, para su revisión visual.
+En `configuracion.json`, `thumbnail_text` sólo admite claves `A`, `B` y `C`;
+se comprueba al cargar las entradas, antes de generar voz.
 No genera voz ni monta el vídeo. El auxiliar de recorte y su ayuda están en:
 
 ```bash

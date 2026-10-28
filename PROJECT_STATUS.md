@@ -78,7 +78,9 @@ Krueger/Kruger pendiente. Revisión documental explícita del nombre usa otra
 ventana local que sí recupera Krueger, sin afirmar escucha humana.64tests
 y revisión independiente sin P0/P1; replay de caché sin llamadas ASR. GTA adjunto coincide con texto guardado; también contiene
 saltos/etiquetas, así que su presencia sola no prueba causa del defecto.
-Siguiente: completar124PNG y preparar montaje con voz continua revisada,
+124PNG completos/validados; prepare real ready_to_render:132planos/630.533s.
+Claves de miniatura inválidas del agente corregidas en revisión activa; schema
+las rechaza antes de Fish (20pruebas packaging). Siguiente: montaje con voz revisada,
 sin otro Fish. El modo autocut conserva aceptación explícita con ruta/hash y
 bloquea actividad pendiente; nunca recorta INSERT desmentidos por refinamiento.
 No borrar ni volver a escuchar cientos de veces el MP3 crudo de la base. Jason pausa.

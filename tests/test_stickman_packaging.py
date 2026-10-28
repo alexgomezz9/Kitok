@@ -193,3 +193,11 @@ def test_rejects_invented_sources_and_bad_scene_clock(tmp_path):
     with pytest.raises(ValueError, match="timestamps"):
         prepare_packaging(tmp_path, **supplied)
     assert list(tmp_path.iterdir()) == []
+
+
+def test_thumbnail_concept_keys_are_checked_before_preparing_voice():
+    from pydantic import ValidationError
+    from kitok.youtube_stickman_es.models import Config
+    assert Config(thumbnail_text={'A': 'FREDDY KRUEGER'}).thumbnail_text == {'A': 'FREDDY KRUEGER'}
+    with pytest.raises(ValidationError):
+        Config(thumbnail_text={'curiosity': 'FREDDY KRUEGER'})

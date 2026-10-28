@@ -61,7 +61,7 @@ class Config(Model):
     chapters: list[dict] | None = None
     sources: list[dict] = Field(default_factory=list)
     description: str | None = Field(default=None, max_length=4500)
-    thumbnail_text: dict[str,str] = Field(default_factory=dict)
+    thumbnail_text: dict[Literal['A', 'B', 'C'], str] = Field(default_factory=dict)
 
 
 class Direction(Model):
