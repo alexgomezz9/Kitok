@@ -22,7 +22,8 @@
     "avoid_repeated_user_explanations": true,
     "independent_agent_per_phase_required": false,
     "cover_all_major_horror_characters_over_time": true,
-    "character_life_story_before_production_trivia": true
+    "character_life_story_before_production_trivia": true,
+    "editorial_proactivity": "Operador28/10: actuar con iniciativa, investigar y proponer/ejecutar mejoras justificadas dentro del encargo; no limitarse a instrucciones literales. Conservar decisiones expresas, fuentes y límites de gasto/publicación. No atribuir certeza de rendimiento a intuición."
   },
   "rejected_topics": [
     {
@@ -152,5 +153,17 @@
     "count": 2,
     "policy": "Ambiente instrumental de terror bajo, sin voz/coros reconocibles que puedan confundirse con narración; ducking, variación por tensión y silencios con intención. Usar biblioteca local verificada, créditos y escucha de muestra; no prometer retención medida.",
     "selection_timing": "Elegir antes del montaje, no descargar ni cambiar de música durante render."
+  },
+  "thumbnails": {
+    "identity": "Personaje STICKMAN claro y reconocible: cabeza/máscara grande, silueta estrecha y extremidades finas; conservar ropa/rasgos icónicos con detalle moderado. Punto intermedio entre referencias del operador y primeras propuestas28/10: NO llevar a palitos puros, ni a humano anatómico realista. LA HISTORIA DE blanco roto y nombre grande rojo, letras de terror legibles. Sin más iteraciones rutinarias: avanzar al episodio.",
+    "variable": "Fondo, entorno, luz, paleta secundaria, pose, escala y composición se deciden según personaje/historia. La luna, los colores del fondo y una disposición exacta NO son plantilla obligatoria. Aclaración expresa28/10.",
+    "red_policy": "Rojo como predeterminado del nombre para continuidad visual. El contraste depende del fondo; contorno/sombra y prueba160x90. Evidencia de atención contextual no prueba superioridad universal ni CTR. No cambiar un color por personaje sin razón editorial.",
+    "references": [
+      "content/longform/trazo_004_freddy_krueger/miniaturas/miniatura_final.png",
+      "content/longform/trazo_005_michael_myers_historia/miniaturas/miniatura_historia_v2.png",
+      "content/longform/trazo_003_jason_voorhees/miniaturas/miniatura_historia_v2.png"
+    ],
+    "storage": "Conservar original generado, PNG final1280x720 y revisión/procedencia en miniaturas/ de cada episodio. Versionar sustituciones; preservar voces, vídeos y fuentes. No copiar miniaturas a otros episodios como arte final.",
+    "evidence": "Preferencia del operador28/10 y revisión visual del agente; sin CTR propio ni prueba A/B. Proponer alternativas cuando haya fundamento, distinguir hipótesis de mejora medida."
   }
 }

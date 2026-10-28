@@ -92,3 +92,17 @@ Prueba y fuentes preservadas; cachés experimentales resueltas retiradas.
 Siguiente propuesto: cierre headless, QA consolidado y placa 4K única, con pruebas
 antes de integrar; cola persistente después. No se implementaron ahora esas
 capacidades. Detalle: [auditoría](docs/youtube-production-audit.md).
+
+## Nuevo encargo28/10 — reserva de episodios
+
+Miniaturas: Michael005 y Jason003 tienen `miniaturas/miniatura_final.png` nuevo y
+copia versionada `miniatura_historia_v2.png`; originales/anteriores preservados.
+Michael002 conserva copia nueva en su carpeta; Freddy permanece igual. Los bundles
+previos conservan miniatura/recibos originales: al subir, usar la selección nueva
+de `miniaturas/`. Revisión grande/móvil hecha; sin CTR/A/B ni publicación.
+Perfil y guía: stickman reconocible intermedio, letras comunes, entorno variable;
+no luna fija ni palitos puros. Iniciativa editorial autorizada sin rondas rutinarias.
+Chucky006 seleccionado; fuentes/estado en su `editorial/`. Producción en curso.
+Lectura OAuth oficial28/10: IDTrazoMaldito confirmado,0vídeos,Analyticsno_data.
+Consulta adicional de estadísticas rechazada por revisión automática tras petición
+de avanzar; descartada. No se consumieron créditosvidIQ.

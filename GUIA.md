@@ -587,6 +587,12 @@ El escalado no recupera detalle; la revisión visual del montaje sigue siendo ne
 
 ## Estilo y entrega de Trazo Maldito
 
+Miniaturas: personaje reconocible con cabeza grande, silueta estrecha, extremidades
+finas y ropa icónica moderada, sin reducirlo a palitos puros; «LA HISTORIA DE» y nombre
+grande rojo. Fondo, luz, pose y composición cambian con cada historia; no repetir
+una luna o escenario como plantilla. Referencias y proactividad editorial en el
+[contrato del canal](docs/youtube-editorial.md#identidad-de-miniaturas-y-proactividad).
+
 El canal cuenta la historia del personaje desde dentro del relato: acciones,
 peligros y consecuencias, con las fuentes y continuidad en notas. Evita «en la
 película», reseña de entregas y anécdotas de rodaje en la narración principal.

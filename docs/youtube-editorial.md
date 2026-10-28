@@ -141,3 +141,30 @@ La carpeta `entrega/` separa los seis archivos de uso del trabajo interno median
 No borrar cachés mientras queden reparaciones que puedan necesitarlas.
 
 Una muestra de 45–60 segundos valida aspectos concretos, después hay que comprobar el MP4 completo: sincronización, pronunciación, legibilidad, continuidad, mezcla y ausencia de errores semánticos. Tras publicar manualmente, si el usuario aporta métricas autorizadas, contrastar promesa, clics y retención sin atribuir causalidad a una miniatura por un solo resultado. Este flujo no publica ni cambia el canal por su cuenta.
+
+## Identidad de miniaturas y proactividad
+
+El operador fijó el28/10 dos constantes: personaje claramente stickman y texto
+«LA HISTORIA DE» con nombre grande en rojo. Las superiores izquierdas de sus
+cuadrículas Jason/Michael y la miniatura de Freddy son referencias de esa identidad.
+La cabeza/máscara grande, silueta estrecha y extremidades finas deben revelar
+el stickman. Conservar ropa y rasgos icónicos con detalle moderado: el operador
+pidió un punto intermedio, sin llevarlo a palitos puros ni anatomía realista.
+Cerrar la selección sin rondas rutinarias y avanzar al episodio.
+Fondo, luz, paleta secundaria y composición varían con la historia: **la luna no
+es una plantilla**. Rutas y detalles vigentes en `thumbnails` del perfil.
+Inspeccionar en grande y160×90; conservar versiones y originales en `miniaturas/`.
+
+El agente tiene iniciativa para investigar, detectar necesidades y ejecutar mejoras
+reversibles justificadas dentro del encargo. Las preferencias explícitas y los
+límites de coste/publicación siguen vigentes; una alternativa visual necesita
+razón concreta, y una mejora de CTR necesita medición propia. El rojo es una
+decisión editorial coherente con terror, sin garantía de más clics.
+[Estudio de atención contextual](https://pmc.ncbi.nlm.nih.gov/articles/PMC4413730/)
+y [consejos oficiales de YouTube](https://support.google.com/youtube/answer/12340300?hl=es).
+
+No se encontró requisito oficial de «calentar» un canal siete días antes de subir.
+La documentación de [creación del canal](https://support.google.com/youtube/answer/1646861?hl=es)
+y [descubrimiento](https://support.google.com/youtube/answer/141805?hl=es) no establece
+esa regla; no atribuirle beneficios demostrados. Preparar una reserva de vídeos
+es una decisión de producción, independiente de esa hipótesis.
