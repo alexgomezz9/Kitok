@@ -1,90 +1,75 @@
 # Estado vigente de Kitok
 
-Actualizado: **28/10/2026**. Rama **main**; cambios verificados en commits locales.
-Push autorizado completado: main remoto verificado en 73adb8d; CI de ese commit
-completada correctamente ([ejecución](https://github.com/alexgomezz9/Kitok/actions/runs/40693393540)).
-Sin publicación de vídeos. Fuentes: [guía](GUIA.md),
-[voz](docs/fish-voice.md), [carpetas](docs/episode-files.md),
-[auditoría de producción](docs/youtube-production-audit.md).
+Actualizado: **28/10/2026**. Rama **main**, base de esta unidad 73adb8d.
+Esta unidad actualiza documentación y entrega contenido local ignorado.
+Sin push ni publicación. El motor se reutilizó sin cambios. Fuentes: [guía](GUIA.md),
+[voz](docs/fish-voice.md), [carpetas](docs/episode-files.md).
 
-## Capacidades comprobadas
+## Michael Myers — remake entregado para revisión
 
-- Nuevos episodios stickman: voz Fish → ASR local → cortes anclados cuando son
-  seguros → segunda ASR estricta → planificación, mezcla y montaje Native.
-  Omisiones, sustituciones y actividad ambigua bloquean. No hay reparación universal.
-- TTS recibe `guion_final.txt` con espacios únicos y etiquetas `[]` conservadas;
-  registra política y hash del texto enviado. La skill exige esta preparación en
-  todas las síntesis nuevas del flujo. Solicitudes previas conservan su
-  identidad. `guion_lectura_limpia.txt` sirve al storyboard y los subtítulos.
-- El ASR puede revisar discrepancias en ventanas cortas con anclas únicas y caché,
-  sin recibir el guion ni modificar relojes. Conserva resultados originales.
-  Una revisión explícita tiene hash y estado propio; no acepta actividad pendiente
-  en autocut ni sustituye la segunda ASR tras cortes.
-- Shorts, largos Loose Thread y stickman nuevos usan Native/Fish/FFmpeg.
-  MPT sólo permite recuperación histórica explícita; no se desinstaló su servicio.
-- `scripts/stickman_delivery.py` ofrece bundle de seis archivos y organización
-  explícita con hashes/locks. No borra automáticamente al guardar. El helper de
-  imágenes crea contactos nativos; las claves de miniatura se validan antes de Fish.
+Carpeta nueva: `content/longform/trazo_005_michael_myers_historia/`.
+Historia del personaje, canon 1978→2018→Kills→Ends; episodio anterior de la máscara
+conservado aparte. Guion nuevo de 1.915 palabras, revisado independientemente; una
+llegada anticipada de Allyson corregida antes de generar voz.
 
-## Freddy — entregado con feedback positivo
+- **Normal:** `video_final.mp4`; SHA256
+  `14ed986937ce5bff5984d8f3f75dcd289effcdce5f393d47bf016f7fca56a9cc`.
+- **Subtitulado:** `entrega/video.mp4`; SHA256
+  `47200831c5a7bd7b9d834891f68e297b3572da61fddff6e26bf9ec4e5b5606f1`.
+- Ambos: **613,333 s / 18.400 fotogramas / 1920×1080 / 30 fps**. QA normal y subtitulado
+  pasados; decodificación completa y audio decodificado idéntico entre versiones.
+  −16,02 LUFS / −1,82 dBTP. Kitok produce exit 0; 44:44 totales, NVENC p5.
+- 109 PNG vistos/aceptados y validados; 112 planos reales. Se repararon 6 recortes
+  concretos, conservando originales y manifiestos. 102 fuentes de 541–542×297–298,
+  4 de 820×454–455 y 3 de 1656×925; Native escala sin inventar detalle.
+- Miniatura 1280×720 (original 1672×941) vista grande/móvil; 9 capítulos de tiempos
+  reales, descripción y créditos. Música local Anxiety/DarkFog, CC BY 4.0.
+  Bundle de 6 archivos comprobado; máster normal conservado fuera del bundle.
 
-Carpeta: `content/longform/trazo_004_freddy_krueger/entrega/`.
-Contiene vídeo subtitulado, miniatura, descripción, créditos, informe y LEEME.
-Entrada activa: `revisiones/voz_texto_continuo/`; su configuración está corregida.
-El `voz.mp3` de la raíz es el original defectuoso conservado: no usarlo como entrega.
-Fases, inputs, outputs, skills e intervenciones: `editorial/produccion.md`.
+Una solicitud Fish con `collapse_whitespace_v1`, texto enviado/hash comprobados,
+sin cortes ni nueva síntesis por el bloqueo ASR. 68 discrepancias revisadas por fila
+(nombres/cifras/segmentación); 0 actividad sin palabras. Ventanas no corroboran
+3 inserciones. Revisión documental independiente permite continuar; NO es una
+coincidencia automática ni prueba de fidelidad acústica perfecta. Dos dicciones
+exactas pendientes: **Laurie/Laura 6:11** y **aquel escondite 8:37**.
 
-Guion de 1.984 palabras y tres `[break]`; 124 PNG vistos y validados. El agente
-eligió el estilo B bajo delegación, sin aprobación humana. 123 imágenes de atlas
-son de 541–542 × 297–298; Native escala sin crear detalle. Última imagen individual:
-1656×925. Miniatura final: 1280×720, original 1672×941; vista grande y móvil.
+El agente vio todos los PNG, un fotograma normal y dos del subtitulado. No hubo
+escucha ni reproducción completa de este remake. Siguiente: revisión/escucha del
+operador, especialmente esos dos puntos. No publicar, repetir proveedores ni
+continuar Jason por rutina. Registro: `editorial/produccion.md` y `estado.json`.
 
-La nueva voz continua dura 630,517 s y no necesitó cortes. ASR: cinco diferencias
-iniciales y cero huecos; ventanas automáticas resolvieron cuatro. Krueger/Kruger
-se aceptó documentalmente con otra ventana local que recuperaba el nombre.
-El agente no escuchó audio; el operador comunicó después que quedó perfecto.
-Esto no convierte al control automático en garantía universal. GTA adjunto
-coincide con el guion guardado y también usa saltos/etiquetas; falta su recibo
-histórico para atribuir modelo o parámetros exactos. No se demostró degradación
-intencional del plan gratis ni que los saltos fueran la única causa.
+## Conservación indicada por el operador
 
-Kitok produjo 132 planos, música y subtítulos: **630,533 s, 18.916 fotogramas,
-1920×1080/30 fps**. QA base y subtitulado pasaron; audio decodificado idéntico,
-−16,02 LUFS y −2,24 dBTP. NVENC p5 confirmado por proceso y recibo. Total del
-comando: 32:17; render/unión/reloj: 1000,42 s. Una ejecución inicial se interrumpió
-porque el sandbox bloqueaba GPU; la definitiva se lanzó fuera, sin otra síntesis.
-Hash final: `a920047afd15a54cf98f6f56ec9903ad028e44d4e5e1390b504afadad5adbf29`.
+Última aclaración 28/10: conservar carpetas anteriores para borrado manual y
+mantener AMBOS MP4 (normal/subtitulado). El inventario se canceló antes de borrar:
+**0 borrados, 1.134 rutas inventariadas con SHA intacto**.
+Recibo: `local/cleanup/2026-10-28-pre-remake/cancelled-verification.json`.
+No se aplicó limpieza ni archivo a los episodios anteriores en este encargo.
 
-Chromium terminó el archivo completo a 4×, silenciado, sin error de medios y con
-9.496 fotogramas perdidos. Tramo normal 0–80,174 s: 2.406 frames, cero perdidos.
-No demuestra fluidez completa a 1×. Revisión independiente de entrega sin
-inconsistencias materiales; no escuchó audio ni repitió ASR/render/decodes.
+## Capacidades y límites vigentes
 
-Limpieza: 869 auxiliares retirados, 1457,8 MiB lógicos; 266 rutas fuente con SHA
-intacto. Se conservan revisión activa, PNG, audios, másteres, recibos y licencias.
-El vídeo exportado usa hardlink. No se midieron bloques libres ni se barrió /tmp.
+- Fish nuevo recibe espacios únicos y [] intactos; guion fuente legible conservado.
+  Solicitudes anteriores mantienen identidad/caché. No sintetizar al guardar.
+- Voz→ASR local→cortes seguros anclados en copia→segunda ASR estricta. Omisiones,
+  reemplazos y actividad ambigua bloquean; revisión explícita separada del match.
+  No hay reparación universal ni garantía de escucha humana.
+- Ventanas cortas con anclas únicas y caché, sin guion al reconocedor ni relojes
+  inventados. No reemplazan la segunda ASR tras cortes.
+- Native/Fish/FFmpeg para nuevos shorts/largos; MPT sólo recuperación histórica
+  explícita. Interfaces y contratos: [guía](GUIA.md).
+- `stickman_delivery.py`: bundle de 6 archivos y organización con hashes/locks, sin
+  borrado automático. El agente prepara relato/prompts/imágenes; Kitok procesa
+  voz, tiempos, mezcla, cámaras, subtítulos y montaje.
 
-## Jason y organización anterior
+Freddy sigue entregado con feedback muy positivo del operador. Su entrada activa
+es `trazo_004_freddy_krueger/revisiones/voz_texto_continuo`; NO usar el voz.mp3
+defectuoso de su raíz como entrega. Duración 630,533 s; su registro sigue intacto.
+Jason sigue STANDBY: referencia anterior con errores de voz, no entrega corregida;
+WAV reparado de 435,729 s, futuro remake útil >480 s sólo bajo otro encargo.
 
-Jason sigue **STANDBY**: futuro remake con nueva estética y duración útil >480 s.
-`voz_reparada.wav` dura 435,729 s; no hay vídeo nuevo con ella. El vídeo conservado
-sigue siendo referencia anterior con errores, no una entrega corregida.
-Siete episodios ya tienen estructura e índice comunes. Limpieza anterior:
-`local/cleanup/2026-10-27-organizacion/`, 419 fuentes verificadas sin deriva;
-revisiones cerradas archivadas con restauración. No repetirla como pendiente.
+## Verificación de esta unidad
 
-## Verificación y siguiente paso
-
-64 pruebas focales de audio/refinamiento y revisión independiente sin P0/P1;
-20 de packaging para validación temprana. `make docs-check` vigente. No se repitió
-suite global ni se verificó CI remoto, publicación u OAuth en esta tarea local.
-Operador28/10: feedback muy positivo del vídeo/audio; próximas producciones
-deben reforzar figuras stickman y etapas reconocibles, y evitar prosa formularia.
-Perfil y tres skills actualizados; cierre eficiente registrado en AGENTS.
-La prosa se decide al escribir con yt-script; sin regex, detectores ni filtros.
-Git auditado: un worktree,11ramas locales históricas sin commits fuera de main;
-8ramas históricas remotas consultadas, también contenidas en main43e55c3.
-No se borraron ramas. Reglas editoriales centralizadas en el perfil que consulta yt-script; la skill
-de coordinación remite a esa fuente. Push a main autorizado en el último encargo.
-Siguiente: siguiente encargo editorial o mejora acotada del cierre automático;
-remakes futuros siguen pendientes de encargo concreto. No publicar ni regenerar.
+Kitok prepare exit 0/ready_to_render; produce exit 0; QA de ambos MP4 pasado; 109 PNG con SHA
+intactos; bundle de 6 archivos/hashes y 9 capítulos comprobados. `make docs-check` y
+`git diff --check` pasados el 28/10. Sin cambio de motor: no suite global por rutina.
+No se verificaron OAuth, CI remoto ni publicación en este encargo.

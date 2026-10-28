@@ -610,6 +610,11 @@ volver a codificar ni copiar los bytes del vídeo; el resto del trabajo permanec
 fuera de esa carpeta. Para editar el vídeo, exporta otra versión sin modificar
 el máster compartido.
 
+En los remakes nuevos se conserva además `video_final.mp4` sin subtítulos en la
+carpeta del episodio. El bundle subtitulado no sustituye ese máster. Cada remake
+usa una carpeta nueva; las carpetas anteriores quedan para revisión y borrado
+manual del operador, según su instrucción del 28/10.
+
 ```bash
 .venv/bin/python scripts/stickman_delivery.py bundle content/longform/MI_EPISODIO
 .venv/bin/python scripts/stickman_delivery.py inventory content/longform/MI_EPISODIO

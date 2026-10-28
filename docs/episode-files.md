@@ -7,7 +7,7 @@ Los shorts conservan su salida por ID en `outputs/ready/`.
 ```text
 content/longform/EPISODIO/
   LEEME.md                 índice de entradas, entregas y archivo histórico
-  guion_final.txt          texto fuente; Fish recibe su contenido con strip()
+  guion_final.txt          texto fuente; Fish nuevo recibe espacios únicos y [] intactos
   titulo.txt
   configuracion.json       esquema stickman o definición Native, según el flujo
   voz.mp3                  Fish original, cuando existe; nunca editarlo in situ
@@ -70,6 +70,11 @@ automáticamente una revisión archivada.
 Una carpeta `entrega/` vacía admite el paquete de seis archivos de `bundle`.
 Si contiene vídeos históricos, se preserva; una entrega nueva requiere una revisión
 nueva. Un nombre `video_final` o un ZIP no equivale a aprobación técnica/editorial.
+
+Encargo del operador el 28/10: los remakes nuevos usan otra carpeta de episodio y
+conservan ambos vídeos, normal y subtitulado. No retirar el máster normal al
+exportar el bundle subtitulado. Las carpetas anteriores se mantienen para borrado
+manual del operador; el inventario preparado antes de esta aclaración no se aplicó.
 
 Las pruebas nuevas van en `local/pruebas/EPISODIO/`; las galerías globales útiles
 siguen en `outputs/evaluation/` y `outputs/motion-gallery/`. No llenar episodios ni

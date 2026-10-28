@@ -13,12 +13,14 @@ La skill dirige al agente y su lector devuelve contexto local; no es un servicio
 
 Verifica el CLI y el estado del episodio antes de continuar. No sobrescribas reparaciones ni registros privados; un archivo presente no equivale a un recurso revisado.
 
-## Ejercicio guiado vigente
+## Ejercicio guiado y modo actual
 
-El operador pidió27/10 que el próximo episodio se haga por fases. El perfil activa
-`workflow.guided_exercise`: «siguiente» avanza sólo UNA fase, explica entradas,
-operación y salidas reales, y se detiene. El modo completo descrito a continuación
-se recupera sólo por petición expresa de volver a automático.
+El ejercicio del 27/10 se cerró con Freddy y el perfil actual tiene
+`workflow.guided_exercise.enabled: false`. El encargo del 28/10 autoriza el remake
+completo de Michael en una carpeta nueva, conservando el episodio anterior y los
+MP4 normal/subtitulado. Se mantiene el registro de fases. Si el operador vuelve
+a activar un ejercicio guiado, «siguiente» avanza una sola fase y se detiene;
+se recupera el modo completo sólo por su petición expresa.
 
 ## Inicio y continuidad sin explicar todo de nuevo
 
