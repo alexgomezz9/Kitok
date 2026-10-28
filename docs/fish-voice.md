@@ -30,6 +30,12 @@ normalizados a un único espacio, conservando palabras y `[]`. Guarda la políti
 `collapse_whitespace_v1` y el SHA256 del texto enviado en `.stickman/voice_request.json`.
 No modifica el guion legible ni voces existentes; los recibos antiguos conservan
 el formato strip-only para recuperar su caché original.
+Esta preparación es la regla de todas las síntesis nuevas del flujo stickman.
+Ejemplo: `Primera frase.\n\nSegunda frase. [break] Tercera frase.` se envía como
+`Primera frase. Segunda frase. [break] Tercera frase.`. Los párrafos se conservan
+en el archivo fuente. No sustituye la verificación local ni demuestra una causa
+única del fallo anterior.
+
 El cliente transmite el texto de síntesis con `[]`; `clean_script` retira
 esas señales al calcular texto hablado y subtítulos. **Se probaron etiquetas en las muestras de Freddy**: una muestra con énfasis
 falló; sin él y con pausa hubo actividad extra que Kitok recortó en copia. No se

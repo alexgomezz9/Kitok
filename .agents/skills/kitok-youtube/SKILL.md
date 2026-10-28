@@ -101,6 +101,14 @@ ni añadas atrocidades que el canon no cuenta.
 
 Aplica `narrative_rules.natural_prose` del perfil: acciones y causas concretas, sintaxis variada; evita encadenar «No era X. No era Y. Era Z». No suprimas negaciones necesarias con regex. Para figuras y crecimiento sigue `images.character_continuity` en protagonistas y secundarios.
 
+En TODA síntesis nueva de este flujo, usa Kitok con `collapse_whitespace_v1`:
+parte de `guion_final.txt`, convierte saltos/tabulaciones/espacios repetidos en un
+único espacio y conserva palabras y etiquetas `[]`. El guion fuente permanece
+legible con párrafos; no envíes el archivo de lectura limpia como sustituto.
+Comprueba política y hash del texto enviado en `voice_request.json`. No cambies
+recibos antiguos ni regeneres voces existentes por esta regla. Mantén el control
+local de audio: el resultado bueno de Freddy no garantiza ausencia de fallos.
+
 Para interpretación Fish consulta [voz y fidelidad](../../../docs/fish-voice.md).
 Comprueba el modelo efectivo: S2 usa corchetes como `[break]`,
 `[long-break]`, `[whispering]`, `[emphasis]`, `[scared]` o `[sad]`; no asumir `[pausa]`

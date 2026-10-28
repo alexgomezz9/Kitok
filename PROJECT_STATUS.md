@@ -11,7 +11,8 @@ Sin push, merge ni publicación en este encargo. Fuentes: [guía](GUIA.md),
   seguros → segunda ASR estricta → planificación, mezcla y montaje Native.
   Omisiones, sustituciones y actividad ambigua bloquean. No hay reparación universal.
 - TTS recibe `guion_final.txt` con espacios únicos y etiquetas `[]` conservadas;
-  registra política y hash del texto enviado. Solicitudes previas conservan su
+  registra política y hash del texto enviado. La skill exige esta preparación en
+  todas las síntesis nuevas del flujo. Solicitudes previas conservan su
   identidad. `guion_lectura_limpia.txt` sirve al storyboard y los subtítulos.
 - El ASR puede revisar discrepancias en ventanas cortas con anclas únicas y caché,
   sin recibir el guion ni modificar relojes. Conserva resultados originales.
