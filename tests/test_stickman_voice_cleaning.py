@@ -134,3 +134,60 @@ def test_ready_correction_never_reverts_to_raw_after_model_change(episode, monke
     actual = voice_cleaning.clean_narration(episode, settings=settings, raw=raw_record(episode))
     assert actual == expected
     assert Path(actual['audio_path']) == voice_cleaning.cleaned_paths(episode, voice_cleaning.MODE)[0]
+
+
+@pytest.mark.parametrize('review_state', ['valid', 'missing', 'changed', 'uncovered_activity'])
+def test_no_cut_review_keeps_explicit_provenance_and_cannot_accept_activity(episode, monkeypatch, review_state):
+    workspace = episode / '.stickman/voice-fidelity/review-case'
+    workspace.mkdir(parents=True)
+    data = recognized('Uno dos tres cuatro cinco seis siete ocho', 2)
+    write(workspace / 'asr.json', data)
+    report = {'status': 'review_required', 'report_path': str(workspace / 'report.json'),
+              'identity': {'audio_sha256': digest(episode / 'voz.mp3'),
+                           'engine': 'local_fixture_asr', 'model_files': {'model.bin': 'a'*64}},
+              'differences': [{'kind': 'replace', 'expected': 'nombre', 'recognized': 'grafia'}],
+              'uncovered_activity': [{'start': .5, 'end': 1.5}] if review_state == 'uncovered_activity' else []}
+    write(workspace / 'report.json', report)
+    if review_state != 'missing':
+        write(workspace / 'review.json', {'decision': 'accept_asr_differences',
+            'report_sha256': 'changed' if review_state == 'changed' else digest(workspace / 'report.json'),
+            'reviewer': 'documentary ASR review', 'reason': 'Independent short recognition corroborates spelling'})
+    monkeypatch.setattr(voice_cleaning, 'verify_voice', lambda *a, **kw: report)
+    monkeypatch.setattr(voice_cleaning, '_silences', lambda *a: [])
+    monkeypatch.setattr(voice_cleaning, '_activity_cuts', lambda episode, script, asr, before, plan: plan)
+    settings = SimpleNamespace(ffmpeg_binary='ffmpeg', ffprobe_binary='ffprobe')
+    if review_state != 'valid':
+        with pytest.raises(ValueError):
+            voice_cleaning.clean_narration(episode, settings=settings, raw=raw_record(episode))
+    else:
+        raw = raw_record(episode)
+        result = voice_cleaning.clean_narration(episode, settings=settings, raw=raw)
+        assert result['audio_sha256'] == raw['audio_sha256']
+        assert result['voice_fidelity']['status'] == 'reviewed_asr_differences'
+        assert result['voice_fidelity']['review_sha256'] == digest(workspace / 'review.json')
+        assert not (episode / '.stickman/voice-cleaning/active.json').exists()
+
+
+def test_refined_match_cannot_cut_disproven_insertions_from_original_asr(episode, monkeypatch):
+    monkeypatch.setattr(voice_cleaning, 'verify_voice', lambda *a, **kw: {
+        'status': 'matched', 'differences': [{'kind': 'insert'}], 'remaining_differences': [],
+        'refinement': {'resolutions': [{'resolved': True}]}})
+    def forbidden(*a, **kw):
+        raise AssertionError('Already verified text must not enter the cut planner')
+    monkeypatch.setattr(voice_cleaning, 'plan_autocuts', forbidden)
+    monkeypatch.setattr(voice_cleaning, '_silences', forbidden)
+    raw = raw_record(episode)
+    assert voice_cleaning.clean_narration(episode, settings=SimpleNamespace(), raw=raw) == raw
+
+
+def test_partial_refinement_cannot_cut_a_disproven_insertion(episode, monkeypatch):
+    report = {'status': 'review_required', 'report_path': str(episode / 'report.json'),
+              'differences': [{'kind': 'insert'}, {'kind': 'replace'}],
+              'remaining_differences': [{'kind': 'replace'}],
+              'refinement': {'resolutions': [{'difference_index': 0, 'resolved': True}]}}
+    monkeypatch.setattr(voice_cleaning, 'verify_voice', lambda *a, **kw: report)
+    raw = raw_record(episode)
+    result = voice_cleaning.clean_narration(episode, settings=SimpleNamespace(), raw=raw, require_ready=False)
+    assert result['status'] == 'review_required' and result['cuts_applied'] == 0
+    with pytest.raises(ValueError, match='Partial recognition refinement'):
+        voice_cleaning.clean_narration(episode, settings=SimpleNamespace(), raw=raw)

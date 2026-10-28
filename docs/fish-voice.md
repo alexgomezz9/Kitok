@@ -94,6 +94,18 @@ ASR completa y energía fuera de sus palabras observadas antes de aceptar.
 Los umbrales actuales son hueco≥750ms y actividad≥500ms sobre−40dB; no detectan
 todos los sonidos posibles. Una pausa silenciosa no autoriza un corte.
 
+Antes de tratar una discrepancia como error de Fish, Kitok vuelve a reconocer
+sólo ventanas cortas del audio crudo: hasta12ventanas de20s, una carga del modelo,
+sin enviar el guion. Exige contexto único por ambos lados, correspondencia de
+TODO el intervalo y ausencia de actividad fuera de las palabras locales. Sólo
+permite diferencias de espacios cuando todas las letras normalizadas coinciden;
+no hay alias fonéticos de nombres ni palabras inventadas. Conserva ASR, relojes
+y diferencias originales; `remaining_differences` indica lo pendiente y un
+`report.refined-HASH.json` enlaza evidencias con hashes. Reanudar reutiliza ese
+resultado. Esta comprobación no modifica audio ni sustituye la segunda ASR
+estricta después de cortes. Un refinamiento parcial que desmiente inserciones
+bloquea el recorte con el ASR original, para no quitar palabras válidas.
+
 El ASR puede confundir nombres, cifras o sonidos: **una diferencia sola no
 autoriza un corte**. Reemplazos y omisiones no se eliminan automáticamente.
 Las voces/susurros que coincidan temporalmente con palabras pueden escapar al
@@ -108,6 +120,10 @@ El revisor comprueba las diferencias contra audio/guion y registra motivo real:
 
 Ese comando acepta explícitamente el informe; no convierte al ASR en infalible ni
 certifica sincronía humana. No usarlo para saltarse habla extra sin resolver.
+También se respeta en modo autocut cuando no hay actividad pendiente: devuelve
+la voz original con estado `reviewed_asr_differences`, ruta y hash de la revisión,
+sin llamarla coincidencia automática. No autoriza una copia cortada cuya segunda
+ASR siga teniendo diferencias, ni acepta huecos energéticos en ese modo.
 Para importar una transcripción local ya hecha existe `--import-asr ARCHIVO.json`;
 debe declarar `audio_sha256`, `engine: "faster-whisper-cpu-int8"` y `model_files`
 con los hashes exactos de los archivos del modelo. La importación se etiqueta

@@ -85,19 +85,26 @@ def runtime(episode):
 
 
 def test_audio_only_local_worker_cached_once_and_hash_bound_review(episode, runtime, monkeypatch):
+    import subprocess
+    run = subprocess.run
     calls = []
     def respond(command, **kwargs):
+        if command[0] == 'ffmpeg':
+            return run(command, **kwargs)
         calls.append(command)
-        assert command[-1] == str(episode / 'voz.mp3')
         assert 'Jason' not in ' '.join(command)  # Never prime ASR with the expected script.
         assert kwargs['env']['HF_HUB_OFFLINE'] == '1'
+        if command[-1] != str(episode / 'voz.mp3'):
+            paths = json.loads(command[-1])
+            assert len(paths) == 1 and Path(paths[0]).suffix == '.wav'
+            return SimpleNamespace(stdout=json.dumps([asr('Jason llegó montantani al lago')]))
         return SimpleNamespace(stdout=json.dumps(asr('Jason llegó montantani al lago')))
     monkeypatch.setattr('kitok.youtube_stickman_es.voice_fidelity.subprocess.run', respond)
     monkeypatch.setattr('kitok.media.ffprobe.probe_media', lambda *a, **k: SimpleNamespace(duration=4))
     settings = Settings(_env_file=None)
     report = verify_voice(episode, settings=settings, transcribe=True, **runtime)
     assert verify_voice(episode, settings=settings, **runtime) == report
-    assert len(calls) == 1
+    assert len(calls) == 2  # One full recognition plus one batched window pass, both cached.
     with pytest.raises(ValueError, match='Voice fidelity needs review'):
         require_reviewed(report, episode)
     path = Path(report['report_path'])

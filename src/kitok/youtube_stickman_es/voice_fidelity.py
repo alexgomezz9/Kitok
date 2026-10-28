@@ -228,6 +228,10 @@ def verify_voice(episode: Path, *, settings, transcribe: bool = False,
                   uncovered_activity=activity,
                   alignment_sha256=digest(alignment) if alignment.exists() else None)
     write(report_path, report)
+    if audio_filename == 'voz.mp3' and report['differences'] and not activity:
+        from .voice_refinement import refine_report
+        return refine_report(episode, audio, script_path.read_text(encoding='utf-8-sig'), result, report,
+                             settings=settings, python=python, model=model, transcribe=transcribe)
     return report
 
 
@@ -243,4 +247,5 @@ def require_reviewed(report: dict, episode: Path) -> None:
                 and isinstance(decision.get('reviewer'), str) and decision['reviewer'].strip()
                 and isinstance(decision.get('reason'), str) and decision['reason'].strip()):
             return
-    raise ValueError(f'Voice fidelity needs review: {len(report["differences"])} ASR differences and {len(report.get("uncovered_activity", []))} audible gaps; review {report_path}. No cuts or new synthesis were performed')
+    remaining = report.get('remaining_differences', report['differences'])
+    raise ValueError(f'Voice fidelity needs review: {len(remaining)} unresolved ASR differences and {len(report.get("uncovered_activity", []))} audible gaps; review {report_path}. No cuts or new synthesis were performed')

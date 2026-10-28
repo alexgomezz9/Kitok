@@ -17,7 +17,7 @@ from ..editing.manifest import clean_script
 from ..media.ffprobe import probe_media
 from .audio_autoclean import apply_autocuts, plan_autocuts
 from .files import digest, local_file, write
-from .voice_fidelity import activity_outside_words, tokens, verify_voice
+from .voice_fidelity import activity_outside_words, require_reviewed, tokens, verify_voice
 
 
 MODE = 'local_asr_autocut'
@@ -271,6 +271,25 @@ def clean_narration(episode: Path, *, settings, raw: dict, require_ready: bool =
         return result
     emit('Voz cruda: reconociendo contenido antes de imágenes o montaje')
     before = verify_voice(episode, settings=settings, transcribe=True)
+    # A refined textual match must not be cut using the original recognizer's
+    # disproven insertions. Its raw transcript and clocks remain diagnostic.
+    if before['status'] == 'matched':
+        return raw
+    review = Path(before['report_path']).parent / 'review.json'
+    if not before.get('uncovered_activity') and review.exists():
+        require_reviewed(before, episode)
+        return {**raw, 'voice_fidelity': {
+            'status': 'reviewed_asr_differences', 'report_path': before['report_path'],
+            'report_sha256': digest(Path(before['report_path'])),
+            'review_path': str(review), 'review_sha256': digest(review)}}
+    if any(row.get('resolved') and before['differences'][row['difference_index']]['kind'] == 'insert'
+           for row in before.get('refinement', {}).get('resolutions', [])):
+        detail = {'status': 'review_required', 'cuts_applied': 0, 'audio_path': str(source),
+                  'before_report': before['report_path'],
+                  'unresolved': before.get('remaining_differences', before['differences'])}
+        if require_ready:
+            raise ValueError(f'Partial recognition refinement needs review before any cuts; montage blocked. Review {before["report_path"]}')
+        return detail
     asr_path = Path(before['report_path']).parent / 'asr.json'
     asr = json.loads(asr_path.read_text())
     asr['identity'] = before['identity']
@@ -282,8 +301,6 @@ def clean_narration(episode: Path, *, settings, raw: dict, require_ready: bool =
         plan = plan_autocuts(script, asr, source_audio_sha256=raw['audio_sha256'], silences=silences, windows=windows)
     plan = _activity_cuts(episode, script, asr, before, plan)
     if not plan['cuts']:
-        if before['status'] == 'matched':
-            return raw
         detail = {'status': 'review_required', 'cuts_applied': 0, 'audio_path': str(source),
                   'before_report': before['report_path'], 'unresolved': plan['unresolved']}
         if require_ready:

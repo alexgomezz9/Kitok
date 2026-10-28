@@ -73,10 +73,14 @@ Voz larga base:13cortes automáticos,13diferencias restantes, montaje bloqueado.
 `revisiones/voz_texto_continuo`: MISMOguion/voz/modelo, política nueva espacios
 únicos, una solicitud distinta autorizada, proceso desacoplado y exitcode duradero.
 Terminó:5discrepancias ASR y0huecos de actividad; ventanas locales recuperan frase
-omitida por ASR y grafías. Refinamiento automático acotado en desarrollo, sin
-aceptar voz aún. GTA adjunto coincide con texto guardado; también contiene
+omitida por ASR y grafías. Refinamiento automático acotado probado:4de5 resueltas,
+Krueger/Kruger pendiente. Revisión documental explícita del nombre usa otra
+ventana local que sí recupera Krueger, sin afirmar escucha humana.64tests
+y revisión independiente sin P0/P1; replay de caché sin llamadas ASR. GTA adjunto coincide con texto guardado; también contiene
 saltos/etiquetas, así que su presencia sola no prueba causa del defecto.
-Siguiente: verificar esa revisión, completar124PNG; montar sólo con audio válido.
+Siguiente: completar124PNG y preparar montaje con voz continua revisada,
+sin otro Fish. El modo autocut conserva aceptación explícita con ruta/hash y
+bloquea actividad pendiente; nunca recorta INSERT desmentidos por refinamiento.
 No borrar ni volver a escuchar cientos de veces el MP3 crudo de la base. Jason pausa.
 
 ## Verificación y límites

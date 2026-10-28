@@ -651,6 +651,12 @@ de montar. `local_asr` sólo diagnostica; `off` conserva episodios antiguos.
 .venv/bin/python scripts/verify_stickman_voice.py content/longform/MI_EPISODIO --cut-insertions
 ```
 
+Antes de recortar una discrepancia, Kitok puede comprobarla con ASR local en
+ventanas cortas, con contexto único y sin enviarle el guion. Conserva el primer
+ASR y sus tiempos, reutiliza evidencias y bloquea las diferencias pendientes.
+Una aceptación explícita queda registrada como revisión, no como coincidencia
+automática; no autoriza actividad sin resolver ni una segunda ASR fallida.
+
 Las solicitudes nuevas envían el guion con espacios únicos conservando `[]`,
 sin cambiar el archivo fuente; los recibos guardan el hash del texto enviado.
 

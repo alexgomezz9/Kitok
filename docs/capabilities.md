@@ -321,3 +321,10 @@ El control stickman de voz también puede retirar actividad no transcrita entre
 anclas únicas cuando ASR coincide completamente y ambos relojes dejan libre el
 intervalo. Segunda ASR y control de energía residual obligatorios; no reconstruye
 palabras omitidas. [Condiciones y evidencia](fish-voice.md).
+
+El ASR puede afinar discrepancias de voz cruda en ventanas cortas con anclas
+únicas, texto contextual completo y control de energía. Conserva resultados y
+relojes originales; una grafía no recuperada literalmente sigue pendiente.
+Revisión explícita con hashes permite conservar voz original sin actividad
+pendiente, registrada como revisión, sin sustituir la segunda ASR tras cortes.
+[Contrato y límites](fish-voice.md#comprobacion-local-antes-de-montar).
