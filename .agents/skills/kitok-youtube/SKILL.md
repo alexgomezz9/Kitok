@@ -15,7 +15,7 @@ Ejecuta desde la raíz el lector compacto, sin proveedores ni escrituras:
 .venv/bin/python .agents/skills/kitok-youtube/scripts/context.py --episode content/longform/stickman_video1
 ```
 
-Lee el [perfil del canal](../../../presets/youtube_historia_stickman_es.json). Consulta sólo la fase necesaria de la [guía editorial](../../../docs/youtube-editorial.md) y las investigaciones allí enlazadas. No vuelvas a pedir preferencias o recursos que ya estén registrados. El perfil no acredita propiedad de un canal ni permisos de publicación.
+Lee el [perfil del canal](../../../presets/youtube_historia_stickman_es.json). Antes de ideas o «siguiente», consulta el archivo local señalado por `workflow.idea_registry`; no produzcas temas reservados para después. Aplica `workflow.run_efficiency` e `images.review_scope` del perfil vigente. Consulta sólo la fase necesaria de la [guía editorial](../../../docs/youtube-editorial.md) y las investigaciones allí enlazadas. No vuelvas a pedir preferencias o recursos que ya estén registrados. El perfil no acredita propiedad de un canal ni permisos de publicación.
 
 ## Ejercicio guiado vigente y trabajo práctico
 
@@ -155,7 +155,7 @@ reproducible se corrige en Kitok y se reanuda con recibos; no repetir proveedore
 para resolver un fallo local. Consulta progreso por etapas y recibo final sin
 volcar planes/logs enteros ni hacer llamadas de modelo por plano.
 
-Sigue `workflow.efficient_close`: espera procesos locales con consultas compactas; prepara notas durante las fases y cierra una vez QA y bundle estén listos. Reserva auditorías adicionales, reproducción completa en navegador y revisiones independientes para cambios/fallos o encargos que lo justifiquen; conserva los controles automáticos de cada entrega.
+Sigue `workflow.efficient_close`: termina las entradas editoriales, ejecuta `prepare --reuse-images`, encola con `scripts/stickman_jobs.py enqueue EPISODIO --require-gpu` y cierra con ID/log. Kitok continúa render, subtítulos, QA, bundle y limpieza; no esperar renders en el chat. Una pasada por contacto según `images.review_scope`; no repetir aceptadas ni imponer auditorías/revisores rutinarios. Conserva controles automáticos de cada entrega y comunica lo pendiente.
 
 Fija música `horror` para episodios nuevos según el perfil antes de mezclar. Al
 terminar, prepara metadatos finales y usa `scripts/stickman_delivery.py bundle`:
