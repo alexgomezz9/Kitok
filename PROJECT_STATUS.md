@@ -3,6 +3,19 @@
 Actualizado: **29/10/2026**. Rama **main**, base de esta unidad **b371e8d**.
 Cierre/cola stickman implementados localmente; sin push ni publicación.
 
+## Ghostface009 — guion y referencias en preparación
+
+`content/longform/trazo_009_ghostface_origen/`, Scream1996 solamente. Operador pide
+otro personaje, no producir ahora las ideasSaw. Registro local deideas:
+`content/channel_launch/ideas_video.md`, consultado por perfil/guía antes de siguiente.
+Actualizadas reglas de eficiencia: yt-script, icono/giros antes de PNG, una pasada
+por contacto y sólo reparaciones materiales; mejora continua breve por corrida.
+Ancla de Ghostface/Sidney/Billy/Stu generada y revisada. Guion candidato/decisiones
+en curso con un agente; aún sin voz ni lotes. High/medium es recomendación por
+fase, sin garantía de igualdad ni cambios de configuración global.
+Siguiente: revisar/fijar guion, Fish/ASR ligero, storyboard real, PNG con3workers,
+prepare y colaGPU; cerrar conID/log, sin esperar render ni publicar.
+
 ## Jigsaw008 — entregado a la cola GPU
 
 `content/longform/trazo_008_jigsaw_historia/`: guion2.088palabras,110PNG revisados

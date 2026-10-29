@@ -24,6 +24,27 @@ se recupera el modo completo sólo por su petición expresa.
 
 ## Inicio y continuidad sin explicar todo de nuevo
 
+Antes de proponer ideas o interpretar «siguiente», consulta
+`content/channel_launch/ideas_video.md`, registro editorial local señalado por
+`workflow.idea_registry` del perfil. Distingue ideas reservadas, episodio activo
+y vídeos ya preparados. Las propuestas de Saw quedan reservadas; el encargo009
+es otro personaje: Ghostface, con continuidad Scream1996.
+
+En cada producción busca una ineficiencia real y propone o aplica una mejora
+pequeña y verificable; bastan 1–3 líneas en el registro del episodio. No crear
+una auditoría nueva ni inventar mejoras para cumplir una cuota. `yt-script`
+dirige hooks, rehooks, progresión y resolución; el storyboard debe comprobar
+presencia suficiente del icono/máscara y no anticipar los giros antes de generar.
+
+Revisión visual eficiente: una pasada por el contacto de cada lámina, reparando
+sólo contradicción narrativa, identidad equivocada, deformación clara, recorte
+ilegible o cambio grande de estilo. No regenerar por manos ocultas o pequeñas
+variaciones de ropa, pelo y expresión. Mantener decodificación/hashes y QA de
+Kitok; no repetir aceptadas ni realizar suites/revisores generales por rutina.
+High se recomienda para guion/canon/dirección; medium puede servir para ejecución
+con brief cerrado, sin garantía de calidad idéntica ni ahorro fijo. El esfuerzo
+del agente no configura la calidad del proveedor ImageGen.
+
 «Siguiente» dentro de este proyecto encarga elegir y producir el próximo episodio
 de Trazo Maldito hasta entrega local. El agente elige personaje, ángulo, título,
 miniatura y guion según el perfil y las referencias observadas; utiliza las skills

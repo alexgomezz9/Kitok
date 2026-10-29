@@ -703,6 +703,13 @@ cambios/fallos que lo justifiquen. Volver al modo automático requiere petición
 
 ## Producción repetida de Trazo Maldito
 
+Antes de elegir otro episodio, consultar `content/channel_launch/ideas_video.md`.
+El perfil enlaza este registro local y las reglas de eficiencia de la
+[guía editorial](docs/youtube-editorial.md#inicio-y-continuidad-sin-explicar-todo-de-nuevo).
+Guion con `yt-script`, revisión global de historia/icono antes de los PNG y una
+pasada por contacto de cada lámina; corregir errores relevantes, sin regenerar
+por detalles menores. Registrar mejoras útiles del recorrido en pocas líneas.
+
 En interiores, separar la referencia de técnica/ambiente, el ancla de identidad
 del protagonista y la miniatura. Cada escena define las expresiones de todos sus
 personajes; los secundarios no heredan cejas agresivas, sonrisa o maquillaje del
