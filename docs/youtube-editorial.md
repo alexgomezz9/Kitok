@@ -168,3 +168,15 @@ La documentación de [creación del canal](https://support.google.com/youtube/an
 y [descubrimiento](https://support.google.com/youtube/answer/141805?hl=es) no establece
 esa regla; no atribuirle beneficios demostrados. Preparar una reserva de vídeos
 es una decisión de producción, independiente de esa hipótesis.
+
+## Expresiones propias de cada escena
+
+Feedback29/10: en Chucky se observa repetición de cejas agresivas en parte del
+reparto; una influencia de las anclas es plausible, sin causa única demostrada.
+La miniatura orienta packaging. Una guía interior separada fija línea, proporciones
+y ambiente con expresiones variadas; el ancla del protagonista sólo fija su
+identidad. Cada prompt decide emoción, cejas, ojos, boca y postura de los personajes
+según la acción. Miedo, curiosidad, tristeza o calma no deben convertirse por defecto
+en la mirada/sonrisa malvada del villano. Ver `images.scene_expressions` del perfil.
+Revisión semántica de secundarios y momentos tranquilos antes de ampliar los lotes;
+no regenerar episodios aceptados por esta nueva regla.

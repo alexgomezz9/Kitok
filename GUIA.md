@@ -691,6 +691,12 @@ cambios/fallos que lo justifiquen. Volver al modo automático requiere petición
 
 ## Producción repetida de Trazo Maldito
 
+En interiores, separar la referencia de técnica/ambiente, el ancla de identidad
+del protagonista y la miniatura. Cada escena define las expresiones de todos sus
+personajes; los secundarios no heredan cejas agresivas, sonrisa o maquillaje del
+villano. Regla y revisión de Chucky en [guía editorial](docs/youtube-editorial.md#expresiones-propias-de-cada-escena).
+
+
 El perfil del canal fija la prosa natural y la identidad stickman de todos los
 personajes, incluidas sus etapas de crecimiento. Las skills existentes lo aplican
 sin modificar retroactivamente guiones, imágenes o voces aceptados.

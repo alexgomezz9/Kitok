@@ -1,7 +1,27 @@
 # Estado vigente de Kitok
 
-Actualizado: **29/10/2026**. Rama **main**, base de esta unidad **2d0df60**.
+Actualizado: **29/10/2026**. Rama **main**, base de esta unidad **00ed04a**.
 Cierre/cola stickman implementados localmente; sin push ni publicación.
+
+## Pennywise007 — entregado a la cola, render en curso
+
+`content/longform/trazo_007_pennywise_historia/`, continuidad IT2017/2019.
+Guion2157palabras habladas,87PNG vistos/validados,2reparaciones,miniatura1280×720
+vista grande/móvil;15ImageGen. Preparaciónreal:134planos/708.0s previstos/13capítulos.
+Voz original707.9705s preservada;28discrepanciasASR revisadas documentalmente,
+5+5ventanas,0actividadfuera,0cortes. Dos posibles variacionesmenores aceptadas;
+escucha humana pendiente. UnaudioFishconfirmado, tras primerfalloDNS incierto y
+reintentoautorizado; siempre s2.1-pro-free, sin inferir cobro a partir del nombre.
+
+Worker **9cd3ae0ad98b447283020a2091db75d0**, GPUexigida; log confirmaNVENCp5
+ymezcla iniciada. Resumen `local/stickman_jobs/ESTADO.md`; log delmismoID.
+Kitok continúa normal/subtítulos/QA/bundle/limpieza sin mantener al agenteesperando.
+**Todavía no acreditados MP4/QA/limpieza finales de Pennywise.** No publicar.
+
+Feedback29/10 guardado en perfil/guía: estilos/interiores y ancla separados de
+miniatura; emoción/cejas/ojos/boca/postura por escena, sin cara delvillano enreparto.
+MuestraChucky vista, patrónobservado; causalidaddereferencia plausible noconfirmada.
+Chucky/vídeos anteriores no se modifican por esta regla futura.
 
 ## Cola stickman — disponible para el siguiente episodio
 
@@ -90,7 +110,8 @@ Michael002 conserva copia nueva en su carpeta. Freddy permanece igual.
 
 ## Siguiente paso
 
-Preparar el próximo episodio, revisar sus materiales y encolar la revisión activa;
-terminar el turno dejando estado/log. No hay un vídeo nuevo encargado ni generación
-de pago iniciada en esta unidad. El operador revisa/escucha Chucky; no publicar.
-CI/remoto sin comprobar; no push autorizado para esta unidad.
+Consultar el estado/log de Pennywise; intervenir sólo si queda REVISAR o lo pide el
+operador. Puede prepararse otro episodio mientras Kitok monta. No esperar aquí QA.
+Cambios de esta unidad: preferencias/editorial/estado, sin modificar motor.
+`docs-check`, validaciónconfig, integridad87PNG y preparaciónreal pasados29/10.
+No suite global por rutina; no push, publicación ni CI/remoto comprobados.

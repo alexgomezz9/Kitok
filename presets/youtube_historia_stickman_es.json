@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-10-28",
+  "updated": "2026-10-29",
   "profile_id": "historia_stickman_es",
   "language": "es",
   "channel_handle": "@trazomalditoes",
@@ -41,7 +41,9 @@
     "existing_episode_config": "content/longform/trazo_002_mychael_myers/configuracion.json",
     "transcript_verification": "local_asr_autocut",
     "performance_instructions": "Consultar docs/fish-voice.md. S2 usa [break], [long-break], [whispering], [emphasis], emociones; no asumir tiempos exactos ni [pausa] documentado. Guion limpio separado de dirección TTS; no añadir etiquetas a episodios ya sintetizados.",
-    "fidelity_policy": "Voz cruda Fish → ASR local sin guion → recortes de inserciones con anclas y márgenes acústicos en copia → segunda ASR → tiempos/mezcla/montaje. Bloquear frases ausentes/sustituidas, inserciones ambiguas o sílabas residuales. No borrar originales ni fingir fidelidad por marcas Fish."
+    "fidelity_policy": "Voz cruda Fish → ASR local sin guion → recortes de inserciones con anclas y márgenes acústicos en copia → segunda ASR → tiempos/mezcla/montaje. Bloquear frases ausentes/sustituidas, inserciones ambiguas o sílabas residuales. No borrar originales ni fingir fidelidad por marcas Fish.",
+    "retry_authorization": "Operador29/10: permite reintentar la voz las veces necesarias siempre usando s2.1-pro-free; conservar intentos/recibos y no inferir gratuidad del nombre. No usar otros modelos con esta autorización.",
+    "network_preflight": "Antes de la primera síntesis comprobar conectividad de lectura sin texto ni credenciales; no lanzar una petición de pago desde un entorno con DNS/red bloqueados. Acceso de red/GPU del worker se comprueba en el entorno real. Conservar intentos inciertos y la autorización expresa si se reintentan."
   },
   "images": {
     "delivery": "PNG independientes, composición horizontal 16:9, destino de vídeo 1920x1080/30 fps",
@@ -68,7 +70,9 @@
       "existing_episode": "No rediseñar Jason ni reemplazar imágenes aprobadas por una regla futura."
     },
     "lighting_and_horror": "Referencias visuales aportadas por el operador27/10: máscaras grandes y reconocibles, cuerpos/extremidades stickman finos, tinta negra marcada, contraluz azul/luna y naranja/rojo, niebla, bosque/lago/casa con profundidad y amenaza, cuchillo/machete ensangrentado y salpicaduras cuando lo cuenta la escena. Viñetas interiores con esa atmósfera y claridad, sin copiar el texto ni flechas de miniatura. No aplicar oscuridad/violencia por defecto a infancia tranquila o escenas de día antes del conflicto.",
-    "character_continuity": "Preparar una ficha estable por personaje y variantes de edad/etapa. Revisar juntas infancia, adolescencia/adultez y transformación cuando existan en el canon: proporciones/altura, rostro simple, pelo, paleta y señas persistentes deben permitir reconocerlo. Cambiar sólo rasgos que la historia justifique. Máscaras, quemaduras o heridas aparecen cuando corresponda; no trasladarlas a su infancia. Aplicar el mismo criterio a secundarios; planos detalle permitidos sin perder el lenguaje gráfico del canal."
+    "character_continuity": "Preparar una ficha estable por personaje y variantes de edad/etapa. Revisar juntas infancia, adolescencia/adultez y transformación cuando existan en el canon: proporciones/altura, rostro simple, pelo, paleta y señas persistentes deben permitir reconocerlo. Cambiar sólo rasgos que la historia justifique. Máscaras, quemaduras o heridas aparecen cuando corresponda; no trasladarlas a su infancia. Aplicar el mismo criterio a secundarios; planos detalle permitidos sin perder el lenguaje gráfico del canal.",
+    "reference_roles": "Separar estilo interior, identidad y miniatura. La miniatura es referencia de packaging y nunca plantilla facial del reparto. Una ancla del villano sólo fija su identidad; secundarios tienen rasgos propios.",
+    "scene_expressions": "Operador29/10 detecta cejas agresivas repetidas en secundarios de Chucky. Definir por escena emoción, cejas, ojos, boca y postura de CADA personaje: curiosidad, miedo, tristeza, calma, alivio o determinación según lo narrado. Rasgos de identidad estables, expresión variable. No heredar sonrisa malvada, cejas en V, maquillaje ni mirada del protagonista. Revisar especialmente víctimas, familiares y escenas tranquilas; usar guía expresiva neutral y ficha de protagonista separadas."
   },
   "known_episode": "content/longform/trazo_004_freddy_krueger",
   "known_episode_caveat": "Operador28/10: feedback muy positivo del vídeo y audio; pide que futuras producciones refuercen todavía más las figuras stickman y su continuidad. No rediseñar medios ya generados sin encargo.",
@@ -119,7 +123,7 @@
       "authorization": "Operador27/10: dormir y continuar entre fases con registro escrito antes/después para auditar mañana"
     },
     "practical_work": "Una muestra real primero; pruebas focales del cambio y comprobación del recorrido afectado. No repetir suites grandes sin cambios/fallos que lo justifiquen. No añadir código o capas sin demostrar su función en el paso actual.",
-    "efficient_close": "Durante render/ASR/QA local usar esperas y consultas compactas; el proceso no requiere razonamiento de modelo continuo. No repetir reproducción completa en navegador, revisiones independientes ni suites globales en cada episodio de un motor estable sin cambio/fallo que lo justifique. Mantener controles automáticos de voz, integridad y QA final. Preparar notas/metadatos durante las fases y reunir el cierre en una actualización breve; entregar al pasar QA y bundle, sin auditorías nuevas por rutina. Tras completar entrega y resolver reparaciones, revisar y aplicar organize para retirar auxiliares regenerables: clips/placas de render, contactos y láminas/crops resueltos. El operador autoriza esa limpieza; conservar ambos MP4, imágenes finales, voz pagada, alineación, prompts, manifiestos, licencias y estado. No borrar carpetas históricas enteras. Es una instrucción del agente, no una limpieza automática ya implementada en produce."
+    "efficient_close": "Operador29/10: tras guion/voz-ASR aceptados, storyboard, todos los PNG revisados, miniatura final y descripción/capítulos definitivos, ejecutar prepare --reuse-images y encolar la revisión activa con scripts/stickman_jobs.py enqueue EPISODIO --require-gpu. Terminar el turno dejando ID, ESTADO.md y log: Kitok continúa render, subtítulos, QA, bundle y limpieza. No permanecer consultando renders. Si falla queda needs_review, conserva entradas y cachés; investigar y retry explícito sin repetir proveedores. Conservar ambos MP4, PNG, voz/alineación, prompts/manifiestos/licencias/revisiones. No publicar ni borrar históricos."
   },
   "duration_policy": {
     "minimum_seconds": 480,
