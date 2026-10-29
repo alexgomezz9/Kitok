@@ -3,6 +3,20 @@
 Actualizado: **29/10/2026**. Rama **main**, base de esta unidad **b371e8d**.
 Cierre/cola stickman implementados localmente; sin push ni publicación.
 
+## Jigsaw008 — materiales en preparación
+
+`content/longform/trazo_008_jigsaw_historia/`: guion fijado de 2.088 palabras,
+110 imágenes fuente / 127 planos / 710,5 s previstos y 12 capítulos preparados.
+Una síntesis Fish de 710,47825 s conservada, sin cortes ni resíntesis; revisión
+documental ASR aceptada, escucha humana pendiente. El perfil y la guía recogen
+la instrucción del operador: priorizar habla añadida y cambios materiales, sin
+prolongar revisiones por nombres. Miniatura final 1280×720 revisada.
+
+Ensayo ImageGen de tres agentes en curso; sesión anterior interrumpida por límite
+de uso. Se recuperó la lámina005 sin repetirla; se conservan los recortes aceptados
+y se reparan errores concretos de identidad/estilo. Sin render todavía. Al cerrar
+los PNG: `prepare --reuse-images` y cola GPU, con ID/log. No publicar.
+
 ## Pennywise007 — entrega técnica terminada
 
 `content/longform/trazo_007_pennywise_historia/`, continuidad IT2017/2019.

@@ -56,6 +56,12 @@ Fuentes principales: [control emocional Fish](https://docs.fish.audio/developer-
 
 ## Comprobación local antes de montar
 
+Para Trazo Maldito, el operador precisó el 29/10 que el objetivo principal es
+detectar habla añadida ajena al guion. Las variantes de nombres, por sí solas,
+no justifican revisiones extensas ni resíntesis. Documentar la aceptación y
+conservar el audio cuando no haya evidencia de inserciones o cambios materiales;
+no presentar esa decisión como escucha humana ni coincidencia acústica perfecta.
+
 `voice.transcript_verification: "local_asr_autocut"` es el valor de `init` para
 episodios stickman nuevos: reconoce la voz cruda, recorta inserciones verificables
 en una copia PCM y reconoce de nuevo ANTES de planificar/mezclar/renderizar.

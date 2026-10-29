@@ -43,7 +43,8 @@
     "performance_instructions": "Consultar docs/fish-voice.md. S2 usa [break], [long-break], [whispering], [emphasis], emociones; no asumir tiempos exactos ni [pausa] documentado. Guion limpio separado de dirección TTS; no añadir etiquetas a episodios ya sintetizados.",
     "fidelity_policy": "Voz cruda Fish → ASR local sin guion → recortes de inserciones con anclas y márgenes acústicos en copia → segunda ASR → tiempos/mezcla/montaje. Bloquear frases ausentes/sustituidas, inserciones ambiguas o sílabas residuales. No borrar originales ni fingir fidelidad por marcas Fish.",
     "retry_authorization": "Operador29/10: permite reintentar la voz las veces necesarias siempre usando s2.1-pro-free; conservar intentos/recibos y no inferir gratuidad del nombre. No usar otros modelos con esta autorización.",
-    "network_preflight": "Antes de la primera síntesis comprobar conectividad de lectura sin texto ni credenciales; no lanzar una petición de pago desde un entorno con DNS/red bloqueados. Acceso de red/GPU del worker se comprueba en el entorno real. Conservar intentos inciertos y la autorización expresa si se reintentan."
+    "network_preflight": "Antes de la primera síntesis comprobar conectividad de lectura sin texto ni credenciales; no lanzar una petición de pago desde un entorno con DNS/red bloqueados. Acceso de red/GPU del worker se comprueba en el entorno real. Conservar intentos inciertos y la autorización expresa si se reintentan.",
+    "review_scope": "Operador29/10: priorizar detección de habla añadida ajena al guion (ejemplo montaniu). No gastar revisiones extensas ni repetir síntesis por pronunciación/ortografía de nombres si no hay evidencia de habla extra o cambio material. Conservar audio y registrar aceptación breve cuando proceda."
   },
   "images": {
     "delivery": "PNG independientes, composición horizontal 16:9, destino de vídeo 1920x1080/30 fps",

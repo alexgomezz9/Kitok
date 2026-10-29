@@ -677,6 +677,11 @@ ASR y sus tiempos, reutiliza evidencias y bloquea las diferencias pendientes.
 Una aceptación explícita queda registrada como revisión, no como coincidencia
 automática; no autoriza actividad sin resolver ni una segunda ASR fallida.
 
+En Trazo Maldito, la revisión prioriza habla añadida ajena al guion y cambios
+materiales. Una variante de pronunciación o transcripción de un nombre no exige
+por sí sola más ventanas ASR ni otra síntesis. Conserva la voz y registra una
+aceptación breve cuando la evidencia permita continuar, según el perfil del canal.
+
 Las solicitudes nuevas envían el guion con espacios únicos conservando `[]`,
 sin cambiar el archivo fuente; los recibos guardan el hash del texto enviado.
 
