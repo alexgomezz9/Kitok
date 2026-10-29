@@ -54,12 +54,11 @@ instrucciones de operación vigentes duplicadas.
 
 ## 6. Escalar la producción tras Freddy (28/10)
 
-Prioridades propuestas, todavía sin implementar en el motor:
+El cierre y la cola local están implementados29/10; optimizaciones restantes:
 
-1. Cierre automático de `produce`: con los inputs editoriales finales presentes,
-   crear el bundle de seis archivos en la carpeta común y ejecutar limpieza
-   segura de derivados tras QA. Conservar hashes, revisión activa y originales;
-   cualquier fallo se reanuda sin otra voz ni recodificación.
+1. Disponible: `complete` y `scripts/stickman_jobs.py enqueue` cierran ambos QA,
+   paquete y limpieza conservadora con inputs congelados; resumen y logs locales.
+   `produce` conserva su contrato anterior. [Operación](../GUIA.md#produccion-repetida-de-trazo-maldito).
 2. Consolidar recorridos del QA final para reducir lecturas/decodificaciones
    repetidas, preservando controles de fotogramas, audio, negros y reloj.
 3. Integrar y ampliar cobertura de la placa 4K preparada una vez, manteniendo
@@ -70,10 +69,11 @@ Prioridades propuestas, todavía sin implementar en el motor:
 4. Probar ASS después de transición y compartir el cálculo de cámara para las
    salidas normal/subtitulada. Conservar ambas requiere codificar dos vídeos;
    evitar decodificaciones repetidas sin cambiar reloj, estilo o audio.
-5. Después del cierre headless de un episodio: cola persistente separada, estados
-   `needs_review/failed/technical_complete`, un trabajo pesado a la vez y locks
-   global/por episodio. Agentes pueden preparar otros guiones/prompts mientras
-   Kitok trabaja. No generar aceptaciones ASR automáticamente para desbloquear.
+5. Disponible: cola persistente separada, estados `queued/running/needs_review/
+   technical_complete`, lease por worker y lock por episodio. No es un servicio
+   de arranque de Windows ni comparte exclusión con renders Studio/CLI ajenos.
+   No genera aceptaciones ASR ni reintenta trabajos interrumpidos automáticamente.
+
 
 Preferencias ya fijadas en perfil/skills: prosa sin antítesis o tríadas mecánicas;
 figuras stickman en todos los personajes, con fichas y etapas reconocibles.

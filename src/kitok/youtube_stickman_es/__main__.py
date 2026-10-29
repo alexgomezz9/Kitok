@@ -13,7 +13,7 @@ from .progress import TerminalProgress
 def main(argv=None):
     parser = argparse.ArgumentParser(description='Kitok youtube_stickman_es: episode preparation, resumable images and shared Native render.')
     parser.add_argument('command', choices=['init','prepare','produce','resume','render','status','request','request-next',
-                                           'subtitles','import-image','review-image','approve-style','reject','retry','unknown','package'])
+                                           'complete','subtitles','import-image','review-image','approve-style','reject','retry','unknown','package'])
     parser.add_argument('episode',type=Path,help='Episode folder inside the Kitok workspace')
     parser.add_argument('--subtitles', action='store_true', help='Also export a captioned video: three words, active word yellow; real word timestamps required')
     parser.add_argument('--quiet', action='store_true', help='Hide human progress on stderr; keep final JSON')

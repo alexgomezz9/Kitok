@@ -334,3 +334,20 @@ relojes originales; una grafía no recuperada literalmente sigue pendiente.
 Revisión explícita con hashes permite conservar voz original sin actividad
 pendiente, registrada como revisión, sin sustituir la segunda ASR tras cortes.
 [Contrato y límites](fish-voice.md#comprobacion-local-antes-de-montar).
+
+## Cola local stickman y cierre técnico
+
+Con inputs editoriales definitivos, voz/alineación existentes aceptadas, imágenes
+aportadas y miniatura seleccionada, `scripts/stickman_jobs.py enqueue EPISODIO`
+lanza un worker desacoplado del chat. Ejecuta el motor Native existente: mezcla,
+ambos MP4, ambos QA, paquete y `organize` sin archivar revisiones. Conserva fuentes,
+ambos másteres y evidencia; no llama Fish/ImageGen ni acepta diferencias ASR.
+`--require-gpu` bloquea si NVENC no funciona; sin él permite CPU, registrado en log.
+
+Estado persistente y resumen Markdown en `local/stickman_jobs/`; logs por intento
+acumulados por ID, heartbeat y diagnóstico de fase/error. Un consumidor por cola,
+no exclusión global de otros CLI/Studio. `retry` es explícito y exige los mismos
+hashes; interrupciones conservan material y los grupos de procesos supervivientes
+bloquean nuevas tareas. `start` reactiva pendientes; no hay servicio/autostart.
+No son una publicación ni una aprobación audiovisual: TERMINADO es cierre técnico.
+[Comandos y límites](../GUIA.md#produccion-repetida-de-trazo-maldito).

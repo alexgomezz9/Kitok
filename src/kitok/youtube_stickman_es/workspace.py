@@ -132,8 +132,13 @@ def organize(root: Path, episode: Path, *, apply=False, archive_revisions=False)
     """Explicit maintenance. Dry run first; closed revisions are archived before removal."""
     root = root.resolve()
     episode = episode_path(root, episode)
+    with episode_lock(episode):
+        return _organize_locked(root, episode, apply=apply, archive_revisions=archive_revisions)
+
+
+def _organize_locked(root, episode, *, apply=False, archive_revisions=False):
+    """Internal tail helper; caller holds episode_lock."""
     with ExitStack() as locks:
-        locks.enter_context(episode_lock(episode))
         config_path = local_file(episode, 'configuracion.json', exists=False)
         config = json.loads(config_path.read_text()) if config_path.is_file() else {}
         if config.get('script_file') and config.get('id'):

@@ -86,3 +86,14 @@ siguen en `outputs/evaluation/` y `outputs/motion-gallery/`. No llenar episodios
 cerrados. Conservar cachés de voz pagada, modelos ASR compartidos, stock reutilizable,
 credenciales y trabajos activos. Una limpieza de episodios no desinstala MPT ni
 otras dependencias y no borra otros proyectos.
+
+## Cierre de trabajos de la cola stickman
+
+La cola descrita en [GUIA](../GUIA.md#produccion-repetida-de-trazo-maldito) usa
+`complete`: verifica ambos MP4/QA/recibos, reúne la entrega y aplica `organize`
+sin archivar revisiones. `.stickman/completion-cleanup.json` persiste la lista
+previa, intentos e integridad posterior. Si falla, no purgar carpetas manualmente:
+leer el log del trabajo y reanudar conservando fuentes y cachés útiles.
+`local/stickman_jobs/ESTADO.md` resume todos los trabajos nuevos; no modifica ni
+importa automáticamente episodios históricos. No existe una carpeta cuyo borrado
+completo sustituya esta limpieza por lista de archivos comprobados.

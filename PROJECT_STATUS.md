@@ -1,7 +1,38 @@
 # Estado vigente de Kitok
 
-Actualizado: **29/10/2026**. Rama **main**, base de esta unidad **eee0fd1**.
-Entrega editorial local; sin cambios del motor, push ni publicación.
+Actualizado: **29/10/2026**. Rama **main**, base de esta unidad **2d0df60**.
+Cierre/cola stickman implementados localmente; sin push ni publicación.
+
+## Cola stickman — disponible para el siguiente episodio
+
+`complete` reúne Native normal → subtítulos → ambos QA/recibos → entrega seis
+archivos → `organize` conservador, bajo un lock de episodio. Recibe materiales
+editoriales definitivos y narración existente; no ejecuta síntesis, ASR ni cortes.
+El agente termina guion/voz/imágenes/miniatura/descripción/capítulos antes de encolar.
+
+`scripts/stickman_jobs.py enqueue EPISODIO --require-gpu` arranca un worker
+independiente de terminal/chat; `status`, `watch [ID]`, `retry ID` y `start`.
+Resumen `local/stickman_jobs/ESTADO.md`, JSON/log por ID con fase, planos,
+heartbeat, error y traceback. Estados queued/running/needs_review/technical_complete.
+Inputs congelados por SHA, retry explícito sin repetir proveedores. Un pesado por
+cola; no exclusión de otros CLI/Studio ni servicio de arranque de Windows.
+Muerte del worker conserva materiales y procesos supervivientes bloquean la cola.
+
+Cierre técnico conserva ambos MP4, PNG, voz original/efectiva, alineación, prompts,
+manifiestos/licencias/revisiones. Auditoría de limpieza previa e integridad posterior.
+GPU requerida se propaga a cada nueva codificación; reutiliza bytes válidos antes
+de seleccionar encoder. NVENC p5 comprobado con acceso real al dispositivo;
+el sandbox restringido selecciona CPU. [Operación](GUIA.md#produccion-repetida-de-trazo-maldito).
+
+Verificado29/10: **95 tests focales**, incluidos Native real6s, ambos QA, bundle,
+limpieza, reuse sin encode, fallo de bundle/limpieza parcial, inputs cambiados,
+worker desacoplado, kill+FFmpeg superviviente, locks y política GPU. Revisiones
+independientes arquitectura/corrección/adversarial; hallazgo GPU corregido y releído.
+**25 tests frontend + build**, `studio-check`, `docs-check`, higiene y whitespace.
+`make verify` excedió su límite600s en pytest (~70%, sin fallos mostrados hasta
+corte); suite global completa no acreditada. No repetir vídeos históricos para QA.
+Todavía sin episodio largo completo por la nueva cola; primera producción real
+servirá para confirmar duración/operación. Éxito técnico no acredita escucha humana.
 
 ## Chucky — entrega cerrada para revisión del operador
 
@@ -57,10 +88,9 @@ Michael002 conserva copia nueva en su carpeta. Freddy permanece igual.
 - Lectura oficial de Trazo Maldito comprobada28/10: ID correcto, cero vídeos,
   Analytics sin datos y Reporting disponible. No se verificaron publicación ni CI.
 
-## Verificación y siguiente paso
+## Siguiente paso
 
-Kitok preparado/renderizado, QA de ambos MP4, hashes y bundle comprobados29/10;
-limpieza aplicada y fuentes/finales íntegros. `make docs-check` y
-`git diff --check` pasados29/10 para cerrar esta unidad documental.
-Sin cambios del motor: no suite global por rutina.
-**Trabajo cerrado.** Operador revisa/escucha la entrega; no hay publicación autorizada.
+Preparar el próximo episodio, revisar sus materiales y encolar la revisión activa;
+terminar el turno dejando estado/log. No hay un vídeo nuevo encargado ni generación
+de pago iniciada en esta unidad. El operador revisa/escucha Chucky; no publicar.
+CI/remoto sin comprobar; no push autorizado para esta unidad.

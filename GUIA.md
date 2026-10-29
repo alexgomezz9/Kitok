@@ -694,17 +694,63 @@ cambios/fallos que lo justifiquen. Volver al modo automático requiere petición
 El perfil del canal fija la prosa natural y la identidad stickman de todos los
 personajes, incluidas sus etapas de crecimiento. Las skills existentes lo aplican
 sin modificar retroactivamente guiones, imágenes o voces aceptados.
-Durante render/ASR/QA locales, el agente espera y consulta progreso compacto.
-El QA automático mantiene sus controles; las auditorías extra y recorridos
-completos adicionales se reservan para cambios, fallos o encargos específicos.
-El cierre automático del bundle y limpieza está propuesto en la
-[hoja de ruta](docs/roadmap.md#6-escalar-la-produccion-tras-freddy-2810).
+Cuando el guion, la voz/alineación y las imágenes están preparados y aceptados,
+el agente puede entregar el episodio a una cola local y cerrar el chat. Kitok
+hace mezcla, montaje normal, subtítulos, QA de ambos MP4, paquete de seis archivos
+y limpieza conservadora, sin generar otra voz, aceptar ASR ni publicar.
 
-Con el paquete editorial y la voz revisados, el CLI puede realizar el montaje
-sin que el agente permanezca consultando el progreso. Todavía puede detenerse
-por discrepancias de voz o entradas pendientes; el empaquetado editorial final
-y `bundle` son pasos separados. La [auditoría](docs/youtube-production-audit.md)
-registra las intervenciones reales y la muestra de rendimiento de Michael.
-Tras cerrar reparaciones y verificar la entrega, el operador autoriza retirar
-auxiliares regenerables con `organize`; conservar ambos MP4, PNG finales, voz,
-alineación, prompts, manifiestos y licencias. No borrar carpetas históricas enteras.
+```bash
+# Entregar el directorio de la revisión activa, no la raíz histórica si usa otra voz.
+.venv/bin/python scripts/stickman_jobs.py enqueue content/longform/MI_EPISODIO --require-gpu
+# Ver todos: EN COLA / TRABAJANDO / TERMINADO / REVISAR.
+.venv/bin/python scripts/stickman_jobs.py status
+# Seguir el trabajo activo o el último; añadir ID para elegir otro.
+.venv/bin/python scripts/stickman_jobs.py watch
+# Tras investigar/corregir el entorno: reusar inputs y salidas válidas del mismo ID.
+.venv/bin/python scripts/stickman_jobs.py retry ID
+# Reactivar trabajos aún en cola tras reiniciar Windows/WSL; fallidos no se repiten.
+.venv/bin/python scripts/stickman_jobs.py start
+```
+
+Resumen visible: `local/stickman_jobs/ESTADO.md`. Cada ID tiene `.json` con estado,
+intentos, fase y error; `.log` con progreso/heartbeat y traceback. `worker.log`
+recoge el arranque del proceso. `watch` puede cerrarse sin detener la producción.
+El worker vive fuera de la terminal/chat, pero el equipo y WSL deben seguir
+encendidos. No instala un servicio ni se reinicia automáticamente con Windows.
+Un trabajo pesado cada vez **en esta cola**; no arrancar renders paralelos desde
+Studio u otros CLI en el equipo de referencia de 4 GB VRAM/8 GB RAM.
+
+Antes de entregar: ejecutar `prepare --reuse-images` con inputs definitivos,
+conservar la voz y alineación reales, aportar descripción y títulos de capítulos
+en `configuracion.json` (capítulos para vídeos de al menos 30 s) y seleccionar
+`miniaturas/miniatura_final.png`, PNG revisado de 1280×720. El agente termina
+estas decisiones editoriales antes de encolar; Kitok reúne textos y créditos
+reales de la mezcla. Los hashes congelan los materiales: si cambia el contenido,
+crear otra revisión y otro encargo; `retry` conserva la identidad anterior.
+Las voces con control ASR requieren evidencia existente aceptada antes de encolar.
+
+`--require-gpu` exige que la prueba real de NVENC funcione antes de montar; si no,
+queda REVISAR y conserva fuentes. Sin esa opción se permite CPU y el log indica
+el codificador. NVENC acelera la codificación; el cálculo de cámara, filtros y
+otros pasos pueden seguir usando CPU. No promete acelerar todo el proceso.
+
+TERMINADO significa ambos QA, recibos, paquete y limpieza comprobados; queda
+pendiente la escucha/revisión visual humana. Un error deja REVISAR con su fase
+y materiales recuperables; no se reintenta automáticamente. Tras una interrupción,
+los procesos FFmpeg supervivientes bloquean la cola hasta que terminen o se revisen.
+La preparación editorial del siguiente episodio puede avanzar mientras monta otro.
+
+La entrega está en `EPISODIO/entrega/`. Conserva también `video_final.mp4` y
+`video_subtitulado.mp4`, PNG finales, voz original/efectiva, alineación, prompts,
+manifiestos, referencias, licencias y recibos. La limpieza automática usa la misma
+lista conservadora de `organize`, sin archivar revisiones. Guarda su plan antes de
+borrar en `.stickman/completion-cleanup.json` y comprueba hashes protegidos después.
+No hay que borrar otra carpeta al terminar; no borrar `.stickman/` ni carpetas
+históricas enteras. Si falla antes de limpiar, conserva las cachés para reparación.
+
+El cierre también existe en primer plano como
+`.venv/bin/python -m kitok.youtube_stickman_es complete EPISODIO`.
+`produce`/`resume` conservan su contrato anterior; el cierre explícito/cola añade
+empaquetado final y limpieza. El QA mantiene todos sus controles; auditorías extra
+y recorridos completos adicionales se reservan para cambios, fallos o encargos.
+Las intervenciones históricas están en la [auditoría](docs/youtube-production-audit.md).

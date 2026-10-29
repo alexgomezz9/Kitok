@@ -68,79 +68,84 @@ def compact_delivery(root: Path, episode: Path) -> dict:
     """
     episode = episode_path(root, episode)
     with episode_lock(episode):
-        video, qa = _approved(episode)
-        sources = {
-            'video.mp4': video,
-            'miniatura.png': local_file(episode, 'miniaturas/miniatura_final.png'),
-            'descripcion.txt': local_file(episode, 'descripcion_youtube_final.txt'),
-            'creditos.txt': local_file(episode, 'creditos_finales.txt'),
-        }
-        identities = {name: sha256(path) for name, path in sources.items()}
-        metadata_path = local_file(episode, 'metadata_youtube_final.json', exists=False)
-        metadata_sha = sha256(metadata_path) if metadata_path.exists() else None
-        metadata = json.loads(metadata_path.read_text()) if metadata_sha else {}
-        fidelity = metadata.get('audio_fidelity_status', 'unverified')
-        fidelity_note = metadata.get('audio_fidelity_note', 'Independent audio fidelity review remains unverified.')
-        report = {
-            'version': 1, 'technical_status': qa['technical_status'],
-            'duration_seconds': qa.get('duration'), 'frames': qa.get('decoded_frames'),
-            'audio_listened_by_tool': False, 'human_review_required': True,
-            'sha256': identities, 'publishing_automated': False,
-            'source_episode': str(episode.relative_to(root.resolve())),
-            'source_qa_sha256': sha256(episode / 'qa_subtitulado.json'),
-            'video_storage': 'hardlink; preserve immutable bytes, export edits to a new file',
-            'audio_fidelity_status': fidelity, 'audio_fidelity_note': fidelity_note,
-            'final_video_ready': False,
-            'source_metadata_sha256': metadata_sha,
-        }
-        report_text = json.dumps(report, ensure_ascii=False, indent=2) + '\n'
-        readme = ('Entrega local: vídeo, miniatura, descripción y créditos.\n'
-                  'informe.json conserva hashes y QA técnico. Revisar escucha completa y estilo antes de publicar.\n'
-                  'Los originales, alineación, imágenes y diagnósticos siguen fuera de esta carpeta.\n'
-                  'El vídeo comparte bytes con el máster: para editarlo exporta a un archivo nuevo.\n'
-                  f'Fidelidad de audio: {fidelity}. {fidelity_note}\n'
-                  'Este paquete técnico no acredita que el episodio esté listo para publicar.\n')
-        destination = local_file(episode, 'entrega', exists=False)
-        if destination.exists() and not destination.is_dir():
-            raise ValueError('Existing entrega must be a directory')
-        if destination.exists() and any(destination.iterdir()):
-            expected = set(sources) | {'informe.json', 'LEEME.txt'}
-            if (not destination.is_dir() or {p.name for p in destination.iterdir()} != expected
-                    or any(p.is_symlink() or not p.is_file() for p in destination.iterdir())
-                    or any(sha256(destination / name) != digest for name, digest in identities.items())
-                    or (destination / 'informe.json').read_text() != report_text
-                    or (destination / 'LEEME.txt').read_text() != readme):
-                raise ValueError('Existing entrega differs; preserve it and choose a new episode revision')
-        else:
-            staged = Path(tempfile.mkdtemp(prefix='.delivery-', dir=episode))
-            try:
-                for name, source in sources.items():
-                    if name == 'video.mp4':
-                        os.link(source, staged / name)
-                    else:
-                        shutil.copy2(source, staged / name)
-                    if sha256(staged / name) != identities[name] or sha256(source) != identities[name]:
-                        raise ValueError('A delivery source changed during copying')
-                (staged / 'informe.json').write_text(report_text, encoding='utf-8')
-                (staged / 'LEEME.txt').write_text(readme, encoding='utf-8')
-                if metadata_sha and sha256(metadata_path) != metadata_sha:
-                    raise ValueError('Editorial audio status changed during delivery preparation')
-                # Under the episode lock another cooperative writer cannot race.
-                # Only the common empty folder may be replaced.
-                if destination.is_symlink():
-                    raise FileExistsError('Delivery destination appeared; preserved existing path')
-                if destination.exists():
-                    # init creates the common empty folder. Never remove a file
-                    # or any operator content that appeared since preflight.
-                    destination.rmdir()
-                staged.rename(destination)
-            finally:
-                if staged.exists():
-                    shutil.rmtree(staged)
-        return {'delivery': str(destination.relative_to(root.resolve())), 'files': 6,
-                'technical_status': 'passed', 'new_provider_requests': 0,
-                'audio_fidelity_status': fidelity, 'final_video_ready': False,
-                'human_review_required': True}
+        return _compact_delivery_locked(root, episode)
+
+
+def _compact_delivery_locked(root: Path, episode: Path) -> dict:
+    """Internal tail helper; caller holds episode_lock through cleanup."""
+    video, qa = _approved(episode)
+    sources = {
+        'video.mp4': video,
+        'miniatura.png': local_file(episode, 'miniaturas/miniatura_final.png'),
+        'descripcion.txt': local_file(episode, 'descripcion_youtube_final.txt'),
+        'creditos.txt': local_file(episode, 'creditos_finales.txt'),
+    }
+    identities = {name: sha256(path) for name, path in sources.items()}
+    metadata_path = local_file(episode, 'metadata_youtube_final.json', exists=False)
+    metadata_sha = sha256(metadata_path) if metadata_path.exists() else None
+    metadata = json.loads(metadata_path.read_text()) if metadata_sha else {}
+    fidelity = metadata.get('audio_fidelity_status', 'unverified')
+    fidelity_note = metadata.get('audio_fidelity_note', 'Independent audio fidelity review remains unverified.')
+    report = {
+        'version': 1, 'technical_status': qa['technical_status'],
+        'duration_seconds': qa.get('duration'), 'frames': qa.get('decoded_frames'),
+        'audio_listened_by_tool': False, 'human_review_required': True,
+        'sha256': identities, 'publishing_automated': False,
+        'source_episode': str(episode.relative_to(root.resolve())),
+        'source_qa_sha256': sha256(episode / 'qa_subtitulado.json'),
+        'video_storage': 'hardlink; preserve immutable bytes, export edits to a new file',
+        'audio_fidelity_status': fidelity, 'audio_fidelity_note': fidelity_note,
+        'final_video_ready': False,
+        'source_metadata_sha256': metadata_sha,
+    }
+    report_text = json.dumps(report, ensure_ascii=False, indent=2) + '\n'
+    readme = ('Entrega local: vídeo, miniatura, descripción y créditos.\n'
+              'informe.json conserva hashes y QA técnico. Revisar escucha completa y estilo antes de publicar.\n'
+              'Los originales, alineación, imágenes y diagnósticos siguen fuera de esta carpeta.\n'
+              'El vídeo comparte bytes con el máster: para editarlo exporta a un archivo nuevo.\n'
+              f'Fidelidad de audio: {fidelity}. {fidelity_note}\n'
+              'Este paquete técnico no acredita que el episodio esté listo para publicar.\n')
+    destination = local_file(episode, 'entrega', exists=False)
+    if destination.exists() and not destination.is_dir():
+        raise ValueError('Existing entrega must be a directory')
+    if destination.exists() and any(destination.iterdir()):
+        expected = set(sources) | {'informe.json', 'LEEME.txt'}
+        if (not destination.is_dir() or {p.name for p in destination.iterdir()} != expected
+                or any(p.is_symlink() or not p.is_file() for p in destination.iterdir())
+                or any(sha256(destination / name) != digest for name, digest in identities.items())
+                or (destination / 'informe.json').read_text() != report_text
+                or (destination / 'LEEME.txt').read_text() != readme):
+            raise ValueError('Existing entrega differs; preserve it and choose a new episode revision')
+    else:
+        staged = Path(tempfile.mkdtemp(prefix='.delivery-', dir=episode))
+        try:
+            for name, source in sources.items():
+                if name == 'video.mp4':
+                    os.link(source, staged / name)
+                else:
+                    shutil.copy2(source, staged / name)
+                if sha256(staged / name) != identities[name] or sha256(source) != identities[name]:
+                    raise ValueError('A delivery source changed during copying')
+            (staged / 'informe.json').write_text(report_text, encoding='utf-8')
+            (staged / 'LEEME.txt').write_text(readme, encoding='utf-8')
+            if metadata_sha and sha256(metadata_path) != metadata_sha:
+                raise ValueError('Editorial audio status changed during delivery preparation')
+            # Under the episode lock another cooperative writer cannot race.
+            # Only the common empty folder may be replaced.
+            if destination.is_symlink():
+                raise FileExistsError('Delivery destination appeared; preserved existing path')
+            if destination.exists():
+                # init creates the common empty folder. Never remove a file
+                # or any operator content that appeared since preflight.
+                destination.rmdir()
+            staged.rename(destination)
+        finally:
+            if staged.exists():
+                shutil.rmtree(staged)
+    return {'delivery': str(destination.relative_to(root.resolve())), 'files': 6,
+            'technical_status': 'passed', 'new_provider_requests': 0,
+            'audio_fidelity_status': fidelity, 'final_video_ready': False,
+            'human_review_required': True}
 
 
 @contextmanager

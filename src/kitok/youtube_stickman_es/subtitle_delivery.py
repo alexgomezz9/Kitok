@@ -76,7 +76,7 @@ def _recover_encoded(episode: Path, identity: dict):
 
 
 def caption_video(episode: Path, *, root: Path, settings, on_stage=None,
-                  revision: str | None = None) -> dict:
+                  revision: str | None = None, prepared_narration=None, encoder_name='auto') -> dict:
     """Caller holds episode_lock; never render the base or request providers.
 
     Interrupted outputs and work directories are preserved. Only a complete
@@ -99,7 +99,7 @@ def caption_video(episode: Path, *, root: Path, settings, on_stage=None,
     if base_qa.get('technical_status') != 'passed' or base_qa.get('video_sha256') != base_sha:
         raise ValueError('Base video requires passed QA matching its current SHA256')
     emit('Subtítulos: comprobando vídeo aprobado y alineación existente; sin generar voz')
-    narration = prepare_narration(episode, root=root, settings=settings,
+    narration = prepared_narration if prepared_narration is not None else prepare_narration(episode, root=root, settings=settings,
                                  voice=config.voice.model_dump(), generate=False, on_stage=on_stage)
     if (narration['audio_sha256'] != plan.audio_sha256 or narration['srt_sha256'] != plan.srt_sha256
             or abs(narration['duration']-plan.narration_duration) > .001):
@@ -150,7 +150,8 @@ def caption_video(episode: Path, *, root: Path, settings, on_stage=None,
             work = staged.parent
             emit('Subtítulos: recuperando codificación terminada; repitiendo QA sin recodificar')
         else:
-            encoder = choose_encoder(settings.ffmpeg_binary, nvenc_preset='p5')
+            encoder = choose_encoder(settings.ffmpeg_binary, nvenc_preset='p5',
+                                     **({'requested': encoder_name} if encoder_name != 'auto' else {}))
             if not encoder.is_nvenc:
                 encoder = replace(encoder, preset='fast', cq=20)
             identity['encoder'] = {**asdict(encoder), 'arguments': encoder_arguments(encoder), 'threads': 2,

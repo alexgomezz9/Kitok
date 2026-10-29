@@ -284,3 +284,13 @@ El próximo episodio está en ejercicio guiado: una fase cada vez, explicar sus
 rutas/operación/salidas y PARAR. No se ejecuta todo por decir «siguiente» mientras
 `workflow.guided_exercise.enabled` siga activo. La simplificación se decide sobre
 ese recorrido real; no se instalan motores ni se añaden capas por anticipado.
+
+## Entrega automática y cola independiente
+
+Con inputs preparados y aceptados, `complete EPISODIO` añade el cierre técnico
+al motor existente: ambos vídeos/QA, metadata final con créditos, bundle y limpieza
+conservadora. Mantiene el lock del episodio durante todo el recorrido. El agente
+aporta descripción/capítulos y miniatura antes; no hay LLM durante render o QA.
+La cola local desacoplada, estados, logs, reanudación y límites de GPU/CPU están en
+[GUIA](../GUIA.md#produccion-repetida-de-trazo-maldito). `produce`/`resume` y los
+comandos manuales anteriores conservan su contrato; la cola usa `complete`.

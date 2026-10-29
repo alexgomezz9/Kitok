@@ -12,7 +12,11 @@ import tempfile
 
 def digest(data) -> str:
     if isinstance(data, Path):
-        return hashlib.sha256(data.read_bytes()).hexdigest()
+        value = hashlib.sha256()
+        with data.open('rb') as source:
+            for chunk in iter(lambda: source.read(1024 * 1024), b''):
+                value.update(chunk)
+        return value.hexdigest()
     def canonical(value):
         # Pydantic defaults can be 0 while validated JSON yields 0.0. These
         # represent identical scene decisions and must survive process restart.

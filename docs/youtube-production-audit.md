@@ -294,13 +294,14 @@ al episodio ni afirmar que ya se integró la mejora. Evidencia y tres MP4:
 
 El CLI hace el montaje con paquete/voz aceptados. En Michael el agente resolvió
 la revisión documental ASR, reparó seis recortes y preparó miniatura/capítulos/
-metadatos; `finalizar_entrega.py` completó el bundle. Ni el empaquetado final ni una
-cola headless están automatizados por ese CLI. `exit 0` puede acompañar un estado
+metadatos; `finalizar_entrega.py` completó el bundle. En ese momento ni el empaquetado final ni una
+cola headless estaban automatizados por ese CLI. Desde29/10 están disponibles
+`complete` y la cola local; ver [operación actual](../GUIA.md#produccion-repetida-de-trazo-maldito). `exit 0` puede acompañar un estado
 de entradas pendientes: un supervisor debe leer estado y recibos.
 
 Limpieza posterior autorizada: 765 auxiliares de Michael, 1.325,3 MiB lógicos;
 122 rutas protegidas con SHA intacto, ambos MP4 y 109 PNG conservados. Recibos en
 `local/cleanup/2026-10-28-michael-post/`. También se retiraron 199,7 MiB lógicos de
 cachés de la prueba, conservando los tres MP4 y toda la evidencia de comandos.
-No se borraron carpetas históricas. El cierre/cola propuestos se describen en
+No se borraron carpetas históricas. El estado del cierre/cola y las optimizaciones pendientes se describen en
 [roadmap](roadmap.md#6-escalar-la-produccion-tras-freddy-2810).

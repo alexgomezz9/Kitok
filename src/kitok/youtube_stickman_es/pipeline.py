@@ -117,7 +117,7 @@ def current(episode: Path):
     return plan,config,ImageBatch(episode,plan,config)
 
 
-def _render(episode: Path, root: Path, settings, *, revision: str | None = None, on_stage=None):
+def _render(episode: Path, root: Path, settings, *, revision: str | None = None, on_stage=None, prepared_narration=None, encoder_name='auto'):
     emit = on_stage or (lambda message: None)
     emit('Montaje: validando plan e imágenes antes de renderizar')
     if revision is not None and not re.fullmatch('[a-z0-9][a-z0-9_-]{0,39}',revision):
@@ -128,7 +128,8 @@ def _render(episode: Path, root: Path, settings, *, revision: str | None = None,
     status = batch.status()
     if not status['render_images_ready']:
         raise ValueError('Every planned illustration must exist, decode and have visual review before rendering')
-    narration = prepare_narration(episode,root=root,settings=settings,voice=config.voice.model_dump(),on_stage=on_stage)
+    narration = prepared_narration if prepared_narration is not None else prepare_narration(
+        episode,root=root,settings=settings,voice=config.voice.model_dump(),on_stage=on_stage)
     if (narration['audio_sha256'] != plan.audio_sha256 or narration['srt_sha256'] != plan.srt_sha256
             or abs(narration['duration']-plan.narration_duration) > .001):
         raise ValueError('Prepared narration differs from the planned voice clock; replan in a new revision before mixing')
@@ -168,7 +169,7 @@ def _render(episode: Path, root: Path, settings, *, revision: str | None = None,
         result = old
     else:
         timeline.write(local_file(episode,'montaje'+suffix+'.json',exists=False))
-        result = render_editorial_plan(timeline,root=root,output=output,settings=settings, on_stage=on_stage)
+        result = render_editorial_plan(timeline,root=root,output=output,settings=settings, on_stage=on_stage, encoder_name=encoder_name)
     emit('Calidad: comprobando MP4, fotogramas, sonoridad y continuidad de audio')
     if qa_path.exists():
         qa = json.loads(qa_path.read_text())
@@ -280,6 +281,19 @@ def execute(root: Path, episode: Path, command: str, *, settings=None, on_stage=
                 'video_exists':local_file(folder,'video_final.mp4',exists=False).is_file(),
                 'human_review_required':True}
     with episode_lock(folder):
+        if command == 'complete':
+            from .completion import accepted_narration, complete_locked, handoff_inputs, verify_handoff
+            if options.get('revision') or options.get('generate_voice'):
+                raise ValueError('Complete uses an existing prepared episode; choose its active revision folder explicitly')
+            expected = options.get('handoff') or handoff_inputs(folder)
+            verify_handoff(folder, expected)
+            narration, _ = accepted_narration(folder)
+            _render(folder, root, settings, on_stage=on_stage, prepared_narration=narration,
+                    encoder_name='h264_nvenc' if options.get('require_gpu') else 'auto')
+            from .subtitle_delivery import caption_video
+            caption_video(folder, root=root, settings=settings, on_stage=on_stage, prepared_narration=narration,
+                          encoder_name='h264_nvenc' if options.get('require_gpu') else 'auto')
+            return complete_locked(root, folder, expected=expected, on_stage=on_stage)
         def finish(report):
             if options.get('subtitles'):
                 from .subtitle_delivery import caption_video
