@@ -133,8 +133,11 @@ la hoja de contacto muestrea imágenes. No acredita audición subjetiva ni aprob
 ## Galería del editor final (21/10/2026)
 
 La colección activa es `collection="editor-final-20261021"`. Su
-`active.json` selecciona únicamente esos ejemplos; los vídeos y metadatos
-anteriores permanecen en disco. La interfaz distingue efectos nuevos/mejorados
+`active.json` selecciona únicamente esos ejemplos. La limpieza autorizada del 29/10
+retiró las versiones sustituidas; sus registros pequeños están en
+`local/cleanup/2026-10-29-repo/retired-proof-metadata.zip`. Se conservaron los 43
+elementos activos y sus fuentes, incluido el audio de `generalization_mfa_v1`.
+La interfaz distingue efectos nuevos/mejorados
 de los existentes, con ejemplos renderizados de nuevo por el motor actual.
 
 | Grupo | IDs locales y alcance |

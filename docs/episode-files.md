@@ -87,6 +87,18 @@ cerrados. Conservar cachés de voz pagada, modelos ASR compartidos, stock reutil
 credenciales y trabajos activos. Una limpieza de episodios no desinstala MPT ni
 otras dependencias y no borra otros proyectos.
 
+La limpieza autorizada del 29/10 compactó las pruebas cerradas de Freddy004,
+Michael005, Chucky006 y Pennywise007 en
+`local/archivo_episodios/EPISODIO/pruebas_cerradas_20261029.zip`. Estos ZIP usan
+`restauracion.json` con `original` como destino, `archived` como miembros/SHA y
+`retained` como rutas canónicas/SHA: extraer, copiar las referencias y comprobar
+los hashes antes de reutilizar. Cada miembro y fuente conservada se comprobó
+antes de retirar las copias de pruebas. El audio Fish del reintento de Pennywise
+permanece en su ruta original; también se conservan los diagnósticos de Jason en pausa.
+El WAV reparado de Jason está en su episodio, `voz_reparada.wav`; se retiró sólo
+su enlace redundante de `local/pruebas/`. Las herramientas/modelos ASR compartidos
+siguen en `local/`, aunque un episodio ya haya terminado.
+
 ## Cierre de trabajos de la cola stickman
 
 La cola descrita en [GUIA](../GUIA.md#produccion-repetida-de-trazo-maldito) usa

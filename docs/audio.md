@@ -154,20 +154,26 @@ eran válidos. Con el reloj de muestras corregido, la misma mezcla conserva esos
 niveles y mide **654,733 s**. No fue necesario volver a sintetizar voz ni renderizar
 todo el documental para comprobar la corrección.
 
-Evidencia local conservada del incidente (no se distribuyen estos medios por Git):
+Evidencia del incidente (no se distribuyen estos medios por Git):
 
-- `local/audio-failure/final-1792507776156545090/confirmed.wav.json`:
-  recibo actual `sample-clock-v2`, con `verification.json` que acredita hashes
+- Los registros de `local/audio-failure/`, incluido
+  `final-1792507776156545090/confirmed.wav.json`, están archivados en
+  `local/cleanup/2026-10-27-organizacion/closed-audio-probes.zip`:
+  recibo `sample-clock-v2`, con `verification.json` que acredita hashes
   originales intactos y cero intentos de red. El WAV tiene SHA
   `fe1b6d352f82e489c928c7cd8a18273351029e8ce5beaf11357a00ca5970c930`.
-- `outputs/evaluation/lf_cf5e16bb422547aabfb4f5b8b9ef131a_recovery_check/`:
-  `mix_transition_22s_v1.mp4` y `smoke-evidence.json`; fragmento 397–419 s de esa
+- La prueba de
+  `outputs/evaluation/lf_cf5e16bb422547aabfb4f5b8b9ef131a_recovery_check/`
+  se retiró en la limpieza autorizada del 29/10. `smoke-evidence.json` y sus
+  registros están en `local/cleanup/2026-10-29-repo/retired-proof-metadata.zip`.
+  El MP4 retirado era un fragmento 397–419 s de esa
   mezcla, incluido cambio musical y SFX, 660 frames 4:2:0 y AAC con decode completo.
   Mide −15,28 LUFS / −2,11 dBTP. El job original sigue fallido; no es su render completo.
 
 El intento antiguo no conservaba su máster: `TemporaryDirectory` lo retiraba al
 propagar el error. La reproducción fallida y todos los intentos de esta investigación
-se han conservado; el arreglo mantiene también los futuros diagnósticos fallidos.
+se archivaron; los MP4 de pruebas cerradas se retiraron el 29/10. El arreglo
+mantiene los futuros diagnósticos fallidos hasta su revisión y limpieza explícita.
 
 ## Efectos discretos originales
 

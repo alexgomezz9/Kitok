@@ -1,4 +1,4 @@
-# Auditoría del flujo de Trazo Maldito — 28/10/2026
+# Auditoría del flujo de Trazo Maldito — 29/10/2026
 
 Revisión del episodio Jason y del código actual. Los tiempos proceden del log de
 su producción real, no de estimaciones ni de la suite. Reglas y comandos vigentes:
@@ -254,7 +254,8 @@ cambios/fallos. El cierre automático es la primera prioridad de la [hoja de rut
 El operador confirma el audio y los puntos 6:11/8:37. Una petición Fish, política
 `collapse_whitespace_v1` y MP3 con el hash original: **cero cortes**. El texto se
 construyó en memoria desde `guion_final.txt`; la copia exportada y verificada está
-junto al informe local `auditoria_20261028/fish_texto_enviado.txt`. Tenía 1.915
+junto al informe `auditoria_20261028/fish_texto_enviado.txt`, ahora dentro del ZIP
+de pruebas cerradas de Michael indicado al final de esta sección. Tenía 1.915
 palabras y ningún `[]`; la normalización habría conservado los marcadores.
 
 | Etapa del comando de Michael | Intervalo medido |
@@ -289,8 +290,10 @@ Las tres salidas tienen 1.011 fotogramas decodificados idénticos y el mismo PCM
 fuentes intactas. Preparar las placas costó 1,04 s, incluido en 37,15 s. Una sola
 prueba secuencial por variante, sin rotación, fades ni motion_design. La medición
 no incluye ASR, mezcla completa, ASS o QA de entrega. No extrapolar ese porcentaje
-al episodio ni afirmar que ya se integró la mejora. Evidencia y tres MP4:
-`local/pruebas/trazo_005_michael_myers_historia/auditoria_20261028/`.
+al episodio ni afirmar que ya se integró la mejora. Los tres MP4 se retiraron el
+29/10 por petición de limpiar pruebas terminadas. Resultados, comandos, planes y
+framehashes están en
+`local/archivo_episodios/trazo_005_michael_myers_historia/pruebas_cerradas_20261029.zip`.
 
 El CLI hace el montaje con paquete/voz aceptados. En Michael el agente resolvió
 la revisión documental ASR, reparó seis recortes y preparó miniatura/capítulos/
@@ -302,6 +305,42 @@ de entradas pendientes: un supervisor debe leer estado y recibos.
 Limpieza posterior autorizada: 765 auxiliares de Michael, 1.325,3 MiB lógicos;
 122 rutas protegidas con SHA intacto, ambos MP4 y 109 PNG conservados. Recibos en
 `local/cleanup/2026-10-28-michael-post/`. También se retiraron 199,7 MiB lógicos de
-cachés de la prueba, conservando los tres MP4 y toda la evidencia de comandos.
+cachés de la prueba; entonces se conservaron los tres MP4. La limpieza del 29/10
+retiró esos MP4 y archivó la evidencia de comandos como se indica arriba.
 No se borraron carpetas históricas. El estado del cierre/cola y las optimizaciones pendientes se describen en
 [roadmap](roadmap.md#6-escalar-la-produccion-tras-freddy-2810).
+
+## Pennywise y limpieza del 29/10
+
+La cola terminó Pennywise en 39:12: 708 s, 21.240 fotogramas y 134 planos; ambos
+QA, bundle y limpieza cerrados. Se verificaron de nuevo los hashes de vídeos/QA
+y materiales del bundle, con ffprobe a 1080p30. Los informes de esos mismos bytes
+acreditan decodificación completa y audio idéntico entre versiones. No se hizo
+escucha ni reproducción completa en esta revisión.
+
+A 4:03,233 y 4:29,400, el plan repite respectivamente `escena_032.png` y
+`escena_035.png` entre dos planos consecutivos, con cámara distinta y disolución.
+Se inspeccionaron ocho fotogramas del MP4 normal entre 3:58–4:06 y 4:25–4:32.
+El planner divide los tramos visuales que superan el máximo configurado sobre
+marcas reales de palabra; aplica cámara/transición por plano resultante. Es el
+comportamiento actual, pero un movimiento continuo sobre el mismo PNG evitaría
+el reinicio y el fundido redundante. No se cambió código ni se volvió a renderizar.
+
+La limpieza ampliada retiró versiones inactivas de galería y experimentos
+sustituidos. Se comprobaron las 43 muestras activas, 2 comparaciones A/B y 25 fuentes
+antes/después. Metadatos pequeños y dos copias históricas de voz reutilizada están
+en `local/cleanup/2026-10-29-repo/retired-proof-metadata.zip`, con integridad y SHA
+comprobados; el vídeo completo UltimateBet sigue en su entrega canónica.
+
+Las pruebas cerradas 004–007 se compactaron en ZIP con fuentes únicas o referencias
+canónicas verificadas. La caché Fish del reintento de Pennywise conserva su ruta.
+No confundir los 5.238.564.613 bytes lógicos retirados con ahorro físico:
+se liberaron 2.193.309.696 bytes asignados (2,043 GiB), excluyendo enlaces conservados.
+Recibos y límites: `local/cleanup/2026-10-29-repo/`.
+
+ImageGen: las láminas actuales son 3×3, nueve imágenes; 101 imágenes requieren 12
+lotes. La herramienta integrada está expuesta también a un subagente comprobado
+por introspección, pero no se ensayaron llamadas simultáneas ni se midió ganancia.
+Un ensayo futuro puede repartir lotes disjuntos con las mismas referencias y
+manifiestos separados. Python de Kitok no puede invocar esa herramienta; no se
+añadió otro generador ni una capacidad nueva de producción autónoma.

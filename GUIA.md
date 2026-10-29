@@ -642,6 +642,13 @@ de imágenes, referencias, planificación, miniaturas, editorial y entrega.
 fuera de la carpeta diaria, conservando fuentes y vídeos únicos. No se activa
 al guardar. [Estructura, limpieza y restauración](docs/episode-files.md).
 
+La limpieza autorizada del 29/10 retiró las muestras sustituidas y las pruebas
+cerradas. La galería conserva sus 43 elementos activos y Montaje sus dos A/B.
+Los registros y fuentes únicas de pruebas cerradas 004–007 están en
+`local/archivo_episodios/EPISODIO/pruebas_cerradas_20261029.zip`; el reintento Fish
+de Pennywise conserva su ruta original. No borrar `local/tools` ni `local/asr-models`:
+son el entorno y el modelo que usa la revisión local de voz.
+
 
 ## Retomar subtítulos tras una interrupción
 

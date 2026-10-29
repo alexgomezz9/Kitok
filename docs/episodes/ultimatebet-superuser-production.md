@@ -15,8 +15,10 @@ registra el piloto terminado; no es una orden de regenerar el episodio ni su voz
 
 La voz/mix se reutilizan; el audio decodificado es idéntico a A. El último
 ensamblado con17planos cacheados tardó14,49s, sin incluir QA ni el render3D previo.
-No extrapolar esa medida a un episodio nuevo. El original de652,6s, sus audios,
-las comparaciones anteriores y los experimentos siguen conservados localmente.
+No extrapolar esa medida a un episodio nuevo. Se conservan el original de652,6s,
+sus audios y las dos comparaciones actuales A/B. La limpieza autorizada del 29/10
+retiró los MP4 experimentales sustituidos y sus intermedios; sus registros están
+en `local/cleanup/2026-10-29-repo/retired-proof-metadata.zip`.
 
 ## Revisión realizada
 

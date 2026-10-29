@@ -1,9 +1,9 @@
 # Estado vigente de Kitok
 
-Actualizado: **29/10/2026**. Rama **main**, base de esta unidad **00ed04a**.
+Actualizado: **29/10/2026**. Rama **main**, base de esta unidad **b371e8d**.
 Cierre/cola stickman implementados localmente; sin push ni publicación.
 
-## Pennywise007 — entregado a la cola, render en curso
+## Pennywise007 — entrega técnica terminada
 
 `content/longform/trazo_007_pennywise_historia/`, continuidad IT2017/2019.
 Guion2157palabras habladas,87PNG vistos/validados,2reparaciones,miniatura1280×720
@@ -13,10 +13,16 @@ Voz original707.9705s preservada;28discrepanciasASR revisadas documentalmente,
 escucha humana pendiente. UnaudioFishconfirmado, tras primerfalloDNS incierto y
 reintentoautorizado; siempre s2.1-pro-free, sin inferir cobro a partir del nombre.
 
-Worker **9cd3ae0ad98b447283020a2091db75d0**, GPUexigida; log confirmaNVENCp5
-ymezcla iniciada. Resumen `local/stickman_jobs/ESTADO.md`; log delmismoID.
-Kitok continúa normal/subtítulos/QA/bundle/limpieza sin mantener al agenteesperando.
-**Todavía no acreditados MP4/QA/limpieza finales de Pennywise.** No publicar.
+Worker **9cd3ae0ad98b447283020a2091db75d0**, NVENC p5, cerrado en **39:12**.
+Ambos MP4: **708 s / 21.240 fotogramas / 1080p30**; QA pasados y bundle de seis
+archivos. El 29/10 se comprobaron de nuevo los SHA de vídeos/QA y cuatro materiales
+del bundle, además de ffprobe. Informes con audio decodificado idéntico entre
+versiones, −16,02 LUFS / −2,23 dBTP. `complete` retiró 837 auxiliares;
+1.566.924.382 bytes lógicos. Resumen `local/stickman_jobs/ESTADO.md` y log del ID.
+Revisión puntual de fotogramas 3:58–4:06 y 4:25–4:32: a 4:03,233 y 4:29,400 se
+repite el PNG entre planos con cámara distinta, según planner actual. El fundido
+sobre la misma imagen es prescindible editorialmente; no se modificó el montaje.
+No se hizo escucha ni reproducción completa en esta revisión. No publicar.
 
 Feedback29/10 guardado en perfil/guía: estilos/interiores y ancla separados de
 miniatura; emoción/cejas/ojos/boca/postura por escena, sin cara delvillano enreparto.
@@ -51,8 +57,8 @@ independientes arquitectura/corrección/adversarial; hallazgo GPU corregido y re
 **25 tests frontend + build**, `studio-check`, `docs-check`, higiene y whitespace.
 `make verify` excedió su límite600s en pytest (~70%, sin fallos mostrados hasta
 corte); suite global completa no acreditada. No repetir vídeos históricos para QA.
-Todavía sin episodio largo completo por la nueva cola; primera producción real
-servirá para confirmar duración/operación. Éxito técnico no acredita escucha humana.
+Pennywise completó la primera producción larga real de la cola, incluidos ambos
+QA, bundle y limpieza. Éxito técnico no acredita escucha humana.
 
 ## Chucky — entrega cerrada para revisión del operador
 
@@ -108,10 +114,30 @@ Michael002 conserva copia nueva en su carpeta. Freddy permanece igual.
 - Lectura oficial de Trazo Maldito comprobada28/10: ID correcto, cero vídeos,
   Analytics sin datos y Reporting disponible. No se verificaron publicación ni CI.
 
+## Limpieza autorizada — 29/10
+
+Retirados 9.776 archivos de pruebas, versiones sustituidas, cachés y enlaces de
+staging: **2.193.309.696 bytes asignados liberados** (2,043 GiB). Los
+5.238.564.613 bytes lógicos incluyen enlaces duros; no representan ahorro físico.
+**4.789 SHA protegidos intactos en esa fase**; disponibilidad idéntica de 43
+muestras activas, 2 comparaciones y 25 fuentes. Pruebas cerradas 004–007 compactadas
+en cuatro ZIP con miembros y referencias canónicas verificados. Fish retry de
+Pennywise y diagnósticos de Jason en standby conservados. `local/pruebas/` pasó de
+165 MiB a 18 MiB; ASR/modelos y archivos históricos conservados.
+
+Cachés de usuario: 33.192 archivos retirados, **4.774.973.440 bytes asignados**
+(4,447 GiB), de Gradle/pip/npm/nvm e instaladores VSIX. Wrapper Gradle extraído,
+extensiones instaladas, versiones Node, proyectos y `.codex` conservados.
+No se ejecutó una compilación Gradle; la siguiente regenerará/descargará cachés.
+Sin compactar WSL. Recibos privados: `local/cleanup/2026-10-29-repo/`.
+Verificados `make docs-check`, `make studio-check`, integridad de los cuatro ZIP,
+disponibilidad de galería/comparaciones y hashes/ffprobe de ambos MP4 Pennywise.
+Sin cambios en el motor; no se repitió la suite general.
+
 ## Siguiente paso
 
-Consultar el estado/log de Pennywise; intervenir sólo si queda REVISAR o lo pide el
-operador. Puede prepararse otro episodio mientras Kitok monta. No esperar aquí QA.
-Cambios de esta unidad: preferencias/editorial/estado, sin modificar motor.
-`docs-check`, validaciónconfig, integridad87PNG y preparaciónreal pasados29/10.
-No suite global por rutina; no push, publicación ni CI/remoto comprobados.
+Revisión del operador de Pennywise; no regenerar voz, imágenes ni vídeo por rutina.
+Paralelismo ImageGen: herramienta expuesta también a un revisor, pero sin llamadas
+paralelas de prueba; ni rapidez ni límites del proveedor acreditados. Las láminas
+son 3×3: 101 imágenes necesitan 12 lotes. No push, publicación ni CI/remoto
+comprobados en esta unidad.
