@@ -3,20 +3,31 @@
 Actualizado: **29/10/2026**. Rama **main**, base de esta unidad **b371e8d**.
 Cierre/cola stickman implementados localmente; sin push ni publicación.
 
-## Ghostface009 — guion y referencias en preparación
+## Ghostface009 — entregado a la cola GPU
 
-`content/longform/trazo_009_ghostface_origen/`, Scream1996 solamente. Operador pide
-otro personaje, no producir ahora las ideasSaw. Registro local deideas:
-`content/channel_launch/ideas_video.md`, consultado por perfil/guía antes de siguiente.
-Actualizadas reglas de eficiencia: yt-script, icono/giros antes de PNG, una pasada
-por contacto y sólo reparaciones materiales; mejora continua breve por corrida.
-Skills existentes alineadas con ese perfil y cierre tras encolar; ambas pasaron
-`quick_validate.py` con Python del sistema, además de `docs-check`.
-Ancla de Ghostface/Sidney/Billy/Stu generada y revisada. Guion candidato/decisiones
-en curso con un agente; aún sin voz ni lotes. High/medium es recomendación por
-fase, sin garantía de igualdad ni cambios de configuración global.
-Siguiente: revisar/fijar guion, Fish/ASR ligero, storyboard real, PNG con3workers,
-prepare y colaGPU; cerrar conID/log, sin esperar render ni publicar.
+`content/longform/trazo_009_ghostface_origen/`, Scream1996, otro personaje según
+encargo. Guion1.638palabras/5break, yt-script con2hooks y7rehooks/resoluciones;
+86escenas, máscara en23desdeescena2, identidad de los asesinos reservada al giro.
+Una vozFish540,734625s intacta,0cortes/resíntesis;53ASRmenores aceptados con límites,
+0actividadfuera y1ventana local ya existente; sin revisión adicional de nombres.
+Escucha humana pendiente.86PNG vistos/aceptados/decodificados+SHA,0pendientes ni
+obsoletos, **0reparaciones**.81PNG545–546×301–302,4PNG824×458–459,1PNG1660×929;
+Native escala sin inventardetalle. Miniatura1280×720vista grande/móvil.
+
+`prepare --reuse-images` exit0: **86fuentes=86planos/540,766667s**,12capítulos
+reales/descripción.13ImageGenconfirmados(11interiores+ancla+miniatura); dospilotos
+validados yresto3workers.0créditosvidIQ/APIimagenexterna. No benchmark high/medium.
+Worker **51167ad5e9394cdbbd08da3eb4158159**, GPUrequerida; preflight real
+**h264_nvenc p5**, running preparando mezcla al cerrar. ID/log/ESTADO.md en
+`local/stickman_jobs/`; Kitok continúa render/subtítulos/QA/bundle/limpieza.
+No afirmar vídeo terminado; revisión audiovisual del operador pendiente.
+
+IdeasSaw reservadas en `content/channel_launch/ideas_video.md`;perfil/guía obligan
+consultarlo antes de ideas/siguiente. Mejoras persistidas: control global deicono,
+ancla4personajes, una pasada por contacto/sólo reparaciónmaterial, breve detección
+de ineficiencias por corrida y cierre al encolar. Skills alineadas y
+`quick_validate.py`/`docs-check` pasados; high mantenido, medium recomendado para
+brief cerrado sin garantía de calidadidéntica. No push/publicación.
 
 ## Jigsaw008 — entregado a la cola GPU
 
@@ -38,8 +49,8 @@ Cero créditos vidIQ; límites/coste ImageGen no expuestos.
 Worker **9191ecf67aa947b1b3295c6c4e761c09**, GPU requerida; preflight real
 **h264_nvenc p5**, estado running preparando mezcla al entregar el chat.
 Resumen `local/stickman_jobs/ESTADO.md` y log del ID; hashes congelados.
-Render/subtítulos/ambos QA/bundle/limpieza todavía pendientes; no afirmar vídeo
-terminado. Revisión independiente breve contrastada con la ruta de cierre:
+La cola informó technical_complete durante Ghostface009, con limpieza894archivos/
+1.713.871.649bytes lógicos. No se hizo otra inspección audiovisual ni escucha.
 A/B/C son conceptos; el handoff valida y el bundle copia `miniatura_final.png`.
 No publicar ni repetir proveedores por rutina.
 
@@ -176,8 +187,8 @@ Sin cambios en el motor; no se repitió la suite general.
 
 ## Siguiente paso
 
-Kitok continúa Jigsaw008 en segundo plano. Consultar `local/stickman_jobs/ESTADO.md`;
-si aparece needs_review, investigar el log y corregir antes de un retry explícito.
-No esperar render en el chat ni repetir voz/ASR/imágenes por rutina. Revisión del
-operador de Pennywise y, cuando cierre Kitok, Jigsaw. No push/publicación ni
-CI/remoto comprobados en esta unidad.
+Kitok continúa Ghostface009 en segundo plano. Consultar `local/stickman_jobs/ESTADO.md`;
+si aparece needs_review, investigar el log antes de retry explícito sin repetir
+proveedores. No esperar renders en el chat. Revisión del operador de las entregas
+terminadas; al pedir ideas/siguiente consultar el registro local del perfil.
+No push/publicación ni CI/remoto comprobados en esta unidad.
