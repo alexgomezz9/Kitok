@@ -3,19 +3,30 @@
 Actualizado: **29/10/2026**. Rama **main**, base de esta unidad **b371e8d**.
 Cierre/cola stickman implementados localmente; sin push ni publicación.
 
-## Jigsaw008 — materiales en preparación
+## Jigsaw008 — entregado a la cola GPU
 
-`content/longform/trazo_008_jigsaw_historia/`: guion fijado de 2.088 palabras,
-110 imágenes fuente / 127 planos / 710,5 s previstos y 12 capítulos preparados.
-Una síntesis Fish de 710,47825 s conservada, sin cortes ni resíntesis; revisión
-documental ASR aceptada, escucha humana pendiente. El perfil y la guía recogen
-la instrucción del operador: priorizar habla añadida y cambios materiales, sin
-prolongar revisiones por nombres. Miniatura final 1280×720 revisada.
+`content/longform/trazo_008_jigsaw_historia/`: guion2.088palabras,110PNG revisados
+por escena y validados con hashes/decodificación; miniatura1280×720,12capítulos
+reales y descripción preparados. `prepare --reuse-images` exit0:127planos/710,5s.
+Una voz Fish710,47825s preservada, sin cortes/resíntesis; ASR aceptado con límites,
+escucha humana pendiente. Perfil/guía: priorizar habla añadida y cambios materiales,
+sin prolongar revisiones por nombres.
 
-Ensayo ImageGen de tres agentes en curso; sesión anterior interrumpida por límite
-de uso. Se recuperó la lámina005 sin repetirla; se conservan los recortes aceptados
-y se reparan errores concretos de identidad/estilo. Sin render todavía. Al cerrar
-los PNG: `prepare --reuse-images` y cola GPU, con ID/log. No publicar.
+Ensayo cerrado:3subagentes,36llamadas interiores confirmadas (14originales y
+22reparaciones), más ancla/miniatura. Lámina005 recuperada sin repetir tras límite.
+Continuación:32llamadas nuevas,29:34,940 de latencias sumadas en15:46,028 desde
+primera solicitud hasta última respuesta; máximo3solicitudes solapadas. Prompts
+variables/reparaciones: no es benchmark controlado ni garantiza aceleración fija.
+86PNG545–546×301–302 y24PNG1660×929; Native escala, sin inventar detalle.
+Cero créditos vidIQ; límites/coste ImageGen no expuestos.
+
+Worker **9191ecf67aa947b1b3295c6c4e761c09**, GPU requerida; preflight real
+**h264_nvenc p5**, estado running preparando mezcla al entregar el chat.
+Resumen `local/stickman_jobs/ESTADO.md` y log del ID; hashes congelados.
+Render/subtítulos/ambos QA/bundle/limpieza todavía pendientes; no afirmar vídeo
+terminado. Revisión independiente breve contrastada con la ruta de cierre:
+A/B/C son conceptos; el handoff valida y el bundle copia `miniatura_final.png`.
+No publicar ni repetir proveedores por rutina.
 
 ## Pennywise007 — entrega técnica terminada
 
@@ -150,8 +161,8 @@ Sin cambios en el motor; no se repitió la suite general.
 
 ## Siguiente paso
 
-Revisión del operador de Pennywise; no regenerar voz, imágenes ni vídeo por rutina.
-Paralelismo ImageGen: herramienta expuesta también a un revisor, pero sin llamadas
-paralelas de prueba; ni rapidez ni límites del proveedor acreditados. Las láminas
-son 3×3: 101 imágenes necesitan 12 lotes. No push, publicación ni CI/remoto
-comprobados en esta unidad.
+Kitok continúa Jigsaw008 en segundo plano. Consultar `local/stickman_jobs/ESTADO.md`;
+si aparece needs_review, investigar el log y corregir antes de un retry explícito.
+No esperar render en el chat ni repetir voz/ASR/imágenes por rutina. Revisión del
+operador de Pennywise y, cuando cierre Kitok, Jigsaw. No push/publicación ni
+CI/remoto comprobados en esta unidad.

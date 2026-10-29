@@ -747,6 +747,15 @@ reales de la mezcla. Los hashes congelan los materiales: si cambia el contenido,
 crear otra revisión y otro encargo; `retry` conserva la identidad anterior.
 Las voces con control ASR requieren evidencia existente aceptada antes de encolar.
 
+Si el operador autoriza generación paralela de imágenes, el agente puede repartir
+lotes entre tres subagentes con IDs y carpetas distintos. Primero fija guion,
+configuración, plan y referencias; cada subagente genera, recorta y revisa sus
+propios lotes. Las reparaciones usan lotes nuevos y conservan los recortes válidos.
+Registra inicio/fin de cada llamada y cierre de la revisión. Jigsaw008 ha permitido
+observar tres llamadas simultáneas; sus latencias variables y las reparaciones
+impiden prometer una aceleración fija. Esto es coordinación del agente, no un
+generador paralelo incorporado en Kitok; saldo, coste y límites siguen sin exponerse.
+
 `--require-gpu` exige que la prueba real de NVENC funcione antes de montar; si no,
 queda REVISAR y conserva fuentes. Sin esa opción se permite CPU y el log indica
 el codificador. NVENC acelera la codificación; el cálculo de cámara, filtros y

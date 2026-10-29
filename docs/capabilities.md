@@ -288,6 +288,13 @@ usando `youtube_stickman_es --reuse-images` y el motor Native existente. Generac
 integrada disponible no acredita saldo, coste o límites de cuenta: si no se exponen,
 se declaran desconocidos. Las APIs independientes de pago requieren autorización.
 
+Con autorización del operador se probó en Jigsaw008 la coordinación de tres
+subagentes con llamadas ImageGen solapadas, lotes disjuntos y referencias fijas.
+Cada recorte requiere revisión y los fallos se reparan por separado. Los tiempos
+se registran por llamada; no demuestran una aceleración constante ni describen
+la ejecución interna del proveedor. No se añadió un proveedor ni un motor paralelo
+al CLI. [Operación y límites](../GUIA.md#produccion-repetida-de-trazo-maldito).
+
 Los ruidos de voz confirmados por el operador pueden retirarse en una copia
 con cortes entre palabras y tiempos derivados verificables, sin nueva síntesis.
 Hay control independiente local que compara voz/guion y recorta inserciones
