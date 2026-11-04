@@ -11,7 +11,8 @@ Operación: [GUIA.md](GUIA.md). Reglas editoriales: perfil Trazo y guía enlazad
   778fuentes protegidas intactas. Informes fuera deentrega,atribuciones conservadas.
 - Cola local GPU desacoplada:montaje,subtítulos,ambosQA,bundle y limpieza. No voz,
   ASR ni publicación nuevos dentrodelworker. Estado enlocal/stickman_jobs/ESTADO.md.
-- Música:4Mixkit/4autores sinatribuciónobligatoria para nuevos episodios,
+- Música:4Mixkit/4autores sinatribuciónobligatoria y fondo muy bajo (-34LUFS antes
+  de ducking0.012/ratio8) para nuevos episodios tras feedbackJason,
   24CCBYhistóricas conservadas. [Licencias y límites](docs/audio.md).
 - Últimos checks de código04/11:44+89focales,audio58+21,docs/studio-check pasados.
   Suite global/navegador no repetidos en esta producción editorial.

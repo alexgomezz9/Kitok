@@ -617,7 +617,7 @@ decisión queda identificada. No se rediseñan imágenes ya aceptadas por defect
 Las instrucciones de Fish y el control local de voz están en
 [voz y fidelidad](docs/fish-voice.md). La música nueva se selecciona con perfil
 `horror_no_attribution`: cuatro candidatas Mixkit de cuatro autores, licencia
-comercial con atribución opcional y fondo más audible bajo la voz. Las mezclas
+comercial con atribución opcional y fondo muy bajo, con la voz claramente delante. Las mezclas
 anteriores conservan su música y créditos obligatorios; consulta [audio](docs/audio.md). No se descargan pistas mientras se monta.
 
 La entrega reúne ocho archivos para YouTube Studio en `entrega/`:

@@ -84,8 +84,9 @@ pulso más marcado, según los descriptores del autor. Hay que escuchar la muest
 no se ha acreditado audición del agente ni una mejora medida de retención. Evitar
 coros/vocalizaciones que puedan confundirse con habla del narrador; la música no
 sirve para tapar anomalías. El mezclador normaliza la voz a −19 LUFS. El nuevo perfil
-sin atribución usa música a −26 LUFS antes del ducking, 3 dB más que el histórico,
-y atenúa con umbral 0,03 y ratio 4:1 durante la voz. Los perfiles anteriores conservan
+sin atribución usa música a −34 LUFS antes del ducking, 8 dB menos que el primer
+mezclado de Jason010 tras el feedback del operador,
+y atenúa con umbral 0,012 y ratio 8:1 durante la voz. Los perfiles anteriores conservan
 −29 LUFS, umbral 0,012 y ratio 8:1. Mantiene la medición final a −16 LUFS y pico
 ≤−1,5 dBTP; no configura todavía una curva musical editorial por cada giro.
 
@@ -93,7 +94,9 @@ Las cuatro descargas reales del 04/11/2026 decodifican como audio y miden
 113,032 s, 226,299 s, 149,342 s y 106,162 s, respectivamente. La muestra local
 `local/pruebas/audio_horror_sin_atribucion_20261104/muestra_20s_v2.m4a` reutiliza
 20 s de voz de Freddy, Feedback Dreams y Dark Shadows: **−16,03 LUFS / −2,33 dBTP**,
-duración exacta de 20 s. Se verificó mezcla y sonoridad; no se acredita escucha ni
+duración exacta de 20 s. Es el balance anterior, sustituido por el fondo más bajo
+tras el feedback de Jason; no usarlo como referencia del nivel vigente.
+Se verificó mezcla y sonoridad; no se acredita escucha ni
 aprobación subjetiva. Una licencia válida no garantiza ausencia de reclamaciones
 Content ID; la propia licencia de Mixkit contempla asistencia ante reclamaciones.
 
@@ -378,7 +381,7 @@ cola silenciosa hasta el final solicitado, sin recortar ni volver a sintetizar v
 Los archivos y recibos anteriores se conservan; una mezcla anterior demasiado
 corta necesita una revisión nueva, no borrar su caché ni relajar el control del montaje.
 
-Desde `sample-clock-v5-horror-bed`, las mezclas nuevas identifican además el nivel
-de fondo previo al ducking y sus parámetros reales. El balance más audible sólo
+Desde `sample-clock-v6-quiet-horror-bed`, las mezclas nuevas identifican además el nivel
+de fondo previo al ducking y sus parámetros reales. El fondo más bajo sólo
 se aplica al canal `horror_no_attribution`; las mezclas históricas ya guardadas se
 reutilizan con su recibo y no se regeneran por cambiar el catálogo o esta revisión.

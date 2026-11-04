@@ -178,7 +178,7 @@
     "channel": "horror_no_attribution",
     "mood": "horror",
     "count": 2,
-    "policy": "Nuevos episodios: biblioteca horror/misterio de varios autores con licencia comercial explícita sin atribución obligatoria. Selección estable y variada por episodio; música de fondo audible discreta con ducking, sin tapar narración. Verificar licencia/fuente/hash antes de usar; no prometer ausencia de reclamaciones Content ID. No sustituir mezclas anteriores ni quitar sus créditos CC BY.",
+    "policy": "Música instrumental horror/misterio de varios autores con licencia sin atribución obligatoria; fondo MUY BAJO, voz claramente delante. Feedback Jason04/11: estaba demasiado alta. Nuevas mezclas horror_no_attribution usan -34LUFS antes de ducking, umbral0.012/ratio8. Conservar selección estable/licencias/hashes; no modificar mezclas ya producidas ni repetirJason. No prometer ausenciaContentID.",
     "selection_timing": "Elegir antes del montaje, no descargar ni cambiar de música durante render."
   },
   "thumbnails": {

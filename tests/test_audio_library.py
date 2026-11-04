@@ -124,10 +124,10 @@ def test_mixkit_exact_evidence_optional_credits_rotation_and_real_mix(mixkit_lib
     voice = tmp_path / "voice.wav"
     voice.write_bytes(tone_bytes(frequency=520, seconds=4))
     mixed = library.mix("horror-new", voice, tmp_path / "mix.m4a", duration=4)
-    assert mixed["background_lufs_before_ducking"] == -26
-    assert "loudnorm=I=-26" in mixed["filter"]
-    assert "sidechaincompress=threshold=0.03:ratio=4:" in mixed["filter"]
-    assert mixed["ducking"] == {"threshold": .03, "ratio": 4, "attack_ms": 15, "release_ms": 300}
+    assert mixed["background_lufs_before_ducking"] == -34
+    assert "loudnorm=I=-34" in mixed["filter"]
+    assert "sidechaincompress=threshold=0.012:ratio=8:" in mixed["filter"]
+    assert mixed["ducking"] == {"threshold": .012, "ratio": 8, "attack_ms": 15, "release_ms": 300}
     assert mixed["measured"]["true_peak_dbtp"] <= -1.5
     assert len(calls) == before
 
@@ -632,7 +632,7 @@ def test_long_documentary_automatic_mix_has_continuous_sample_clock(audio_librar
     assert math.isfinite(receipt["measured"]["loudness_range_lu"])
     assert receipt["transition_at"] == 223.1457
     assert len(receipt["sound_effects"]) == 4
-    assert receipt["mixer_revision"] == "sample-clock-v5-horror-bed"
+    assert receipt["mixer_revision"] == "sample-clock-v6-quiet-horror-bed"
     diagnostics = Path(receipt["diagnostics_directory"])
     assert (diagnostics / "mixed.wav").is_file()
     assert json.loads((diagnostics / "validation.json").read_text())["status"] == "validated"
@@ -753,7 +753,7 @@ def test_new_documentary_from_scratch_uses_real_stock_lengths_and_auto_music(aud
             source = plan['assets'][scene['asset']]['path']
             assert scene['source_start'] + scene['end']-scene['start'] <= lengths[source] + 1e-6
     mix = json.loads(next(workspace.glob('music-*.wav.json')).read_text())
-    assert mix['mixer_revision'] == 'sample-clock-v5-horror-bed'
+    assert mix['mixer_revision'] == 'sample-clock-v6-quiet-horror-bed'
     assert abs(mix['duration']-probe_media(voice).duration) <= .08
     assert len(mix['selection']['tracks']) == 2
     assert mix['sound_effects']

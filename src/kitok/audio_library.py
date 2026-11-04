@@ -76,7 +76,7 @@ AUDITED = {
 }
 ID = re.compile(r"[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}\Z")
 SFX_KINDS = ("soft_tick", "low_pulse", "air_swish", "paper_texture", "key_click", "ui_ping")
-MIXER_REVISION = "sample-clock-v5-horror-bed"
+MIXER_REVISION = "sample-clock-v6-quiet-horror-bed"
 # Editorial affinities are separate from the source/license receipt. They are
 # judgments based on the author's stored instrument/feel descriptions, not claims
 # that the author assigned a business/history genre or that Kitok auditioned them.
@@ -685,11 +685,12 @@ class AudioLibrary:
                 inputs += ["-i", str(path)]
             if transition_at is not None and len(selection["tracks"]) != 2:
                 raise AudioLibraryError("A narrative transition requires two selected tracks")
-            # New no-attribution horror profile has a +3 dB bed. Existing channels
-            # and their completed/cached mixes retain their historical balance.
+            # Operator feedback: the first Mixkit bed overwhelmed the narration.
+            # New horror mixes use a quieter bed and stronger speech ducking.
+            # Completed/cached mixes retain their historical bytes.
             horror_bed = selection.get("channel") == "horror_no_attribution"
-            background_lufs = -26 if horror_bed else -29
-            ducking = {"threshold": .03 if horror_bed else .012, "ratio": 4 if horror_bed else 8,
+            background_lufs = -34 if horror_bed else -29
+            ducking = {"threshold": .012, "ratio": 8,
                        "attack_ms": 15, "release_ms": 300}
             chain = self._mix_filter(duration, crossfade, len(selection["tracks"]), events, transition_at,
                                      background_lufs=background_lufs, ducking_threshold=ducking["threshold"],
