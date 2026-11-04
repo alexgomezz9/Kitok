@@ -1,7 +1,7 @@
 # Estado vigente de Kitok
 
-Actualizado: **04/11/2026**. Rama **feat/trazo-dynamic-delivery** desde main local.
-Sin push, publicación ni programación remota. Para operar: [GUIA.md](GUIA.md).
+Actualizado: **04/11/2026**. Integración en **main** autorizada por el operador el04/11.
+Sin publicación ni programación remota de vídeos. Para operar: [GUIA.md](GUIA.md).
 
 ## Música nueva
 
@@ -61,4 +61,5 @@ Consultar `local/stickman_jobs/ESTADO.md` sólo al revisar resultado o fallo.
 Si aparece needs_review, investigar el log antes de retry explícito. No esperar
 render aquí, no repetir proveedores por rutina. Textos/medios de entrada congelados.
 Revisión audiovisual del operador pendiente al cerrar Kitok. docs-check/studio-check
-pasados04/11; suite global, navegador, remoto yCI no comprobados en esta unidad.
+pasados04/11; suite global y navegador locales no repetidos. El resultado del CI remoto
+se consulta por SHA en GitHub; los tests locales no lo sustituyen.
