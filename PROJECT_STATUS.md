@@ -3,6 +3,19 @@
 Actualizado: **04/11/2026**. Integración en **main** autorizada04/11, base335762b.
 Operación: [GUIA.md](GUIA.md). Preferencias: perfil Trazo, una fuente por tema.
 
+## Slenderman012 en preparación
+
+Rama de trabajo: `fix/fish-subframe-overlap`. Una voz Fish499,278s conservada,
+0cortes/resíntesis; ASR local completo sin inserciones ni actividad pendiente,
+diferencias de reconocimiento aceptadas documentalmente. Sin escucha humana.
+111decisiones/499,3s: reloj/pacing pasados, PNG en generación/revisión.
+Ancla y miniatura1280×720 vistas. Falta terminar PNG, metadatos y prepare/reuse→GPU.
+
+Corrección04/11: se conservan marcas Fish con hasta20ms de solapamiento si sus
+inicios/finales no retroceden; mayores/reversiones se rechazan. Caso real15,283ms
+resuelto sin cambiar audio/JSON.169tests focales, revisión independiente y
+docs-check pasados. Sin comprobación de CI/remoto para este cambio.
+
 ## Art011 entregado a la cola GPU
 
 `content/longform/trazo_011_art_el_payaso_historia/`: 1890 palabras, cuatro break,

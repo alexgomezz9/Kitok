@@ -358,3 +358,6 @@ hashes; interrupciones conservan material y los grupos de procesos superviviente
 bloquean nuevas tareas. `start` reactiva pendientes; no hay servicio/autostart.
 No son una publicación ni una aprobación audiovisual: TERMINADO es cierre técnico.
 [Comandos y límites](../GUIA.md#produccion-repetida-de-trazo-maldito).
+
+Las marcas de voz Fish conservan sus tiempos originales cuando un límite entre
+palabras se solapa hasta20ms con inicios/finales ordenados; ver [voz Fish](fish-voice.md#solapamientos-mínimos-de-marcas-fish).

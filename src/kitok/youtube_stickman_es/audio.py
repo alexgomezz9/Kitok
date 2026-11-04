@@ -30,6 +30,18 @@ _TIMING = re.compile(_TIMECODE.format("start") + r"\s+-->\s+" + _TIMECODE.format
 _TTS_TEXT_POLICY = 'collapse_whitespace_v1'
 
 
+def _ordered_word_interval(start: float, end: float, previous_start: float,
+                           previous_end: float, duration: float) -> bool:
+    """Retain observed Fish times, including at most 20ms boundary overlap.
+
+    Chunk boundaries can overlap by less than one 30fps frame. Neither endpoint
+    is moved; reversed starts/ends and larger overlaps remain invalid.
+    """
+    return (math.isfinite(start) and math.isfinite(end)
+            and 0 <= previous_start <= start <= end <= duration + .001
+            and previous_end <= end and previous_end - start <= .020 + 1e-9)
+
+
 def _tts_text(script: str, policy: str = _TTS_TEXT_POLICY) -> str:
     """Compile transport whitespace only; retain spoken words and Fish markers."""
     if policy == _TTS_TEXT_POLICY:
@@ -176,15 +188,17 @@ def _provider_segments(path: Path, script: str, duration: float) -> list[dict]:
         if not isinstance(words, list) or not words:
             raise ValueError
         segments, transcript, previous = [], [], 0.0
+        previous_start = 0.0
         for word in words:
             if (not isinstance(word, dict) or not isinstance(word.get("word"), str)
                     or isinstance(word.get("start"), bool) or isinstance(word.get("end"), bool)):
                 raise ValueError
             start, end = float(word["start"]), float(word["end"])
             tokens = _tokens(word["word"])
-            if (not tokens or not math.isfinite(start) or not math.isfinite(end)
-                    or not previous <= start <= end <= duration + .001):
+            if (not tokens or not _ordered_word_interval(
+                    start, end, previous_start, previous, duration)):
                 raise ValueError
+            previous_start = start
             previous = end
             transcript.extend(tokens)
             segments.append({"word": word["word"], "start": start, "end": end})

@@ -245,3 +245,10 @@ del transporte previene esa fragmentación sin contratar otro modelo y se valida
 con el mismo control de contenido; no se declara resuelta una voz sólo por quitarLF.
 `yt-edit` propone silencios/muletillas, no sustituye esta comparación ni edita
 medios por sí sola. Un tramo sustituido no se recupera cortándolo.
+
+### Solapamientos mínimos de marcas Fish
+
+Kitok conserva el JSON Fish original y admite hasta20ms de solapamiento entre
+palabras consecutivas si inicios y finales no retroceden. SRT evita dividir
+esas fronteras; la auditoría mide la unión de los intervalos. No se corrige
+audio ni se inventan marcas; retrocesos o solapamientos mayores se rechazan.

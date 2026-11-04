@@ -211,7 +211,10 @@ reales que supera el máximo por escena. El error indica tiempos absolutos y, al
 reutilizar imágenes, el plano original. Un hueco entre timestamps no demuestra
 silencio en el MP3: revisa ambos antes de cambiar límites. Conserva `voz.mp3`,
 `voz.srt`, `voz.alignment.json` y `.stickman/`; no los borres para repetir Fish.
-Repetir el comando no repara una alineación incorrecta. Kitok no dispone de
+Repetir el comando no repara una alineación incorrecta. Las marcas Fish pueden
+solaparse hasta 20 ms si sus inicios y finales siguen ordenados: Kitok conserva
+los tiempos originales y agrupa los subtítulos sin cortar esa frontera. Esto
+no acredita sincronía acústica; solapamientos mayores siguen bloqueados. Kitok no dispone de
 realineación acústica automática. Si escuchas un artefacto de síntesis dentro
 de un hueco entre palabras, se puede quitar en una copia conservando el original;
 consulta [los cortes de audio revisados](docs/audio.md#quitar-ruidos-de-sintesis-confirmados).

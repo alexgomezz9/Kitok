@@ -107,6 +107,7 @@ def uncovered_activity(audio: Path, alignment: Path, *, ffmpeg: str,
 def activity_outside_words(audio: Path, words: list[dict], *, ffmpeg: str,
                            duration: float | None = None) -> list[dict]:
     """Measure energy outside observed word times without inventing a transcript."""
+    from .audio import _ordered_word_interval
     if not isinstance(words, list) or not words:
         raise ValueError('Cannot audit activity without word marks')
     process = subprocess.run([ffmpeg, '-hide_banner', '-nostdin', '-i', str(audio),
@@ -129,6 +130,7 @@ def activity_outside_words(audio: Path, words: list[dict], *, ffmpeg: str,
         from ..media.ffprobe import probe_media
         duration = probe_media(audio).duration
     gaps, previous = [], 0.0
+    previous_start = 0.0
 
     def inspect_gap(left, right):
         if right - left >= .75:
@@ -144,12 +146,13 @@ def activity_outside_words(audio: Path, words: list[dict], *, ffmpeg: str,
             start, end = float(word['start']), float(word['end'])
         except (KeyError, TypeError, ValueError):
             raise ValueError('Cannot audit invalid word marks') from None
-        if not math.isfinite(start + end) or not 0 <= previous <= start <= end <= duration + .001:
+        if not _ordered_word_interval(start, end, previous_start, previous, duration):
             raise ValueError('Cannot audit invalid word marks')
         # Keep 120ms at either real-word boundary; never propose a cut here.
         left, right = previous + .12, start - .12
         inspect_gap(left, right)
         previous = end
+        previous_start = start
     inspect_gap(previous + .12, duration)
     return gaps
 

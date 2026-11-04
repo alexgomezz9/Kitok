@@ -52,6 +52,33 @@ def _alignment(episode, **overrides):
     return data
 
 
+def test_subframe_provider_overlap_preserves_times_through_planning_and_captions(episode, tmp_path):
+    from kitok.youtube_stickman_es.planner import _word_inputs
+    from kitok.youtube_stickman_es.captions import write_captions
+    data = _alignment(episode)
+    data['words'][1]['start'] = .78471655328795
+    path = episode / 'voz.alignment.json'
+    path.write_text(json.dumps(data))
+    before = path.read_bytes()
+    words = audio._provider_segments(path, 'Hola mundo Todo cambia', 4.)
+    assert words == data['words']
+    _word_inputs('Hola mundo Todo cambia', words, 4.)
+    write_captions('Hola mundo Todo cambia', words, tmp_path / 'overlap.ass')
+    cues = audio._provider_cues(path, 'Hola mundo Todo cambia', 4.)
+    assert all(a['end'] <= b['start'] for a, b in zip(cues, cues[1:]))
+    assert path.read_bytes() == before
+
+
+@pytest.mark.parametrize('start,end', [(.779, 1.5), (.05, 1.5), (.79, .79), (-.01, 1.5)])
+def test_overlap_bound_and_reversed_clocks_are_rejected(episode, start, end):
+    data = _alignment(episode)
+    data['words'][1].update(start=start, end=end)
+    path = episode / 'voz.alignment.json'
+    path.write_text(json.dumps(data))
+    with pytest.raises(audio.StickmanAudioError):
+        audio._provider_segments(path, 'Hola mundo Todo cambia', 4.)
+
+
 def test_import_measures_real_audio_preserves_inputs_and_requires_sync_review(episode, settings):
     before = {path.name: path.read_bytes() for path in episode.iterdir()}
     result = _prepare(episode, settings)

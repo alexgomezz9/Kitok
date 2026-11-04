@@ -13,7 +13,7 @@ from pathlib import Path
 
 from ..editing.camera import CameraMotion
 from ..editing.manifest import clean_script
-from .audio import _tokens
+from .audio import _tokens, _ordered_word_interval
 from .files import digest, local_file, write
 from .models import Config, Direction, IllustrationPlan, Scene
 
@@ -42,18 +42,19 @@ def _word_inputs(script: str, words: list[dict], measured: float):
     if not isinstance(words, list) or not words or len(words) != len(matches):
         raise ValueError('Provider words must cover the full script transcript exactly')
     previous_end = 0.
+    previous_start = 0.
     for match, word in zip(matches, words):
         try:
             start, end = float(word['start']), float(word['end'])
             valid = (not isinstance(word['start'], bool) and not isinstance(word['end'], bool)
                      and _tokens(word['word']) == [match.group().casefold()]
-                     and math.isfinite(start) and math.isfinite(end)
-                     and previous_end <= start <= end <= measured + .001)
+                     and _ordered_word_interval(start, end, previous_start, previous_end, measured))
         except (KeyError, TypeError, ValueError, OverflowError):
             valid = False
         if not valid:
             raise ValueError('Provider words must match the full script with finite monotonic timestamps')
         previous_end = end
+        previous_start = start
     offsets = [0] + [m.start() for m in matches[1:]] + [len(text)]
     frames = [0] + [round(float(w['start'])*30) for w in words[1:]]
     return text, offsets, frames

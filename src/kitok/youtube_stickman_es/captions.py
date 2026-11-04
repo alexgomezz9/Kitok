@@ -75,7 +75,7 @@ def write_captions(script: str, words: list[dict], output: Path, *,
     """Write immutable ASS and return JSON-safe provenance/layout metadata.
 
     ``words`` must cover the entire narration, with the same lexical tokens as
-    the script and finite, ordered, nonoverlapping start/end timestamps. The
+    the script and finite, ordered timestamps (at most 20ms boundary overlap). The
     caller supplies real narration alignment; this function does not obtain or
     infer timing. Display text uses Unicode uppercase and normalized whitespace;
     original script spelling and punctuation remain in ``source_text`` metadata.
