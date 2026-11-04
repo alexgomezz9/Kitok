@@ -1,54 +1,42 @@
 # Estado vigente de Kitok
 
-Actualizado: **04/11/2026**. Integración en **main** autorizada04/11, base335762b.
-Operación: [GUIA.md](GUIA.md). Preferencias: perfil Trazo, una fuente por tema.
+Actualizado: **04/11/2026**. Rama `fix/fish-subframe-overlap`, base main.
+Código **e8ab758**. Operación: [GUIA.md](GUIA.md).
 
-## Slenderman012 en preparación
+## Slenderman012 en cola GPU
 
-Rama de trabajo: `fix/fish-subframe-overlap`. Una voz Fish499,278s conservada,
-0cortes/resíntesis; ASR local completo sin inserciones ni actividad pendiente,
-diferencias de reconocimiento aceptadas documentalmente. Sin escucha humana.
-111decisiones/499,3s: reloj/pacing pasados, PNG en generación/revisión.
-Ancla y miniatura1280×720 vistas. Falta terminar PNG, metadatos y prepare/reuse→GPU.
+Revisión activa: `content/longform/trazo_012_slenderman/revisiones/montaje_final`.
+Guion1543palabras, voz499,278s conservada:1Fish,0cortes/resíntesis. ASR local
+completo sin inserciones/omisiones ni actividad pendiente; reemplazos revisados
+documentalmente. Sin escucha humana.111PNG vistos/validados,3reparaciones
+materiales;108fuentes pequeñas y3individuales. Native escala sin detalle nuevo.
+14capítulos reales,9etiquetas y miniatura1280×720 vista. Pacingpassed:
+0-30s19imágenes/hold3,367s;30-60s10/hold4,8s;bodymedia5,23s/hold8,7s.
+`prepare --reuse-images` exit0,111planos/499,3s,ready_to_render.
 
-Corrección04/11: se conservan marcas Fish con hasta20ms de solapamiento si sus
-inicios/finales no retroceden; mayores/reversiones se rechazan. Caso real15,283ms
-resuelto sin cambiar audio/JSON.169tests focales, revisión independiente y
-docs-check pasados. Sin comprobación de CI/remoto para este cambio.
+Cola **07a60b02e67c43888e1410e7034c11fc**, requireGPU; preflight NVENCp5
+pasado, worker iniciado en mezcla local. Inputs activos congelados. Kitok sigue
+render normal/subtitulado,QA,bundle y limpieza. Consultar
+`local/stickman_jobs/ESTADO.md` y log delID; si needs_review investigar antes
+retry. No esperar render ni repetir proveedores. No publicación. Revisión
+audiovisual del operador pendiente. Originales/manifiestos conservados en padre.
 
-## Art011 entregado a la cola GPU
+## Corrección de marcas Fish
 
-`content/longform/trazo_011_art_el_payaso_historia/`: 1890 palabras, cuatro break,
-continuidad Terrifier2016/2022/2024. Origen humano no inventado; final abierto.
-Una voz Fish de609,6195s conservada, cero cortes/resíntesis.32 diferencias ASR
-aceptadas documentalmente; dos ventanas desmienten inserción/omisión aparentes.
-No escucha humana.128 PNG vistos por contacto y validados, cero pendientes:
-124 fuentes545-546×301-302 y cuatro1660×929; Native escala sin detalle nuevo.
+Se conservan JSON/audio originales y se admiten hasta20ms de solapamiento entre
+palabras con inicios/finales ordenados; mayores/retrocesos siguen bloqueados.
+Caso real15,283ms resuelto. Verificado04/11:169tests focales de audio,ASR,cortes,
+planificador,subtítulos y pipeline; revisión independiente sin hallazgos materiales;
+docs-check y whitespace. Sin push ni remoto/CI comprobados para esta rama.
 
-Plan128 fuentes=128 planos/609,633s:19 imágenes solapan primeros30s, después del
-minuto media5,552s/hold máximo8,833s. Tres agentes con lotes disjuntos; dos errores
-narrativos reparados y dos paneles con formato incorrecto reemplazados por PNG
-individuales. Ancla/portada vistas,16 capítulos reales y11 etiquetas fijados.
+## Otras producciones y límites
 
-`prepare --reuse-images` exit0, ready_to_render. Worker GPU
-**35ee05863a1b4ab2ba7a99a938aa99de**: preflight NVENCp5 pasado y render iniciado.
-El montaje usa la mezcla v6 baja ya guardada: fondo-34LUFS antes de ducking,
-umbral0.012/ratio8; final-16,01LUFS/-1,91dBTP. No se modificó Jason010.
-Kitok continúa ambos vídeos, subtítulos, QA, bundle y limpieza sin agente.
-Consultar `local/stickman_jobs/ESTADO.md`; si needs_review, investigar log antes
-retry explícito. Inputs congelados, no repetir proveedores ni esperar render aquí.
-Revisión audiovisual del operador pendiente al terminar. No publicación.
-
-## Reglas y capacidades vigentes
-
-Stickman como Jason010 (confirmado por operador), más gesto/acción y atmósfera
-inquietante; no personas cartoon normales. Skills/documentos sustituidos y
-abreviados. Música nueva mucho más baja; mezclas anteriores conservadas.
-Ocho materiales en entrega, incluido etiquetas.txt; un parMP4 canónico por episodio.
-004-009 ya normalizados:22 nombres duplicados retirados,778 fuentes intactas.
-Fuentes/recibos necesarios quedan fuera deentrega; organize retira derivados.
-
-Verificado04/11: ocho tests focales de música, mezcla real v6 completa y reutilizada
-por worker, docs-check y whitespace. Suite global/UI no repetidas para esta unidad.
-Código y reglas se entregan en main; comprobar remoto/CI por SHA en GitHub.
-YouTube requiere reconexión OAuthHTTP400; vidIQ sólo LooseThread. No subidas.
+Cola observada04/11: Jason010 terminado; Art011 needs_review en cierre por
+`Preserve the operator LEEME.md first`. No se intervino en esos episodios.
+Estilo: stickman como Jason010, gesto/acción y horror contextual; algunas tomas
+cercanas de secundarios012 tienen anatomía más llena, limitación registrada.
+Música nueva horror_no_attribution muy baja (-34LUFS antes de ducking); fuentes,
+licencias y recibos conservados. Ocho archivos en entrega, un parMP4 canónico.
+YouTube requiere reconexión OAuthHTTP400 en la última comprobación; no verificado
+de nuevo aquí. vidIQ no usado. No se ha medido ahorro de tokens ni equivalencia
+de calidad entre modelos.
