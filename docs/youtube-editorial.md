@@ -157,7 +157,7 @@ La herramienta integrada aquí no expone `n` ni lista de prompts independientes.
 
 Conservar una imagen distinta por escena editorial y separar IDs de los tiempos. Reutilizar voz/alineación y mantener límites de duración, integridad y hashes. Utilizar el motor actual y los procedimientos vigentes para importar, aprobar estilo, renderizar y revisar. No editar recibos para forzar que el sistema continúe.
 
-La carpeta `entrega/` separa los seis archivos de uso del trabajo interno mediante
+La carpeta `entrega/` separa los ocho materiales de subida del trabajo interno mediante
 `scripts/stickman_delivery.py`; consultar [guía](../GUIA.md#estilo-y-entrega-de-trazo-maldito).
 No borrar cachés mientras queden reparaciones que puedan necesitarlas.
 
@@ -201,3 +201,31 @@ según la acción. Miedo, curiosidad, tristeza o calma no deben convertirse por 
 en la mirada/sonrisa malvada del villano. Ver `images.scene_expressions` del perfil.
 Revisión semántica de secundarios y momentos tranquilos antes de ampliar los lotes;
 no regenerar episodios aceptados por esta nueva regla.
+
+## Ritmo e identidad visual vigentes - 04/11/2026
+
+Aplicar `workflow.pacing` del perfil con `pacing_policy: trazo_dynamic_v1`:
+primeros 30 s, 1,5-2,5 s por imagen distinta; siguientes 30 s, 2,5-3,5 s;
+después, aproximadamente 5,5-7 s. La aclaración del operador conserva una intro
+rápida y evita duplicar imágenes durante toda la historia. Medias máximas/hold:
+2,5/3,5 s, 3,5/5 s y 7/9 s respectivamente, sobre voz real. Otra cámara del
+mismo PNG no cuenta como imagen nueva. `check --timing` informa; `prepare
+--reuse-images` y render bloquean incumplimientos y duplicados SHA. Corregir el
+storyboard antes de ampliar, conservando voz. No rehacer vídeos terminados.
+
+Preguntas importantes, fechas, cifras y lugares tienen apoyo visual fiel y
+legible cuando aporta comprensión. Conservar negaciones y evitar mapas
+inventados. Todos los personajes, especialmente el villano, mantienen silueta
+stickman estrecha. Piel coloreada conserva el tono en extremidades delgadas;
+evitar brazos negros sólidos en un cuerpo de piel. Ancla antes de ampliar.
+
+Una pasada breve por contacto; reparar errores claros, sin revisar minucias ni
+repetir ASR por nombres. Repartir lotes disjuntos entre tres agentes si está
+encargado; cerrar tras enqueue con ID/ESTADO.md. Kitok registra los fallos.
+
+Copia pública: `workflow.youtube_copy` del perfil y
+`editorial/publicacion_youtube.json`. Asterisco simple en encabezados, guion corto,
+sin enlaces opcionales ni créditos técnicos internos. Conservar atribuciones
+obligatorias de mezclas antiguas; la puntuación no demuestra detección de IA.
+Sustituir reglas/documentos obsoletos, una fuente por tema, históricos fuera del
+recorrido diario. Obsidian es opcional para navegar los Markdown existentes.

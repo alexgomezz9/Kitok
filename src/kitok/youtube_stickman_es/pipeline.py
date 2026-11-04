@@ -12,6 +12,7 @@ from ..editing.production import render_editorial_plan
 from ..editing.storyboard import EditorialAsset, EditorialPlan, EditorialScene
 from .audio import prepare_narration, prepare_mix
 from .files import digest, episode_lock, episode_path, local_file, replace_state, write
+from .final_paths import final_video
 from .images import ImageBatch
 from .models import Config, IllustrationPlan
 from .packaging import prepare_packaging, compose_thumbnail
@@ -66,6 +67,9 @@ def _prepare(episode: Path, root: Path, settings, *, generate_voice=False, reuse
     emit('Alineación: calculando cortes sobre los tiempos reales de la voz')
     plan = plan_illustrations(episode,title=title,script=script,narration=narration,config=config,
                               directions=directions,source_spans=spans)
+    if config.pacing_policy and plan.direction_complete:
+        from .pacing import require_pacing
+        require_pacing(episode, plan, verify_images=reuse_images)
     emit(f'Plan listo: {len(plan.scenes)} planos · {plan.duration:.1f} s de vídeo')
     if narration.get('words') is not None:
         timing_file = '.stickman/word_timing'+('' if plan.direction_complete else '.borrador')+'.json'
@@ -128,6 +132,9 @@ def _render(episode: Path, root: Path, settings, *, revision: str | None = None,
     status = batch.status()
     if not status['render_images_ready']:
         raise ValueError('Every planned illustration must exist, decode and have visual review before rendering')
+    if config.pacing_policy:
+        from .pacing import require_pacing
+        require_pacing(episode, plan, verify_images=True)
     narration = prepared_narration if prepared_narration is not None else prepare_narration(
         episode,root=root,settings=settings,voice=config.voice.model_dump(),on_stage=on_stage)
     if (narration['audio_sha256'] != plan.audio_sha256 or narration['srt_sha256'] != plan.srt_sha256
@@ -150,10 +157,11 @@ def _render(episode: Path, root: Path, settings, *, revision: str | None = None,
                               alignment={'method':plan.timing_method,'audio_sha256':mix['audio_sha256'],
                                          'srt_sha256':plan.srt_sha256,'plan_sha256':batch.plan_key,'batch_sha256':batch.key})
     suffix = '__'+revision if revision else ''
-    output = local_file(episode,'video_final'+suffix+'.mp4',exists=False)
+    output = final_video(episode,'video_final'+suffix+'.mp4',exists=False)
     qa_path = local_file(episode,'qa'+suffix+'.json',exists=False)
     request = {'plan_sha256':batch.plan_key,'batch_sha256':batch.key,'mix_sha256':mix['audio_sha256'],
-               'editorial_plan_sha256':digest(timeline.model_dump()),'output':str(output.relative_to(root))}
+               'editorial_plan_sha256':digest(timeline.model_dump()),
+               'output':str((episode / ('video_final'+suffix+'.mp4')).relative_to(root))}
     request_path = local_file(episode,'.stickman/render'+suffix+'.json',exists=False)
     write(request_path,request)
     if output.exists():
@@ -278,7 +286,7 @@ def execute(root: Path, episode: Path, command: str, *, settings=None, on_stage=
             return {'pipeline':'youtube_stickman_es','status':'visual_direction_required' if draft.exists() else 'preparation_required'}
         plan,config,batch = current(folder)
         return {'pipeline':'youtube_stickman_es','images':batch.status(),
-                'video_exists':local_file(folder,'video_final.mp4',exists=False).is_file(),
+                'video_exists':final_video(folder,'video_final.mp4',exists=False).is_file(),
                 'human_review_required':True}
     with episode_lock(folder):
         if command == 'complete':

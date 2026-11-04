@@ -545,6 +545,12 @@ las mismas referencias/ancla aprobada se reutilizan en los lotes.
 .venv/bin/python .agents/skills/kitok-storyboard/scripts/storyboard.py check content/longform/MI_EPISODIO --timing
 ```
 
+Para Trazo Maldito nuevo, configura `pacing_policy: trazo_dynamic_v1` y aplica
+`workflow.pacing` del perfil:0-30s1,5-2,5s por imagen distinta;30-60s2,5-3,5s;
+resto aproximadamente 5,5-7 s. El informe `pacing` usa el reloj real, agrupa cámaras del mismoPNG y
+verifica duplicados porSHA cuando existen. `prepare --reuse-images` y el render
+bloquean incumplimientos: corregir el storyboard antes de ampliar.
+
 Sin voz, el reloj queda pendiente. Con MP3 y alineación Fish por palabras, el
 segundo comando comprueba cortes reales sin renderizar, generar ni escribir
 recibos de voz; el resultado sale por stdout. SRT sin palabras no permite
@@ -612,16 +618,24 @@ Las instrucciones de Fish y el control local de voz están en
 comercial con atribución opcional y fondo más audible bajo la voz. Las mezclas
 anteriores conservan su música y créditos obligatorios; consulta [audio](docs/audio.md). No se descargan pistas mientras se monta.
 
-La entrega compacta conserva sólo seis archivos en `entrega/`: vídeo subtitulado,
-miniatura, descripción, créditos, informe y un texto de lectura. Se crea sin
-volver a codificar ni copiar los bytes del vídeo; el resto del trabajo permanece
-fuera de esa carpeta. Para editar el vídeo, exporta otra versión sin modificar
-el máster compartido.
+La entrega reúne ocho archivos para YouTube Studio en `entrega/`:
+`video_final.mp4` sin subtítulos, `video_subtitulado.mp4`, `voz.srt`, `miniatura.png`,
+`titulo.txt`, `descripcion.txt`, `etiquetas.txt` y `ajustes_youtube.txt`. Informes,
+recibos y licencias internas quedan fuera, en `.stickman/` y las fuentes originales.
+Los créditos obligatorios de la música sí deben figurar en la descripción.
+El paquete se crea sin recodificar y conserva un único nombre por MP4 final:
+al terminar retira los duplicados cuyo SHA coincida, incluidas las copias de trabajo.
+Las rutas canónicas son las de `entrega/`; Kitok las reconoce al reanudar.
 
-En los remakes nuevos se conserva además `video_final.mp4` sin subtítulos en la
-carpeta del episodio. El bundle subtitulado no sustituye ese máster. Cada remake
-usa una carpeta nueva; las carpetas anteriores quedan para revisión y borrado
-manual del operador, según su instrucción del 28/10.
+Para Trazo Maldito el agente prepara `editorial/publicacion_youtube.json` con
+`title`, `description`, `tags` y ajustes opcionales en `settings`, antes del bundle.
+La descripción incluye capítulos reales, títulos de fuentes sin enlaces opcionales,
+asterisco simple para secciones y guion corto. Las URLs exigidas por licencias se
+conservan. Ese archivo editorial prevalece sobre los textos técnicos generados;
+no modifica el guion, la voz, el plan ni sus recibos. Los ajustes requieren revisión
+humana en las preguntas actuales de Studio.
+Cada remake usa una carpeta nueva; no borra automáticamente vídeos históricos
+distintos de los finales seleccionados.
 
 ```bash
 .venv/bin/python scripts/stickman_delivery.py bundle content/longform/MI_EPISODIO
@@ -631,7 +645,7 @@ manual del operador, según su instrucción del 28/10.
 .venv/bin/python scripts/stickman_delivery.py clean-cache content/longform/MI_EPISODIO --apply
 ```
 
-`bundle` requiere QA subtitulado pasado y recibos/hashes coincidentes. No sustituye
+`bundle` requiere QA de ambos vídeos pasados y recibos/hashes coincidentes. No sustituye
 entregas distintas. `clean-cache` conserva voz, imágenes fuente, láminas, planes,
 recibos y vídeos finales; bloquea trabajos activos y rutas enlazadas simbólicamente.
 Borrar clips elimina su reutilización rápida: no hacerlo antes de decidir reparaciones.
@@ -723,7 +737,7 @@ personajes, incluidas sus etapas de crecimiento. Las skills existentes lo aplica
 sin modificar retroactivamente guiones, imágenes o voces aceptados.
 Cuando el guion, la voz/alineación y las imágenes están preparados y aceptados,
 el agente puede entregar el episodio a una cola local y cerrar el chat. Kitok
-hace mezcla, montaje normal, subtítulos, QA de ambos MP4, paquete de seis archivos
+hace mezcla, montaje normal, subtítulos, QA de ambos MP4, paquete de ocho archivos
 y limpieza conservadora, sin generar otra voz, aceptar ASR ni publicar.
 
 ```bash
@@ -776,8 +790,8 @@ y materiales recuperables; no se reintenta automáticamente. Tras una interrupci
 los procesos FFmpeg supervivientes bloquean la cola hasta que terminen o se revisen.
 La preparación editorial del siguiente episodio puede avanzar mientras monta otro.
 
-La entrega está en `EPISODIO/entrega/`. Conserva también `video_final.mp4` y
-`video_subtitulado.mp4`, PNG finales, voz original/efectiva, alineación, prompts,
+La entrega está en `EPISODIO/entrega/`, con ambos MP4 y el SRT. Conserva además
+PNG finales, voz original/efectiva, alineación, prompts,
 manifiestos, referencias, licencias y recibos. La limpieza automática usa la misma
 lista conservadora de `organize`, sin archivar revisiones. Guarda su plan antes de
 borrar en `.stickman/completion-cleanup.json` y comprueba hashes protegidos después.

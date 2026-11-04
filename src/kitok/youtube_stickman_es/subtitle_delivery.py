@@ -92,7 +92,8 @@ def caption_video(episode: Path, *, root: Path, settings, on_stage=None,
         raise ValueError('Render revision must be a short lowercase ID')
     suffix = '__' + revision if revision else ''
     plan, config, _ = current(episode)
-    base = local_file(episode, 'video_final' + suffix + '.mp4')
+    from .final_paths import final_video
+    base = final_video(episode, 'video_final' + suffix + '.mp4')
     base_qa_path = local_file(episode, 'qa' + suffix + '.json')
     base_sha = digest(base)
     base_qa = json.loads(base_qa_path.read_text())
@@ -109,7 +110,7 @@ def caption_video(episode: Path, *, root: Path, settings, on_stage=None,
     source_media = _check_media(base, settings=settings, plan=plan,
                                 audio_duration=narration['duration'])
     ass = local_file(episode, 'subtitles' + suffix + '.ass', exists=False)
-    output = local_file(episode, 'video_subtitulado' + suffix + '.mp4', exists=False)
+    output = final_video(episode, 'video_subtitulado' + suffix + '.mp4', exists=False)
     qa_path = local_file(episode, 'qa_subtitulado' + suffix + '.json', exists=False)
     receipt_path = local_file(episode, '.stickman/subtitles' + suffix + '.json', exists=False)
     # The helper uses immutable publication too, so an existing changed ASS is

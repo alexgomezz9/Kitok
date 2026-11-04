@@ -62,6 +62,14 @@ class Config(Model):
     sources: list[dict] = Field(default_factory=list)
     description: str | None = Field(default=None, max_length=4500)
     thumbnail_text: dict[Literal['A', 'B', 'C'], str] = Field(default_factory=dict)
+    pacing_policy: Literal['trazo_dynamic_v1'] | None = None
+
+    @model_serializer(mode='wrap')
+    def preserve_existing_plans(self, handler):
+        data = handler(self)
+        if self.pacing_policy is None:
+            data.pop('pacing_policy', None)
+        return data
 
 
 class Direction(Model):

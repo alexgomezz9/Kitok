@@ -18,6 +18,7 @@ from .files import digest, episode_lock, local_file, write
 from .models import Config, Direction, Model
 from .planner import plan_illustrations, reference_records
 from .reuse import source_spans
+from .pacing import pacing_report
 
 
 PLAN = 'planificacion_visual/plan_visual_prevoz.json'
@@ -188,7 +189,9 @@ def check(episode: Path, *, plan_path: str = PLAN, timing: bool = False,
         warnings.append('Long source scenes split by the existing planner, reusing their image; inspect mapping')
     return result | {'timing': plan.timing_method, 'audio_sha256': digest(audio),
                      'alignment_sha256': digest(alignment), 'duration': plan.duration,
-                     'acoustic_sync_verified': False, 'bands': bands, 'warnings': warnings, 'mapping': rows}
+                     'acoustic_sync_verified': False, 'bands': bands, 'warnings': warnings, 'mapping': rows,
+                     'pacing': pacing_report(episode, plan, verify_images=all(
+                         local_file(episode, s.image_file, exists=False).exists() for s in plan.scenes))}
 
 
 def main(argv=None):

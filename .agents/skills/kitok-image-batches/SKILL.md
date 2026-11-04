@@ -30,7 +30,10 @@ no inventes atrocidades ni aumentes violencia ajena al relato. Conserva el detal
 del entorno sin engrosar el cuerpo hasta perder la silueta stickman. La imagen
 ancla debe mostrar ese criterio antes de producir cien viñetas.
 
-Comprueba `images.character_continuity` del perfil al revisar cada lote: todos los personajes mantienen silueta stickman y sus anclas, también al cambiar de edad/etapa. Rechaza una deriva a cuerpo cartoon ancho o rostro realista antes de ampliar; conserva las variantes válidas sin regenerar por rutina.
+Antes de ampliar, exigir ritmo comprobado con voz real según `workflow.pacing`;
+no generar cien imágenes para descubrir después un inicio lento. Aplicar
+`images.limb_colour`: piel coloreada conserva el tono en extremidades delgadas,
+sin antebrazos negros sólidos. Comprueba `images.character_continuity` del perfil al revisar cada lote: todos los personajes mantienen silueta stickman y sus anclas, también al cambiar de edad/etapa. Rechaza una deriva a cuerpo cartoon ancho o rostro realista antes de ampliar; conserva las variantes válidas sin regenerar por rutina.
 
 ## Referencia visual aportada por el operador27/10
 

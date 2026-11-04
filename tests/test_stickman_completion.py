@@ -9,6 +9,7 @@ from test_stickman_word_pipeline import supplied
 from kitok.youtube_stickman_es import completion, jobs, pipeline
 from kitok.youtube_stickman_es.delivery import sha256
 from kitok.youtube_stickman_es.files import episode_lock
+from kitok.youtube_stickman_es.final_paths import final_video
 
 
 def ready(setup_episode):
@@ -33,18 +34,20 @@ def test_real_queue_closes_both_qa_bundle_and_cleanup_then_reuses_without_encode
     state = jobs.status(root)[0]
     assert state['status'] == 'technical_complete', state.get('error')
     assert state['result']['cleanup_files'] > 0
-    assert len(list((episode / 'entrega').iterdir())) == 6
+    assert len(list((episode / 'entrega').iterdir())) == 8
     receipt = json.loads((episode / '.stickman/completion-cleanup.json').read_text())
     assert receipt['status'] == 'complete' and receipt['protected_hashes_verified']
     assert completion.handoff_inputs(episode) == before
     assert completion.verify_videos(episode)
     assert not list((episode / '.editorial-work').glob('*/s*.mp4'))
-    videos = {name: sha256(episode / name) for name in ('video_final.mp4', 'video_subtitulado.mp4')}
+    videos = {name: sha256(final_video(episode, name)) for name in ('video_final.mp4', 'video_subtitulado.mp4')}
+    assert not (episode / 'video_final.mp4').exists()
+    assert not (episode / 'video_subtitulado.mp4').exists()
     monkeypatch.setattr(pipeline, 'render_editorial_plan', lambda *a, **kw: pytest.fail('No recode'))
     monkeypatch.setattr(subtitle_delivery, 'choose_encoder', lambda *a, **kw: pytest.fail('Reuse caption encode'))
     result = pipeline.execute(root, episode, 'complete', settings=settings, handoff=before)
     assert result['status'] == 'technical_complete' and result['cleanup_files'] == 0
-    assert all(sha256(episode / name) == digest for name, digest in videos.items())
+    assert all(sha256(final_video(episode, name)) == digest for name, digest in videos.items())
     assert row['id'] in (root / 'local/stickman_jobs/ESTADO.md').read_text()
 
 
@@ -97,6 +100,7 @@ def rendered(tmp_path, monkeypatch):
         ('video_final.mp4', 'normal'), ('video_subtitulado.mp4', 'captioned'),
         ('source.png', 'paid source'), ('miniaturas/miniatura_final.png', 'thumbnail'),
         ('metadata_youtube.json', '{"title":"Approved"}'),
+        ('voz.mp3', 'voice'), ('voz.srt', '1\n00:00:00,000 --> 00:00:01,000\nTest\n'),
         ('descripcion_youtube.txt', 'Approved description'), ('CREDITS.md', 'Real music credit')):
         path = episode / name
         path.parent.mkdir(parents=True, exist_ok=True)

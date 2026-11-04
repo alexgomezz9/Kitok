@@ -46,9 +46,12 @@ Si falla un comando, corregir el defecto reutilizable y reanudar sin repetir
 proveedores. Documentar cualquier recuperación manual; no presentarla como
 capacidad automática ni repetirla como rutina en cada vídeo.
 
-Jason `trazo_003_jason_voorhees` está en standby por encargo27/10: rehacer sólo en
-un encargo futuro con nueva estética y duración útil real >8min. Continuar ahora
-Freddy por fases; el audio reparado7:16 no autoriza volver a montar Jason.
+Jason003 histórico queda preservado. Encargo expreso04/11: remake completo en
+`trazo_010_jason_voorhees_historia`, >8min útiles, ritmo/estética nuevos. No reutilizar
+la voz antigua ralentizada para cumplir duración. Aplicar `workflow.pacing`,
+`workflow.youtube_copy`, `images.limb_colour` y música sin atribución del perfil.
+Antes de PNG, auditar ritmo con voz real; antes de encolar, verificar imágenes
+distintas porSHA. Cerrar tras enqueueGPU dejando ID/ESTADO.md, sin esperar render.
 
 ## Encargo completo: «siguiente»
 
@@ -155,9 +158,12 @@ reproducible se corrige en Kitok y se reanuda con recibos; no repetir proveedore
 para resolver un fallo local. Consulta progreso por etapas y recibo final sin
 volcar planes/logs enteros ni hacer llamadas de modelo por plano.
 
+Aplica la aclaración04/11 del perfil: intro rápida, historia con5,5-7s por imagen distinta. Una sola pasada breve por contacto; reparar sólo errores claros, sin minucias ASR o visuales. Sustituir reglas obsoletas y cargar sólo documentación pertinente.
+
 Sigue `workflow.efficient_close`: termina las entradas editoriales, ejecuta `prepare --reuse-images`, encola con `scripts/stickman_jobs.py enqueue EPISODIO --require-gpu` y cierra con ID/log. Kitok continúa render, subtítulos, QA, bundle y limpieza; no esperar renders en el chat. Una pasada por contacto según `images.review_scope`; no repetir aceptadas ni imponer auditorías/revisores rutinarios. Conserva controles automáticos de cada entrega y comunica lo pendiente.
 
-Fija música `horror` para episodios nuevos según el perfil antes de mezclar. Al
+Fija música nueva según `music` del perfil (horror_no_attribution); conservar licencias
+y fuentes internas, sin sustituir mezclas existentes ni quitar créditos obligatorios. Al
 terminar, prepara metadatos finales y usa `scripts/stickman_delivery.py bundle`:
 operador recibe `entrega/`, no miles de archivos internos. Los originales y
 licencias permanecen fuera; `clean-cache` primero simula y sólo se aplica tras

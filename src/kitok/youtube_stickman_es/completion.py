@@ -6,8 +6,9 @@ from pathlib import Path
 
 from PIL import Image
 
-from .delivery import _compact_delivery_locked, sha256
+from .delivery import _cache_locks, _compact_delivery_locked, sha256, publication_metadata
 from .files import local_file, replace_state, write
+from .final_paths import final_video, delivery_episode
 from .workspace import _organize_locked
 
 
@@ -45,6 +46,9 @@ def handoff_inputs(episode: Path) -> dict[str, str]:
         raise ValueError('Handoff requires reviewed style or explicit supplied-image assembly authorization')
     if config.description is None or (plan.duration >= 30 and config.chapters is None):
         raise ValueError('Supply editorial description and chapter titles in configuracion.json before handoff')
+    publication = publication_metadata(episode)
+    if config.pacing_policy and not publication:
+        raise ValueError('Trazo dynamic handoff requires editorial/publicacion_youtube.json with final Studio texts')
     # Validate packaging without modifying immutable files or generating media.
     metadata = json.loads(local_file(episode, 'metadata_youtube.json').read_text())
     if metadata.get('title') != plan.title:
@@ -82,7 +86,8 @@ def handoff_inputs(episode: Path) -> dict[str, str]:
     paths.update(local_file(episode, scene.image_file) for scene in plan.scenes)
     paths.update(local_file(episode, ref.path) for ref in config.references)
     for name in ('direccion_visual.json', 'plan_visual.json', '.stickman/word_timing.json',
-                 '.stickman/provided_images.json', '.stickman/images.json', 'miniaturas/conceptos.json', 'editorial/revision_voz.json'):
+                 '.stickman/provided_images.json', '.stickman/images.json', 'miniaturas/conceptos.json',
+                 'editorial/revision_voz.json', 'editorial/publicacion_youtube.json'):
         path = local_file(episode, name, exists=False)
         if path.is_file():
             paths.add(path)
@@ -107,7 +112,7 @@ def verify_videos(episode: Path) -> dict:
     records = {}
     for suffix, filename in (('', 'video_final.mp4'), ('_subtitulado', 'video_subtitulado.mp4')):
         qa = json.loads(local_file(episode, 'qa' + suffix + '.json').read_text())
-        digest = sha256(local_file(episode, filename))
+        digest = sha256(final_video(episode, filename))
         if qa.get('technical_status') != 'passed' or qa.get('video_sha256') != digest:
             raise ValueError('Both videos require matching passed QA before cleanup: ' + filename)
         records[filename] = digest
@@ -145,16 +150,21 @@ def complete_locked(root: Path, episode: Path, *, expected: dict[str, str], on_s
     write(local_file(episode, 'descripcion_youtube_final.txt', exists=False), final_description)
     write(local_file(episode, 'creditos_finales.txt', exists=False), credits)
     write(local_file(episode, 'metadata_youtube_final.json', exists=False), metadata)
-    bundle = _compact_delivery_locked(root, episode)
-    report = json.loads(local_file(episode, 'entrega/informe.json').read_text())
-    protected = dict(expected) | videos
-    protected.update({f'entrega/{name}': digest for name, digest in report['sha256'].items()})
-    for name in ('entrega/informe.json', 'entrega/LEEME.txt', 'qa.json', 'qa_subtitulado.json',
+    with _cache_locks(episode):
+        bundle = _compact_delivery_locked(root, episode)
+    target_episode = delivery_episode(episode)
+    report = json.loads(local_file(target_episode, '.stickman/delivery.json').read_text())
+    # Absolute paths remain private audit data; parent-delivered historical
+    # revisions may legitimately own their canonical files outside this revision.
+    protected = {str(local_file(episode, name)): digest for name, digest in expected.items()}
+    protected.update({str(local_file(target_episode, 'entrega/' + name)): digest for name, digest in report['sha256'].items()})
+    protected[str(local_file(target_episode, '.stickman/delivery.json'))] = sha256(local_file(target_episode, '.stickman/delivery.json'))
+    for name in ('qa.json', 'qa_subtitulado.json',
                  '.stickman/subtitles.json', 'metadata_youtube_final.json', 'creditos_finales.txt',
                  'descripcion_youtube_final.txt'):
-        protected[name] = sha256(local_file(episode, name))
+        protected[str(local_file(episode, name))] = sha256(local_file(episode, name))
     for name, digest in protected.items():
-        if sha256(local_file(episode, name)) != digest:
+        if sha256(Path(name)) != digest:
             raise ValueError('Protected delivery changed before cleanup: ' + name)
     emit('Limpieza: calculando sólo derivados regenerables; originales y revisiones conservados')
     dry_run = _organize_locked(root, episode, apply=False, archive_revisions=False)
@@ -169,7 +179,7 @@ def complete_locked(root: Path, episode: Path, *, expected: dict[str, str], on_s
     replace_state(receipt_path, record)
     removed = _organize_locked(root, episode, apply=True, archive_revisions=False)
     for name, digest in protected.items():
-        if sha256(local_file(episode, name)) != digest:
+        if sha256(Path(name)) != digest:
             raise ValueError('Protected file changed during cleanup: ' + name)
     record.update(status='complete', result=removed, protected_hashes_verified=True)
     replace_state(receipt_path, record)

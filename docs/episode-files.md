@@ -17,7 +17,7 @@ content/longform/EPISODIO/
   planificacion_visual/    plan, prompts y manifiestos de los lotes
   miniaturas/
   editorial/               investigación y estado actual
-  entrega/                 paquete revisable o vídeos históricos identificados
+  entrega/                 ocho archivos listos para cargar en YouTube Studio
   .stickman/               recibos y cachés internos; no son entradas del operador
 ```
 
@@ -67,18 +67,43 @@ su ruta original y comprobar todos los hashes antes de reanudar. Restaurar rutas
 no recupera cachés borradas; éstas requieren otro render. No reabrir ni sintetizar
 automáticamente una revisión archivada.
 
-Una carpeta `entrega/` vacía admite el paquete de seis archivos de `bundle`.
-Si contiene vídeos históricos, se preserva; una entrega nueva requiere una revisión
-nueva. Un nombre `video_final` o un ZIP no equivale a aprobación técnica/editorial.
+## Una entrega canónica para subir
 
-Encargo del operador el 28/10: los remakes nuevos usan otra carpeta de episodio y
-conservan ambos vídeos, normal y subtitulado. No retirar el máster normal al
-exportar el bundle subtitulado. Las carpetas anteriores se mantienen para borrado
-manual del operador; el inventario preparado antes de esta aclaración no se aplicó.
-En la auditoría posterior el operador autoriza limpiar auxiliares resueltos al
-terminar. `organize` se aplicó a Michael después de comprobar la entrega: retiró
-765 archivos de trabajo, manteniendo 122 rutas fuente/finales con el mismo SHA.
-Esto conserva las carpetas anteriores y ambos MP4; no elimina los PNG definitivos.
+`bundle` exige ambos QA y recibos coincidentes. Reúne sólo:
+
+- `video_final.mp4` y `video_subtitulado.mp4`.
+- `voz.srt` del audio efectivo y `miniatura.png`.
+- `titulo.txt`, `descripcion.txt`, `etiquetas.txt` y `ajustes_youtube.txt`.
+
+El agente de Trazo Maldito prepara `editorial/publicacion_youtube.json`
+(`title`, `description`, `tags`, `settings` opcional). Ese texto prevalece sobre
+la descripción técnica y conserva capítulos reales y atribuciones obligatorias.
+No altera la voz, guion o recibos del montaje. Las decisiones de Studio que
+requieren ver el contenido se dejan para revisión del operador.
+
+El informe de hashes está en `.stickman/delivery.json`. El bundle publica mediante
+links temporales y retira sólo nombres de vídeo con el mismo SHA que los dos finales
+canónicos; no vuelve a codificar. Al finalizar hay un único nombre por MP4 final,
+dentro de `entrega/`. Los recibos históricos mantienen sus hashes y Kitok resuelve
+las rutas canónicas al reanudar. Exportar cualquier edición a una versión nueva.
+
+Para migrar una entrega histórica, primero inspecciona:
+
+```bash
+.venv/bin/python scripts/stickman_delivery.py normalize content/longform/EPISODIO --report local/cleanup/ID/antes.json
+.venv/bin/python scripts/stickman_delivery.py normalize content/longform/EPISODIO --apply --report local/cleanup/ID/despues.json
+# Para una revisión activa, entrega visible en la carpeta padre:
+.venv/bin/python scripts/stickman_delivery.py normalize content/longform/EPISODIO/revisiones/ACTIVA --destination-episode content/longform/EPISODIO
+```
+
+`normalize` valida los hashes del paquete anterior y bloquea textos editados por el
+operador o un vídeo anterior distinto. Guarda el plan antes de borrar y conserva
+el historial de textos/recibos fuera de `entrega/`. El informe distingue duplicados
+SHA idénticos y vídeos distintos preservados. No borra estos últimos, ni fuentes,
+PNG o audios pagados. Una revisión sólo puede entregar a sí misma o a su padre;
+los bloqueos de producción y de revisiones se respetan. Esta migración no publica.
+El encargo del 04/11 sustituye la entrega de seis archivos y la conservación de
+nombres redundantes de MP4: ambos vídeos seleccionados viven en la entrega visible.
 
 Las pruebas nuevas van en `local/pruebas/EPISODIO/`; las galerías globales útiles
 siguen en `outputs/evaluation/` y `outputs/motion-gallery/`. No llenar episodios ni
