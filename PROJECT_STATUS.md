@@ -1,40 +1,41 @@
 # Estado vigente de Kitok
 
-Actualizado: **04/11/2026**. Rama **feat/trazo-expressive-art**, desde main335762b.
-Operación: [GUIA.md](GUIA.md). Reglas editoriales: perfil Trazo y guía enlazada.
+Actualizado: **04/11/2026**. Integración en **main** autorizada04/11, base335762b.
+Operación: [GUIA.md](GUIA.md). Preferencias: perfil Trazo, una fuente por tema.
 
-## Capacidades comprobadas
+## Art011 entregado a la cola GPU
 
-- Bundle Studio de8materiales: ambos MP4,SRT,miniatura,título,descripción,etiquetas
-  y ajustes. Un parMP4 canónico por episodio, sin recodificar para empaquetar.
-  004Freddy a009Ghostface migrados:22nombresduplicados retirados,
-  778fuentes protegidas intactas. Informes fuera deentrega,atribuciones conservadas.
-- Cola local GPU desacoplada:montaje,subtítulos,ambosQA,bundle y limpieza. No voz,
-  ASR ni publicación nuevos dentrodelworker. Estado enlocal/stickman_jobs/ESTADO.md.
-- Música:4Mixkit/4autores sinatribuciónobligatoria y fondo muy bajo (-34LUFS antes
-  de ducking0.012/ratio8) para nuevos episodios tras feedbackJason,
-  24CCBYhistóricas conservadas. [Licencias y límites](docs/audio.md).
-- Últimos checks de código04/11:44+89focales,audio58+21,docs/studio-check pasados.
-  Suite global/navegador no repetidos en esta producción editorial.
+`content/longform/trazo_011_art_el_payaso_historia/`: 1890 palabras, cuatro break,
+continuidad Terrifier2016/2022/2024. Origen humano no inventado; final abierto.
+Una voz Fish de609,6195s conservada, cero cortes/resíntesis.32 diferencias ASR
+aceptadas documentalmente; dos ventanas desmienten inserción/omisión aparentes.
+No escucha humana.128 PNG vistos por contacto y validados, cero pendientes:
+124 fuentes545-546×301-302 y cuatro1660×929; Native escala sin detalle nuevo.
 
-## Art011 en preparación
+Plan128 fuentes=128 planos/609,633s:19 imágenes solapan primeros30s, después del
+minuto media5,552s/hold máximo8,833s. Tres agentes con lotes disjuntos; dos errores
+narrativos reparados y dos paneles con formato incorrecto reemplazados por PNG
+individuales. Ancla/portada vistas,16 capítulos reales y11 etiquetas fijados.
 
-`content/longform/trazo_011_art_el_payaso_historia/`:1890palabras/4break,
-canonTerrifier2016/2022/2024,origenhumano noinventado,finalabierto. Guioncongelado,
-primera vozFish confirmada,ASR local en curso. Storyboard132ideas pendiente reloj.
-Ancla/portada propias vistas; muestra cartoon descartada tras aclaración.
-Estilo vigente:stickmancomoJason010,caras expresivas,acción y gestos,terror másinquietante.
-Perfil/skills sustituyen reglasanteriores y reducen64líneas netas de instrucciones duplicadas/históricas.
-No se modifica Jason010 ni se repiten sus proveedores/render.
+`prepare --reuse-images` exit0, ready_to_render. Worker GPU
+**35ee05863a1b4ab2ba7a99a938aa99de**: preflight NVENCp5 pasado y render iniciado.
+El montaje usa la mezcla v6 baja ya guardada: fondo-34LUFS antes de ducking,
+umbral0.012/ratio8; final-16,01LUFS/-1,91dBTP. No se modificó Jason010.
+Kitok continúa ambos vídeos, subtítulos, QA, bundle y limpieza sin agente.
+Consultar `local/stickman_jobs/ESTADO.md`; si needs_review, investigar log antes
+retry explícito. Inputs congelados, no repetir proveedores ni esperar render aquí.
+Revisión audiovisual del operador pendiente al terminar. No publicación.
 
-## Continuidad y siguiente paso
+## Reglas y capacidades vigentes
 
-Jason010 entregado a colaGPU aec2849e0da643029f630ad23f7f0e54; no se vuelve a
-inspeccionar por rutina en este encargo. Resultado actual se consulta enESTADO.md.
-Tras voz/ASRArt:ajustarreloj,127-135imágenesaprox,tresagenteslotesdisjuntos,
-una pasada breve porcontacto,prepare/reuse→enqueueGPU y cerrar sin esperar render.
-Conservar fuentes/recibos necesarios fuera deentrega;organize retira derivados
-resueltos tras QA. No nuevos motores ni auditorías por episodio.
+Stickman como Jason010 (confirmado por operador), más gesto/acción y atmósfera
+inquietante; no personas cartoon normales. Skills/documentos sustituidos y
+abreviados. Música nueva mucho más baja; mezclas anteriores conservadas.
+Ocho materiales en entrega, incluido etiquetas.txt; un parMP4 canónico por episodio.
+004-009 ya normalizados:22 nombres duplicados retirados,778 fuentes intactas.
+Fuentes/recibos necesarios quedan fuera deentrega; organize retira derivados.
 
-YouTube:OAuthTrazoHTTP400 requiere reconexión;vidIQsóloLooseThread verificado04/11.
-No hubo subidas/programación. No implica publicación el pushdecódigoamain335762b.
+Verificado04/11: ocho tests focales de música, mezcla real v6 completa y reutilizada
+por worker, docs-check y whitespace. Suite global/UI no repetidas para esta unidad.
+Código y reglas se entregan en main; comprobar remoto/CI por SHA en GitHub.
+YouTube requiere reconexión OAuthHTTP400; vidIQ sólo LooseThread. No subidas.
