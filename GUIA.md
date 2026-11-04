@@ -603,8 +603,10 @@ una luna o escenario como plantilla. Referencias y proactividad editorial en el
 El canal cuenta la historia del personaje desde dentro del relato: acciones,
 peligros y consecuencias, con las fuentes y continuidad en notas. Evita «en la
 película», reseña de entregas y anécdotas de rodaje en la narración principal.
-El estilo requiere stickman de cabeza simple y extremidades de trazo fino,
-reconocibles incluso con máscara/vestuario. Admite sangre estilizada y escenas
+El estilo sigue la silueta stickman de Jason010, confirmada por el operador,
+con caras expresivas, acción y atmósfera inquietante. No pasar a personas
+cartoon normales ni mascotas amables. Consultar `images` del perfil; Jason010
+no se rehace por las aclaraciones futuras. Admite sangre estilizada y escenas
 más duras cuando correspondan a la historia.
 
 Antes de ampliar un estilo nuevo, el agente presenta tres enfoques del mismo

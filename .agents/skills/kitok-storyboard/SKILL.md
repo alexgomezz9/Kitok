@@ -13,34 +13,13 @@ Trabaja sobre el episodio indicado y sus reglas de canal. Lee el guion COMPLETO 
 
 Conserva el método visual existente: mismas referencias interiores y ancla aprobada en todos los lotes, sin sustituirlas por la última escena ni rediseñar personajes. Reutiliza `configuracion.json`: `style_prompt`, `characters`, `references`. Si ya están definidos, no los cambies; sólo completa identidades imprescindibles ausentes una vez por episodio; no impongas personajes ni tono de otro canal. Si no hay perfil, busca el perfil local vigente antes de preguntar. Una referencia de estilo aceptada puede bastar; un personaje reconocible necesita descripción/ancla fiable. Pide sólo referencias imprescindibles ausentes. No exige foto para mapas, objetos o personajes originales bien definidos. No sintetices, generes imágenes, renderices ni consumas investigación vidIQ.
 
-## Identidad stickman y terror del canal
+## Identidad y actuación
 
-Consulta las reglas narrativas y visuales del perfil vigente. Trazo Maldito narra
-la vida del personaje desde dentro del relato, sin «en la película», reseña ni
-resumen de entregas. La continuidad se fija en notas. Las figuras necesitan cabeza
-simple/circular, torso y extremidades de trazo fino visibles, postura/expresión
-legibles y máscara/vestuario constantes; no basta pedir simple cartoon o dibujo.
-Define acción, amenaza, sombra y consecuencias. La sangre estilizada, armas y
-escenas más duras se permiten cuando el relato las justifique; no inventes violencia
-ni reduzcas todos los momentos a gore. Antes de ampliar un enfoque nuevo prepara
-las variantes y decisión descritas en kitok-youtube; la delegación expresa permite
-que el agente elija y continúe. Referencias aceptadas prevalecen hasta nueva revisión.
-
-Aplica `images.character_continuity` del perfil: ficha por personaje y etapa, rasgos persistentes y evolución reconocible sin anticipar máscaras o lesiones. Revisa protagonistas y secundarios con la misma exigencia de silueta stickman; fondos detallados no justifican cuerpos cartoon anchos.
-
-## Referencia visual aportada por el operador27/10
-
-Las cuadrículas de miniaturas de Jason/Michael vistas en el chat fijan una
-atmósfera más intensa: máscaras muy reconocibles, cuerpo/brazos/piernas de trazo
-stickman fino, sombras negras, contraluz azul de luna o naranja/rojo, niebla y
-escenarios con profundidad. Armas con sangre/salpicaduras y consecuencias cuando
-lo justifique la narración. Evitar que stickman se convierta en dibujo infantil
-o ilustración genérica. No copiar titulares/flechas de miniatura al interior.
-
-La iluminación sigue la escena: infancia tranquila de día antes del conflicto
-permanece diurna y sin violencia inventada. Oscuridad, sangre y amenaza se elevan
-cuando el relato lo pide, con legibilidad móvil. Para estilo nuevo, preparar
-muestras antes de ampliar; el ejercicio guiado vigente se detiene en cada fase.
+Aplicar `images` y `narrative_rules` del perfil: stickman reconocibles como la
+referencia vigente, gestos/acción, terror contextual y continuidad. Jason010 es
+referencia positiva; no convertir las figuras en personas cartoon normales.
+Referencias de identidad no fijan el mismo gesto ni convierten al reparto en el
+villano. Para estilo nuevo seguir muestra/delegación de kitok-youtube.
 
 ## Decidir primero, compilar después
 

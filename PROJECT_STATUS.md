@@ -1,65 +1,39 @@
 # Estado vigente de Kitok
 
-Actualizado: **04/11/2026**. Integración en **main** autorizada por el operador el04/11.
-Sin publicación ni programación remota de vídeos. Para operar: [GUIA.md](GUIA.md).
+Actualizado: **04/11/2026**. Rama **feat/trazo-expressive-art**, desde main335762b.
+Operación: [GUIA.md](GUIA.md). Reglas editoriales: perfil Trazo y guía enlazada.
 
-## Música nueva
+## Capacidades comprobadas
 
-Biblioteca:24 pistas históricas CC BY4.0 y cuatro Mixkit de cuatro autores, con
-licencia comercial y atribución opcional. Canal `horror_no_attribution` para
-producciones nuevas; selección estable por trabajo y rotación entre episodios.
-Fondo nuevo más audible (-26LUFS antes de ducking); mezclas antiguas conservadas.
-CuatroMP3 descargados, hashes/licencias y decode completo comprobados04/11.
-Suite audio58tests y21focales posteriores pasados. Muestra20s real con voz
-existente:-16,03LUFS/-2,33dBTP, sin escucha subjetiva acreditada.
-[Fuentes, catálogo y límites](docs/audio.md).
+- Bundle Studio de8materiales: ambos MP4,SRT,miniatura,título,descripción,etiquetas
+  y ajustes. Un parMP4 canónico por episodio, sin recodificar para empaquetar.
+  004Freddy a009Ghostface migrados:22nombresduplicados retirados,
+  778fuentes protegidas intactas. Informes fuera deentrega,atribuciones conservadas.
+- Cola local GPU desacoplada:montaje,subtítulos,ambosQA,bundle y limpieza. No voz,
+  ASR ni publicación nuevos dentrodelworker. Estado enlocal/stickman_jobs/ESTADO.md.
+- Música:4Mixkit/4autores sinatribuciónobligatoria para nuevos episodios,
+  24CCBYhistóricas conservadas. [Licencias y límites](docs/audio.md).
+- Últimos checks de código04/11:44+89focales,audio58+21,docs/studio-check pasados.
+  Suite global/navegador no repetidos en esta producción editorial.
 
-## Entrega y ritmo comprobados
+## Art011 en preparación
 
-Entrega Studio de ocho materiales: ambos MP4, SRT, miniatura y cuatro textos.
-Un único par MP4 por episodio padre, con hashes/recibos y reanudación conservados.
-004Freddy (revisión `voz_texto_continuo`) y005-009 migrados04/11 sin recodificar:
-22 nombres redundantes retirados,778 entradas fuente protegidas conSHA intacto.
-Todos los informes de entrega y los dos QA siguen coincidiendo con los MP4.
-No es una aprobación humana ni una cifra de ahorro físico; hay enlaces duros.
+`content/longform/trazo_011_art_el_payaso_historia/`:1890palabras/4break,
+canonTerrifier2016/2022/2024,origenhumano noinventado,finalabierto. Guioncongelado,
+primera vozFish confirmada,ASR local en curso. Storyboard132ideas pendiente reloj.
+Ancla/portada propias vistas; muestra cartoon descartada tras aclaración.
+Estilo vigente:stickmancomoJason010,caras expresivas,acción y gestos,terror másinquietante.
+Perfil/skills sustituyen reglasanteriores y reducen64líneas netas de instrucciones duplicadas/históricas.
+No se modifica Jason010 ni se repiten sus proveedores/render.
 
-Focales delivery/completion/pacing44pasados y89de storyboard/wordclock/cola/
-subtítulos/workspace pasados04/11, incluido Native real/reuse,
-atribuciones obligatorias y recuperación de interrupción entre renombrados.
-Política Trazo opcional: intro rápida e historia con aumento moderado de imágenes,
-según perfil vigente; cámaras sobre el mismoPNG no cuentan como imagen nueva.
+## Continuidad y siguiente paso
 
-## Jason010 en preparación
+Jason010 entregado a colaGPU aec2849e0da643029f630ad23f7f0e54; no se vuelve a
+inspeccionar por rutina en este encargo. Resultado actual se consulta enESTADO.md.
+Tras voz/ASRArt:ajustarreloj,127-135imágenesaprox,tresagenteslotesdisjuntos,
+una pasada breve porcontacto,prepare/reuse→enqueueGPU y cerrar sin esperar render.
+Conservar fuentes/recibos necesarios fuera deentrega;organize retira derivados
+resueltos tras QA. No nuevos motores ni auditorías por episodio.
 
-`content/longform/trazo_010_jason_voorhees_historia/`:1903palabras/5break,
-vozFish626,677s,1solicitud confirmada, sin cortes/resíntesis. ASR16diferencias
-menores aceptadas; ventana local315-327s confirma palabra vida,0inserciones/
-actividadfuera. No escucha humana. Plan reducido a127fuentes=127planos626,7s:
-19imágenes solapan0-30s,14solapan30-60s, después media5,903s/holdmáx8,667s.
-Primeras32escenas conservadas;127PNG aceptados por contacto breve y validados
-por Kitok,0pendientes. Tres agentes/lotes disjuntos,3reparaciones materiales.
-123fuentes545-546×301-302 y4fuentes1660×929, escalado Native sin detalle nuevo.
-22ImageGen confirmados (20interiores+comparación/ancla);portada reutilizada.
-Preguntas/1957/localizadores explícitos.
-Portada Jason nueva previa vista/reutilizada,14capítulos y textos Studio fijados.
-prepare --reuse-images exit0:ready_to_render,127fuentes=127planos.
-WorkerGPU **aec2849e0da643029f630ad23f7f0e54**:running preparando mezcla al cierre,
-NVENCpreflightp5comprobado enlog. Kitok continúa render/subtítulos/ambosQA/bundle/
-limpieza;no afirmarMP4terminado.003histórico preservado separado.
-
-Cola anterior: Pennywise007,Jigsaw008,Ghostface009 figuran TERMINADO en
-`local/stickman_jobs/ESTADO.md` comprobado04/11; revisión humana pendiente.
-
-## YouTube y siguiente paso
-
-Lectura oficial Trazo Maldito falla04/11: **OAuthHTTP400, volver a conectar**.
-vidIQ responde sólo LooseThread; no usarlo para Trazo. No se confirmó por API el
-Pennywise publicado por el operador, ni se subieron/programaron vídeos. CLI local
-sólo lectura; la herramienta upload de vidIQ importa a vidIQ, no a YouTube.
-
-Consultar `local/stickman_jobs/ESTADO.md` sólo al revisar resultado o fallo.
-Si aparece needs_review, investigar el log antes de retry explícito. No esperar
-render aquí, no repetir proveedores por rutina. Textos/medios de entrada congelados.
-Revisión audiovisual del operador pendiente al cerrar Kitok. docs-check/studio-check
-pasados04/11; suite global y navegador locales no repetidos. El resultado del CI remoto
-se consulta por SHA en GitHub; los tests locales no lo sustituyen.
+YouTube:OAuthTrazoHTTP400 requiere reconexión;vidIQsóloLooseThread verificado04/11.
+No hubo subidas/programación. No implica publicación el pushdecódigoamain335762b.

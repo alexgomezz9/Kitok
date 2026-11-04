@@ -215,9 +215,10 @@ storyboard antes de ampliar, conservando voz. No rehacer vídeos terminados.
 
 Preguntas importantes, fechas, cifras y lugares tienen apoyo visual fiel y
 legible cuando aporta comprensión. Conservar negaciones y evitar mapas
-inventados. Todos los personajes, especialmente el villano, mantienen silueta
-stickman estrecha. Piel coloreada conserva el tono en extremidades delgadas;
-evitar brazos negros sólidos en un cuerpo de piel. Ancla antes de ampliar.
+inventados. Proporciones/actuación en `images` del perfil: stickman como Jason010 (referencia
+positiva del operador), caras expresivas, poses con acción y terror inquietante.
+Evitar la deriva a personas cartoon normales o mascotas amables. Ancla antes
+de ampliar. La aclaración no modifica Jason010 ni medios ya aceptados.
 
 Una pasada breve por contacto; reparar errores claros, sin revisar minucias ni
 repetir ASR por nombres. Repartir lotes disjuntos entre tres agentes si está

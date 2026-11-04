@@ -17,19 +17,8 @@ Ejecuta desde la raíz el lector compacto, sin proveedores ni escrituras:
 
 Lee el [perfil del canal](../../../presets/youtube_historia_stickman_es.json). Antes de ideas o «siguiente», consulta el archivo local señalado por `workflow.idea_registry`; no produzcas temas reservados para después. Aplica `workflow.run_efficiency` e `images.review_scope` del perfil vigente. Consulta sólo la fase necesaria de la [guía editorial](../../../docs/youtube-editorial.md) y las investigaciones allí enlazadas. No vuelvas a pedir preferencias o recursos que ya estén registrados. El perfil no acredita propiedad de un canal ni permisos de publicación.
 
-## Ejercicio guiado vigente y trabajo práctico
-
-El operador pidió el27/10 recorrer el próximo episodio una fase cada vez. Lee
-`workflow.guided_exercise` del perfil y `editorial/estado.json`: mientras esté
-activo, «siguiente» avanza UNA fase y se detiene. Explica entradas con rutas,
-qué hace agente/Kitok, salidas reales y comprobación mínima. No producir guion,
-voz, imágenes o vídeo de fases posteriores. Sólo una petición expresa de volver
-a automático levanta esta pausa entre fases; no preguntar otra vez lo resuelto.
-
-Prioriza pruebas focales y una muestra real útil. No repetir suites grandes sin
-cambio/fallo material. Antes de añadir código, identifica qué operación concreta
-no resuelve Kitok y si basta con reutilizar un comando. Durante el ejercicio se
-retiran capas redundantes sólo tras ver entradas/salidas y comprobar su uso.
+Si `workflow.guided_exercise.enabled` está activo, avanzar una fase por turno;
+en modo completo seguir hasta enqueue. Cargar sólo la fase necesaria.
 
 ## Organización y reparto de trabajo
 
@@ -45,13 +34,6 @@ Kitok procesa voz, tiempos, mezcla, subtítulos y montaje con sus comandos.
 Si falla un comando, corregir el defecto reutilizable y reanudar sin repetir
 proveedores. Documentar cualquier recuperación manual; no presentarla como
 capacidad automática ni repetirla como rutina en cada vídeo.
-
-Jason003 histórico queda preservado. Encargo expreso04/11: remake completo en
-`trazo_010_jason_voorhees_historia`, >8min útiles, ritmo/estética nuevos. No reutilizar
-la voz antigua ralentizada para cumplir duración. Aplicar `workflow.pacing`,
-`workflow.youtube_copy`, `images.limb_colour` y música sin atribución del perfil.
-Antes de PNG, auditar ritmo con voz real; antes de encolar, verificar imágenes
-distintas porSHA. Cerrar tras enqueueGPU dejando ID/ESTADO.md, sin esperar render.
 
 ## Encargo completo: «siguiente»
 
@@ -132,9 +114,8 @@ No encubras anomalías de voz con música.
 
 Para un estilo nuevo muestra tres enfoques del MISMO momento narrativo, todos
 stickman (limpio contrastado, tinta/sombras, viñeta con rojo selectivo); después
-comprueba acción/reacción/objeto con el elegido. Cuerpos de trazo fino y cabezas
-simples reconocibles, máscara/vestuario coherentes; cartoon de cuerpo ancho o una
-ilustración sencilla no bastan. Sangre estilizada/armas/sombras cuando correspondan,
+comprueba acción/reacción/objeto con el elegido. Aplicar las proporciones compactas, expresión y acción de `images` del perfil;
+no confundir stickman con figuras filiformes o rostros sin gesto. Sangre estilizada/armas/sombras cuando correspondan,
 sin uniformar todos los planos ni perder claridad móvil. Fija ancla y referencias
 tras la elección antes de los lotes. Con estilo ya aceptado, reutilízalo.
 

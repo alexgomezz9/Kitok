@@ -13,41 +13,14 @@ Comprueba la skill oficial `imagegen` y la herramienta integrada disponibles en 
 
 Inspecciona las referencias locales con `view_image`. Fija referencias de estilo y un ancla visual del protagonista proporcionada o aceptada, conservando esos mismos archivos y hashes durante los lotes. Si falta ancla, crea primero una muestra con autorización vigente y revísala antes de ampliar. Referencias fijan estilo/identidad, no composiciones. Distingue máscara/rostro, vestuario y personajes secundarios; no fuerces al protagonista en planos de objetos, documentos ilustrativos, mapas, fechas, gráficos u otros personajes. No transfieras el tono entre canales.
 
-## Muestra de enfoque y horror stickman
+## Identidad y revisión eficiente
 
-Antes de lotes completos de un estilo NUEVO, muestra tres enfoques del mismo
-momento según kitok-youtube/perfil: línea limpia, tinta/sombras y viñeta con rojo
-selectivo, todos con cuerpo de trazo fino, cabeza simple y máscara/ropa constantes.
-Una ilustración cartoon genérica no cumple stickman. Prueba acción, reacción y
-objeto con el enfoque elegido. Si el operador delega «siguiente automático» o
-«no preguntes», elige/revisa y sigue, registrando decisión del agente. Sin esa
-delegación ni ancla aceptada, espera elección inicial antes de ampliar. No vuelvas
-a pedirla cada episodio si sigue vigente.
-
-Aplica terror contextual: oscuridad legible, amenaza, persecución, armas y sangre
-estilizada cuando corresponda al guion. No suavices siempre a ilustración infantil;
-no inventes atrocidades ni aumentes violencia ajena al relato. Conserva el detalle
-del entorno sin engrosar el cuerpo hasta perder la silueta stickman. La imagen
-ancla debe mostrar ese criterio antes de producir cien viñetas.
-
-Antes de ampliar, exigir ritmo comprobado con voz real según `workflow.pacing`;
-no generar cien imágenes para descubrir después un inicio lento. Aplicar
-`images.limb_colour`: piel coloreada conserva el tono en extremidades delgadas,
-sin antebrazos negros sólidos. Comprueba `images.character_continuity` del perfil al revisar cada lote: todos los personajes mantienen silueta stickman y sus anclas, también al cambiar de edad/etapa. Rechaza una deriva a cuerpo cartoon ancho o rostro realista antes de ampliar; conserva las variantes válidas sin regenerar por rutina.
-
-## Referencia visual aportada por el operador27/10
-
-Las cuadrículas de miniaturas de Jason/Michael vistas en el chat fijan una
-atmósfera más intensa: máscaras muy reconocibles, cuerpo/brazos/piernas de trazo
-stickman fino, sombras negras, contraluz azul de luna o naranja/rojo, niebla y
-escenarios con profundidad. Armas con sangre/salpicaduras y consecuencias cuando
-lo justifique la narración. Evitar que stickman se convierta en dibujo infantil
-o ilustración genérica. No copiar titulares/flechas de miniatura al interior.
-
-La iluminación sigue la escena: infancia tranquila de día antes del conflicto
-permanece diurna y sin violencia inventada. Oscuridad, sangre y amenaza se elevan
-cuando el relato lo pide, con legibilidad móvil. Para estilo nuevo, preparar
-muestras antes de ampliar; el ejercicio guiado vigente se detiene en cada fase.
+Aplicar `images` del perfil vigente: stickman como Jason010, actuación y expresiones
+por escena, atmósfera inquietante, piel/ropa coherentes. No personas cartoon
+normales ni mascotas amables. La referencia fija identidad, no sonrisa permanente.
+Estilo nuevo: tres enfoques del mismo momento; elección del agente si delegada.
+Antes de ampliar, ritmo con voz real según `workflow.pacing` y dos lotes piloto.
+Una pasada breve por contacto; reparar sólo errores claros según `review_scope`.
 
 ## Bloque, recorte y revisión
 
