@@ -8,6 +8,11 @@ de **Trazo Maldito**, `@trazomalditoes`, ID `UC9h_aIbnfQUo0ylPsPNnbrg`, en
 resultados del canal. Loose Thread usa otra conexión; no intercambiar identidades.
 El MCP vidIQ no entrega sus credenciales al proceso Python de Kitok.
 
+Último intento04/11/2026: el intercambio OAuth oficial de Trazo Maldito devuelve
+HTTP400 y requiere reconectar; no se confirmó por API el nuevo Pennywise.
+vidIQ responde sólo con LooseThread, que no autoriza operar Trazo Maldito.
+El CLI local sigue siendo sólo lectura; no hubo subidas ni programación remota.
+
 ## Preparar la cuenta una sola vez
 
 1. En tu proyecto de Google Cloud habilita YouTube Data API v3, YouTube Analytics

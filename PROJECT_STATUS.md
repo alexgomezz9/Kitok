@@ -23,7 +23,8 @@ Un único par MP4 por episodio padre, con hashes/recibos y reanudación conserva
 Todos los informes de entrega y los dos QA siguen coincidiendo con los MP4.
 No es una aprobación humana ni una cifra de ahorro físico; hay enlaces duros.
 
-Focales delivery/completion/pacing44pasados04/11, incluido Native real/reuse,
+Focales delivery/completion/pacing44pasados y89de storyboard/wordclock/cola/
+subtítulos/workspace pasados04/11, incluido Native real/reuse,
 atribuciones obligatorias y recuperación de interrupción entre renombrados.
 Política Trazo opcional: intro rápida e historia con aumento moderado de imágenes,
 según perfil vigente; cámaras sobre el mismoPNG no cuentan como imagen nueva.
@@ -35,10 +36,16 @@ vozFish626,677s,1solicitud confirmada, sin cortes/resíntesis. ASR16diferencias
 menores aceptadas; ventana local315-327s confirma palabra vida,0inserciones/
 actividadfuera. No escucha humana. Plan reducido a127fuentes=127planos626,7s:
 19imágenes solapan0-30s,14solapan30-60s, después media5,903s/holdmáx8,667s.
-Primeras32escenas conservadas; dos pilotos18PNG aceptados y tres agentes con
-lotes disjuntos completando el resto. Preguntas/1957/localizadores explícitos.
+Primeras32escenas conservadas;127PNG aceptados por contacto breve y validados
+por Kitok,0pendientes. Tres agentes/lotes disjuntos,3reparaciones materiales.
+123fuentes545-546×301-302 y4fuentes1660×929, escalado Native sin detalle nuevo.
+22ImageGen confirmados (20interiores+comparación/ancla);portada reutilizada.
+Preguntas/1957/localizadores explícitos.
 Portada Jason nueva previa vista/reutilizada,14capítulos y textos Studio fijados.
-No render ni cola todavía.003histórico preservado separado.
+prepare --reuse-images exit0:ready_to_render,127fuentes=127planos.
+WorkerGPU **aec2849e0da643029f630ad23f7f0e54**:running preparando mezcla al cierre,
+NVENCpreflightp5comprobado enlog. Kitok continúa render/subtítulos/ambosQA/bundle/
+limpieza;no afirmarMP4terminado.003histórico preservado separado.
 
 Cola anterior: Pennywise007,Jigsaw008,Ghostface009 figuran TERMINADO en
 `local/stickman_jobs/ESTADO.md` comprobado04/11; revisión humana pendiente.
@@ -50,7 +57,8 @@ vidIQ responde sólo LooseThread; no usarlo para Trazo. No se confirmó por API 
 Pennywise publicado por el operador, ni se subieron/programaron vídeos. CLI local
 sólo lectura; la herramienta upload de vidIQ importa a vidIQ, no a YouTube.
 
-Terminar/revisar brevemente imágenes Jason,
-fijar metadatos y ejecutar prepare/reuse → enqueueGPU. Cerrar tras encolar con
-ID/log/ESTADO.md, sin esperar render. Kitok registra fallos y requiere retry
-explícito tras investigarlos. No repetir proveedores ni auditorías por rutina.
+Consultar `local/stickman_jobs/ESTADO.md` sólo al revisar resultado o fallo.
+Si aparece needs_review, investigar el log antes de retry explícito. No esperar
+render aquí, no repetir proveedores por rutina. Textos/medios de entrada congelados.
+Revisión audiovisual del operador pendiente al cerrar Kitok. docs-check/studio-check
+pasados04/11; suite global, navegador, remoto yCI no comprobados en esta unidad.
