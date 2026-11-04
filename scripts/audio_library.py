@@ -16,7 +16,7 @@ def main() -> int:
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("list", help="List audited tracks and their channel/mood fit")
     sub.add_parser("available", help="List hash-verified local choices without network or selection writes")
-    fetch = sub.add_parser("fetch", help="Download free CC BY 4.0 tracks with provenance and fixed hashes")
+    fetch = sub.add_parser("fetch", help="Download audited CC BY or Mixkit tracks with provenance and fixed hashes")
     fetch.add_argument("tracks", nargs="+", help="Track IDs or all")
     select = sub.add_parser("select", help="Persist a reproducible per-job choice; avoid previous primary track")
     select.add_argument("--job", required=True)

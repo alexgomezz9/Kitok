@@ -462,8 +462,9 @@ como desconocido: la licencia no garantiza ausencia de reclamaciones automática
 
 ## Música y efectos locales
 
-La biblioteca incluye 24 pistas auditadas de Kevin MacLeod (CC BY4.0), con
-fuente oficial, autor, licencia, hash y créditos por archivo. Las búsquedas y las
+La biblioteca incluye 24 pistas de Kevin MacLeod (CC BY4.0, atribución obligatoria)
+y cuatro pistas de terror de Mixkit de cuatro autores (licencia comercial,
+atribución opcional), con fuente oficial, autor, licencia y hash por archivo. Las búsquedas y las
 mezclas no generan voz. El catálogo, licencias y voces se explican en [docs/audio.md](docs/audio.md). La primera descarga usa Internet; las siguientes reutilizan
 la caché verificada. No es una suscripción ni un servicio de generación de pago.
 
@@ -607,8 +608,9 @@ decisión queda identificada. No se rediseñan imágenes ya aceptadas por defect
 
 Las instrucciones de Fish y el control local de voz están en
 [voz y fidelidad](docs/fish-voice.md). La música nueva se selecciona con perfil
-`horror`: hay ocho candidatas de terror bajo CC BY4.0, con créditos obligatorios;
-consulta [audio](docs/audio.md). No se descargan pistas mientras se monta.
+`horror_no_attribution`: cuatro candidatas Mixkit de cuatro autores, licencia
+comercial con atribución opcional y fondo más audible bajo la voz. Las mezclas
+anteriores conservan su música y créditos obligatorios; consulta [audio](docs/audio.md). No se descargan pistas mientras se monta.
 
 La entrega compacta conserva sólo seis archivos en `entrega/`: vídeo subtitulado,
 miniatura, descripción, créditos, informe y un texto de lectura. Se crea sin

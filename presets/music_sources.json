@@ -629,6 +629,110 @@
       "verified_on": "2026-10-27",
       "source_feel": "Dark, Grooving, Intense, Somber",
       "instruments": "Synths, Percussion"
+    },
+    {
+      "id": "mixkit_piano_horror",
+      "isrc": "",
+      "title": "Piano Horror",
+      "author": "Francisco Alvear",
+      "filename": "671.mp3",
+      "source_url": "https://mixkit.co/free-stock-music/tag/horror/",
+      "download_url": "https://assets.mixkit.co/music/671/671.mp3",
+      "license_id": "Mixkit-Stock-Music-Free",
+      "license_url": "https://mixkit.co/license/#musicFree",
+      "attribution": "",
+      "sha256": "f7ce9f4c051feacd95b1fd429a1852f4ac1ed81eb51b43c61b432d6ccdc607fd",
+      "moods": [
+        "horror",
+        "mystery",
+        "suspense"
+      ],
+      "channels": [
+        "horror_no_attribution"
+      ],
+      "content_id": "unknown",
+      "verified_on": "2026-11-04",
+      "source_feel": "Eerie, Nightmarish",
+      "instruments": "Piano, Sound Effects",
+      "provider_asset_id": "671"
+    },
+    {
+      "id": "mixkit_echoes",
+      "isrc": "",
+      "title": "Echoes",
+      "author": "Andrew Ev",
+      "filename": "188.mp3",
+      "source_url": "https://mixkit.co/free-stock-music/tag/horror/",
+      "download_url": "https://assets.mixkit.co/music/188/188.mp3",
+      "license_id": "Mixkit-Stock-Music-Free",
+      "license_url": "https://mixkit.co/license/#musicFree",
+      "attribution": "",
+      "sha256": "49842074dc06f05a40690c2b3af42bd32be76a5f6505a65cfe952b2fe1ccb5de",
+      "moods": [
+        "horror",
+        "mystery",
+        "suspense"
+      ],
+      "channels": [
+        "horror_no_attribution"
+      ],
+      "content_id": "unknown",
+      "verified_on": "2026-11-04",
+      "source_feel": "Eerie, Atmospheric",
+      "instruments": "Synth, Sound Effects",
+      "provider_asset_id": "188"
+    },
+    {
+      "id": "mixkit_feedback_dreams",
+      "isrc": "",
+      "title": "Feedback Dreams",
+      "author": "Eugenio Mininni",
+      "filename": "588.mp3",
+      "source_url": "https://mixkit.co/free-stock-music/tag/horror/",
+      "download_url": "https://assets.mixkit.co/music/588/588.mp3",
+      "license_id": "Mixkit-Stock-Music-Free",
+      "license_url": "https://mixkit.co/license/#musicFree",
+      "attribution": "",
+      "sha256": "13dff735e4cc2cc0a36c29f3492d92799f8f14f1d9ddae28a8bcf2544cc1470c",
+      "moods": [
+        "horror",
+        "mystery",
+        "suspense"
+      ],
+      "channels": [
+        "horror_no_attribution"
+      ],
+      "content_id": "unknown",
+      "verified_on": "2026-11-04",
+      "source_feel": "Mysterious, Atmospheric",
+      "instruments": "Synth",
+      "provider_asset_id": "588"
+    },
+    {
+      "id": "mixkit_dark_shadows",
+      "isrc": "",
+      "title": "Dark Shadows",
+      "author": "Ahjay Stelino",
+      "filename": "64.mp3",
+      "source_url": "https://mixkit.co/free-stock-music/tag/horror/",
+      "download_url": "https://assets.mixkit.co/music/64/64.mp3",
+      "license_id": "Mixkit-Stock-Music-Free",
+      "license_url": "https://mixkit.co/license/#musicFree",
+      "attribution": "",
+      "sha256": "e9268aa45b2f609bf75c724028488a4cf07dafd4bb7645758fd2b1d6d58aae8b",
+      "moods": [
+        "horror",
+        "mystery",
+        "suspense"
+      ],
+      "channels": [
+        "horror_no_attribution"
+      ],
+      "content_id": "unknown",
+      "verified_on": "2026-11-04",
+      "source_feel": "Eerie, Mysterious",
+      "instruments": "Drums, Sound Effects",
+      "provider_asset_id": "64"
     }
   ]
 }

@@ -1,6 +1,6 @@
 """Small licensed music library and local speech-first audio production.
 
-Only audited Incompetech sources can be downloaded. Licenses, source
+Only exact audited Incompetech and Mixkit sources can be downloaded. Licenses, source
 evidence, hashes, selection receipts and mix measurements remain traceable.
 Nothing in this module synthesizes speech or contacts generation APIs.
 """
@@ -37,6 +37,17 @@ class AudioLibraryError(RuntimeError):
 
 BASE = "https://incompetech.com/music/royalty-free/"
 LICENSE = "https://creativecommons.org/licenses/by/4.0/"
+MIXKIT_SOURCE = "https://mixkit.co/free-stock-music/tag/horror/"
+MIXKIT_LICENSE = "https://mixkit.co/license/#musicFree"
+MIXKIT_LICENSE_TEXT = "https://mixkit.co/license/modal/musicFree/"
+MIXKIT_FAQ = "https://mixkit.co/free-stock-music/"
+# Identity and exact MP3 URLs reviewed against Mixkit's MusicRecording metadata.
+MIXKIT_AUDITED = {
+    "mixkit_piano_horror": ("671", "Piano Horror", "Francisco Alvear"),
+    "mixkit_echoes": ("188", "Echoes", "Andrew Ev"),
+    "mixkit_feedback_dreams": ("588", "Feedback Dreams", "Eugenio Mininni"),
+    "mixkit_dark_shadows": ("64", "Dark Shadows", "Ahjay Stelino"),
+}
 AUDITED = {
     "long_note_two": ("USUAN1100420", "Long Note Two"),
     "echoes_of_time_v2": ("USUAN1300030", "Echoes of Time v2"),
@@ -65,7 +76,7 @@ AUDITED = {
 }
 ID = re.compile(r"[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}\Z")
 SFX_KINDS = ("soft_tick", "low_pulse", "air_swish", "paper_texture", "key_click", "ui_ping")
-MIXER_REVISION = "sample-clock-v4-decoder-tail"
+MIXER_REVISION = "sample-clock-v5-horror-bed"
 # Editorial affinities are separate from the source/license receipt. They are
 # judgments based on the author's stored instrument/feel descriptions, not claims
 # that the author assigned a business/history genre or that Kitok auditioned them.
@@ -85,7 +96,8 @@ def infer_audio_mood(script: str, *, channel: str = "loose_thread") -> str:
     These are editorial hints, not semantic understanding or emotion detection.
     Each returned mood has at least two catalog choices in its supported profile.
     """
-    default = "horror" if channel == "horror" else "ambient" if channel == "science" else "investigation"
+    horror_channel = channel in {"horror", "horror_no_attribution"}
+    default = "horror" if horror_channel else "ambient" if channel == "science" else "investigation"
     if not isinstance(script, str):
         raise AudioLibraryError("Audio mood requires the full narration text")
     words = re.findall(r"\w+", script.casefold())
@@ -113,9 +125,9 @@ def infer_audio_mood(script: str, *, channel: str = "loose_thread") -> str:
     counts = {word: min(2, count) for word, count in Counter(words).items()}
     scores = {}
     for mood, terms in vocabulary.items():
-        if channel == "horror" and mood != "horror":
+        if horror_channel and mood != "horror":
             continue
-        if mood == "horror" and channel not in {"horror", "lore"}:
+        if mood == "horror" and channel not in {"horror", "horror_no_attribution", "lore"}:
             continue
         matched = terms & counts.keys()
         if len(matched) >= 2:
@@ -205,12 +217,24 @@ class MusicSource(BaseModel):
     verified_on: str
     source_feel: str | None = None
     instruments: str | None = None
+    provider_asset_id: str | None = None
 
     @model_validator(mode="after")
     def audited_source(self):
+        if self.id in MIXKIT_AUDITED:
+            asset_id, title, author = MIXKIT_AUDITED[self.id]
+            if ((self.isrc, self.provider_asset_id, self.title, self.author, self.filename)
+                    != ("", asset_id, title, author, asset_id + ".mp3")
+                    or self.source_url != MIXKIT_SOURCE
+                    or self.download_url != f"https://assets.mixkit.co/music/{asset_id}/{asset_id}.mp3"
+                    or self.license_id != "Mixkit-Stock-Music-Free" or self.license_url != MIXKIT_LICENSE
+                    or self.attribution != "" or self.content_id != "unknown"
+                    or self.channels != ["horror_no_attribution"]):
+                raise ValueError("Unexpected Mixkit identity, URL, license or attribution policy")
+            return self
         if self.id not in AUDITED or AUDITED[self.id] != (self.isrc, self.title):
             raise ValueError("Source must be one of the audited tracks")
-        if self.author != "Kevin MacLeod" or self.filename != self.title + ".mp3":
+        if self.author != "Kevin MacLeod" or self.filename != self.title + ".mp3" or self.provider_asset_id is not None:
             raise ValueError("Unexpected author or filename")
         if self.download_url != BASE + "mp3-royaltyfree/" + quote(self.filename):
             raise ValueError("Only the audited author's exact download URL is accepted")
@@ -327,6 +351,8 @@ class AudioLibrary:
 
     def _get(self, url: str, *, maximum: int) -> bytes:
         allowed = {BASE + "pieces.json"}
+        if any(source.id in MIXKIT_AUDITED for source in self.sources.values()):
+            allowed |= {MIXKIT_LICENSE_TEXT, MIXKIT_FAQ}
         allowed |= {source.source_url for source in self.sources.values()}
         allowed |= {source.download_url for source in self.sources.values()}
         if url not in allowed:
@@ -415,7 +441,7 @@ class AudioLibrary:
             tracks = list(pairs[0])
             selection = {"job_id": job_id, **request, "tracks": tracks,
                          "selected_at": datetime.now(timezone.utc).isoformat(),
-                         "credits": [self.sources[track].attribution for track in tracks],
+                         "credits": self._credits(tracks),
                          "changes_notice": "Music trimmed, crossfaded at a declared narrative boundary, mixed and ducked under narration.",
                          "reason": options["reason"], "content_id": "unknown"}
             state["jobs"][job_id] = selection
@@ -450,7 +476,7 @@ class AudioLibrary:
                 return selection
             selection = {"job_id": job_id, "channel": channel, "mood": "manual", "count": 1,
                          "tracks": [track_id], "selected_at": datetime.now(timezone.utc).isoformat(),
-                         "credits": [self.sources[track_id].attribution],
+                         "credits": self._credits([track_id]),
                          "changes_notice": "Music trimmed, mixed and dynamically ducked under narration.",
                          "content_id": "unknown"}
             state["jobs"][job_id] = selection
@@ -470,18 +496,24 @@ class AudioLibrary:
                 return {**cached, "cache_hit": True}
             source, directory = self.sources[track_id], self._directory(track_id)
             html = self._get(source.source_url, maximum=512 * 1024)
-            if b"By Attribution 4.0 License" not in html or b"creativecommons.org/licenses/by/4.0/" not in html:
-                raise AudioLibraryError("The source page no longer confirms the audited CC BY 4.0 license")
-            if self._pieces is None:
-                try:
-                    self._pieces = json.loads(self._get(BASE + "pieces.json", maximum=4 * 1024 * 1024))
-                except ValueError:
-                    raise AudioLibraryError("The official track catalog is invalid") from None
-            if not isinstance(self._pieces, list):
-                raise AudioLibraryError("The official track catalog is invalid")
-            matches = [item for item in self._pieces if isinstance(item, dict) and item.get("isrc") == source.isrc]
-            if len(matches) != 1 or matches[0].get("title") != source.title or matches[0].get("filename") != source.filename:
-                raise AudioLibraryError("Official track identity does not match the audited source")
+            if source.id in MIXKIT_AUDITED:
+                track_evidence, license_evidence = self._mixkit_evidence(source, html)
+                commercial_use = "permitted in YouTube videos under Mixkit Stock Music Free License; attribution optional"
+            else:
+                if b"By Attribution 4.0 License" not in html or b"creativecommons.org/licenses/by/4.0/" not in html:
+                    raise AudioLibraryError("The source page no longer confirms the audited CC BY 4.0 license")
+                if self._pieces is None:
+                    try:
+                        self._pieces = json.loads(self._get(BASE + "pieces.json", maximum=4 * 1024 * 1024))
+                    except ValueError:
+                        raise AudioLibraryError("The official track catalog is invalid") from None
+                if not isinstance(self._pieces, list):
+                    raise AudioLibraryError("The official track catalog is invalid")
+                matches = [item for item in self._pieces if isinstance(item, dict) and item.get("isrc") == source.isrc]
+                if len(matches) != 1 or matches[0].get("title") != source.title or matches[0].get("filename") != source.filename:
+                    raise AudioLibraryError("Official track identity does not match the audited source")
+                track_evidence, license_evidence = matches[0], html
+                commercial_use = "permitted with attribution under CC BY 4.0"
             fd, temporary = tempfile.mkstemp(prefix=".download-", suffix=".mp3", dir=directory)
             os.close(fd)
             temporary = Path(temporary)
@@ -497,20 +529,54 @@ class AudioLibrary:
                 media = probe_media(temporary, self.ffprobe)
                 if not media.audio_codec or not 1 <= media.duration <= 1800:
                     raise AudioLibraryError("Downloaded file is not a bounded audio track")
-                evidence = json.dumps(matches[0], sort_keys=True).encode()
-                (directory / "license.html").write_bytes(html)
+                evidence = json.dumps(track_evidence, sort_keys=True).encode()
+                (directory / "license.html").write_bytes(license_evidence)
                 (directory / "source.json").write_bytes(evidence)
                 temporary.replace(directory / "music.mp3")
                 receipt = {"version": 1, "source": source.model_dump(exclude_none=True), "sha256": source.sha256,
                            "duration": media.duration, "bytes": (directory / "music.mp3").stat().st_size,
                            "fetched_at": datetime.now(timezone.utc).isoformat(),
-                           "license_evidence_sha256": hashlib.sha256(html).hexdigest(),
+                           "license_evidence_sha256": hashlib.sha256(license_evidence).hexdigest(),
                            "track_evidence_sha256": hashlib.sha256(evidence).hexdigest(),
-                           "content_id": "unknown", "commercial_use": "permitted with attribution under CC BY 4.0"}
+                           "content_id": "unknown", "commercial_use": commercial_use}
                 _atomic_json(directory / "receipt.json", receipt)
                 return {**receipt, "cache_hit": False}
             finally:
                 temporary.unlink(missing_ok=True)
+
+    def _mixkit_evidence(self, source: MusicSource, html: bytes) -> tuple[dict, bytes]:
+        """Confirm one exact recording and both use/attribution terms before import."""
+        recordings = []
+        try:
+            scripts = re.findall(rb'<script\s+type="application/ld\+json">(.*?)</script>', html, re.DOTALL)
+            for script in scripts:
+                graph = json.loads(script).get("@graph", [])
+                for item in graph:
+                    recordings.extend(row for row in item.get("itemListElement", [])
+                                      if isinstance(row, dict) and row.get("@type") == "MusicRecording")
+        except (ValueError, TypeError, AttributeError):
+            raise AudioLibraryError("The official Mixkit track catalog is invalid") from None
+        matches = [row for row in recordings if row.get("url") == source.download_url]
+        if (len(matches) != 1 or matches[0].get("name") != source.title
+                or matches[0].get("byArtist") != source.author
+                or matches[0].get("license") != MIXKIT_LICENSE
+                or matches[0].get("encodingFormat") != "audio/mpeg"):
+            raise AudioLibraryError("Official Mixkit track identity or license changed")
+        license_html = self._get(MIXKIT_LICENSE_TEXT, maximum=512 * 1024)
+        faq = self._get(MIXKIT_FAQ, maximum=1024 * 1024)
+        if (b"Stock Music Free License" not in license_html
+                or b"commercial and non-commercial projects for free" not in license_html
+                or b"YouTube videos" not in license_html
+                or b"Attribution is appreciated but not required" not in faq):
+            raise AudioLibraryError("Official Mixkit license no longer confirms YouTube use without attribution")
+        return {"recording": matches[0], "source_url": source.source_url,
+                "source_page_sha256": hashlib.sha256(html).hexdigest(),
+                "license_url": MIXKIT_LICENSE_TEXT, "attribution_policy_url": MIXKIT_FAQ}, (
+                    license_html + b"\n<!-- Official Mixkit attribution FAQ -->\n" + faq)
+
+    def _credits(self, tracks: list[str]) -> list[str]:
+        # Optional attribution stays in source receipts, outside public copy.
+        return [self.sources[track].attribution for track in tracks if self.sources[track].attribution]
 
     def _state(self) -> dict:
         path = self.cache / "selection.json"
@@ -548,7 +614,7 @@ class AudioLibrary:
                 ordered.append(previous)
             selection = {"job_id": job_id, **request, "tracks": ordered[:count],
                          "selected_at": datetime.now(timezone.utc).isoformat(),
-                         "credits": [self.sources[track].attribution for track in ordered[:count]],
+                         "credits": self._credits(ordered[:count]),
                          "changes_notice": "Music trimmed, crossfaded, mixed and dynamically ducked under narration.",
                          "content_id": "unknown"}
             if mood in AUDIO_AFFINITIES:
@@ -564,7 +630,7 @@ class AudioLibrary:
         tracks = selection.get("tracks") if valid else None
         valid = valid and isinstance(tracks, list) and len(tracks) in (1, 2)
         valid = valid and all(isinstance(track, str) and track in self.sources for track in tracks)
-        if not valid or selection.get("credits") != [self.sources[track].attribution for track in tracks]:
+        if not valid or selection.get("credits") != self._credits(tracks):
             raise AudioLibraryError("Audio selection is missing or invalid; preserve and inspect its state")
         return selection
 
@@ -619,7 +685,15 @@ class AudioLibrary:
                 inputs += ["-i", str(path)]
             if transition_at is not None and len(selection["tracks"]) != 2:
                 raise AudioLibraryError("A narrative transition requires two selected tracks")
-            chain = self._mix_filter(duration, crossfade, len(selection["tracks"]), events, transition_at)
+            # New no-attribution horror profile has a +3 dB bed. Existing channels
+            # and their completed/cached mixes retain their historical balance.
+            horror_bed = selection.get("channel") == "horror_no_attribution"
+            background_lufs = -26 if horror_bed else -29
+            ducking = {"threshold": .03 if horror_bed else .012, "ratio": 4 if horror_bed else 8,
+                       "attack_ms": 15, "release_ms": 300}
+            chain = self._mix_filter(duration, crossfade, len(selection["tracks"]), events, transition_at,
+                                     background_lufs=background_lufs, ducking_threshold=ducking["threshold"],
+                                     ducking_ratio=ducking["ratio"])
             # AAC reconstruction can overshoot the PCM true peak. Leave 0.8 dB
             # before encoding and still enforce -1.5 dBTP on the decoded file.
             analysis_filter = chain + (";[mixed]loudnorm=I=-16:LRA=7:TP=-2.3:print_format=json,"
@@ -673,7 +747,8 @@ class AudioLibrary:
                        "narration_sha256": narration_sha256, "narration_offset": offset,
                        "duration": final_info.duration, "crossfade_seconds": crossfade if len(selection["tracks"]) == 2 else 0,
                        "transition_at": (duration/2 if transition_at is None else transition_at) if len(selection["tracks"]) == 2 else None,
-                       "ducking": {"threshold": .012, "ratio": 8, "attack_ms": 15, "release_ms": 300},
+                       "ducking": ducking,
+                       "background_lufs_before_ducking": background_lufs,
                        "target_lufs": -16, "target_true_peak_dbtp": -1.5, "encoding_headroom_db": .8,
                        "normalization_input": {"integrated_lufs": measured.input_i,
                                                "loudness_range_lu": measured.input_lra,
@@ -699,7 +774,8 @@ class AudioLibrary:
 
     @staticmethod
     def _mix_filter(duration: float, crossfade: float, count: int, events: list[dict] | None = None,
-                    transition_at: float | None = None) -> str:
+                    transition_at: float | None = None, *, background_lufs: int = -29,
+                    ducking_threshold: float = .012, ducking_ratio: int = 8) -> str:
         # loudnorm can negotiate 192 kHz internally. Rebuild each 48 kHz branch's
         # clock from emitted samples before acrossfade/sidechain/amix. Keeping
         # inherited frame timestamps can shorten long output at the final -t.
@@ -712,9 +788,9 @@ class AudioLibrary:
             segment = (center if index == 0 else duration-center) + crossfade/2 if count == 2 else duration
             filters.append(f"[{index+1}:a]atrim=duration={segment:.6f},asetpts=PTS-STARTPTS,"
                            "aformat=sample_rates=48000:channel_layouts=stereo,highpass=f=60,lowpass=f=6500,"
-                           f"loudnorm=I=-29:LRA=11:TP=-8,aresample=48000,asetpts=N/SR/TB[m{index}]")
+                           f"loudnorm=I={background_lufs}:LRA=11:TP=-8,aresample=48000,asetpts=N/SR/TB[m{index}]")
         filters.append(f"[m0][m1]acrossfade=d={crossfade:.6f}:c1=tri:c2=tri[bed]" if count == 2 else "[m0]anull[bed]")
-        filters += ["[bed][key]sidechaincompress=threshold=0.012:ratio=8:attack=15:release=300:makeup=1[ducked]",
+        filters += [f"[bed][key]sidechaincompress=threshold={ducking_threshold}:ratio={ducking_ratio}:attack=15:release=300:makeup=1[ducked]",
                     f"[ducked]afade=t=in:d=0.08,afade=t=out:st={duration-.4:.6f}:d=0.4[bedfaded]"]
         labels = "[voice][bedfaded]"
         for index, event in enumerate(events or []):

@@ -12,7 +12,9 @@ import wave
 import httpx
 import pytest
 
-from kitok.audio_library import AudioLibrary, AudioLibraryError, BASE, SFX_KINDS, infer_audio_mood, narrative_transition, synthesize_sfx
+from kitok.audio_library import (AudioLibrary, AudioLibraryError, BASE, MIXKIT_FAQ, MIXKIT_LICENSE,
+                                 MIXKIT_LICENSE_TEXT, MIXKIT_SOURCE, SFX_KINDS,
+                                 infer_audio_mood, narrative_transition, synthesize_sfx)
 from kitok.media.ffprobe import probe_media
 
 
@@ -59,7 +61,7 @@ def audio_library(tmp_path):
 
 def test_catalog_exact_sources_and_noncommercial_rejected(tmp_path):
     catalog = json.loads(CATALOG.read_text())
-    assert len(catalog["sources"]) == 24
+    assert len(catalog["sources"]) == 28
     horror = {"this_house", "unnatural_situation", "the_dread", "dark_fog"}
     additions = [item for item in catalog["sources"] if item["id"] in horror]
     assert {item["id"] for item in additions} == horror
@@ -73,6 +75,88 @@ def test_catalog_exact_sources_and_noncommercial_rejected(tmp_path):
         path.write_text(json.dumps(broken))
         with pytest.raises(AudioLibraryError, match="unapproved"):
             AudioLibrary(path, tmp_path / "cache")
+
+
+@pytest.fixture
+def mixkit_library(tmp_path):
+    catalog = json.loads(CATALOG.read_text())
+    catalog["sources"] = [row for row in catalog["sources"] if row["id"].startswith("mixkit_")]
+    audio = tone_bytes(seconds=4)
+    for source in catalog["sources"]:
+        source["sha256"] = hashlib.sha256(audio).hexdigest()
+    path = tmp_path / "mixkit.json"
+    path.write_text(json.dumps(catalog))
+    rows = [{"@type": "MusicRecording", "name": source["title"], "byArtist": source["author"],
+             "url": source["download_url"], "license": MIXKIT_LICENSE, "encodingFormat": "audio/mpeg"}
+            for source in catalog["sources"]]
+    source_html = '<script type="application/ld+json">' + json.dumps({"@graph": [{"itemListElement": rows}]}) + '</script>'
+    calls = []
+    def handler(request):
+        calls.append(str(request.url))
+        assert "authorization" not in request.headers and "cookie" not in request.headers
+        if str(request.url) == MIXKIT_SOURCE:
+            return httpx.Response(200, text=source_html)
+        if str(request.url) == MIXKIT_LICENSE_TEXT:
+            return httpx.Response(200, text="Stock Music Free License; commercial and non-commercial projects for free; YouTube videos")
+        if str(request.url) == MIXKIT_FAQ:
+            return httpx.Response(200, text="Attribution is appreciated but not required")
+        if str(request.url) in {row["download_url"] for row in catalog["sources"]}:
+            return httpx.Response(200, content=audio)
+        raise AssertionError(str(request.url))
+    client = httpx.Client(transport=httpx.MockTransport(handler), headers={"Authorization": "private"})
+    return AudioLibrary(path, tmp_path / "cache", client=client), calls
+
+
+def test_mixkit_exact_evidence_optional_credits_rotation_and_real_mix(mixkit_library, tmp_path):
+    library, calls = mixkit_library
+    for track in library.sources:
+        receipt = library.fetch(track)
+        assert "attribution optional" in receipt["commercial_use"]
+        assert receipt["source"]["license_id"] == "Mixkit-Stock-Music-Free"
+    before = len(calls)
+    choice = library.select("horror-new", channel="horror_no_attribution", mood="horror")
+    assert choice["credits"] == []
+    assert len({library.sources[track].author for track in choice["tracks"]}) == 2
+    assert library.select("horror-new", channel="horror_no_attribution", mood="horror") == choice
+    next_choice = library.select("horror-next", channel="horror_no_attribution", mood="horror")
+    assert choice["tracks"][0] != next_choice["tracks"][0]
+    assert library.available(channel="horror") == []
+    voice = tmp_path / "voice.wav"
+    voice.write_bytes(tone_bytes(frequency=520, seconds=4))
+    mixed = library.mix("horror-new", voice, tmp_path / "mix.m4a", duration=4)
+    assert mixed["background_lufs_before_ducking"] == -26
+    assert "loudnorm=I=-26" in mixed["filter"]
+    assert "sidechaincompress=threshold=0.03:ratio=4:" in mixed["filter"]
+    assert mixed["ducking"] == {"threshold": .03, "ratio": 4, "attack_ms": 15, "release_ms": 300}
+    assert mixed["measured"]["true_peak_dbtp"] <= -1.5
+    assert len(calls) == before
+
+
+@pytest.mark.parametrize("broken_evidence", ["identity", "license", "attribution"])
+def test_mixkit_changed_identity_or_terms_block_import(mixkit_library, broken_evidence):
+    library, _ = mixkit_library
+    original = library.client
+    def changed(request):
+        url = str(request.url)
+        if ((broken_evidence == "identity" and url == MIXKIT_SOURCE)
+                or (broken_evidence == "license" and url == MIXKIT_LICENSE_TEXT)
+                or (broken_evidence == "attribution" and url == MIXKIT_FAQ)):
+            return httpx.Response(200, text="Changed conditions, not verified")
+        return original.send(request)
+    library.client = httpx.Client(transport=httpx.MockTransport(changed))
+    with pytest.raises(AudioLibraryError, match="identity|license|attribution"):
+        library.fetch("mixkit_echoes")
+    assert not (library.cache / "mixkit_echoes/music.mp3").exists()
+
+
+def test_mixkit_metadata_cannot_claim_no_attribution_for_another_source(tmp_path):
+    catalog = json.loads(CATALOG.read_text())
+    source = next(row for row in catalog["sources"] if row["id"] == "mixkit_echoes")
+    source["download_url"] = "https://assets.mixkit.co/music/999/999.mp3"
+    path = tmp_path / "bad-mixkit.json"
+    path.write_text(json.dumps(catalog))
+    with pytest.raises(AudioLibraryError, match="unapproved"):
+        AudioLibrary(path, tmp_path / "cache")
 
 
 def test_fetch_provenance_hash_and_no_second_get(audio_library):
@@ -377,6 +461,7 @@ def test_sfx_families_have_distinct_original_waveforms_and_fit_events(tmp_path):
     ("A cold evening begins our tale. The haunted house hides a ghost and a supernatural curse in every corridor.", "lore", "horror"),
     ("A cold evening begins our tale. The haunted house hides a ghost and a supernatural curse in every corridor.", "loose_thread", "investigation"),
     ("The recovery and rebuilding continue, while this long and unremarkable paragraph quietly describes the local landscape.", "horror", "horror"),
+    ("The recovery and rebuilding continue, while this long and unremarkable paragraph quietly describes the local landscape.", "horror_no_attribution", "horror"),
     ("The word fraud appears only once while this ordinary narration describes a long journey across the country.", "loose_thread", "investigation"),
     ("A short text.", "science", "ambient"),
     ("The evidence and fraud are described alongside grief and loss, with no clear narrative emphasis to choose between them.", "science", "ambient"),
@@ -395,7 +480,7 @@ def test_inferred_moods_have_two_catalog_choices_for_supported_channels():
     ordinary = ["investigation", "reflective", "resolution", "ambient", "technology", "business", "history", "revelation"]
     for channel, moods in {"loose_thread": ordinary, "documentary": ordinary, "science": ordinary,
                            "lore": [*ordinary, "horror"],
-                           "horror": ["horror"]}.items():
+                           "horror": ["horror"], "horror_no_attribution": ["horror"]}.items():
         for mood in moods:
             assert sum(channel in source["channels"] and AudioLibrary._matches_mood(MusicSource.model_validate(source), mood)
                        for source in catalog) >= 2
@@ -547,7 +632,7 @@ def test_long_documentary_automatic_mix_has_continuous_sample_clock(audio_librar
     assert math.isfinite(receipt["measured"]["loudness_range_lu"])
     assert receipt["transition_at"] == 223.1457
     assert len(receipt["sound_effects"]) == 4
-    assert receipt["mixer_revision"] == "sample-clock-v4-decoder-tail"
+    assert receipt["mixer_revision"] == "sample-clock-v5-horror-bed"
     diagnostics = Path(receipt["diagnostics_directory"])
     assert (diagnostics / "mixed.wav").is_file()
     assert json.loads((diagnostics / "validation.json").read_text())["status"] == "validated"
@@ -668,7 +753,7 @@ def test_new_documentary_from_scratch_uses_real_stock_lengths_and_auto_music(aud
             source = plan['assets'][scene['asset']]['path']
             assert scene['source_start'] + scene['end']-scene['start'] <= lengths[source] + 1e-6
     mix = json.loads(next(workspace.glob('music-*.wav.json')).read_text())
-    assert mix['mixer_revision'] == 'sample-clock-v4-decoder-tail'
+    assert mix['mixer_revision'] == 'sample-clock-v5-horror-bed'
     assert abs(mix['duration']-probe_media(voice).duration) <= .08
     assert len(mix['selection']['tracks']) == 2
     assert mix['sound_effects']

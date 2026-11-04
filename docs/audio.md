@@ -7,18 +7,24 @@ una acción distinta y puede consumir Fish.
 
 ## Biblioteca musical y derechos
 
-El catálogo `presets/music_sources.json` contiene **24 pistas de Kevin MacLeod**.
+El catálogo `presets/music_sources.json` contiene **28 pistas**: 24 de Kevin MacLeod
+y cuatro de Mixkit, de cuatro autores distintos, incorporadas el 04/11/2026.
 Las 16 incorporadas el 20 de octubre de 2026 se descargaron desde Incompetech y
 se comprobaron contra su catálogo oficial y su página individual de licencia.
 El 27/10 se añadieron This House, Unnatural Situation, The Dread y Dark Fog
 tras descargar y validar catálogo oficial, licencia individual, MP3 y SHA256.
 Las ocho candidatas de horror están disponibles en caché local en esa fecha;
 una instalación nueva debe ejecutar `fetch` para las que necesite.
-Todas están bajo CC BY 4.0: permiten uso comercial con atribución, enlace a licencia
-e indicación de los cambios. No se suben los MP3 a Git.
+Las 24 de Incompetech están bajo CC BY 4.0: permiten uso comercial con atribución,
+enlace a licencia e indicación de los cambios. Las cuatro de Mixkit permiten
+vídeos comerciales de YouTube sin atribución obligatoria. No se suben los MP3 a Git.
 
 Cada carpeta `cache/audio-library/ID/` conserva música, página de licencia,
 registro oficial de la pista y recibo con SHA256, duración, fecha y procedencia.
+Mixkit conserva juntos el texto oficial de licencia y la FAQ que confirma que
+la atribución es opcional; contrasta título, autor, URL del MP3 y licencia con los
+metadatos `MusicRecording` de su catálogo. `provider_asset_id` identifica su recurso;
+no se inventa un ISRC para estas pistas.
 Una descarga con hash distinto o sin la licencia esperada se rechaza. Un cache hit
 comprueba esos hashes; no vuelve a consultar la licencia remota.
 
@@ -34,6 +40,7 @@ de reclamaciones automáticas son cuestiones diferentes.
 | Reflexión y cierre | Dreams Become Real, Night Vigil, Despair and Triumph, Anguish, Immersed |
 | Ambiente tranquilo | Floating Cities, Clean Soul, Deliberate Thought |
 | Horror y tensión | Darkest Child, Ghost Story, Dark Walk, Anxiety, This House, Unnatural Situation, The Dread, Dark Fog |
+| Terror y misterio sin atribución obligatoria | Piano Horror (Francisco Alvear), Echoes (Andrew Ev), Feedback Dreams (Eugenio Mininni), Dark Shadows (Ahjay Stelino) |
 
 Las categorías se solapan; el JSON conserva ambientes base y canales. Las afinidades
 adicionales viven en `AUDIO_AFFINITIES`, separadas de la evidencia de licencia:
@@ -53,15 +60,22 @@ Fuentes evaluadas para esta fase:
 | [Incompetech, catálogo oficial](https://incompetech.com/music/royalty-free/pieces.json) y las páginas por ISRC del catálogo | Incorporada: identidades y descargas fijas, evidencia individual y licencia explícita. [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) exige conservar créditos/cambios. |
 | [Biblioteca de audio de YouTube](https://support.google.com/youtube/answer/3376882?hl=es) | Alternativa de importación futura. La descarga y atribución se gestionan en YouTube Studio; no se cambió el OAuth ni se automatizó una sesión del titular. |
 | [Licencia Pixabay](https://pixabay.com/service/license-summary/) | Permite adaptación y uso bajo sus condiciones; no se incorporaron pistas sin evidencia individual. No redistribuir el recurso aislado como producto propio. |
-| [Licencias Mixkit](https://mixkit.co/license/) | Tiene licencias diferentes por recurso. No se auditó ningún MP3 individual ni se añadió un descargador; no se presume una licencia común para todo el sitio. |
+| [Mixkit, catálogo de horror](https://mixkit.co/free-stock-music/tag/horror/), [licencia musical](https://mixkit.co/license/modal/musicFree/) y [FAQ de atribución](https://mixkit.co/free-stock-music/) | Cuatro MP3 individuales incorporados y verificados el 04/11/2026, con identidad, hash y licencia musical exacta. Permite YouTube comercial y atribución opcional. No autoriza CDs/DVDs, videojuegos, TV/radio, remixes musicales aislados ni registro en sistemas de derechos. No se presume la misma licencia para otros tipos de recurso. |
 | [Free Music Archive](https://freemusicarchive.org/Help) | Consulta oficial devolvió HTTP 403 en esta sesión. Sin evidencia actual suficiente para incorporar pistas de esa fuente. |
 
 ## Terror de Trazo Maldito
 
-El perfil del canal prescribe `music.mode=auto`, `channel=horror`, `mood=horror`
-y dos pistas; se trasladan a `configuracion.json` de episodios nuevos, sin cambiar
-música de episodios ya producidos. No heredar el perfil documental de Loose Thread.
-El selector usa sólo la caché verificada y no descarga durante render.
+El perfil para episodios nuevos prescribe `music.mode=auto`,
+`channel=horror_no_attribution`, `mood=horror` y dos pistas. Ese canal sólo admite
+las cuatro pistas Mixkit auditadas; si faltan en caché, bloquea antes de mezclar,
+sin recurrir a una pista con créditos obligatorios. Se trasladan a
+`configuracion.json` de episodios nuevos, sin cambiar música ni créditos de
+episodios ya producidos. El canal histórico `horror` mantiene sus ocho candidatas
+CC BY y sus obligaciones. No heredar el perfil documental de Loose Thread.
+El selector usa sólo la caché verificada y no descarga durante render. La selección
+queda fija por ID de trabajo; el siguiente trabajo rota la primera pista cuando
+hay alternativas. Las fuentes y licencias permanecen en los recibos internos aunque
+`selection.credits` esté vacío por no existir atribución obligatoria.
 
 Usar un fondo instrumental discreto con ducking, tensión que cambie con el relato
 y descansos breves donde el silencio ayude. The Dread y Unnatural Situation son
@@ -69,9 +83,19 @@ candidatas de ambiente; This House añade texturas más inquietantes y Dark Fog 
 pulso más marcado, según los descriptores del autor. Hay que escuchar la muestra:
 no se ha acreditado audición del agente ni una mejora medida de retención. Evitar
 coros/vocalizaciones que puedan confundirse con habla del narrador; la música no
-sirve para tapar anomalías. El mezclador normaliza las ramas a −19 LUFS para voz
-y −29 LUFS para música antes de ducking y normalización final; no configura
-todavía una curva musical editorial distinta por cada giro.
+sirve para tapar anomalías. El mezclador normaliza la voz a −19 LUFS. El nuevo perfil
+sin atribución usa música a −26 LUFS antes del ducking, 3 dB más que el histórico,
+y atenúa con umbral 0,03 y ratio 4:1 durante la voz. Los perfiles anteriores conservan
+−29 LUFS, umbral 0,012 y ratio 8:1. Mantiene la medición final a −16 LUFS y pico
+≤−1,5 dBTP; no configura todavía una curva musical editorial por cada giro.
+
+Las cuatro descargas reales del 04/11/2026 decodifican como audio y miden
+113,032 s, 226,299 s, 149,342 s y 106,162 s, respectivamente. La muestra local
+`local/pruebas/audio_horror_sin_atribucion_20261104/muestra_20s_v2.m4a` reutiliza
+20 s de voz de Freddy, Feedback Dreams y Dark Shadows: **−16,03 LUFS / −2,33 dBTP**,
+duración exacta de 20 s. Se verificó mezcla y sonoridad; no se acredita escucha ni
+aprobación subjetiva. Una licencia válida no garantiza ausencia de reclamaciones
+Content ID; la propia licencia de Mixkit contempla asistencia ante reclamaciones.
 
 Voz: [instrucciones Fish y fidelidad acústica local](fish-voice.md). Las etiquetas
 de interpretación no son palabras de subtítulos. El ASR de control no sustituye
@@ -84,6 +108,7 @@ la alineación de palabras del montaje ni autoriza cortes semánticos por sí so
 .venv/bin/python scripts/audio_library.py available
 .venv/bin/python scripts/audio_library.py fetch all
 .venv/bin/python scripts/audio_library.py select --job episodio_v1 --channel loose_thread --mood investigation
+.venv/bin/python scripts/audio_library.py select --job terror_nuevo_v1 --channel horror_no_attribution --mood horror
 .venv/bin/python scripts/audio_library.py select --job episodio_narrativo_v1 --script RUTA_GUION_EXISTENTE.txt
 .venv/bin/python scripts/audio_library.py select --job episodio_manual_v1 --track mesmerize
 .venv/bin/python scripts/audio_library.py mix --job episodio_v1 --narration RUTA_AUDIO_EXISTENTE.mp3 --duration 30 --output outputs/mi_mezcla_v1.m4a
@@ -102,7 +127,7 @@ repeticiones y mantiene el ambiente predeterminado cuando hay empate o ambigüed
 Para Loose Thread devuelve `investigation`, `reflective`, `resolution`, `ambient`,
 `technology`, `business`, `history` o `revelation`; cada uno tiene al menos dos
 pistas compatibles. `science` parte de `ambient`;
-`horror` y `lore` pueden usar `horror`. Es una heurística conservadora, no comprensión
+`horror`, `horror_no_attribution` y `lore` pueden usar `horror`. Es una heurística conservadora, no comprensión
 general del tono ni garantía de idoneidad musical. La caché/licencias se validan
 después; inferir un ambiente nunca descarga pistas ni sintetiza voz.
 
@@ -352,3 +377,8 @@ declarada cuando el decodificador MP3 omite unas muestras de relleno: añade só
 cola silenciosa hasta el final solicitado, sin recortar ni volver a sintetizar voz.
 Los archivos y recibos anteriores se conservan; una mezcla anterior demasiado
 corta necesita una revisión nueva, no borrar su caché ni relajar el control del montaje.
+
+Desde `sample-clock-v5-horror-bed`, las mezclas nuevas identifican además el nivel
+de fondo previo al ducking y sus parámetros reales. El balance más audible sólo
+se aplica al canal `horror_no_attribution`; las mezclas históricas ya guardadas se
+reutilizan con su recibo y no se regeneran por cambiar el catálogo o esta revisión.
