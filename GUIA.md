@@ -818,3 +818,16 @@ El cierre también existe en primer plano como
 empaquetado final y limpieza. El QA mantiene todos sus controles; auditorías extra
 y recorridos completos adicionales se reservan para cambios, fallos o encargos.
 Las intervenciones históricas están en la [auditoría](docs/youtube-production-audit.md).
+
+
+## Navegador QA y HyperFrames opcional para agentes
+
+En WSL están disponibles la skill Playwright CLI y el MCP `playwright`, probado
+con clics reales en una página local aislada. Para descubrir el MCP, abrir un chat
+nuevo de Codex en VS Code Remote WSL. No es la misma configuración que la app Windows.
+
+Para gráficos/overlays HTML opcionales, usar `$hyperframes` y `$hyperframes-cli`
+en este proyecto. CLI local0.9.16, sin telemetría ni cuenta cloud. No sustituye el
+recorrido Native ni implica regenerar recursos de episodios. Prueba local MP4de2s
+completada; en este WSL el navegador de HyperFrames usa CPU/softwareWebGL.
+[Comandos, verificación y límites](docs/integrations/agent-tools.md).

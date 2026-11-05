@@ -39,7 +39,7 @@ con las tareas editoriales; el operador también puede hacerlas sin agente.
 
 Los agentes y skills que coordinan desarrollo, revisión o preparación editorial
 no son trabajos autónomos de Kitok. La skill local `kitok-audiovisual-qa` guía muestras y revisión; no instala un servicio
-ni amplía por sí sola el director. No se han instalado MCP adicionales; las capacidades descritas son las del repositorio.
+ni amplía por sí sola el director. El05/11se añadió Playwright MCP al entorno WSL del agente (QAaislado) y HyperFrames como herramienta opcional de gráficos HTML. No son servicios del pipeline ni cambian Native. [Herramientas y límites](integrations/agent-tools.md).
 La aplicación no llama a un LLM por plano, fotograma o reintento de render.
 
 ## Un vídeo nuevo desde cero

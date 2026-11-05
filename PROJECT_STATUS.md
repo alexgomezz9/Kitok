@@ -1,7 +1,19 @@
 # Estado vigente de Kitok
 
-Actualizado: **05/11/2026**. Rama `feat/youtube-agent-api`, base local `f21179c`
-(sobre `fix/fish-subframe-overlap`). Operación: [GUIA.md](GUIA.md).
+Actualizado: **05/11/2026**. Rama `feat/agent-browser-video-tools`, base local `4e1bf1b`
+(sobre `feat/youtube-agent-api`). Operación: [GUIA.md](GUIA.md).
+
+## Herramientas QA y vídeo opcional05/11
+
+Playwright CLI0.1.23+MCP0.0.84 instalados en entorno Codex WSL, mismo
+Playwright/Chromium1252. Inicialización/listado MCP y clic/captura/consola0errores
+verificados con página local sintética; CLI también pasó. Descubrimiento real en
+chat nuevo de VS Code WSL pendiente; no es QAcompleto de Curbops/Kitok.
+HyperFrames0.9.16+dos skills del proyecto, wrapper fijado con telemetría apagada:
+checkok, snapshot y renderMP4real2s640×360/12fps con fotograma visto.
+WSLusa softwareWebGL/CPU; no prueba rendimiento de episodios. Native/Fish/inputs
+existentes conservados. Skills/TOML/documentación/higiene validados y revisión
+independiente sin hallazgosP1/P2. [Manual](docs/integrations/agent-tools.md).
 
 ## YouTube API para agentes
 

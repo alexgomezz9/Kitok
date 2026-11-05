@@ -105,3 +105,10 @@ make verify-browser
 
 - Tras el feedback del 20/10, las muestras anteriores no acreditan calidad aceptada. Los mosaicos son imágenes estáticas; la galería carga un solo vídeo por clic. Verificar reproducción completa y entradas/salidas, además de contactos; distinguir fallos del chat de errores reproducidos por HTTP local.
 - No abreviar preguntas por regex ni inferir acciones de una cifra buscando verbos sueltos: puede perderse negación o atribuirse otra cantidad. El copy breve requiere decisión editorial explícita. No convertir pounds a £ sin evidencia monetaria; conservar contexto y calificador.
+
+
+## Herramientas opcionales del agente (05/11/2026)
+
+- QA frontend: Playwright CLI existente o MCP `playwright` en Codex WSL; usar sólo una interfaz por comprobación y workspace/datos sintéticos. No probar generación/pago/publicación con la cola real. Comandos y límites en docs/integrations/agent-tools.md.
+- HyperFrames0.9.16 y skills hyperframes/hyperframes-cli están disponibles para gráficos/overlays o encargos explícitos con ese motor. Usar el wrapper local fijado del manual. Native/FFmpeg sigue como producción predeterminada; instalar la herramienta no migra episodios ni autoriza nueva voz/imagen/cloud.
+- No descargar latest ni companion skills automáticamente. En WSL HyperFrames se comprobó por CPU/softwareWebGL, no GPU; usar una muestra corta y1worker antes de ampliar.
