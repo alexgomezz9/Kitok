@@ -1,4 +1,4 @@
-"""Official local YouTube integration. Read-only APIs, no uploading capability."""
+"""Official local YouTube integration. Reading by default; explicit management CLI and OAuth profiles."""
 
 from .oauth import SCOPES, PrivateStore, YouTubeError, connect
 from .client import YouTubeReadOnly

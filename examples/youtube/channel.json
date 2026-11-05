@@ -1,0 +1,12 @@
+{
+  "operation": "youtube.channels.list",
+  "params": {
+    "mine": true,
+    "part": [
+      "snippet",
+      "contentDetails",
+      "statistics",
+      "status"
+    ]
+  }
+}

@@ -34,8 +34,8 @@ con las tareas editoriales; el operador también puede hacerlas sin agente.
 | Montaje avanzado | Gráficos de identidad/cifra/información oculta, fotografía animada, rótulos, movimiento, render incremental y comparación A/B. | Elegir qué explica cada plano, legibilidad, ritmo y sincronía; reparar escenas concretas. | Los gráficos usan datos aportados. Los planos de mesa/informes tienen reparto UltimateBet fijo. |
 | Música y SFX | CLI con 28 pistas auditadas (24 CC BY y cuatro Mixkit sin atribución obligatoria), elección reproducible por trabajo/canal/ambiente, rotación, crossfade, ducking, medidas y seis SFX sintéticos. | Elegir intención musical y escuchar la mezcla; conservar créditos. | Formulario largo con Automática/Desactivada/Manual; pistas cacheadas y créditos descargables. Cambia dos ambientes, no compone música nueva ni entiende el tono de cada frase. |
 | QA | Decodificación, geometría, duración, negros, sonoridad/pico, hashes, contacto visual y comparación del audio. | Ver el montaje y escuchar: semántica, continuidad, encuadre, contraste, pronunciación y ritmo. | Informe verde no acredita calidad narrativa ni ausencia de reclamaciones. |
-| Entrega | Descarga local; shorts con fecha local, preview, confirmación Buffer y reconciliación de IDs guardados. | Preparar metadatos y revisar destino. | Confirmar publicación. Largos fuera de Buffer; subida manual a YouTube Studio. |
-| Métricas | CLI YouTube oficial de lectura: OAuth, identidad/catálogo, consultas Analytics y enumeración Reporting. | Interpretar resultados cuando exista conexión real. | Autenticación debe verificarse en vivo; Trazo requiere reconexión por OAuth HTTP400 el04/11. CTR/CSV y dashboard no implementados. No hay optimización autónoma de retención. |
+| Entrega | Descarga local; shorts con fecha local, preview, confirmación Buffer y reconciliación de IDs guardados. | Preparar metadatos y revisar destino. | Confirmar publicación. Largos fuera de Buffer; Studio manual o CLI YouTube con consentimiento de gestión y encargo de publicación. |
+| YouTube API | CLI oficial: lectura existente y catálogo de99métodos Data/Analytics/Reporting, perfiles de gestión/monetario/membresías, planes/recibos, subida y descarga CSV/subtítulos. | Leer catálogo, preparar peticiones, comprobar ID, revisar plan y conservar evidencia antes de apply. | Trazo leído en vivo05/11:1vídeo, Analytics sin filas. Consentimiento ampliado y elegibilidad se verifican aparte; no hay dashboard ni publicación autónoma. [Contrato](integrations/youtube-readonly.md). |
 
 Los agentes y skills que coordinan desarrollo, revisión o preparación editorial
 no son trabajos autónomos de Kitok. La skill local `kitok-audiovisual-qa` guía muestras y revisión; no instala un servicio
@@ -246,7 +246,7 @@ subjetiva ni reproducción audiovisual continua del episodio final completo.
 Falta convertir la preparación editorial en un recorrido persistente de producto:
 investigación con fuentes, selección y espera de aprobación, guion revisado,
 perfil de canal y dirección general reutilizable. No hay miniaturas editoriales
-automáticas, editor visual de timeline, doblaje automático, publicación YouTube,
+automáticas, editor visual de timeline, doblaje automático, publicación YouTube autónoma desde el frontend,
 CTR conectado ni optimizador autónomo de retención. Google necesita consentimiento
 real del titular y una comprobación remota posterior. El código de lectura y sus
 tests offline no prueban que el canal esté conectado.
@@ -268,7 +268,7 @@ instalando una skill.
 | `scripts/direct_edit.py`; `scripts/render_edit.py` | Preparar un plan y renderizarlo/medirlo sin proveedores. |
 | `scripts/media_library.py`; `src/kitok/media_library.py` | Catálogo de recursos y registro de procedencia. |
 | `scripts/audio_library.py`; `src/kitok/audio_library.py` | Biblioteca musical, selección, mezcla y SFX. |
-| `scripts/youtube_readonly.py`; `src/kitok/youtube/` | Conexión oficial opcional sólo lectura. Contrato en [YouTube](integrations/youtube-readonly.md). |
+| `scripts/youtube_readonly.py`, `scripts/youtube_api.py`; `src/kitok/youtube/` | Lectura oficial y gestión con OAuth ampliado, canal esperado y plan aprobado. Contrato en [YouTube](integrations/youtube-readonly.md). |
 | `content_queue.json`; `state/`; `content/longform/studio/` | Borradores y estado privado del operador. |
 | `outputs/ready/`; `outputs/longform/`; `outputs/evaluation/` | Vídeos cortos, largos y muestras/planes locales. |
 | `presets/`; `cache/`; `assets/` | Catálogos versionados y recursos/cachés locales según ruta. |

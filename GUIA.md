@@ -88,7 +88,7 @@ La interfaz y el CLI usan el motor nativo: Fish + Pexels + FFmpeg. El largo nati
 
 La salida es horizontal 16:9, 1920×1080, sin subtítulos, en outputs/longform/. La duración depende del guion y de la voz; no se fija con un selector de minutos. Se admiten hasta 24.000 caracteres y 20 búsquedas. El montaje básico organiza el guion en secciones y usa esas búsquedas. Los tiempos de sección pueden ser estimados; esto no garantiza que cada plano ilustre exactamente la frase. El modo enriquecido sigue reglas conservadoras: no investiga, no entiende cualquier guion y no convierte automáticamente todas las frases en gráficos. Los tiempos sin alineación válida se declaran estimados. Para control por escena usa «Montaje». Las escenas locales también aceptan fotografías con encuadre completo, once movimientos de cámara y transiciones entre fuentes móviles; consulta [el contrato de montaje](docs/editing.md).
 
-Los vídeos largos no entran en el calendario ni en el publicador Buffer de shorts. Descárgalos y súbelos a YouTube Studio. Los largos antiguos creados sólo por CLI siguen en outputs/longform/; la nueva lista muestra los borradores creados en este estudio.
+Los vídeos largos no entran en el calendario ni en el publicador Buffer de shorts. Descárgalos y súbelos a YouTube Studio o usa el CLI oficial con encargo de publicación y consentimiento de gestión. Los largos antiguos creados sólo por CLI siguen en outputs/longform/; la nueva lista muestra los borradores creados en este estudio.
 
 Si falla o se interrumpe, no se vuelve a generar automáticamente. Revisa logs/kitok-AAAAMMDD.log y los archivos antes de crear otra copia. Repetir una generación puede volver a consumir voz. El cliente Fish de Kitok no reintenta peticiones de voz tras un fallo; un resultado incierto requiere revisión. La caché permite reutilizar audio confirmado sin pedir otra síntesis. El montaje documental y la música de biblioteca conservan salidas exclusivas: `--start-over` no las reemplaza; usa una revisión/ID nuevos después de revisar el trabajo. Los modos nuevos sólo se admiten con Native, no en recuperación MPT.
 
@@ -179,7 +179,7 @@ consulta [reparación y tempo](docs/audio.md#quitar-ruidos-de-sintesis-confirmad
 Se conserva el estado del episodio por fases. Una duda material, gasto significativo
 o resultado ambiguo puede necesitar consulta. Publicar requiere otro encargo;
 la revisión del agente no se presenta como aprobación humana. La conexión OAuth
-de lectura del canal está en `local/youtube-trazo-maldito`: comprobar el ID remoto
+oficial del canal está en `local/youtube-trazo-maldito`: comprobar el ID remoto
 antes de usar métricas. [Contrato editorial y continuidad](docs/youtube-editorial.md).
 
 Opcional: añade `--subtitles` a `produce` para exportar también una versión
@@ -403,13 +403,22 @@ Se han probado los recorridos nativos con FFmpeg real y proveedores simulados,
 y se ha reeditado UltimateBet con audio y stock ya existentes. Esto no equivale
 a una nueva generación completa de cada estilo contra Fish/Pexels reales.
 
-## Conectar YouTube para lectura
+## Conectar y gestionar YouTube por API
 
-La conexión oficial opcional está preparada como CLI. La configuración de cuenta,
-los comandos y los límites están en docs/integrations/youtube-readonly.md.
-Necesita una autorización de Google en el navegador y un cliente OAuth Desktop;
-no publiques ni pegues sus credenciales. No permite subir, modificar o borrar vídeos.
-El acceso real a las métricas sigue pendiente del consentimiento de tu cuenta.
+La conexión oficial de Trazo Maldito funciona por lectura (comprobado05/11/2026,
+un vídeo; Analytics sin filas para el periodo consultado). El CLI
+`scripts/youtube_api.py` añade catálogo oficial de Data/Analytics/Reporting,
+perfiles OAuth de gestión/ingresos/membresías (siete permisos concedidos05/11)
+y mutaciones con plan revisado,
+canal esperado y recibos. El CLI antiguo de lectura sigue disponible.
+
+Desde la raíz: `PYTHONPATH=src .venv/bin/python scripts/youtube_api.py catalog`.
+Para ampliar consentimiento: el mismo comando con `connect --profile manage`;
+`members` añade lectura de miembros para canales elegibles. No hay nueva pantalla
+de gestión en el frontend. Preparar API no publica ni modifica contenido.
+Google Cloud sigue observado en Prueba; completar requisitos de marca antes de
+afirmar producción/credenciales duraderas. El consentimiento sigue siendo de Google.
+[Comandos, JSON, scopes y límites](docs/integrations/youtube-readonly.md).
 
 ## Dónde vive cada cosa
 
@@ -443,7 +452,7 @@ El acceso real a las métricas sigue pendiente del consentimiento de tu cuenta.
 
 ## Desarrollo y siguientes fases
 
-Para verificar cambios usa make verify; para incluir navegador, make verify-browser. El compilador de briefs y el CLI de YouTube de lectura están implementados con los límites de este manual. La orquestación editorial general y los perfiles multicanal completos siguen siendo propuestas en docs/roadmap.md. Los ejemplos públicos están en examples/; los contenidos del operador no se suben a Git. Los pilotos, backups e importaciones antiguos se conservan en local/.
+Para verificar cambios usa make verify; para incluir navegador, make verify-browser. El compilador de briefs y los CLI oficiales de lectura/gestión YouTube están implementados con los límites de este manual. La orquestación editorial general y los perfiles multicanal completos siguen siendo propuestas en docs/roadmap.md. Los ejemplos públicos están en examples/; los contenidos del operador no se suben a Git. Los pilotos, backups e importaciones antiguos se conservan en local/.
 
 ## Recursos específicos con licencia
 

@@ -1,0 +1,7 @@
+{
+  "operation": "youtubereporting.jobs.create",
+  "body": {
+    "reportTypeId": "channel_reach_basic_a1",
+    "name": "Kitok reach daily"
+  }
+}

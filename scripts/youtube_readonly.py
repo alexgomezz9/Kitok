@@ -5,7 +5,7 @@
    in your own Google Cloud project; configure consent and your test user.
 2. Download an OAuth Desktop client JSON (do not paste it into chats).
 3. setup --client /private/path/downloaded.json; connect; sync.
-Never uploads, deletes, creates Reporting jobs, or requests write scopes.
+This compatibility CLI only reads. Management: scripts/youtube_api.py.
 """
 import argparse
 from datetime import datetime, timedelta

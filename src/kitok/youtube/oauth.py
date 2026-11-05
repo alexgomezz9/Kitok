@@ -1,7 +1,7 @@
 """Desktop OAuth, based on developers.google.com/identity/protocols/oauth2/native-app.
 
 Tokens stay in a private local directory, never in API responses or logging.
-No Google account mutations are available; the only POST is token exchange.
+Reading stays the default. Management requires a separate explicit OAuth profile.
 """
 from __future__ import annotations
 
@@ -13,6 +13,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import math
 import os
+import re
 from pathlib import Path
 import secrets
 import stat
@@ -27,6 +28,14 @@ SCOPES = (
     "https://www.googleapis.com/auth/youtube.readonly",
     "https://www.googleapis.com/auth/yt-analytics.readonly",
 )
+PREFIX = "https://www.googleapis.com/auth/"
+MANAGE_SCOPES = SCOPES + tuple(PREFIX + name for name in (
+    "youtube", "youtube.force-ssl", "youtube.upload", "yt-analytics-monetary.readonly",
+))
+PROFILES = {"read": SCOPES, "manage": MANAGE_SCOPES,
+            "members": MANAGE_SCOPES + (PREFIX + "youtube.channel-memberships.creator",)}
+ALLOWED_SCOPES = frozenset(PROFILES["members"])
+
 TOKEN_URL = "https://oauth2.googleapis.com/token"
 AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 
@@ -50,7 +59,7 @@ class PrivateStore:
         self.directory = raw
 
     def path(self, name: str) -> Path:
-        if name not in {"client.json", "tokens.json", "snapshot.json", "connection.lock"}:
+        if name not in {"client.json", "tokens.json", "snapshot.json", "connection.lock", "operation.json", "receipt.json"} and not re.fullmatch(r"(?:operation|receipt)-[0-9a-f]{64}\.json", name):
             raise YouTubeError("Archivo privado no permitido.")
         path = self.directory / name
         if path.is_symlink():
@@ -77,6 +86,10 @@ class PrivateStore:
 
     def write(self, name: str, value: dict) -> None:
         path = self.path(name)
+        if name in {"operation.json", "receipt.json"}:
+            checksum = value.get("sha256", "")
+            if not isinstance(checksum, str) or not re.fullmatch(r"[0-9a-f]{64}", checksum):
+                raise YouTubeError("Identificador de operación privado inválido.")
         fd, temporary = tempfile.mkstemp(prefix=".private-", dir=self.directory)
         try:
             with os.fdopen(fd, "w") as handle:
@@ -87,6 +100,8 @@ class PrivateStore:
             os.replace(temporary, path)
         finally:
             Path(temporary).unlink(missing_ok=True)
+        if name in {"operation.json", "receipt.json"}:
+            self.write(name.removesuffix(".json") + "-" + checksum + ".json", value)
 
     @contextmanager
     def lock(self):
@@ -123,7 +138,8 @@ class PrivateStore:
             "client_configured": self.path("client.json").is_file(),
             "authorized_locally": tokens is not None,
             "live_verified": False,
-            "scopes": list(SCOPES),
+            "scopes": tokens.get("scope", "").split() if tokens else [],
+            "available_profiles": list(PROFILES),
             "last_sync": snapshot.get("fetched_at") if snapshot else None,
             "channel_id": snapshot.get("channel_id") if snapshot else None,
             "note": "Estado local; ejecuta sync para comprobar el acceso actual.",
@@ -131,10 +147,11 @@ class PrivateStore:
 
 
 class AuthorizationAttempt:
-    def __init__(self, client_id: str, redirect_uri: str, *, ttl: float = 300):
+    def __init__(self, client_id: str, redirect_uri: str, *, ttl: float = 300, scopes: tuple = SCOPES):
         parsed = urlsplit(redirect_uri)
         if parsed.scheme != "http" or parsed.hostname != "127.0.0.1" or not parsed.port:
             raise YouTubeError("OAuth requiere un retorno a 127.0.0.1 con puerto local.")
+        validate_scopes(" ".join(scopes))
         self.redirect_uri = redirect_uri
         self.state = secrets.token_urlsafe(32)
         self.verifier = secrets.token_urlsafe(64)
@@ -143,7 +160,7 @@ class AuthorizationAttempt:
         challenge = base64.urlsafe_b64encode(hashlib.sha256(self.verifier.encode()).digest()).decode().rstrip("=")
         self.url = AUTH_URL + "?" + urlencode({
             "client_id": client_id, "redirect_uri": redirect_uri, "response_type": "code",
-            "scope": " ".join(SCOPES), "state": self.state, "code_challenge": challenge,
+            "scope": " ".join(scopes), "state": self.state, "code_challenge": challenge,
             "code_challenge_method": "S256", "access_type": "offline", "prompt": "consent",
         })
 
@@ -184,9 +201,10 @@ def token_request(client: httpx.Client, data: dict) -> dict:
     return payload
 
 
-def validate_scopes(scope: str) -> None:
-    if not isinstance(scope, str) or set(scope.split()) != set(SCOPES):
-        raise AuthorizationError("Se necesitan exactamente los dos permisos de lectura de Kitok; vuelve a conectar.")
+def validate_scopes(scope: str, *, required: tuple = SCOPES) -> None:
+    granted = set(scope.split()) if isinstance(scope, str) else set()
+    if not set(required) <= granted or not granted <= ALLOWED_SCOPES:
+        raise AuthorizationError("Permisos de Kitok insuficientes o desconocidos; vuelve a conectar con el perfil adecuado.")
 
 
 def save_tokens(store: PrivateStore, payload: dict, *, prior: dict | None = None) -> dict:
@@ -233,8 +251,11 @@ def access_token(store: PrivateStore, client: httpx.Client) -> str:
 
 
 def connect(store: PrivateStore, *, client: httpx.Client | None = None, timeout: float = 300,
-            open_browser=webbrowser.open) -> None:
+            open_browser=webbrowser.open, profile: str = "read") -> None:
     """Explicit interactive connection. The callback never logs query parameters."""
+    if profile not in PROFILES:
+        raise YouTubeError("Perfil OAuth desconocido.")
+    scopes = PROFILES[profile]
     with store.lock():
         config = _client_config(store)
         if not config:
@@ -277,7 +298,7 @@ def connect(store: PrivateStore, *, client: httpx.Client | None = None, timeout:
         with LoopbackServer(("127.0.0.1", 0), Callback) as server:
             server.timeout = min(1, timeout)
             attempt = AuthorizationAttempt(config["client_id"],
-                f"http://127.0.0.1:{server.server_port}/oauth/callback", ttl=timeout)
+                f"http://127.0.0.1:{server.server_port}/oauth/callback", ttl=timeout, scopes=scopes)
             if not open_browser(attempt.url):
                 raise YouTubeError("No se pudo abrir el navegador local. Configura el navegador del sistema.")
             while not outcome and time.monotonic() < attempt.expires_at:
@@ -294,7 +315,7 @@ def connect(store: PrivateStore, *, client: httpx.Client | None = None, timeout:
                 "code_verifier": attempt.verifier, "redirect_uri": attempt.redirect_uri})
             # A new consent replaces this authorization only after a valid response.
             # Keep prior channel binding: switching channel requires separate storage.
-            validate_scopes(payload.get("scope", ""))
+            validate_scopes(payload.get("scope", ""), required=scopes)
             if not isinstance(payload.get("refresh_token"), str) or not payload["refresh_token"]:
                 raise YouTubeError("Google no devolvió autorización offline; vuelve a conectar.")
             save_tokens(store, payload, prior=store.read("tokens.json"))

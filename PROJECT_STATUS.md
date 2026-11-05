@@ -1,7 +1,43 @@
 # Estado vigente de Kitok
 
-Actualizado: **04/11/2026**. Rama `fix/fish-subframe-overlap`, base main.
-Código **e8ab758**. Operación: [GUIA.md](GUIA.md).
+Actualizado: **05/11/2026**. Rama `feat/youtube-agent-api`, base local `f21179c`
+(sobre `fix/fish-subframe-overlap`). Operación: [GUIA.md](GUIA.md).
+
+## YouTube API para agentes
+
+OAuth Desktop ampliado y **siete scopes concedidos en Google**, incluida gestión,
+subida, ingresos y miembros. Identidad remota comprobada después del consentimiento:
+Trazo Maldito `UC9h_aIbnfQUo0ylPsPNnbrg`, conexión `local/youtube-trazo-maldito`;
+no LooseThread. Refresh token guardado, sin secretos en Git/frontend.
+CLI `PYTHONPATH=src .venv/bin/python scripts/youtube_api.py catalog`:
+99entradas discovery oficiales; excluidos RPC streaming (usar liveChatMessages.list)
+y endpoint interno tests.insert. Consultas, plan/apply con SHA/canal/snapshot cuando
+disponible, recibos históricos privados, transferencias y reconciliación sin retry.
+[Contrato y ejemplos](docs/integrations/youtube-readonly.md).
+
+Lecturas reales05/11:1vídeo,1lista,2tracks de subtítulos, comentarios consultables;
+Analytics/ingresos aceptados sin filas.20tipos Reporting disponibles; creados y
+releídos3jobs diarios: rendimiento combined_a3, alcance reach_combined_a1 y tráfico
+traffic_source_a3. IDs/recibos en almacenamiento privado; esperar informes de Google.
+Miembros devuelve403 pese al scope; canal observado sin monetización. No se subió,
+editó, publicó ni borró contenido. Mutaciones de contenido verificadas con mocks,
+no con una publicación real.
+
+Google Cloud `kitok-youtube-analytics`: scopes guardados, sigue **Prueba** y
+«Publicar app» deshabilitado por marca incompleta. URLs públicas vacías; no inventar
+política/dominio. Mientras siga en Prueba, consentimiento/refresh con límite7días.
+Pendiente URL pública de aplicación/privacidad del operador para continuar marca.
+
+Verificación: suite global1380passed/14skipped (399,74s), después63pruebas focales
+con historial/replay y fixes de revisión independiente; frontend25passed y build
+TypeScript/Vite, studio-check, docs-check, source hygiene y whitespace. El wrapper
+verify se paró al llegar a npm por PATH Windows; pasos frontend restantes pasaron
+con `.tools/node/bin` explícito. No se repitió generación de episodios ni proveedores.
+Cambios locales; no merge/despliegue ni push/CI remoto verificados.
+
+Siguiente: usar catalog/query para agentes; plan/apply sólo con encargo concreto
+de modificación/publicación. Resolver marca de Google y comprobar los CSV cuando
+Google los genere. El trabajo editorial de abajo conserva su estado previo.
 
 ## Slenderman012 en cola GPU
 
@@ -37,6 +73,6 @@ Estilo: stickman como Jason010, gesto/acción y horror contextual; algunas tomas
 cercanas de secundarios012 tienen anatomía más llena, limitación registrada.
 Música nueva horror_no_attribution muy baja (-34LUFS antes de ducking); fuentes,
 licencias y recibos conservados. Ocho archivos en entrega, un parMP4 canónico.
-YouTube requiere reconexión OAuthHTTP400 en la última comprobación; no verificado
-de nuevo aquí. vidIQ no usado. No se ha medido ahorro de tokens ni equivalencia
+El diagnóstico OAuthHTTP400 del04/11 quedó obsoleto: acceso ampliado
+verificado05/11 según la sección YouTube anterior. vidIQ no usado. No se ha medido ahorro de tokens ni equivalencia
 de calidad entre modelos.

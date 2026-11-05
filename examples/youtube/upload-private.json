@@ -1,0 +1,22 @@
+{
+  "operation": "youtube.videos.insert",
+  "params": {
+    "part": [
+      "snippet",
+      "status"
+    ]
+  },
+  "body": {
+    "snippet": {
+      "title": "REVISAR TITULO",
+      "description": "REVISAR DESCRIPCION",
+      "categoryId": "24",
+      "defaultLanguage": "es"
+    },
+    "status": {
+      "privacyStatus": "private",
+      "selfDeclaredMadeForKids": false
+    }
+  },
+  "media": "/ruta/privada/video.mp4"
+}

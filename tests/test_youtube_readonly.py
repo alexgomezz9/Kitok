@@ -125,8 +125,8 @@ def test_setup_desktop_only_and_pinned_endpoints(tmp_path):
     assert "token_uri" not in private.read("client.json")
 
 
-@pytest.mark.parametrize("scope", ["", SCOPES[0], " ".join(SCOPES) + " https://www.googleapis.com/auth/youtube.upload", None])
-def test_scope_exactness(scope):
+@pytest.mark.parametrize("scope", ["", SCOPES[0], " ".join(SCOPES) + " https://www.googleapis.com/auth/drive", None])
+def test_missing_or_unrelated_scopes_rejected(scope):
     with pytest.raises(YouTubeError):
         validate_scopes(scope)
 
