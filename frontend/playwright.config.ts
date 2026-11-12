@@ -4,5 +4,12 @@ const fixtureURL=`http://127.0.0.1:${fixturePort}`
 export default defineConfig({
  testDir:'./e2e', workers:1, timeout:30000,
  use:{baseURL:fixtureURL,browserName:'chromium',trace:'retain-on-failure'},
- webServer:{command:'../.venv/bin/python ../tests/studio_e2e_server.py',url:`${fixtureURL}/api/health`,reuseExistingServer:false,timeout:30000},
+ webServer: {
+  command: 'exec ../.venv/bin/python ../tests/studio_e2e_server.py',
+  url: `${fixtureURL}/api/health`,
+  reuseExistingServer: false,
+  timeout: 30000,
+  // Let the fixture release its TemporaryDirectory.
+  gracefulShutdown: { signal: 'SIGINT', timeout: 3000 },
+ },
 })
