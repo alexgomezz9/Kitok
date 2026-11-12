@@ -90,3 +90,30 @@ def test_clean_index_and_changed_safe_working_copy_are_both_allowed(tmp_path, mo
     (tmp_path / 'source.txt').write_text('safe working content')
     monkeypatch.setattr(check_repository, 'ROOT', tmp_path)
     assert check_repository.main() == 0
+
+
+@pytest.mark.parametrize(('raw', 'exit_code', 'summary'), [
+    (b'.... [100%]\n4 passed in 0.12s\n', 0, b'Pytest: 4 passed in 0.12s\n'),
+    (b'F [100%]\nFailure: preserve the traceback\n', 1, None),
+    (b'.... [100%]\nwarning: inspect this\n4 passed in 0.12s\n', 0, None),
+])
+def test_automatic_rtk_only_summarizes_verified_success(tmp_path, monkeypatch, capsysbinary, raw, exit_code, summary):
+    from scripts import verify
+
+    calls = []
+    monkeypatch.setattr(verify.shutil, 'which', lambda *args, **kwargs: '/test/rtk')
+
+    def run(command, **kwargs):
+        calls.append(command)
+        if command == verify.PYTHON_TESTS:
+            kwargs['stdout'].write(raw)
+            return SimpleNamespace(returncode=exit_code)
+        assert kwargs['input'] == raw
+        return SimpleNamespace(returncode=0, stdout=summary, stderr=b'')
+
+    monkeypatch.setattr(verify.subprocess, 'run', run)
+    result = verify.run_check(verify.PYTHON_TESTS, cwd=tmp_path, env={}, timeout=1)
+    assert result.returncode == exit_code
+    assert capsysbinary.readouterr().out == (summary or raw)
+    assert calls.count(verify.PYTHON_TESTS) == 1
+    assert len(calls) == (2 if summary else 1)

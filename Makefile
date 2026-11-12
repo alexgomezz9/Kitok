@@ -2,7 +2,7 @@
 setup:
 	bash scripts/bootstrap_wsl.sh
 test:
-	. .venv/bin/activate && pytest -q
+	. .venv/bin/activate && python scripts/verify.py --python-only
 dry-run:
 	. .venv/bin/activate && python main.py --dry-run
 status:
