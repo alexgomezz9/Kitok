@@ -12,9 +12,8 @@ from zoneinfo import ZoneInfo
 
 import httpx
 
-from .oauth import AuthorizationError, PrivateStore, YouTubeError, access_token
+from .oauth import CHANNEL_ID, DATA, AuthorizationError, PrivateStore, YouTubeError, access_token
 
-DATA = "https://www.googleapis.com/youtube/v3/"
 ANALYTICS = "https://youtubeanalytics.googleapis.com/v2/reports"
 REPORTING = "https://youtubereporting.googleapis.com/v1/"
 VIDEO_ID = re.compile(r"[A-Za-z0-9_-]{11}\Z")
@@ -142,7 +141,7 @@ class YouTubeReadOnly:
                 raise YouTubeError("La autorización debe identificar exactamente un canal. No se elige por nombre.")
             channel = channels["items"][0]
             channel_id = channel.get("id")
-            if not isinstance(channel_id, str) or not re.fullmatch(r"UC[A-Za-z0-9_-]{22}", channel_id):
+            if not isinstance(channel_id, str) or not CHANNEL_ID.fullmatch(channel_id):
                 raise YouTubeError("Google no devolvió una identidad de canal válida.")
             tokens = self.store.read("tokens.json")
             if tokens.get("channel_id") and tokens["channel_id"] != channel_id:

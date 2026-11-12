@@ -17,7 +17,7 @@ from kitok.youtube.oauth import PROFILES
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--directory', type=Path, default=Path('local/youtube-trazo-maldito'))
-    parser.add_argument('--channel', help='ID exacto esperado; obligatorio en operaciones remotas')
+    parser.add_argument('--channel', help='ID exacto esperado; obligatorio para consultas y cambios remotos')
     sub = parser.add_subparsers(dest='command', required=True)
     cat = sub.add_parser('catalog', help='Operaciones oficiales o esquema completo de una operación')
     cat.add_argument('operation', nargs='?')
@@ -62,7 +62,7 @@ def main():
             elif args.command == 'receipt':
                 result = public_receipt(store.read('receipt.json') or {})
             elif args.command == 'connect':
-                connect(store, profile=args.profile)
+                connect(store, profile=args.profile, expected_channel=args.channel)
                 result = {'authorized_locally': True, 'next': 'query con channels.list y --channel para verificar acceso remoto'}
             else:
                 if not args.channel:

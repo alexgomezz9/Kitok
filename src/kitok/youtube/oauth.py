@@ -38,6 +38,8 @@ ALLOWED_SCOPES = frozenset(PROFILES["members"])
 
 TOKEN_URL = "https://oauth2.googleapis.com/token"
 AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
+DATA = "https://www.googleapis.com/youtube/v3/"
+CHANNEL_ID = re.compile(r"UC[A-Za-z0-9_-]{22}\Z")
 
 
 class YouTubeError(RuntimeError):
@@ -250,8 +252,23 @@ def access_token(store: PrivateStore, client: httpx.Client) -> str:
     return tokens["access_token"]
 
 
+def _check_granted_channel(client: httpx.Client, token: str, expected: str) -> None:
+    try:
+        response = client.get(DATA + "channels", params={"part": "id", "mine": "true"},
+                              headers={"Authorization": "Bearer " + token}, timeout=25,
+                              follow_redirects=False)
+        response.raise_for_status()
+        data = response.json()
+    except (httpx.HTTPError, ValueError):
+        raise AuthorizationError("No se pudo verificar el canal del nuevo permiso. Se conserva la conexión anterior.") from None
+    items = data.get("items") if isinstance(data, dict) else None
+    if (not isinstance(items, list) or len(items) != 1 or data.get("nextPageToken")
+            or not isinstance(items[0], dict) or items[0].get("id") != expected):
+        raise AuthorizationError("El canal autorizado no coincide. Elige el canal esperado en Google.")
+
+
 def connect(store: PrivateStore, *, client: httpx.Client | None = None, timeout: float = 300,
-            open_browser=webbrowser.open, profile: str = "read") -> None:
+            open_browser=webbrowser.open, profile: str = "read", expected_channel: str | None = None) -> None:
     """Explicit interactive connection. The callback never logs query parameters."""
     if profile not in PROFILES:
         raise YouTubeError("Perfil OAuth desconocido.")
@@ -260,6 +277,13 @@ def connect(store: PrivateStore, *, client: httpx.Client | None = None, timeout:
         config = _client_config(store)
         if not config:
             raise YouTubeError("Primero configura el JSON del cliente Desktop con setup.")
+        prior = store.read("tokens.json") or {}
+        bound = prior.get("channel_id")
+        if bound and expected_channel and bound != expected_channel:
+            raise AuthorizationError("La conexión está vinculada a otro canal; usa un directorio independiente.")
+        expected_channel = expected_channel or bound
+        if expected_channel is not None and (not isinstance(expected_channel, str) or not CHANNEL_ID.fullmatch(expected_channel)):
+            raise AuthorizationError("Identificador del canal esperado inválido.")
         outcome: dict = {}
         attempt = None
 
@@ -313,12 +337,13 @@ def connect(store: PrivateStore, *, client: httpx.Client | None = None, timeout:
             payload = token_request(client, {"grant_type": "authorization_code", "client_id": config["client_id"],
                 "client_secret": config.get("client_secret", ""), "code": outcome["code"],
                 "code_verifier": attempt.verifier, "redirect_uri": attempt.redirect_uri})
-            # A new consent replaces this authorization only after a valid response.
-            # Keep prior channel binding: switching channel requires separate storage.
             validate_scopes(payload.get("scope", ""), required=scopes)
             if not isinstance(payload.get("refresh_token"), str) or not payload["refresh_token"]:
                 raise YouTubeError("Google no devolvió autorización offline; vuelve a conectar.")
-            save_tokens(store, payload, prior=store.read("tokens.json"))
+            if expected_channel:
+                _check_granted_channel(client, payload["access_token"], expected_channel)
+                prior["channel_id"] = expected_channel
+            save_tokens(store, payload, prior=prior)
         finally:
             if owns_client:
                 client.close()

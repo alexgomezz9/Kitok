@@ -157,8 +157,12 @@ def test_refresh_preserves_refresh_token_and_binding(store):
     assert saved["channel_id"] == CHANNEL
 
 
-@pytest.mark.parametrize("response", [token_payload(), token_payload(refresh_token=None)])
-def test_connect_callback_exchange_and_atomic_channel_binding(store, monkeypatch, response):
+@pytest.mark.parametrize(("response", "granted_channel"), [
+    (token_payload(), CHANNEL),
+    (token_payload(), "UC" + "z" * 22),
+    (token_payload(refresh_token=None), CHANNEL),
+])
+def test_connect_callback_exchange_and_atomic_channel_binding(store, monkeypatch, response, granted_channel):
     import kitok.youtube.oauth as oauth
     prior = store.read("tokens.json")
     prior["channel_id"] = CHANNEL
@@ -197,6 +201,11 @@ def test_connect_callback_exchange_and_atomic_channel_binding(store, monkeypatch
 
     def handler(request):
         calls.append(request)
+        if request.method == "GET":
+            assert request.url.path == "/youtube/v3/channels"
+            assert request.url.params["mine"] == "true"
+            assert request.headers["Authorization"] == "Bearer new-access"
+            return httpx.Response(200, json={"items": [{"id": granted_channel}]})
         assert request.method == "POST" and str(request.url) == TOKEN_URL
         data = parse_qs(request.content.decode())
         assert data["code"] == ["one-use-code"]
@@ -207,16 +216,17 @@ def test_connect_callback_exchange_and_atomic_channel_binding(store, monkeypatch
 
     monkeypatch.setattr(oauth, "HTTPServer", FakeServer)
     client = httpx.Client(transport=httpx.MockTransport(handler))
-    if response["refresh_token"]:
+    if response["refresh_token"] and granted_channel == CHANNEL:
         connect(store, client=client, open_browser=open_browser)
         assert store.read("tokens.json")["channel_id"] == CHANNEL
         assert len(writes) == 1 and writes[0][1]["channel_id"] == CHANNEL
     else:
-        with pytest.raises(YouTubeError, match="offline"):
+        error = "no coincide" if response["refresh_token"] else "offline"
+        with pytest.raises(YouTubeError, match=error):
             connect(store, client=client, open_browser=open_browser)
         assert store.read("tokens.json") == prior
         assert not writes
-    assert len(calls) == 1
+    assert len(calls) == (2 if response["refresh_token"] else 1)
     assert captured["status"] == 200
 
 

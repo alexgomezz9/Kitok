@@ -2,11 +2,20 @@
 
 ## Estado verificado y alcance
 
+El 12/11/2026 se verificó **Loose Thread**, `@loosethread1`, ID
+`UCLnP8Kb1USd06TW3D1JLFvg`, conexión `local/youtube`. Google concedió los siete
+permisos de `members`. Data devolvió tres vídeos y Analytics devolvió métricas
+diarias y de tráfico. La consulta de ingresos fue aceptada sin filas y la de
+membresías devolvió HTTP 403. Se crearon y se releyeron los tres informes privados
+diarios `channel_combined_a3`, `channel_reach_combined_a1` y
+`channel_traffic_source_a3`. Sus recibos están en el directorio privado. Google
+genera los CSV después de crear los trabajos.
+
 El05/11/2026 se verificó por API oficial **Trazo Maldito**, `@trazomalditoes`,
 ID `UC9h_aIbnfQUo0ylPsPNnbrg`, conexión `local/youtube-trazo-maldito`:
 un vídeo, Analytics diario/tráfico `no_data`, Reporting disponible. Ausencia de
-filas no significa cero visitas. El diagnóstico anterior de reconexión pendiente
-quedó obsoleto. LooseThread/vidIQ es otra conexión y no autoriza Trazo.
+filas no significa cero visitas. El 12/11 Google rechazó la renovación de Trazo
+con HTTP 400. Para retomar ese canal, vuelve a autorizarlo con su propio perfil.
 
 El mismo05/11 se completó consentimiento de los **siete scopes del perfil members**
 y se comprobó de nuevo el ID remoto correcto. Listas, comentarios, subtítulos y
@@ -50,6 +59,9 @@ PYTHONPATH=src .venv/bin/python scripts/youtube_readonly.py --directory local/yo
 PYTHONPATH=src .venv/bin/python scripts/youtube_api.py connect --profile manage
 PYTHONPATH=src .venv/bin/python scripts/youtube_api.py status
 PYTHONPATH=src .venv/bin/python scripts/youtube_readonly.py --directory local/youtube-trazo-maldito sync
+
+# Renovar Loose Thread con el cliente Desktop ya configurado:
+PYTHONPATH=src .venv/bin/python scripts/youtube_api.py --directory local/youtube --channel UCLnP8Kb1USd06TW3D1JLFvg connect --profile members
 ```
 
 Perfiles explícitos:
@@ -66,10 +78,11 @@ para cubrir los métodos que declara el catálogo. No se aceptan scopes ajenos.
 Una conexión antigua de lectura sigue funcionando. Un nuevo consentimiento debe
 conceder el perfil entero; un consentimiento parcial no sustituye los tokens previos.
 El retorno OAuth escucha en127.0.0.1 temporal y el navegador debe llegar a WSL.
-Cada canal usa un directorio independiente. El ID remoto debe coincidir antes de
-cualquier operación; se conserva la vinculación entre reconexiones.
+Cada canal usa un directorio independiente. Al reconectar, Kitok comprueba con
+Google el ID esperado (por `--channel` o el vínculo guardado) antes de reemplazar
+las credenciales. Si se elige el otro canal, el estado anterior se conserva.
 
-En Google Cloud se observó el05/11 el proyecto `kitok-youtube-analytics` en estado
+En Google Cloud se comprobó el 12/11 el proyecto `kitok-youtube-analytics` en estado
 **Prueba**, usuarios externos; «Publicar app» deshabilitado y la consola remite a
 completar la marca. Las URLs públicas de app/privacidad/condiciones estaban vacías.
 No inventar dominio/políticas ni afirmar paso a producción sin verlo confirmado.
