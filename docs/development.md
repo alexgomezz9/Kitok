@@ -16,8 +16,7 @@ está en [GUIA.md](../GUIA.md), también servido en el frontend.
    obsoletas. Archivar sólo lo histórico útil, con aviso claro; no dejar dos guías
    con instrucciones alternativas para el mismo flujo.
 5. Ejecutar el gate pertinente, revisar índice y secretos, crear commit con el
-   código y sus tests/documentación esenciales y subir la rama autorizada.
-   Comparar SHA remoto y comprobar CI; indicar expresamente si sigue pendiente.
+   código y sus tests/documentación esenciales y, si el encargo lo autoriza, subir la rama y comprobar SHA remoto y CI.
 6. Actualizar estado y siguiente paso al cerrar. Antes de integrar main, verificar
    autorización expresa y ascendencia remota. No forzar ni borrar cambios ajenos.
    Usar `git switch --no-overwrite-ignore`: una rama antigua puede versionar datos
@@ -49,9 +48,9 @@ Los agentes pueden leer el contrato del repo y preparar briefs; el programa ejec
 los pasos deterministas descritos en [capacidades](capabilities.md).
 
 Las skills ya disponibles plan-work, verify-before-completion y git-checkpoint
-cubren planificación, evidencia y Git. En la fase audiovisual del 20/10 se añadió la skill local
-`kitok-audiovisual-qa` en `~/.codex/skills/kitok-audiovisual-qa/SKILL.md`, validada
-con el comprobador de skill-creator. Guía revisión de muestras/entradas/cortes,
+cubren planificación, evidencia y Git. El complemento
+`local/editorial/skills/kitok-audiovisual-qa/SKILL.md` guía la revisión de muestras,
+entradas y cortes,
 Fish reutilizado y límites de audición; no añade dependencias ni proveedores.
 No se instalaron MCPs ni hooks globales. Un workflow especializado puede añadirse
 cuando una necesidad repetida lo justifique; no duplicar estas instrucciones.

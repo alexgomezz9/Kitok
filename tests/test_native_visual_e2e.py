@@ -15,9 +15,8 @@ from kitok.rendering.native import NativeLongformRenderer
 from kitok.stock.models import StockAsset, StockVariant, SelectedStock
 
 
-@pytest.mark.parametrize('documentary_without_visuals',[False,True])
-def test_native_visual_config_reaches_shared_ffmpeg_delivery(tmp_path,documentary_without_visuals):
-    import pytest
+@pytest.mark.parametrize('mode', ['photo', 'documentary', 'hybrid', 'case_only'])
+def test_native_visual_config_reaches_shared_ffmpeg_delivery(tmp_path, mode):
     if not shutil.which('ffmpeg'):
         pytest.skip('FFmpeg is required for the real media integration')
     def ffmpeg(*args):
@@ -34,9 +33,18 @@ def test_native_visual_config_reaches_shared_ffmpeg_delivery(tmp_path,documentar
     config={'id':'native_visual_test','subject':'Test with supplied photograph','script_file':str(episode/'script.txt'),
             'keywords':['city'],'narrator_voice':'fish_audio:test:Narrator','music_enabled':False,'music_mode':'off',
             'visual_plan':{'visual_cues':[{'asset':'images/real.png','start':1.5,'duration':2.4}]}}
-    if documentary_without_visuals:
+    if mode == 'documentary':
         config.pop('visual_plan')
         config['mounting_style']='documentary'
+    elif mode in {'hybrid', 'case_only'}:
+        case_clip = episode / 'case.mp4'
+        ffmpeg('-f', 'lavfi', '-i', 'testsrc2=size=160x180:rate=30', '-t', '8',
+               '-c:v', 'libx264', '-preset', 'ultrafast', str(case_clip))
+        config['visual_plan']['visual_cues'] = ([
+            {'asset': 'case.mp4', 'anchor': {'phrase': 'The city'}, 'duration': 1.2, 'source_start': .5,
+             'usage': 'document', 'credit': 'Fixture credit', 'license': 'Fixture license'},
+            *config['visual_plan']['visual_cues'],
+        ] if mode == 'hybrid' else [{'asset': 'case.mp4', 'start': 0, 'duration': 6, 'source_start': .5}])
     (episode/'config.json').write_text(json.dumps(config))
     definition=load_longform_config(episode/'config.json',project_root=tmp_path)
     settings=Settings(_env_file=None,data_root=tmp_path)
@@ -62,18 +70,30 @@ def test_native_visual_config_reaches_shared_ffmpeg_delivery(tmp_path,documentar
     output=tmp_path/'outputs'/'longform'/'native_visual_test.mp4'
     engine=FFmpegNativeEngine(encoder=EncoderSettings('libx264','ultrafast'),spec=RenderSpec(width=320,height=180))
     result=NativeLongformRenderer(settings,Stock(),engine,output_path=output,fish_factory=Fish).render(definition)
-    assert result.output==output and calls==['fish-fixture','stock-fixture']
+    assert result.output == output
+    assert calls == (['fish-fixture'] if mode == 'case_only' else ['fish-fixture', 'stock-fixture'])
     clock=probe_video_clock(output)
     assert clock.frames==180 and clock.start_time==0
     manifest=json.loads(output.with_suffix('.native.json').read_text())
-    if not documentary_without_visuals:
+    if mode == 'photo':
         assert manifest['visual_sources'][0]['path']=='episode/images/real.png'
     receipt=json.loads(output.with_suffix('.editorial.json').read_text())
-    if not documentary_without_visuals:
+    if mode != 'documentary':
         assert any((scene.get('asset') or '').startswith('visual_') for scene in receipt['scenes'])
         assert 'Photographs and documents supplied' in output.with_suffix('.credits.md').read_text()
     else:
         plan=json.loads((output.parent/'.native-work'/definition.item.id/'motion-plan.json').read_text())
         assert plan['fade_in']==.6 and plan['fade_out']==.8
         assert plan['scenes'][0]['start']==0 and plan['scenes'][-1]['end']==6.
+    if mode in {'hybrid', 'case_only'}:
+        plan = json.loads((output.parent / '.native-work' / definition.item.id / 'motion-plan.json').read_text())
+        case_scene = next(scene for scene in plan['scenes'] if scene['asset'] == 'visual_0')
+        assert case_scene['source_start'] == pytest.approx(.5)
+        assert case_scene['camera']['preset'] == 'static' and case_scene['image_fit'] == 'contain'
+        assert manifest['visual_sources'][0]['path'] == 'episode/case.mp4'
+        assert bool(manifest['stock_sources']) is (mode == 'hybrid')
+        if mode == 'hybrid':
+            assert plan['alignment']['visual_cues'][0]['timing'] == 'provider-phrase-anchor'
+            assert manifest['visual_sources'][0]['license'] == 'Fixture license'
+            assert 'Fixture credit' in output.with_suffix('.credits.md').read_text()
     ffmpeg('-xerror','-i',str(output),'-f','null','-')

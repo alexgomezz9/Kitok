@@ -117,7 +117,8 @@ class NativeLongformRenderer(LongformRenderer):
         if visual_plan is not None and music_mode is None and definition.music_enabled:
             raise NativeRenderError('Photograph/effect plans require explicit music_mode off, auto or manual to preserve the intended mix')
         if visual_plan is not None:
-            visual_plan = validate_visual_plan(visual_plan, definition.item.script, data_root, visual_root)
+            visual_plan = validate_visual_plan(visual_plan, definition.item.script, data_root, visual_root,
+                                               ffprobe=getattr(self.settings, 'ffprobe_binary', 'ffprobe'))
         sources = visual_sources(visual_plan, data_root, visual_root) if visual_plan else []
         uses_motion = mounting_style == "documentary" or music_mode in {"auto", "manual"} or visual_plan is not None
         editorial_receipt = self.output_path.with_suffix(".editorial.json")
@@ -250,8 +251,23 @@ class NativeLongformRenderer(LongformRenderer):
                 )
             timeline_seconds = time.monotonic() - stage
 
+            stock_slots = slots
+            if visual_plan and visual_plan.visual_cues:
+                from ..editing.motion import visual_cue_ranges
+                from ..editing.storyboard import frame_time
+                fps = self.engine.spec.fps
+                ranges = visual_cue_ranges(visual_plan, script, narration_duration, fps=fps,
+                                           editing=editing, word_alignment=word_alignment)
+                owned = [(start, end) for start, end, cue, _, _ in ranges
+                         if cue.asset or cue.background == 'black']
+                # Keep all cut boundaries for timing. Fetch stock only for slots
+                # that can still contribute a frame to the final cut.
+                stock_slots = [slot for slot in slots if not any(
+                    start <= frame_time(slot.start, fps) and frame_time(slot.end, fps) <= end
+                    for start, end in owned)]
+
             stage = time.monotonic()
-            ordered_queries = list(dict.fromkeys(slot.query for slot in slots))
+            ordered_queries = list(dict.fromkeys(slot.query for slot in stock_slots))
             if preflight and self.confirmed_narration is not None:
                 # The original montage may use only a subset of draft keywords.
                 # Recovery needs cached searches for the actual timeline only;
@@ -270,7 +286,7 @@ class NativeLongformRenderer(LongformRenderer):
             selected = []
             used_ids: set[int] = set()
             target = OutputGeometry(self.engine.spec.width, self.engine.spec.height)
-            for slot in slots:
+            for slot in stock_slots:
                 choice = self.pexels.select_candidate(
                     searches[slot.query],
                     target=target,
@@ -314,7 +330,7 @@ class NativeLongformRenderer(LongformRenderer):
 
             source_rng = random.Random(f"{timeline_seed}:source-offsets")
             clips = []
-            for slot, choice in zip(slots, selected, strict=True):
+            for slot, choice in zip(stock_slots, selected, strict=True):
                 actual_duration = video_durations[choice.asset.asset_id]
                 required = source_window_duration(slot, fps=self.engine.spec.fps, motion=uses_motion)
                 if actual_duration + 1e-6 < required:
@@ -395,7 +411,7 @@ class NativeLongformRenderer(LongformRenderer):
                     visual_plan=visual_plan if visual_plan is not None else VisualPlan() if mounting_style == "documentary" else None,
                     visual_root=visual_root, script=script,
                     width=self.engine.spec.width, height=self.engine.spec.height, fps=self.engine.spec.fps,
-                    on_stage=self.output,
+                    on_stage=self.output, stock_slots=slots,
                     **({'workspace_id': f'{content_id}-{workspace.name}'} if self.confirmed_narration else {}),
                 )
             else:

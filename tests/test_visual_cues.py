@@ -223,6 +223,21 @@ def test_duplicate_or_too_close_starts_fail_before_fish_even_without_durations(l
     assert calls==[] and not (root/'.native-work').exists()
 
 
+def test_case_clip_preflight_rejects_fake_container_and_short_video(local_scene, monkeypatch):
+    from kitok.editing import visual_cues
+
+    root, image, _, script, _, _ = local_scene
+    clip = image.parent / 'case.mp4'
+    plan = {'visual_cues': [{'asset': 'images/case.mp4', 'start': 1, 'duration': 2, 'source_start': .5}]}
+    clip.write_text('#EXTM3U\nhttps://example.invalid/video.ts')
+    with pytest.raises(ValueError, match='local MP4'):
+        visual_cues.validate_visual_plan(plan, script, root, image.parents[1])
+    clip.write_bytes(b'\x00\x00\x00\x18ftyp')
+    monkeypatch.setattr(visual_cues, 'measured_video_duration', lambda *_: 2.)
+    with pytest.raises(ValueError, match='shorter than its requested source window'):
+        visual_cues.validate_visual_plan(plan, script, root, image.parents[1])
+
+
 def test_effect_delay_and_hold_stay_inside_the_reserved_cue(local_scene):
     root,image,_,script,_,_=local_scene
     with pytest.raises(ValueError,match='hold must fit'):

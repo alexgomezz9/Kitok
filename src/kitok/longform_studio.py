@@ -206,7 +206,8 @@ class LongformStudio:
         if body.visual_plan is not None:
             from .editing.visual_cues import validate_visual_plan
             validate_visual_plan(body.visual_plan, script=item.script, root=self.root,
-                                 visual_root=self._episode(body.episode_id) if body.episode_id else self.folder)
+                                 visual_root=self._episode(body.episode_id) if body.episode_id else self.folder,
+                                 ffprobe=self.s.ffprobe_binary)
         from .rendering.native import fish_reference_id
         fish_reference_id(config['narrator_voice'])
         checks = [
@@ -356,7 +357,7 @@ class LongformStudio:
                 expected_config['script_file'] = str((self.folder / f'{cid}.txt').relative_to(self.root))
                 if json.loads(config_path.read_text(encoding='utf-8')) != expected_config:
                     raise ValueError('El guion o la configuración cambió fuera del estudio. Crea y revisa un nuevo borrador.')
-                definition = runner().load_longform_config(config_path, project_root=self.root)
+                definition = runner().load_longform_config(config_path, project_root=self.root, ffprobe=self.s.ffprobe_binary)
                 if definition.item.script != body.script:
                     raise ValueError('El guion cambió fuera del estudio. Crea y revisa un nuevo borrador.')
                 if self.output_path(cid).exists() or runner().longform_task_path(cid, project_root=self.root).exists():
@@ -421,7 +422,7 @@ class LongformStudio:
         expected['script_file'] = str(script_path.relative_to(self.root))
         if json.loads(config_path.read_text()) != expected:
             raise ValueError('La configuración cambió; la recuperación no volverá a sintetizar voz.')
-        definition = runner().load_longform_config(config_path, project_root=self.root)
+        definition = runner().load_longform_config(config_path, project_root=self.root, ffprobe=self.s.ffprobe_binary)
         if definition.item.script != body.script:
             raise ValueError('El guion cambió; la recuperación no volverá a sintetizar voz.')
         task_path = runner().longform_task_path(cid, project_root=self.root)
@@ -448,7 +449,7 @@ class LongformStudio:
         if json.loads(config.read_text()) != expected:
             raise ValueError('La configuración cambió fuera del estudio; crea otro borrador.')
         definition = runner().load_longform_config(config, project_root=self.root,
-                                                   validate_visual_assets=validate_visual_assets)
+                                                   validate_visual_assets=validate_visual_assets, ffprobe=self.s.ffprobe_binary)
         if definition.item.script != body.script:
             raise ValueError('El guion cambió fuera del estudio; crea otro borrador.')
         task = runner().longform_task_path(cid, project_root=self.root)

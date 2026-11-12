@@ -100,7 +100,7 @@ y conserva los diagnósticos, planos y narración. Tras actualizar el código,
 reinicia tu backend cuando esté inactivo para cargar la corrección; actualizar
 la página no reinicia ni cancela el trabajo del servidor.
 
-### Añadir fotos y documentos reales
+### Añadir fotos, documentos y clips del caso
 
 En «Vídeo largo», despliega **«Fotografías y documentos del caso · opcional»**.
 Selecciona la carpeta del episodio; `3_ultimatebet` ya encuentra las cuatro fotos
@@ -112,13 +112,17 @@ esta frase»**. Kitok elige duración (hasta 4 s), movimiento suave variado y
 transición. Puedes añadir varias fotos así, sin escribir un JSON detallado.
 Comprobar y guardar siguen sin generar voz ni descargar stock.
 
-También puedes importar un guion `.txt` y un JSON visual preparado por ChatGPT.
-El JSON describe sólo momentos importantes; el stock cubre lo restante. En «Ver
-o ajustar JSON visual» puedes cambiar duración, cámara, encuadre, transición o
-texto. [Ejemplo mínimo](examples/visuals/minimal.json) y
-[contrato con parámetros](docs/editing.md). Las frases repetidas admiten
-`occurrence` desde cero. Si no hay alineación precisa, Kitok declara los tiempos
-estimados. Revisa identidad, contexto y permisos de las imágenes aportadas.
+También puedes importar un guion `.txt` y un JSON visual preparado por el agente.
+El agente vincula cada recurso del caso a una frase y registra su fuente y licencia.
+Para un clip, deja el MP4 en la carpeta del episodio y pon su ruta relativa,
+`duration` y, si hace falta, `source_start` en el JSON. La narración sigue siendo
+la pista de voz y el clip mantiene su encuadre completo por defecto. Pexels cubre
+los huecos, con selección y recorte reproducibles por episodio. Kitok omite la
+búsqueda y descarga de los tramos de stock completamente cubiertos por un cue.
+Puedes ajustar los parámetros en «Ver o ajustar JSON visual».
+[Ejemplo mínimo](examples/visuals/minimal.json) y [contrato](docs/editing.md).
+Las frases repetidas admiten `occurrence` desde cero. Sin alineación válida,
+el recibo declara el tiempo estimado.
 
 ### Corregir el montaje usando la voz de otro trabajo
 
@@ -405,19 +409,19 @@ a una nueva generación completa de cada estilo contra Fish/Pexels reales.
 
 ## Conectar y gestionar YouTube por API
 
-La conexión oficial de Trazo Maldito funciona por lectura (comprobado05/11/2026,
-un vídeo; Analytics sin filas para el periodo consultado). El CLI
-`scripts/youtube_api.py` añade catálogo oficial de Data/Analytics/Reporting,
-perfiles OAuth de gestión/ingresos/membresías (siete permisos concedidos05/11)
-y mutaciones con plan revisado,
-canal esperado y recibos. El CLI antiguo de lectura sigue disponible.
+El CLI `scripts/youtube_api.py` consulta Data, Analytics y Reporting con el ID
+exacto del canal, y prepara cambios con plan y recibo. Loose Thread usa
+`--directory local/youtube --channel UCLnP8Kb1USd06TW3D1JLFvg`. Trazo Maldito usa
+`--directory local/youtube-trazo-maldito --channel UC9h_aIbnfQUo0ylPsPNnbrg`.
+El 12/11/2026 se verificaron los siete permisos de Loose Thread, Analytics con
+filas e informes diarios de rendimiento, alcance y tráfico. Trazo Maldito
+requiere reconectar tras el rechazo del refresh del 12/11.
 
 Desde la raíz: `PYTHONPATH=src .venv/bin/python scripts/youtube_api.py catalog`.
-Para ampliar consentimiento: el mismo comando con `connect --profile manage`;
-`members` añade lectura de miembros para canales elegibles. No hay nueva pantalla
-de gestión en el frontend. Preparar API no publica ni modifica contenido.
-Google Cloud sigue observado en Prueba; completar requisitos de marca antes de
-afirmar producción/credenciales duraderas. El consentimiento sigue siendo de Google.
+Para renovar consentimiento usa el directorio e ID del canal y `connect --profile
+manage` (o `members` para incluir el permiso de membresías). Kitok verifica que
+Google devolvió el canal esperado antes de guardar los tokens. El acceso a
+membresías depende de la elegibilidad del canal.
 [Comandos, JSON, scopes y límites](docs/integrations/youtube-readonly.md).
 
 ## Dónde vive cada cosa
@@ -736,7 +740,7 @@ cambios/fallos que lo justifiquen. Volver al modo automático requiere petición
 Antes de elegir otro episodio, consultar `content/channel_launch/ideas_video.md`.
 El perfil enlaza este registro local y las reglas de eficiencia de la
 [guía editorial](docs/youtube-editorial.md#inicio-y-continuidad-sin-explicar-todo-de-nuevo).
-Guion con `yt-script`, revisión global de historia/icono antes de los PNG y una
+Guion con el complemento local `yt-script` si está disponible, revisión de historia e icono antes de los PNG y una
 pasada por contacto de cada lámina; corregir errores relevantes, sin regenerar
 por detalles menores. Registrar mejoras útiles del recorrido en pocas líneas.
 

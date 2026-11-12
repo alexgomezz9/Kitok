@@ -254,21 +254,11 @@ def _plate_interval(a,b,decision,boundaries,duration):
     return a,b,decision,candidate
 
 
-def motion_plan(clips, narration: Path, duration: float, *, root: Path, episode_id: str,
-                editing=None, style='investigation', audio_is_final_mix=False,
-                width=1920, height=1080, fps=30, word_alignment=None, visual_plan=None, visual_root=None, script=None) -> EditorialPlan:
-    root = Path(root).resolve()
-    narration = Path(narration).resolve()
-    if not narration.is_relative_to(root):
-        raise ValueError('Motion narration must remain in the workspace')
+def visual_cue_ranges(visual_plan, script, duration, *, fps, editing=None, word_alignment=None):
+    from .visual_cues import cue_start
     duration = frame_time(duration,fps)
     if duration < .4:
         raise ValueError('Motion needs at least 0.4s')
-    decisions = [] if style == 'basic' else direct_motion(editing,duration,preset=style,word_alignment=word_alignment)
-    from .visual_cues import validate_visual_plan, visual_file, cue_start
-    script = script if script is not None else ' '.join(section.section for section in getattr(editing, 'sections', []))
-    supplied_plan = visual_plan is not None
-    visual_plan = validate_visual_plan(visual_plan, script, root, visual_root)
     usable_alignment = word_alignment if editing and provider_sections(editing.sections, word_alignment, duration) is not None else None
     visual_ranges = []
     for cue in visual_plan.visual_cues:
@@ -281,15 +271,33 @@ def motion_plan(clips, narration: Path, duration: float, *, root: Path, episode_
         b = frame_time(min(duration, start + (cue.duration or 4.)), fps)
         if b-a < .4-1e-6:
             raise ValueError('Visual cue leaves less than 0.4s before narration ends')
-        visual_ranges.append((a, b, cue, timing))
+        visual_ranges.append((a, b, cue, timing, start))
     visual_ranges.sort(key=lambda value: value[0])
-    visual_ranges = [(a, min(b, visual_ranges[i+1][0]) if cue.duration is None and i+1<len(visual_ranges) else b, cue, timing)
-                     for i,(a,b,cue,timing) in enumerate(visual_ranges)]
+    visual_ranges = [(a, min(b, visual_ranges[i+1][0]) if cue.duration is None and i+1<len(visual_ranges) else b, cue, timing, start)
+                     for i,(a,b,cue,timing,start) in enumerate(visual_ranges)]
     if any(b-a < .4-1e-6 for a,b,*_ in visual_ranges):
         raise ValueError('Visual cues need at least 0.4s between their anchors')
     for previous, following in zip(visual_ranges, visual_ranges[1:]):
         if previous[1] > following[0]+1e-6:
             raise ValueError('Visual cues overlap; adjust anchor, start or duration')
+    return visual_ranges
+
+
+def motion_plan(clips, narration: Path, duration: float, *, root: Path, episode_id: str,
+                editing=None, style='investigation', audio_is_final_mix=False,
+                width=1920, height=1080, fps=30, word_alignment=None, visual_plan=None, visual_root=None,
+                script=None, stock_slots=None, ffprobe='ffprobe') -> EditorialPlan:
+    root = Path(root).resolve()
+    narration = Path(narration).resolve()
+    if not narration.is_relative_to(root):
+        raise ValueError('Motion narration must remain in the workspace')
+    duration = frame_time(duration, fps)
+    from .visual_cues import validate_visual_plan, visual_file
+    script = script if script is not None else ' '.join(section.section for section in getattr(editing, 'sections', []))
+    supplied_plan = visual_plan is not None
+    visual_plan = validate_visual_plan(visual_plan, script, root, visual_root, ffprobe=ffprobe)
+    visual_ranges = visual_cue_ranges(visual_plan, script, duration, fps=fps, editing=editing, word_alignment=word_alignment)
+    decisions = [] if style == 'basic' else direct_motion(editing,duration,preset=style,word_alignment=word_alignment)
     assets = {}
     for index,clip in enumerate(clips):
         source = clip.source.resolve()
@@ -299,13 +307,13 @@ def motion_plan(clips, narration: Path, duration: float, *, root: Path, episode_
                                               source_url=f'https://www.pexels.com/video/{clip.asset_id}/' if clip.asset_id > 0 else None,
                                               usage='illustration',sha256=file_hash(source))
     boundaries = {0.,duration}
-    for clip in clips:
-        boundaries.update((frame_time(clip.slot.start,fps),frame_time(min(duration,clip.slot.end),fps)))
-    # Photographs own continuous intervals. Remove hidden stock boundaries and
+    for slot in stock_slots if stock_slots is not None else (clip.slot for clip in clips):
+        boundaries.update((frame_time(slot.start,fps),frame_time(min(duration,slot.end),fps)))
+    # Case assets own continuous intervals. Remove hidden stock boundaries and
     # absorb tiny stock fragments at their edges without moving spoken anchors.
     prepared_visuals = []
     visual_timing = {}
-    for index,(a,b,cue,timing) in enumerate(visual_ranges):
+    for index,(a,b,cue,timing,anchor_start) in enumerate(visual_ranges):
         requested_start,requested_end=a,b
         owned = cue.asset is not None or cue.background == 'black'
         prior = max((t for t in boundaries if t <= a), default=0.)
@@ -329,7 +337,7 @@ def motion_plan(clips, narration: Path, duration: float, *, root: Path, episode_
             source=visual_file(root, visual_root, cue.asset)
             assets[key]=EditorialAsset(path=str(source.relative_to(root)),description=cue.description,
                                       source_url=cue.source_url,credit=cue.credit,usage=cue.usage,sha256=file_hash(source))
-        visual_timing[key]={'requested_anchor_seconds':cue_start(cue,script,duration,alignment=usable_alignment)[0],
+        visual_timing[key]={'requested_anchor_seconds':anchor_start,
                             'requested_duration':cue.duration,'requested_start':requested_start,'requested_end':requested_end,
                             'boundary_adjustment':a!=requested_start or b!=requested_end}
 
@@ -388,14 +396,23 @@ def motion_plan(clips, narration: Path, duration: float, *, root: Path, episode_
             if not cue.asset and not black and stock is None:
                 raise ValueError('Stock timeline does not cover visual effect')
             photo_cameras=('slow_push_in','slow_pull_out','pan_left','pan_right','diagonal_drift')
-            camera=cue.camera or (photo_cameras[int(key.split('_')[-1])%len(photo_cameras)] if cue.asset else ('static','slow_push_in','static','pan_right','slow_pull_out','pan_left')[stock[0]%6] if stock and not black else None)
+            if cue.is_clip:
+                camera = cue.camera or 'static'
+                source_start = max(0., (cue.source_start or 0.) + start - visual_timing[key]['requested_start'])
+            elif cue.asset or black:
+                camera = cue.camera or (photo_cameras[int(key.split('_')[-1])%len(photo_cameras)] if cue.asset else None)
+                source_start = 0.
+            else:
+                camera = cue.camera or ('static','slow_push_in','static','pan_right','slow_pull_out','pan_left')[stock[0]%6]
+                source_start = max(0., stock[1].source_start + start - stock[1].slot.start)
             entry=abs(start-a)<1e-6
+            image_fit = 'contain' if cue.is_clip and cue.image_fit == 'auto' else cue.image_fit
             scenes.append(EditorialScene(id=f'shot_{index:04}',start=start,end=end,
                           intention='Recurso visual indicado por el editor',spoken_claim=cue.text or cue.description,
                           asset=key if cue.asset else None if black else f'clip_{stock[0]}',
                           graphic='motion' if black else None,graphic_data={'background':'black'} if black else {},
-                          source_start=0 if cue.asset or black else max(0,stock[1].source_start+start-stock[1].slot.start),
-                          motion_design=design,camera=camera,image_fit=cue.image_fit,
+                          source_start=source_start,
+                          motion_design=design,camera=camera,image_fit=image_fit,
                           transition=(cue.transition or ('dissolve' if cue.asset or black else 'cut')) if index and entry else 'cut'))
             continue
         middle = (start+end)/2
@@ -429,14 +446,16 @@ def motion_plan(clips, narration: Path, duration: float, *, root: Path, episode_
 
 def render_motion_longform(clips, narration, duration, output, workspace, *, settings, editing=None,
                            style='investigation', audio_is_final_mix=False, width=1920,height=1080,fps=30,
-                           word_alignment=None, workspace_id=None, on_stage=None, visual_plan=None, visual_root=None, script=None):
+                           word_alignment=None, workspace_id=None, on_stage=None, visual_plan=None, visual_root=None,
+                           script=None, stock_slots=None):
     from .production import render_editorial_plan
     root = (settings.data_root or PROJECT_ROOT).resolve()
     episode_id = re.sub(r'[^A-Za-z0-9_-]','_',workspace_id or Path(output).stem)[:100]
     plan = motion_plan(clips,Path(narration),duration,root=root,episode_id=episode_id,
                        editing=editing,style=style,audio_is_final_mix=audio_is_final_mix,
                        width=width,height=height,fps=fps,word_alignment=word_alignment,
-                       visual_plan=visual_plan,visual_root=visual_root,script=script)
+                       visual_plan=visual_plan,visual_root=visual_root,script=script,stock_slots=stock_slots,
+                       ffprobe=settings.ffprobe_binary)
     plan_path = Path(workspace)/'motion-plan.json'
     plan.write(plan_path)
     return render_editorial_plan(plan,root=root,output=Path(output),settings=settings,on_stage=on_stage)

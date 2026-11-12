@@ -1,4 +1,4 @@
-"""Small, explicit photograph cues compiled into the ordinary editorial timeline."""
+"""Explicit case visuals compiled into the ordinary editorial timeline."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -7,10 +7,11 @@ import warnings
 from typing import Literal
 
 from PIL import Image
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_serializer, model_validator
 
 from .motion_components import MotionDesign, Effect
-from .camera import CameraMotion
+from ..media.ffprobe import ProbeError, measured_video_duration
+from .camera import CameraMotion, IMAGE_EXTENSIONS
 from .storyboard import file_hash, phrase_time
 
 
@@ -29,6 +30,7 @@ class VisualCue(CueModel):
     anchor: VisualAnchor | None = None
     start: float | None = Field(default=None, ge=0, allow_inf_nan=False)
     duration: float | None = Field(default=None, ge=.4, le=30, allow_inf_nan=False)
+    source_start: float | None = Field(default=None, ge=0, allow_inf_nan=False)
     camera: CameraMotion | None = None
     image_fit: Literal['auto', 'contain', 'cover'] = 'auto'
     transition: Literal['cut', 'fade', 'dissolve', 'wipe', 'fade_black', 'slide', 'focus', 'match_cut'] | None = None
@@ -42,12 +44,28 @@ class VisualCue(CueModel):
     license_url: str | None = Field(default=None, max_length=2000)
     usage: Literal['provided', 'document', 'illustration'] = 'provided'
 
+    @property
+    def is_clip(self) -> bool:
+        return self.asset is not None and Path(self.asset).suffix.lower() == '.mp4'
+
+    @model_serializer(mode='wrap')
+    def serialize(self, handler):
+        data = handler(self)
+        if self.source_start is None:
+            # Preserve the serialized identity of existing photo plans and their remounts.
+            data.pop('source_start', None)
+        return data
+
     @model_validator(mode='after')
     def coherent(self):
         if self.asset is None and self.effect is None:
             raise ValueError('A visual cue needs an asset or an explicit effect')
         if self.asset is not None and self.background == 'black':
-            raise ValueError('Photographs use their image; black background is for effect-only cues')
+            raise ValueError('Black background is for effect-only cues')
+        if self.is_clip and self.duration is None:
+            raise ValueError('A case clip needs an explicit duration')
+        if self.source_start is not None and not self.is_clip:
+            raise ValueError('source_start is only available for MP4 case clips')
         if (self.anchor is None) == (self.start is None):
             raise ValueError('A visual cue needs exactly one anchor or start')
         if self.anchor and not re.findall(r'\w+', self.anchor.phrase):
@@ -56,6 +74,8 @@ class VisualCue(CueModel):
             raise ValueError(f'Visual effect {self.effect!r} is a transition; use the transition field')
         if self.effect:
             design = MotionDesign.model_validate({'delay': 0, **self.motion_data, 'effect': self.effect, 'text': self.text})
+            if self.is_clip and design.highlight_box:
+                raise ValueError('Document highlights require a photograph or scan')
             if design.delay > 15:
                 raise ValueError('Visual effect source delay may not exceed 15 seconds')
             available = (self.duration or 4.) - design.delay
@@ -93,8 +113,14 @@ def visual_file(root: Path, visual_root: Path | str | None, asset: str) -> Path:
             raise ValueError('Visual assets do not follow symlinks')
     if not path.resolve().is_relative_to(root.resolve()):
         raise ValueError('Visual root must remain inside the project workspace')
-    if not path.is_file() or path.suffix.lower() not in {'.jpg', '.jpeg', '.png', '.webp'}:
-        raise ValueError(f'Visual asset must be an existing JPG/PNG/WebP: {requested.name}')
+    suffix = path.suffix.lower()
+    if not path.is_file() or suffix not in {*IMAGE_EXTENSIONS, '.mp4'}:
+        raise ValueError(f'Visual asset must be an existing JPG/PNG/WebP or MP4: {requested.name}')
+    if suffix == '.mp4':
+        with path.open('rb') as stream:
+            if stream.read(8)[4:] != b'ftyp':
+                raise ValueError(f'Case clip must be a local MP4 container: {requested.name}')
+        return path
     if path.stat().st_size > 40 * 1024 * 1024:
         raise ValueError('Visual image exceeds 40 MB')
     try:
@@ -124,12 +150,22 @@ def anchor_word_index(script: str, anchor: VisualAnchor) -> int:
     return matches[anchor.occurrence]
 
 
-def validate_visual_plan(plan, script: str, root: Path, visual_root=None, *, validate_assets=True) -> VisualPlan:
+def validate_visual_plan(plan, script: str, root: Path, visual_root=None, *, validate_assets=True,
+                         ffprobe='ffprobe') -> VisualPlan:
     """Local read-only validation, safe to perform before any paid provider call."""
     plan = VisualPlan.model_validate(plan or {})
+    durations = {}
     for cue in plan.visual_cues:
         if cue.asset and validate_assets:
-            visual_file(root, visual_root, cue.asset)
+            path = visual_file(root, visual_root, cue.asset)
+            if cue.is_clip:
+                if path not in durations:
+                    try:
+                        durations[path] = measured_video_duration(path, ffprobe)
+                    except ProbeError as error:
+                        raise ValueError(f'Case clip has no measurable video: {path.name}') from error
+                if (cue.source_start or 0.) + cue.duration > durations[path] + 1e-6:
+                    raise ValueError(f'Case clip is shorter than its requested source window: {path.name}')
         if cue.anchor:
             anchor_word_index(script, cue.anchor)
     anchors = [anchor_word_index(script, cue.anchor) for cue in plan.visual_cues if cue.anchor]

@@ -249,11 +249,18 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
             # Fractional input seeks can leave the first source PTS above zero.
             # Reset it before fps; otherwise per-scene time limits silently lose
             # frames, accumulating a short video beneath the full-length audio.
-            filters = [
-                "setpts=PTS-STARTPTS",
-                f"scale={plan.width}:{plan.height}:force_original_aspect_ratio=increase:force_divisible_by=2",
-                f"crop={plan.width}:{plan.height}", f"fps={plan.fps}", "setsar=1", "format=yuv420p",
-            ]
+            filters = ["setpts=PTS-STARTPTS"]
+            if not image and scene.image_fit == 'contain':
+                filters.extend([
+                    f"scale={plan.width}:{plan.height}:force_original_aspect_ratio=decrease:force_divisible_by=2",
+                    f"pad={plan.width}:{plan.height}:(ow-iw)/2:(oh-ih)/2",
+                ])
+            else:
+                filters.extend([
+                    f"scale={plan.width}:{plan.height}:force_original_aspect_ratio=increase:force_divisible_by=2",
+                    f"crop={plan.width}:{plan.height}",
+                ])
+            filters.extend([f"fps={plan.fps}", "setsar=1", "format=yuv420p"])
             camera = scene.camera
             if camera is None and image and scene.asset and not scene.composition and scene.motion == 'none':
                 camera = CameraMotion(preset='slow_push_in')

@@ -38,25 +38,48 @@ Alrededor de cortes muy cercanos el compilador puede ampliar el intervalo técni
 manteniendo el reloj global del efecto; el manifiesto conserva instante pedido,
 intervalo compilado y ajuste. No se promete alineación por palabra estimada.
 
-`camera`, `image_fit` y `transition` sobrescriben sus valores sobrios automáticos.
+`camera`, `image_fit` y `transition` ajustan movimiento, encuadre y entrada.
 `effect`, `text` y `motion_data` usan `MotionDesign` del repertorio común. Un cue
 sin `asset` puede colocar tipografía sobre `background="automatic_stock"` (valor
 predeterminado) o una placa `"black"`. Usa `transition="dissolve"`/`"wipe"` para
 transiciones: esos nombres en `effect` se rechazan para evitar una orden inerte.
 No hay subtítulos permanentes ni llamadas LLM al render.
 
-Las imágenes admitidas por el flujo parcial son JPG/JPEG, PNG y WebP, de al menos
+Las imágenes admitidas son JPG/JPEG, PNG y WebP, de al menos
 32 px y hasta 40 megapíxeles/40 MB en disco; el upload del estudio admite hasta
 cuatro por petición de 6 MB cada una. Se comprueban decodificación, contención y
 symlinks antes de Fish. `description`, `source_url`, `credit`, `usage`, `license`
 y `license_url` permiten una procedencia mínima opcional, conservada junto con
 SHA-256 en recibo/créditos. Un archivo aportado se declara como tal: su nombre no
-verifica identidad ni permiso de uso. Una ilustración nunca es prueba del caso.
+verifica identidad ni permiso de uso. El stock se acredita como ilustrativo.
 
-Los cues comparten escenas, fuentes, filtros, caché, ensamblador y validación con
-el stock. Actualmente Native aún busca/selecciona stock para toda la narración,
-incluso bajo fotos: éstas mandan en la imagen final, pero no evitan todas esas
-consultas. No es un buscador autónomo de fotografías. Los ajustes de música del
+Para un fragmento real, guarda un MP4 local dentro del episodio. El JSON indica
+su duración explícita en segundos y, opcionalmente, el inicio dentro del archivo.
+Kitok mide la pista de vídeo antes de Fish y vuelve a validar la ventana compilada
+antes de codificar. Deja margen en el clip para los cortes y las transiciones.
+Por defecto el plano es estático, conserva el encuadre (`contain`) y descarta
+el audio del clip. `image_fit: "cover"` permite llenar el cuadro al recortar.
+
+```json
+{
+  "visual_cues": [
+    {
+      "asset": "clips/archivo.mp4",
+      "anchor": {"phrase": "The hearing began"},
+      "source_start": 2.5,
+      "duration": 4,
+      "usage": "document",
+      "description": "Fragmento de la audiencia que menciona la narración"
+    }
+  ]
+}
+```
+
+Los cues comparten el ensamblador y la validación con el stock. Native conserva
+los límites de corte y omite búsquedas y descargas para los tramos de stock que
+un cue con recurso propio cubre por completo. Un tramo con imagen visible o con
+un rótulo que necesita fondo sigue usando stock. El agente investiga y coloca
+los recursos reales antes del render. Los ajustes de música del
 plan parcial requieren `music_mode="off"`, `"auto"` o `"manual"`; se rechaza la
 configuración musical histórica ambigua antes de Fish.
 

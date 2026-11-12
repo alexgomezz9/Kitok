@@ -144,7 +144,8 @@ def log_tts_script_validation(script: str) -> None:
 
 
 def load_longform_config(
-    config_path: str | Path, *, project_root: Path = PROJECT_ROOT, validate_visual_assets: bool = True
+    config_path: str | Path, *, project_root: Path = PROJECT_ROOT, validate_visual_assets: bool = True,
+    ffprobe: str | None = None,
 ) -> LongformDefinition:
     path = Path(config_path).expanduser()
     if not path.is_absolute():
@@ -248,8 +249,11 @@ def load_longform_config(
         visual_root = Path(raw.get("visual_root", path.parent))
         if not visual_root.is_absolute():
             visual_root = project_root / visual_root
-        visual_plan = validate_visual_plan(raw["visual_plan"], script, project_root, visual_root,
-                                           validate_assets=validate_visual_assets)
+        visual_plan = VisualPlan.model_validate(raw["visual_plan"] or {})
+        if ffprobe is None and validate_visual_assets and any(cue.is_clip for cue in visual_plan.visual_cues):
+            ffprobe = Settings().ffprobe_binary
+        visual_plan = validate_visual_plan(visual_plan, script, project_root, visual_root,
+                                           validate_assets=validate_visual_assets, ffprobe=ffprobe or 'ffprobe')
         if music_mode is None and music_enabled:
             raise LongformError("Photograph/effect plans require explicit music_mode off, auto or manual to preserve the intended mix")
 

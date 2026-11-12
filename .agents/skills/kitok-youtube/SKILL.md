@@ -38,8 +38,9 @@ capacidad automática ni repetirla como rutina en cada vídeo.
 ## Encargo completo: «siguiente»
 
 Dentro de este canal, «siguiente» encarga el próximo episodio completo hasta entrega
-local. Usa `yt-video-workflow` como coordinación y carga sólo la skill de la fase
-activa. El perfil fija las decisiones delegadas: elige personaje, promesa y paquete
+local. Sigue el perfil y la guía. Los complementos locales `yt-video-workflow` y
+`yt-script` se consultan en `local/editorial/skills/<nombre>/SKILL.md` cuando
+existan. Carga sólo la fase activa. El perfil fija las decisiones delegadas: elige personaje, promesa y paquete
 cuando el operador delegue, sin imponer confirmaciones en cada paso. Consulta sólo
 dudas materiales, gasto significativo o bloqueos no recuperables; publicar requiere
 encargo separado. Identifica Trazo Maldito por su ID, nunca por la conexión de Loose

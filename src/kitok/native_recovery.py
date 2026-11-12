@@ -130,7 +130,7 @@ def inspect_narration(settings, definition, output: Path, *, source_files=(), _a
     words = json.loads(alignment.read_text())
     if provider_sections(manifest.sections, words, info.duration) is None:
         raise ValueError('Recovery word alignment does not match the narration transcript or duration')
-    visual_files = _visual_input_files(definition, root) if _validate_visual_assets else ()
+    visual_files = _visual_input_files(definition, root, ffprobe=settings.ffprobe_binary) if _validate_visual_assets else ()
     paths = (narration, alignment, edit, ledger, cache_audio, *source_files, *visual_files)
     files = tuple((regular(path, root), digest(path)) for path in paths)
     definition_hash = definition_identity(definition)
@@ -138,13 +138,13 @@ def inspect_narration(settings, definition, output: Path, *, source_files=(), _a
     return ConfirmedNarration(root, output, narration, info.duration, audio_hash, fingerprint, files, definition_hash)
 
 
-def _visual_input_files(definition, root):
+def _visual_input_files(definition, root, *, ffprobe):
     from .editing.visual_cues import validate_visual_plan, visual_file
     plan = getattr(definition, 'visual_plan', None)
     if plan is None:
         return ()
     visual_root = getattr(definition, 'visual_root', None)
-    plan = validate_visual_plan(plan, definition.item.script, root, visual_root)
+    plan = validate_visual_plan(plan, definition.item.script, root, visual_root, ffprobe=ffprobe)
     return tuple(visual_file(root, visual_root, cue.asset) for cue in plan.visual_cues if cue.asset)
 
 
@@ -167,7 +167,7 @@ def inspect_remount_narration(settings, source_definition, source_output: Path,
                                source_files=source_files, _allow_existing_output=True, _validate_visual_assets=False)
     if new_output.parent != audit.root / 'outputs' / 'longform':
         raise ValueError('Remount output is outside the controlled directory')
-    extras = _visual_input_files(new_definition, audit.root)
+    extras = _visual_input_files(new_definition, audit.root, ffprobe=settings.ffprobe_binary)
     if source_output.exists():
         extras = (*extras, source_output)
     files = (*audit.files, *((regular(path, audit.root), digest(path)) for path in extras))
