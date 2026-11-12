@@ -29,6 +29,21 @@ nueva donde sirva al siguiente episodio y enlázala a su evidencia.
 
 ## Producir con archivo
 
+Prioriza los recursos que hagan visible la promesa en la apertura, identifiquen
+a una persona o lugar, o demuestren un giro. Revisa primero el archivo oficial
+y Commons con una búsqueda por persona, fecha o caso. Selecciona sólo lo que
+tiene un lugar en el guion. Si ya explicaste el hecho con una prueba legible,
+continúa con el siguiente tramo del montaje.
+
+Deja que un documento se pueda leer. Un retrato admite movimiento suave hacia
+el rostro. Un clip sirve cuando la acción o el cambio de lugar aporta contexto.
+Si una foto de stock describe mejor un objeto o detalle, puedes insertarla
+desde Pexels con `usage: "illustration"`, la página, el autor y la licencia.
+La [búsqueda de fotos de Pexels](https://www.pexels.com/api/documentation/#photos-search)
+permite orientar el resultado a horizontal. Guarda sólo los recursos elegidos.
+El resto puede seguir como stock de vídeo de Kitok. Corta al aparecer información
+nueva y comprueba el ritmo en la apertura real. [Licencia Pexels](https://www.pexels.com/legal-pages/license/)
+
 1. Busca y descarga el documento, foto o clip verificable antes de pedir trabajo al
    operador. Registra fuente original, identidad, fecha, derechos y cambios. Usa
    stock para ambiente. Para un mecanismo sin imagen directa, considera un gráfico

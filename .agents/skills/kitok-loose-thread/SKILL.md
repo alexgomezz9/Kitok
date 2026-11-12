@@ -21,7 +21,8 @@ Ejecuta desde el checkout WSL. El CLI es la entrada habitual.
    cuando exista y aporte valor al guion en curso.
 3. Busca tú los archivos reales de momentos, lugares y protagonistas. Descarga y
    verifica medios utilizables, con origen, fecha, autor y permisos. Prueba el
-   archivo oficial y Commons primero, y renderiza documentos para lectura en vídeo.
+   archivo oficial y Commons primero. Concentra la búsqueda en la apertura, la
+   presentación de personas y lugares, y los giros que ganen una prueba visual.
    Guarda las selecciones en `images/` o `clips/`. Si una imagen decisiva queda
    inaccesible, da un enlace directo, indica la imagen, captura o intervalo exacto
    y la carpeta de destino. Usa otro recurso si la procedencia o el permiso falla.
@@ -29,9 +30,11 @@ Ejecuta desde el checkout WSL. El CLI es la entrada habitual.
    `anchor.phrase` es una cita literal breve y única del propio guion. Fish
    aporta el momento en que se pronuncia. Si se repite, usa `occurrence`.
    En MP4 indica `duration` y, si procede, `source_start`. Deja los huecos a stock
-   pertinente. Usa IA para diagramas o reconstrucciones cuando añadan claridad.
-   Reserva rótulos para información que el espectador necesite, como nombre,
-   fecha o reconstrucción susceptible de confundirse con archivo real.
+   pertinente. Puedes elegir una foto de Pexels como `usage: "illustration"` si
+   un detalle se entiende mejor en un plano fijo. Mantén legibles los documentos,
+   mueve el encuadre cuando guíe la mirada y corta al cambiar el sentido de la
+   narración. Usa IA para diagramas o reconstrucciones que aporten claridad.
+   Reserva rótulos para información necesaria, como nombre, fecha o reconstrucción.
 5. Valida el borrador desde `longform.py`. Reutiliza voz y alineación si encajan.
    Si el encargo pide producir, ejecuta Native y cierra el MP4 verificado.
    Revisa apertura, cortes, voz, mezcla y créditos. Conserva guion, fuentes,

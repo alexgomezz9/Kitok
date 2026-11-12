@@ -1,6 +1,6 @@
 # Estado vigente de Kitok
 
-Actualizado el **12/11/2026**. El checkout de producción local está en
+Actualizado el **13/11/2026**. El checkout de producción local está en
 `/home/prueba/projects/Kitok` (Ubuntu WSL). La integración local usa `main`.
 Consulta [GUIA.md](GUIA.md) y el diff vigente.
 
@@ -15,8 +15,11 @@ para tramos cubiertos. [Contrato de montaje](docs/editing.md).
 
 El borrador de Black Friday vive en `content/longform/loose_thread_black_friday`.
 Incluye investigación, apertura en inglés, dos medios originales y un JSON
-aceptado por `longform.py --dry-run`. El siguiente paso es ampliar el guion,
-diseñar la miniatura y comprobar el archivo de los siguientes giros para Native.
+aceptado por `longform.py --dry-run`. El comunicado queda estático y resalta
+su línea relevante. El retrato lleva un acercamiento suave. Una foto de Pexels
+pasó el mismo CLI como ilustración en un ensayo temporal. El siguiente paso es
+ampliar el guion, diseñar la miniatura y comprobar el archivo de los siguientes
+giros para Native.
 Reutiliza narración cuando coincidan guion, voz y velocidad. Revisa la apertura
 antes de producir el resto.
 
