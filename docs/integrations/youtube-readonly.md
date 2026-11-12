@@ -28,7 +28,7 @@ contenido ni publicación. Esto no demuestra elegibilidad de membresías.
 El nuevo CLI de gestión es `scripts/youtube_api.py`. Reutiliza OAuth Desktop,
 PKCE/state, almacenamiento privado y bloqueo existentes. El catálogo local recoge
 los documentos oficiales de descubrimiento del05/11:83 métodos Data API,
-8Analytics y8Reporting. Es una superficie de API para agentes, no un panel Studio
+Analytics y Reporting. Es una superficie de API para agentes, no un panel Studio
 ni una garantía de elegibilidad del canal para todos los métodos.
 Dos entradas se rechazan explícitamente: el RPC streaming del chat en directo
 (usar `youtube.liveChatMessages.list`) y el endpoint interno `youtube.tests.insert`.
@@ -112,6 +112,12 @@ Analytics es `youtubeAnalytics.reports.query`; acepta métricas/dimensiones/filt
 oficiales, con `ids:"channel==MINE"`. Ingresos necesitan permiso monetario y datos
 disponibles. La consulta de ingresos incluida es una muestra, no prueba de ingresos.
 Las fechas son Pacific time. Conservar ausencia/denegación como tales, nunca ceros.
+
+Los comandos `public-search` y `reporting-status` dan una salida compacta para
+descubrimiento y seguimiento de CSV. Las vistas y suscriptores proceden de
+Data API. La búsqueda hidrata una sola página y preserva su orden. La consulta
+de informes incluye el trabajo y los IDs disponibles para `download-report`.
+[Método y ejemplos](../research/loose-thread.md#consultar-datos-sin-copiar-archivos-de-petición).
 
 ## Mutaciones con vista previa
 

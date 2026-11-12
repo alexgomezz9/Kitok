@@ -4,6 +4,8 @@ El inventario implementado está en [capacidades](../capabilities.md), y su evid
 fechada en [PROJECT_STATUS.md](../../PROJECT_STATUS.md). Esta página explica decisiones,
 no promete ingresos ni convierte una biblioteca evaluada en una dependencia instalada.
 
+El [método de Loose Thread](loose-thread.md) reúne decisiones de tema, archivo, guion y métricas. Las fuentes originales de cada caso van en su episodio.
+
 ## Componentes elegidos
 
 | Herramienta | Uso real en Kitok | Límite |
@@ -15,7 +17,7 @@ no promete ingresos ni convierte una biblioteca evaluada en una dependencia inst
 | Pexels | Stock nativo y registro de clips cacheados | Ilustración, no evidencia histórica ni identidad |
 | Commons | Imágenes raster con metadatos/licencia admitida | Buscar candidatos no verifica el sujeto ni el contexto |
 | Biblioteca Incompetech auditada | Cuatro pistas con hashes/créditos, selector y mezcla | Ampliar repertorio requiere revisar contrato y fuentes |
-| OAuth/Data/Analytics/Reporting oficiales | CLI YouTube de lectura preparado | Consentimiento real pendiente; sin CTR/CSV o dashboard |
+| OAuth/Data/Analytics/Reporting oficiales | CLI YouTube, búsqueda pública y trabajos de alcance | El CTR se obtiene cuando Reporting entrega sus CSV |
 
 La selección prioriza el equipo de 4 GB VRAM/8 GB RAM y la reutilización de audio.
 No instalamos modelos grandes ni decenas de repositorios. Motion Canvas, Remotion,

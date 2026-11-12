@@ -1,32 +1,38 @@
 ---
 name: kitok-loose-thread
-description: Prepara o continúa documentales en inglés de Loose Thread con archivos reales del caso y stock de Kitok.
+description: Investiga, escribe y monta documentales en inglés de Loose Thread con material real, ilustraciones y stock de Kitok.
 ---
 
 # Loose Thread en Kitok
 
-Lee `PROJECT_STATUS.md` y las secciones de vídeo largo de `GUIA.md`. Usa el narrador
-original de Loose Thread y el ID `UCLnP8Kb1USd06TW3D1JLFvg`. Para datos del canal,
-consulta el perfil `local/youtube` con el ID explícito en el [CLI de YouTube](../../../docs/integrations/youtube-readonly.md).
+Lee el estado vigente y [el método editorial](../../../docs/research/loose-thread.md).
+Usa el narrador original y el perfil `local/youtube` con ID `UCLnP8Kb1USd06TW3D1JLFvg`.
+Ejecuta desde el checkout WSL. El CLI es la entrada habitual.
 
-1. Investiga el caso con fuentes primarias, escribe en inglés y guarda el guion
-   limpio para Fish. Conserva las afirmaciones discutibles, fuentes y licencias en
-   las notas editoriales del episodio, junto al guion. Registra candidatos descartados
-   cuando falte permiso, contexto o una identificación fiable.
-2. Busca fotos, documentos y fragmentos auténticos relevantes. Comprueba el origen,
-   lo que se ve y las condiciones de uso. Usa `scripts/media_library.py` para buscar
-   y recuperar imágenes con licencia compatible de Commons. Conserva los medios
-   elegidos en `images/` o `clips/` del episodio. No conviertas ilustración en prueba.
-3. En el [JSON visual parcial](../../../docs/editing.md#json-parcial-sobre-montaje-automático),
-   ancla cada recurso a una frase exacta y agrega procedencia, crédito, licencia y
-   `usage: "document"` si es evidencia del caso. Usa `occurrence` si se repite la
-   frase. Para MP4 añade `duration` y, si procede, `source_start`. Deja los movimientos
-   de fotos al motor salvo que haga falta proteger un encuadre. Escribe keywords de
-   stock de contexto para cubrir la narración restante.
-4. Importa guion y JSON en Vídeo largo y ejecuta «Comprobar». Reutiliza narración y
-   alineación aprobadas cuando coincidan guion, voz y velocidad. Ejecuta Native para
-   mezcla, stock, montaje, créditos y MP4 según el alcance del encargo. Ante un fallo,
-   revisa recibos y reutiliza el audio confirmado antes de llamar otra vez a Fish.
-5. Revisa una muestra con el recurso y su entrada/salida, encuadre y audio. Para la
-   entrega verifica el MP4 y créditos, registra qué se reprodujo y deja el siguiente
-   paso. Guarda guion, fuentes y plan junto al episodio para retomar desde otro chat.
+1. Usa `reporting-status`, Analytics o `public-search` según la pregunta. Contrasta
+   demanda, referencias y disponibilidad de archivo. Propón un ángulo concreto y
+   decide con evidencia cuando el encargo lo delegue. El título y la miniatura
+   deben prometer algo demostrable en el guion. Si ya hay trabajo compatible, retómalo.
+   Para un vídeo publicado, consulta primero los datos propios. Abre el complemento
+   `local/editorial/skills/yt-retention/SKILL.md` cuando aporte valor a la revisión.
+2. Escribe en inglés, con hechos y fuentes. La apertura cumple pronto la promesa
+   del clic. Cada rehook aporta una consecuencia, pregunta o prueba nueva y recibe
+   respuesta. Lee el complemento `local/editorial/skills/yt-script/SKILL.md`
+   cuando exista y aporte valor al guion en curso.
+3. Busca tú los archivos reales de momentos, lugares y protagonistas. Descarga y
+   verifica medios utilizables, con origen, fecha, autor y permisos. Prueba el
+   archivo oficial y Commons primero, y renderiza documentos para lectura en vídeo.
+   Guarda las selecciones en `images/` o `clips/`. Si una imagen decisiva queda
+   inaccesible, da un enlace directo, indica la imagen, captura o intervalo exacto
+   y la carpeta de destino. Usa otro recurso si la procedencia o el permiso falla.
+4. Escribe tú el [JSON parcial](../../../docs/editing.md#json-parcial-sobre-montaje-automático).
+   `anchor.phrase` es una cita literal breve y única del propio guion. Fish
+   aporta el momento en que se pronuncia. Si se repite, usa `occurrence`.
+   En MP4 indica `duration` y, si procede, `source_start`. Deja los huecos a stock
+   pertinente. Usa IA para diagramas o reconstrucciones cuando añadan claridad.
+   Reserva rótulos para información que el espectador necesite, como nombre,
+   fecha o reconstrucción susceptible de confundirse con archivo real.
+5. Valida el borrador desde `longform.py`. Reutiliza voz y alineación si encajan.
+   Si el encargo pide producir, ejecuta Native y cierra el MP4 verificado.
+   Revisa apertura, cortes, voz, mezcla y créditos. Conserva guion, fuentes,
+   plan y entrega. Retira temporales que ya cumplieron su función.

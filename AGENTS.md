@@ -6,6 +6,7 @@
 ## Producción
 
 - El agente investiga, escribe y decide la posición de los recursos auténticos. Kitok valida, sincroniza, mezcla y renderiza. Revisa contexto y licencia, conserva fuente y créditos, y distingue archivo real de stock ilustrativo.
+- Para Loose Thread opera por CLI. El agente busca, descarga y verifica los recursos disponibles y redacta el JSON. Cuando falte un archivo decisivo, indica el enlace, el fragmento y la carpeta exactos. Usa ilustración o IA cuando aporte claridad. Anota la procedencia y retira temporales al cerrar.
 - Comprobar, guardar y previsualizar borradores son operaciones locales. Reutiliza voz, alineación y stock confirmados. Las síntesis inciertas se investigan antes de repetir. Mantén el bloqueo por ID, la identidad de los datos y las salidas previas en reintentos y recuperaciones.
 - Native es el flujo de producción. MoneyPrinterTurbo se usa sólo para reanudar una tarea histórica conocida. El publicador Buffer cubre shorts, con preview, confirmación y reconciliación. Para YouTube comprueba el ID del canal y los permisos; publicar o modificar contenido requiere un encargo concreto.
 - La UI y la API son locales, en `127.0.0.1`. Valida IDs y rutas en el servidor. Protege `.env`, la cola, `state/`, episodios, cachés y tokens. Los tests usan un workspace temporal y proveedores simulados.

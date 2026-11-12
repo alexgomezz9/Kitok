@@ -12,6 +12,7 @@ import sys
 from kitok.youtube import PrivateStore, YouTubeError, connect
 from kitok.youtube.management import CATALOG, UNSUPPORTED, YouTubeManagement, operation, public_receipt, request_schemas
 from kitok.youtube.oauth import PROFILES
+from kitok.youtube.research import public_search, reporting_status
 
 
 def main():
@@ -22,6 +23,14 @@ def main():
     cat = sub.add_parser('catalog', help='Operaciones oficiales o esquema completo de una operación')
     cat.add_argument('operation', nargs='?')
     sub.add_parser('status')
+    sub.add_parser('reporting-status', help='Comprobar si hay CSV de los trabajos existentes')
+    search = sub.add_parser('public-search', help='Buscar y filtrar datos públicos oficiales')
+    search.add_argument('query')
+    search.add_argument('--limit', type=int, default=20)
+    search.add_argument('--order', choices=('relevance', 'date', 'viewCount'), default='relevance')
+    search.add_argument('--published-after', help='Fecha RFC 3339, por ejemplo 2026-01-01T00:00:00Z')
+    search.add_argument('--min-views', type=int)
+    search.add_argument('--max-subscribers', type=int)
     auth = sub.add_parser('connect')
     auth.add_argument('--profile', choices=PROFILES, default='read')
     for name in ('query', 'plan'):
@@ -71,6 +80,12 @@ def main():
                 if args.command in {'query', 'plan'}:
                     request = json.loads(args.request.read_text())
                     result = getattr(api, args.command)(request, args.channel)
+                elif args.command == 'reporting-status':
+                    result = reporting_status(api, args.channel)
+                elif args.command == 'public-search':
+                    result = public_search(api, args.channel, args.query, limit=args.limit, order=args.order,
+                                           published_after=args.published_after, min_views=args.min_views,
+                                           max_subscribers=args.max_subscribers)
                 elif args.command == 'apply':
                     result = public_receipt(api.apply(args.approve, args.channel))
                 elif args.command == 'resolve':
