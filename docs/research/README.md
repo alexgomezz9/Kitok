@@ -5,6 +5,7 @@ fechada en [PROJECT_STATUS.md](../../PROJECT_STATUS.md). Esta página explica de
 no promete ingresos ni convierte una biblioteca evaluada en una dependencia instalada.
 
 El [método de Loose Thread](loose-thread.md) reúne decisiones de tema, archivo, guion y métricas. Las fuentes originales de cada caso van en su episodio.
+[Stickman y Trazo Maldito](stickman.md) reúne las referencias vigentes del otro flujo.
 
 ## Componentes elegidos
 

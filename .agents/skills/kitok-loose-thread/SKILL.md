@@ -15,8 +15,9 @@ Ejecuta desde el checkout WSL. El CLI es la entrada habitual.
    deben prometer algo demostrable en el guion. Si ya hay trabajo compatible, retómalo.
    Para un vídeo publicado, consulta primero los datos propios. Abre el complemento
    `local/editorial/skills/yt-retention/SKILL.md` cuando aporte valor a la revisión.
-2. Escribe en inglés, con hechos y fuentes. La apertura cumple pronto la promesa
-   del clic. Cada rehook aporta una consecuencia, pregunta o prueba nueva y recibe
+2. Escribe en inglés, con hechos y fuentes. Escribe en el guion las cifras y
+   siglas como se han de pronunciar cuando eso ayude a Fish y sus subtítulos.
+   La apertura cumple pronto la promesa del clic. Cada rehook aporta una consecuencia, pregunta o prueba nueva y recibe
    respuesta. Lee el complemento `local/editorial/skills/yt-script/SKILL.md`
    cuando exista y aporte valor al guion en curso.
 3. Busca tú los archivos reales de momentos, lugares y protagonistas. Descarga y
@@ -35,7 +36,12 @@ Ejecuta desde el checkout WSL. El CLI es la entrada habitual.
    mueve el encuadre cuando guíe la mirada y corta al cambiar el sentido de la
    narración. Usa IA para diagramas o reconstrucciones que aporten claridad.
    Reserva rótulos para información necesaria, como nombre, fecha o reconstrucción.
-5. Valida el borrador desde `longform.py`. Reutiliza voz y alineación si encajan.
-   Si el encargo pide producir, ejecuta Native y cierra el MP4 verificado.
-   Revisa apertura, cortes, voz, mezcla y créditos. Conserva guion, fuentes,
-   plan y entrega. Retira temporales que ya cumplieron su función.
+5. Guarda cada episodio nuevo en `content/longform/loose_thread/<episodio>`.
+   Si el encargo pide producir, prepara título, descripción con capítulos y
+   créditos, etiquetas, ajustes de Studio y miniatura final. Ejecuta el CLI
+   `longform.py CONFIG --deliver --dry-run` y luego `--deliver`.
+   Usa `--deliver-only` para un MP4 confirmado y reutiliza voz y alineación.
+   Valida el comienzo, las pruebas visuales decisivas y los avisos técnicos.
+   Kitok elige y monta el stock de relleno. Entrega la carpeta `entrega/`
+   para que el operador suba y programe en Studio. Conserva guion, fuentes,
+   voz y recibos. Retira temporales que ya cumplieron su función.

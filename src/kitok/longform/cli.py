@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 from contextlib import ExitStack
 import json
 import math
@@ -65,6 +66,18 @@ class LongformDefinition:
     visual_plan: VisualPlan | None = None
     visual_root: Path | None = None
     source_narration_id: str | None = None
+
+    def fingerprint(self) -> str:
+        """Hash settings that affect Native media, independently of publication copy."""
+        from ..native_recovery import identity
+
+        value = vars(self).copy()
+        value["item"] = {key: getattr(self.item, key) for key in ("id", "script", "keywords")}
+        value["background_music_file"] = str(self.background_music_file)
+        value["visual_root"] = str(self.visual_root)
+        value["visual_plan"] = self.visual_plan.model_dump(mode="json") if self.visual_plan else None
+        value.pop("preserve_debug_audio")
+        return identity(value)
 
 
 def _read_json_object(path: Path, label: str) -> dict[str, Any]:
@@ -702,7 +715,7 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--keep-native-workspace", action="store_true",
-        help="Keep Native temporary narration, filter scripts and chunks after success.",
+        help="Keep Native scene and chunk caches after success for debugging or reuse.",
     )
     parser.add_argument(
         "--verbose", action="store_true",
@@ -715,6 +728,11 @@ def _parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Explicitly render again with Native; may use paid providers. Existing documentary/library-music outputs require a new content ID. Unavailable for MPT.",
     )
+    delivery = parser.add_mutually_exclusive_group()
+    delivery.add_argument("--deliver", action="store_true",
+                          help="Render Native and assemble a YouTube Studio handoff for the episode.")
+    delivery.add_argument("--deliver-only", action="store_true",
+                          help="Assemble an already validated Native render offline, without rendering.")
     return parser
 
 
@@ -730,6 +748,14 @@ def main(argv: list[str] | None = None) -> int:
         if args.renderer == 'mpt' and (definition.mounting_style != 'basic' or definition.music_mode is not None or definition.visual_plan is not None):
             raise LongformError('mounting_style and music_mode options are Native-only; historical MPT recovery requires basic mounting and legacy music configuration')
         settings = Settings()
+        publication = None
+        if args.deliver or args.deliver_only:
+            if args.renderer != "native" or args.start_over or (args.dry_run and args.deliver_only):
+                raise LongformError("Delivery uses Native, without --start-over. Use --deliver --dry-run to check inputs.")
+            from .delivery import deliver, prepare_publication
+
+            root = settings.data_root or PROJECT_ROOT
+            publication = prepare_publication(Path(args.config).expanduser(), root, definition.item.script)
         if args.dry_run:
             renderer = args.renderer
             validate_tts_script(definition.item.script)
@@ -743,14 +769,26 @@ def main(argv: list[str] | None = None) -> int:
                 fish_reference_id(definition.voice_name)
                 checks.update(fish_configured=bool(settings.fish_api_key.get_secret_value()),
                               pexels_configured=bool(settings.pexels_api_key.get_secret_value()))
+            if publication is not None:
+                checks["publication"] = True
             print(json.dumps({'dry_run': True, 'renderer': renderer,
                               'words': len(definition.item.script.split()), 'checks': checks,
                               'note': 'Local checks only; no network, rendering, uploads or scheduling.'},
                              ensure_ascii=False, indent=2))
             return 0 if all(checks.values()) else 1
-        if definition.source_narration_id is not None:
+        if definition.source_narration_id is not None and not args.deliver_only:
             raise LongformError('This montage reuses an existing narration. Use the studio narration audit and confirmed remount; ordinary CLI generation is disabled for this draft.')
         lease.enter_context(generation_lock(settings, f'longform-{definition.item.id}'))
+        if publication is not None:
+            key = hashlib.sha256(str(publication.episode.relative_to(root)).encode()).hexdigest()
+            lease.enter_context(generation_lock(settings, f"longform-delivery-{key}"))
+            output = longform_output_path(definition.item.id, project_root=root)
+            if args.deliver_only or output.exists() or output.is_symlink():
+                path = deliver(publication, output, root, definition, ffprobe=settings.ffprobe_binary)
+                print(f"Entrega: {path}")
+                return 0
+            if publication.destination.exists() or publication.destination.is_symlink():
+                raise LongformError("Existing entrega was preserved; use --deliver-only or another episode")
         if args.renderer == 'native':
             historical_task = longform_task_path(definition.item.id, project_root=settings.data_root or PROJECT_ROOT)
             if historical_task.exists():
@@ -805,13 +843,17 @@ def main(argv: list[str] | None = None) -> int:
                     settings,
                     provider,
                     engine,
-                    output_path=longform_output_path(definition.item.id),
+                    output_path=(longform_output_path(definition.item.id, project_root=root)
+                                 if publication is not None else longform_output_path(definition.item.id)),
                     keep_workspace=args.keep_native_workspace,
                 ).render(definition, start_over=args.start_over)
                 print(f"Final DONE: {datetime.now(timezone.utc).isoformat()} {result.output.resolve()}")
             finally:
                 provider.close()
-    except (LongformError, RuntimeError, ValueError) as exc:
+            if publication is not None:
+                path = deliver(publication, result.output, root, definition, ffprobe=settings.ffprobe_binary)
+                print(f"Entrega: {path}")
+    except (RuntimeError, ValueError, OSError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
     finally:

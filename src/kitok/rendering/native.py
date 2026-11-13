@@ -14,6 +14,7 @@ from ..longform.models import TimelineClip
 from ..longform.timeline import build_timeline, build_semantic_timeline
 from ..editing.alignment import detect_pauses, read_word_alignment
 from ..editing.manifest import load_or_create_manifest, script_hash
+from ..editing.storyboard import file_hash
 from ..media.ffmpeg import FFmpegNativeEngine, write_render_manifest
 from ..media.ffprobe import probe_media, measured_video_duration
 from ..stock.selector import OutputGeometry
@@ -210,6 +211,7 @@ class NativeLongformRenderer(LongformRenderer):
             word_alignment = None
             edit_path = self.output_path.with_suffix(".edit.json")
             audio_fingerprint = hashlib.sha256(narration.read_bytes()).hexdigest()
+            alignment_path = Path(getattr(definition, "alignment_file", None) or narration.with_suffix(".alignment.json"))
             if getattr(definition, "editing_enabled", True):
                 if edit_path.exists() and start_over:
                     old_edit = json.loads(edit_path.read_text(encoding="utf-8"))
@@ -219,8 +221,7 @@ class NativeLongformRenderer(LongformRenderer):
                         shutil_copy = edit_path.read_bytes()
                         backup.write_bytes(shutil_copy)
                         edit_path.unlink()
-                alignment_path = getattr(definition, "alignment_file", None) or narration.with_suffix(".alignment.json")
-                word_alignment = read_word_alignment(Path(alignment_path))
+                word_alignment = read_word_alignment(alignment_path)
                 options = dict(
                     audio_sha256=audio_fingerprint,
                     style=getattr(definition, "editing_style", None),
@@ -401,9 +402,10 @@ class NativeLongformRenderer(LongformRenderer):
                     library.close()
             if visual_plan is not None and visual_sources(visual_plan, data_root, visual_root) != sources:
                 raise NativeRenderError('Visual inputs changed after validation; preserve the narration and review the images')
+            editorial_receipt = None
             if mounting_style == "documentary" or audio_is_final_mix or visual_plan is not None:
                 from ..editing.motion import render_motion_longform
-                info = render_motion_longform(
+                editorial_receipt = render_motion_longform(
                     clips, final_audio, narration_duration, self.output_path, workspace,
                     settings=self.settings, editing=editing,
                     style="investigation" if mounting_style == "documentary" else "basic",
@@ -415,7 +417,7 @@ class NativeLongformRenderer(LongformRenderer):
                     **({'workspace_id': f'{content_id}-{workspace.name}'} if self.confirmed_narration else {}),
                 )
             else:
-                info = self.engine.render(
+                self.engine.render(
                     clips,
                     narration,
                     narration_duration,
@@ -458,6 +460,7 @@ class NativeLongformRenderer(LongformRenderer):
                 "usage": "Illustrative stock; trimmed, cropped and edited for this video.",
             } for choice in selected}.values())
             manifest = self.output_path.with_suffix(".native.json")
+            output_hash = (editorial_receipt or {}).get("output_sha256") or file_hash(self.output_path)
             write_render_manifest(
                 manifest,
                 encoder=self.engine.encoder,
@@ -475,6 +478,9 @@ class NativeLongformRenderer(LongformRenderer):
                     "sfx_events": sfx_events,
                     "audio_is_final_mix": audio_is_final_mix,
                     "content_id": definition.item.id,
+                    "output_sha256": output_hash,
+                    "definition_sha256": definition.fingerprint() if hasattr(definition, "fingerprint") else None,
+                    "narration_alignment_sha256": file_hash(alignment_path) if alignment_path.is_file() else None,
                     "narration_duration": narration_duration,
                     "edit_manifest": str(edit_path) if editing else None,
                     "alignment": editing.alignment if editing else None,
@@ -532,6 +538,16 @@ class NativeLongformRenderer(LongformRenderer):
                 definition.item.id, self.name, total,
             )
             success = True
+            if not self.keep_workspace:
+                try:
+                    if editorial_receipt:
+                        from ..editing.production import discard_scene_cache
+                        discard_scene_cache(self.output_path, data_root, editorial_receipt)
+                    elif not uses_motion:
+                        protected = {narration, final_audio, *(clip.source for clip in clips)}
+                        FFmpegNativeEngine.discard_chunks(workspace, protected=protected)
+                except (OSError, RuntimeError) as error:
+                    log.warning("Final video verified; some render intermediates remain: %s", error)
             return RenderResult(
                 output=self.output_path,
                 renderer=self.name,

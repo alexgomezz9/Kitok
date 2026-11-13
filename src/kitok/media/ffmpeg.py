@@ -535,6 +535,18 @@ class FFmpegNativeEngine:
             raise FFmpegError(f"FFmpeg failed during {label}: {detail}")
         return result
 
+    @staticmethod
+    def discard_chunks(workspace: Path, *, protected=()) -> None:
+        """Remove only regenerable files after a completed render."""
+        if not workspace.is_dir() or workspace.resolve() != workspace.absolute():
+            return
+        for path in workspace.iterdir():
+            if path in protected or path.is_symlink() or not path.is_file():
+                continue
+            if (path.name in {'visual.mp4', 'chunks.ffconcat'}
+                    or re.fullmatch(r'chunk-[0-9]{4,}\.(?:mp4|filters|ass|sha256)', path.name)):
+                path.unlink()
+
     def render(
         self,
         clips: Sequence[TimelineClip],

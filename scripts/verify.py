@@ -84,6 +84,9 @@ def main(argv=None):
     mode.add_argument('--python-only', action='store_true', help='Run the Python suite only.')
     args = parser.parse_args(argv)
     env = dict(os.environ)
+    local_node = ROOT / '.tools' / 'node' / 'bin'
+    if all(shutil.which(tool, path=str(local_node)) for tool in ('node', 'npm')):
+        env['PATH'] = str(local_node) + os.pathsep + env.get('PATH', os.defpath)
     env['PYTHONPATH'] = str(ROOT / 'src')
     # Test subprocesses do not need the operator's exported provider credentials.
     for key in list(env):
@@ -97,7 +100,7 @@ def main(argv=None):
     python_step = ('Python tests (external network blocked by test fixtures)', PYTHON_TESTS)
     if args.python_only:
         return run_steps([python_step], run=run_check, env=env)
-    if not shutil.which('npm'):
+    if not all(shutil.which(tool, path=env.get('PATH')) for tool in ('node', 'npm')):
         print('npm is required. Install Node 22.12+ or 24.', file=sys.stderr)
         return 1
     steps = [

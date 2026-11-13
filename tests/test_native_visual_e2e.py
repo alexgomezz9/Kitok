@@ -16,7 +16,7 @@ from kitok.stock.models import StockAsset, StockVariant, SelectedStock
 
 
 @pytest.mark.parametrize('mode', ['photo', 'documentary', 'hybrid', 'case_only'])
-def test_native_visual_config_reaches_shared_ffmpeg_delivery(tmp_path, mode):
+def test_native_visual_config_reaches_shared_ffmpeg_delivery(tmp_path, mode, monkeypatch, capsys):
     if not shutil.which('ffmpeg'):
         pytest.skip('FFmpeg is required for the real media integration')
     def ffmpeg(*args):
@@ -26,7 +26,8 @@ def test_native_visual_config_reaches_shared_ffmpeg_delivery(tmp_path, mode):
     ffmpeg('-f','lavfi','-i','testsrc2=size=320x180:rate=30','-t','8','-c:v','libx264',
            '-preset','ultrafast','-pix_fmt','yuv420p',str(stock))
     ffmpeg('-f','lavfi','-i','sine=frequency=230:sample_rate=48000','-t','6',str(voice))
-    episode=tmp_path/'episode'; (episode/'images').mkdir(parents=True)
+    episode = tmp_path / 'content/longform/loose_thread/fixture'
+    (episode / 'images').mkdir(parents=True)
     Image.new('RGB',(350,500),'#aa9966').save(episode/'images'/'real.png')
     script='The city appears. This photograph documents the original story.'
     (episode/'script.txt').write_text(script)
@@ -54,7 +55,7 @@ def test_native_visual_config_reaches_shared_ffmpeg_delivery(tmp_path, mode):
             calls.append('fish-fixture')
         def synthesize(self,text,reference,output,**kwargs):
             shutil.copyfile(voice,output)
-            output.with_suffix('.alignment.json').write_text(json.dumps({'words':[
+            output.with_suffix('.alignment.json').write_text(json.dumps({'method': 'fish_provider_timestamps', 'words':[
                 {'word':word,'start':i*.6,'end':(i+1)*.6} for i,word in enumerate(script.split())]}))
         def close(self):
             pass
@@ -69,14 +70,16 @@ def test_native_visual_config_reaches_shared_ffmpeg_delivery(tmp_path, mode):
             return stock
     output=tmp_path/'outputs'/'longform'/'native_visual_test.mp4'
     engine=FFmpegNativeEngine(encoder=EncoderSettings('libx264','ultrafast'),spec=RenderSpec(width=320,height=180))
-    result=NativeLongformRenderer(settings,Stock(),engine,output_path=output,fish_factory=Fish).render(definition)
+    keep_workspace = mode == 'documentary'
+    result = NativeLongformRenderer(settings, Stock(), engine, output_path=output,
+                                    fish_factory=Fish, keep_workspace=keep_workspace).render(definition)
     assert result.output == output
     assert calls == (['fish-fixture'] if mode == 'case_only' else ['fish-fixture', 'stock-fixture'])
     clock=probe_video_clock(output)
     assert clock.frames==180 and clock.start_time==0
     manifest=json.loads(output.with_suffix('.native.json').read_text())
     if mode == 'photo':
-        assert manifest['visual_sources'][0]['path']=='episode/images/real.png'
+        assert manifest['visual_sources'][0]['path']==str((episode / 'images/real.png').relative_to(tmp_path))
     receipt=json.loads(output.with_suffix('.editorial.json').read_text())
     if mode != 'documentary':
         assert any((scene.get('asset') or '').startswith('visual_') for scene in receipt['scenes'])
@@ -90,10 +93,83 @@ def test_native_visual_config_reaches_shared_ffmpeg_delivery(tmp_path, mode):
         case_scene = next(scene for scene in plan['scenes'] if scene['asset'] == 'visual_0')
         assert case_scene['source_start'] == pytest.approx(.5)
         assert case_scene['camera']['preset'] == 'static' and case_scene['image_fit'] == 'contain'
-        assert manifest['visual_sources'][0]['path'] == 'episode/case.mp4'
+        assert manifest['visual_sources'][0]['path'] == str((episode / 'case.mp4').relative_to(tmp_path))
         assert bool(manifest['stock_sources']) is (mode == 'hybrid')
         if mode == 'hybrid':
             assert plan['alignment']['visual_cues'][0]['timing'] == 'provider-phrase-anchor'
             assert manifest['visual_sources'][0]['license'] == 'Fixture license'
             assert 'Fixture credit' in output.with_suffix('.credits.md').read_text()
+    work = output.parent / '.native-work' / definition.item.id
+    assert (work / 'narration.mp3').is_file()
+    assert (work / 'narration.alignment.json').is_file()
+    assert (work / 'motion-plan.json').is_file()
+    assert (tmp_path / receipt['validation_report']).is_file()
+    editorial_work = output.parent / '.editorial-work' / receipt['episode_id']
+    assert bool(list(editorial_work.glob('shot_*.mp4'))) is keep_workspace
+    if not keep_workspace:
+        assert set(path.name for path in editorial_work.iterdir()) == {
+            'render.lock', Path(receipt['validation_report']).name,
+        }
     ffmpeg('-xerror','-i',str(output),'-f','null','-')
+
+
+    if mode != 'hybrid':
+        return
+    from kitok.longform import cli
+    from kitok.youtube_stickman_es.audio import read_srt
+
+    def no_provider(*args, **kwargs):
+        pytest.fail('An existing render must never reach the stock provider')
+
+    monkeypatch.setattr(cli, 'Settings', lambda: settings)
+    monkeypatch.setattr(cli, 'load_longform_config', lambda path: load_longform_config(path, project_root=tmp_path))
+    monkeypatch.setattr('kitok.providers.pexels.PexelsProvider', no_provider)
+    argv = [str(episode / 'config.json')]
+    target = episode / 'entrega'
+    assert cli.main([*argv, '--deliver-only']) == 1
+    assert 'publicacion_youtube.json' in capsys.readouterr().err
+    assert not target.exists()
+
+    (episode / 'editorial').mkdir()
+    (episode / 'miniaturas').mkdir()
+    thumb = episode / 'miniaturas/miniatura_final.png'
+    Image.new('RGB', (1280, 720), '#123456').save(thumb)
+    publication = {
+        'title': 'Fixture title',
+        'description': 'Fixture description',
+        'tags': ['city', 'source footage'],
+        'settings': {'language': 'English', 'category': 'Education', 'made_for_kids': False,
+                     'altered_content': False},
+    }
+    metadata = episode / 'editorial/publicacion_youtube.json'
+    metadata.write_text(json.dumps(publication))
+    supplied = episode / 'voz.srt'
+    supplied.write_text('1\n00:00:00,000 --> 00:00:01,000\nWrong text\n')
+    assert cli.main([*argv, '--deliver']) == 1
+    assert 'transcript must match' in capsys.readouterr().err
+    assert not target.exists()
+    supplied.unlink()
+
+    assert cli.main([*argv, '--deliver']) == 0
+    assert (target / 'video_final.mp4').samefile(output)
+    assert (target / 'miniatura.png').read_bytes() == thumb.read_bytes()
+    assert (target / 'titulo.txt').read_text() == 'Fixture title\n'
+    assert (target / 'descripcion.txt').read_text() == 'Fixture description\n'
+    assert (target / 'etiquetas.txt').read_text() == 'city, source footage\n'
+    assert 'English' in (target / 'ajustes_youtube.txt').read_text()
+    cues = read_srt(target / 'voz.srt')
+    assert cues[0]['start'] == 0 and cues[-1]['end'] == pytest.approx(5.4)
+    assert ' '.join(cue['text'] for cue in cues) == script
+    assert cli.main([*argv, '--deliver-only']) == 0
+
+    publication['title'] = 'A different title'
+    metadata.write_text(json.dumps(publication))
+    assert cli.main([*argv, '--deliver-only']) == 1
+    assert 'Existing entrega was preserved' in capsys.readouterr().err
+    assert (target / 'titulo.txt').read_text() == 'Fixture title\n'
+    assert not list(episode.glob('.entrega-*'))
+    capsys.readouterr()
+    config['voice_rate'] = 1.04
+    (episode / 'config.json').write_text(json.dumps(config))
+    assert cli.main([*argv, '--deliver-only']) == 1
+    assert 'different montage or narration settings' in capsys.readouterr().err

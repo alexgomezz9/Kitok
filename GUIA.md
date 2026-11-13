@@ -324,28 +324,76 @@ Para enviar, el frontend permite confirmar un vídeo. El comando siguiente proce
 
 ## Usar vídeo largo desde el backend / terminal
 
-Puedes reutilizar el JSON que crea el frontend. En los detalles del borrador verás sus rutas y el comando. No ejecutes el mismo trabajo simultáneamente en la interfaz y la terminal.
+El agente prepara el episodio dentro de `content/longform/<canal>/<episodio>`.
+Usa `loose_thread` para los documentales en inglés y `trazo_maldito`
+para episodios nuevos de Stickman. Los episodios históricos conservan sus rutas.
 
-Si preparas los archivos a mano, guarda el guion en content/longform/mi_video.txt y un JSON en content/longform/mi_video.json con este contenido:
+Un ejemplo de configuración Native dentro de un episodio es el siguiente.
 
 ```json
 {
-  "id": "mi_largo_001",
-  "subject": "Mi documental",
-  "script_file": "content/longform/mi_video.txt",
-  "keywords": ["city", "science"],
-  "music_enabled": false
+  "id": "loose_thread_ejemplo",
+  "subject": "The Night the Railway Closed",
+  "script_file": "content/longform/loose_thread/ejemplo/guion_final.txt",
+  "keywords": ["train station at night", "empty railway platform"],
+  "music_mode": "off",
+  "visual_plan": {
+    "visual_cues": [
+      {
+        "asset": "images/notice.png",
+        "anchor": {"phrase": "the last train left at midnight"},
+        "duration": 3.8,
+        "usage": "document"
+      }
+    ]
+  }
 }
 ```
 
-script_file se resuelve desde la raíz del repositorio. El guion debe acabar con puntuación. Primero comprueba, después genera:
+`asset` se resuelve desde la carpeta del JSON salvo que configures `visual_root`.
+`script_file` se resuelve desde la raíz de Kitok. Al pronunciarse esa frase
+del guion, Kitok usa los tiempos de Fish para colocar el archivo. Si la
+alineación visual se estima, el recibo lo señala. Para un MP4 indica `duration`
+y, cuando corresponda, `source_start`. Kitok anima fotos y completa los huecos
+con clips de Pexels elegidos por el sentido de cada tramo.
+[Contrato de montaje](docs/editing.md#json-parcial-sobre-montaje-automático)
+
+### Entrega para YouTube Studio
+
+Antes de producir, guarda `miniaturas/miniatura_final.png` y
+`editorial/publicacion_youtube.json` dentro del episodio. El archivo JSON
+usa `title`, `description` y `tags` (lista). En `settings` indica
+`language` y `category` como texto y `made_for_kids` y
+`altered_content` como booleanos. `notes` admite instrucciones de
+Studio específicas del episodio. Escribe los capítulos verificados y los
+créditos de archivo aplicables en la descripción. Kitok incorpora el crédito
+obligatorio de la música de su catálogo cuando se usa.
 
 ```bash
-.venv/bin/python longform.py content/longform/mi_video.json --renderer native --dry-run
-.venv/bin/python longform.py content/longform/mi_video.json --renderer native
+CONFIG=content/longform/loose_thread/ejemplo/configuracion.json
+.venv/bin/python longform.py "$CONFIG" --deliver --dry-run
+.venv/bin/python longform.py "$CONFIG" --deliver
 ```
 
-El dry-run largo valida el guion y los requisitos locales sin llamadas de red, bloqueos ni escrituras. Devuelve un error si falta alguna herramienta o clave requerida.
+El agente ejecuta estos comandos. El segundo produce con Native o empaqueta
+el MP4 confirmado si ya existe. Para empaquetar sólo un render existente,
+usa `--deliver-only`, que trabaja localmente y no llama a Fish ni Pexels.
+La subcarpeta `entrega/` contiene `video_final.mp4`, `miniatura.png`,
+`titulo.txt`, `descripcion.txt`, `etiquetas.txt`, `voz.srt` y
+`ajustes_youtube.txt`. La descarga completa es la carpeta de ese episodio.
+Kitok usa un enlace físico al MP4 si están en el mismo sistema de archivos.
+
+El SRT sale de la alineación real de Fish si coincide con el guion. Si falta,
+el agente puede aportar `voz.srt` alineado dentro del episodio y cerrar
+la entrega sin volver a renderizar. Para un render básico anterior sin recibo
+con huella, conserva el vídeo existente y comprueba su procedencia antes
+de usarlo en una entrega manual.
+
+En `outputs/longform/` quedan los recibos técnicos. La voz pagada, la
+alineación y los planes se conservan para recuperar el trabajo. Los clips
+de escena y chunks regenerables se retiran tras cerrar el render correctamente.
+Con `--keep-native-workspace` se conservan para depuración. Ante un fallo
+Kitok mantiene el diagnóstico y los materiales de reintento.
 
 Omitir --renderer selecciona native. Para recuperar una tarea MPT **ya enviada**,
 se conserva únicamente este recorrido histórico, que requiere su API:

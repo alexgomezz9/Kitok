@@ -184,11 +184,13 @@ muestra hasta 80 puntos distribuidos: en planes mayores es una muestra declarada
 no la inspección de todos los planos. No acredita por sí sola sincronía semántica,
 legibilidad, derechos ni buen ritmo; revisa esos aspectos visualmente.
 
-Los planos se almacenan en `.editorial-work/EPISODIO/` con huellas de recursos,
-estilo y filtros. Corregir una escena invalida sólo su render; el ensamblado final
-se repite. No borres esa carpeta ni el audio para corregir un rótulo. Los render
-secuenciales usan NVENC cuando la comprobación real funciona y libx264 como
-alternativa; no necesitan modelos de vídeo ni descargas CUDA.
+Los planes editoriales directos conservan sus escenas en `.editorial-work/EPISODIO/`
+para reutilizar planos al corregir el montaje. Native descarta sus planos y chunks
+regenerables cuando ya guardó el vídeo, los créditos y la validación final.
+Conserva las fuentes, la narración, la alineación y el plan resuelto.
+Usa `--keep-native-workspace` si necesitas los planos de un largo correcto.
+Tras un fallo se conservan los auxiliares para recuperación. El motor usa NVENC
+si la comprobación funciona y libx264 como alternativa.
 
 La integración del estudio ofrece reproducción A/B y render explícito del plan
 local. No hay editor visual de timeline. El modo documental automático de largos

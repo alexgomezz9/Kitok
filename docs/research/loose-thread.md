@@ -56,16 +56,16 @@ nueva y comprueba el ritmo en la apertura real. [Licencia Pexels](https://www.pe
    entra en el tiempo de esa frase según el reloj Fish. El agente escribe el JSON
    y Kitok calcula segundos y cortes. Ajusta `occurrence` si la frase se repite.
    [Contrato](../editing.md#json-parcial-sobre-montaje-automático)
-3. Ejecuta la validación local y revisa si existe una narración compatible.
-   Para un largo nuevo usa `.venv/bin/python longform.py CONFIG --dry-run` y luego
-   el mismo comando sin `--dry-run` cuando el encargo incluya producir.
-   Para reusar una voz del estudio sigue la auditoría documentada. El agente
-   puede usar la API local cuando haga falta ese recorrido.
-   [Guía de operación](../../GUIA.md)
-4. Comprueba el MP4, la entrada y salida de cada prueba visual y la narración.
-   Los créditos acompañan a la entrega. Conserva un estado breve con el siguiente
-   paso y referencias. Elimina capturas de QA, descargas duplicadas y archivos de
-   montaje de prueba que ya no hagan falta.
+3. Guarda los episodios en `content/longform/loose_thread/<episodio>`.
+   Prepara los campos de Studio y la miniatura final. Valida con
+   `longform.py CONFIG --deliver --dry-run`. Cuando toque producir, ejecuta
+   `--deliver` y reutiliza voz, alineación y montaje confirmado. Con un MP4
+   validado, `--deliver-only` sólo empaqueta los archivos.
+   [Guía de operación](../../GUIA.md#entrega-para-youtube-studio)
+4. Comprueba la apertura y los insertos que demuestran un giro. Atiende los
+   avisos técnicos y revisa créditos y ajustes de Studio. Kitok monta el stock,
+   mezcla la voz y prepara la carpeta `entrega/`. Conserva un estado breve
+   con el siguiente paso y retira capturas de QA y descargas duplicadas.
 
 ## Consultar datos sin copiar archivos de petición
 

@@ -12,7 +12,7 @@ Ejecuta desde la raíz el lector compacto, sin proveedores ni escrituras:
 ```bash
 .venv/bin/python .agents/skills/kitok-youtube/scripts/context.py
 # Para continuar un episodio concreto:
-.venv/bin/python .agents/skills/kitok-youtube/scripts/context.py --episode content/longform/stickman_video1
+.venv/bin/python .agents/skills/kitok-youtube/scripts/context.py --episode content/longform/trazo_maldito/stickman_video1
 ```
 
 Lee el [perfil del canal](../../../presets/youtube_historia_stickman_es.json). Antes de ideas o «siguiente», consulta el archivo local señalado por `workflow.idea_registry`; no produzcas temas reservados para después. Aplica `workflow.run_efficiency` e `images.review_scope` del perfil vigente. Consulta sólo la fase necesaria de la [guía editorial](../../../docs/youtube-editorial.md) y las investigaciones allí enlazadas. No vuelvas a pedir preferencias o recursos que ya estén registrados. El perfil no acredita propiedad de un canal ni permisos de publicación.
@@ -156,6 +156,8 @@ organización constituye una limpieza automática ni que un QA técnico pasó el
 
 Reutiliza voz, alineación e imágenes existentes. Usa el CLI y motor actuales de Kitok, consultando su ayuda real; esta skill no implementa un servicio ImageGen en Python. El agente invoca la herramienta y Kitok conserva/importa archivos. Consulta la guía para requisitos de láminas, recibos y medición. No certifiques un lote a partir de unas muestras ni repitas solicitudes de resultado incierto.
 
-Persiste el estado editorial local en `content/longform/<episodio>/editorial/estado.json` con fase, decisiones/aprobaciones reales y su procedencia, artefactos, dudas y siguiente acción exacta. No modifiques los recibos técnicos para simular aprobación. Usa las autorizaciones vigentes; generar recursos nuevos, cambiar un tema aprobado o publicar no se deduce de guardar este estado.
+Persiste el estado editorial local en `content/longform/trazo_maldito/<episodio>/editorial/estado.json` con fase, decisiones/aprobaciones reales y su procedencia, artefactos, dudas y siguiente acción exacta. No modifiques los recibos técnicos para simular aprobación. Usa las autorizaciones vigentes; generar recursos nuevos, cambiar un tema aprobado o publicar no se deduce de guardar este estado.
 
 Al entregar registra qué se generó, revisó y escuchó realmente. Una muestra técnica no acredita un episodio completo. Deja un siguiente paso breve y concreto; no obligues al usuario a reconstruir el contexto o copiar mensajes entre chats.
+
+Usa el [índice de investigación Stickman](../../../docs/research/stickman.md) para decisiones que sirvan a otros episodios. Conserva las rutas de los episodios históricos.

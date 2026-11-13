@@ -475,6 +475,32 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
         return result
 
 
+def discard_scene_cache(output: Path, root: Path, receipt: dict) -> None:
+    """Release Native's completed scene cache under the editorial render lock."""
+    work_root = output.parent.absolute() / '.editorial-work'
+    workspace = work_root / receipt['episode_id']
+    if (workspace.parent != work_root or not workspace.is_dir()
+            or workspace.resolve() != workspace):
+        return
+    protected = {
+        (root / receipt['audio_source']).resolve(), (root / receipt['validation_report']).resolve(),
+        *((root / asset['path']).resolve() for asset in receipt['assets'].values()),
+    }
+    suffixes = ('.mp4', '.handle.mp4', '.composition.mp4', '.png', '.source.png',
+                '.ass', '.motion.ass', '.json', '.validation.json', '.handle.validation.json')
+    files = [workspace / (scene['id'] + suffix)
+             for scene in receipt['scenes'] for suffix in suffixes]
+    files.extend(workspace / name for name in ('assembled.mp4', 'scenes.ffconcat'))
+    with _plan_lock(workspace):
+        for path in files:
+            if path.parent == workspace and path not in protected and not path.is_symlink() and path.is_file():
+                path.unlink()
+        assembly = workspace / 'assembly'
+        FFmpegNativeEngine.discard_chunks(assembly, protected=protected)
+        if assembly.is_dir() and not assembly.is_symlink() and not any(assembly.iterdir()):
+            assembly.rmdir()
+
+
 def _publish_new(pending: Path, output: Path, manifest: Path, result: dict):
     """Exclusive promotion across independent episode locks, preserving racing files."""
     fd, name = tempfile.mkstemp(prefix='.editorial-receipt-', dir=output.parent)

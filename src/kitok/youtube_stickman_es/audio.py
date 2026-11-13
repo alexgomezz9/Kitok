@@ -212,6 +212,11 @@ def _provider_segments(path: Path, script: str, duration: float) -> list[dict]:
         ) from None
 
 
+def aligned_srt(alignment: Path, script: str, duration: float) -> str:
+    """Use complete Fish timestamps to produce an uploadable subtitle file."""
+    return format_srt(_provider_cues(alignment, script, duration))
+
+
 def _provider_cues(path: Path, script: str, duration: float) -> list[dict]:
     try:
         segments = _provider_segments(path, script, duration)

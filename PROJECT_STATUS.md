@@ -1,7 +1,7 @@
 # Estado vigente de Kitok
 
-Actualizado el **13/11/2026**. El checkout de producción local está en
-`/home/prueba/projects/Kitok` (Ubuntu WSL). La integración local usa `main`.
+Actualizado el **13/11/2026**. El checkout de producción local está en Ubuntu WSL.
+La integración local usa `main`.
 Consulta [GUIA.md](GUIA.md) y el diff vigente.
 
 ## Loose Thread
@@ -11,17 +11,15 @@ El agente investiga, escribe, descarga medios verificados y coloca los momentos
 de archivo en el JSON parcial. Native valida las anclas, sincroniza con la
 narración, anima fotos, conserva el encuadre de clips y monta stock en huecos.
 Conserva fuentes, créditos y el reloj de cada inserto. Omite consultas de stock
-para tramos cubiertos. [Contrato de montaje](docs/editing.md).
+para tramos cubiertos. Al cerrar un largo correcto retira planos y chunks
+regenerables, y guarda voz y recibos. El fallo conserva el diagnóstico.
+[Contrato de montaje](docs/editing.md).
 
-El borrador de Black Friday vive en `content/longform/loose_thread_black_friday`.
-Incluye investigación, apertura en inglés, dos medios originales y un JSON
-aceptado por `longform.py --dry-run`. El comunicado queda estático y resalta
-su línea relevante. El retrato lleva un acercamiento suave. Una foto de Pexels
-pasó el mismo CLI como ilustración en un ensayo temporal. El siguiente paso es
-ampliar el guion, diseñar la miniatura y comprobar el archivo de los siguientes
-giros para Native.
-Reutiliza narración cuando coincidan guion, voz y velocidad. Revisa la apertura
-antes de producir el resto.
+La entrega de largos Native se genera desde el CLI en
+`content/longform/<canal>/<episodio>/entrega`. Incluye MP4, miniatura,
+subtítulos con reloj real y campos para subir manualmente desde Studio.
+Los nuevos episodios se agrupan por canal. Las rutas históricas se conservan.
+[Guía de entrega](GUIA.md#entrega-para-youtube-studio)
 
 La muestra de UltimateBet dura 12,9 s y tiene 387 fotogramas. Combina dos
 tramos de stock con una foto de Russ Hamilton animada a los 5,6 s según la

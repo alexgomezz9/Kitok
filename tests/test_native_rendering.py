@@ -422,6 +422,8 @@ def test_native_renderer_isolated_flow_reuses_fish_and_preserves_tags(
             assert narration_duration == 65
             assert kwargs["music"] is None
             output.parent.mkdir(parents=True, exist_ok=True)
+            (workspace / "chunk-0000.mp4").write_bytes(b"temporary")
+            (workspace / "operator-notes.txt").write_text("preserve")
             output.write_bytes(b"final")
             return MediaInfo(66.25, 1920, 1080, 30, "h264", "aac", "yuv420p", 1_000_000, 5)
 
@@ -535,7 +537,11 @@ def test_native_renderer_isolated_flow_reuses_fish_and_preserves_tags(
     assert 'Illustrative stock' in credits
     assert manifest["content_id"] == "native_test"
     assert manifest["narration_duration"] == 65
-    assert not list((destination.parent / ".native-work").glob("native_test-*"))
+    workspace = destination.parent / ".native-work" / item.id
+    assert (workspace / "narration.mp3").read_bytes() == b"audio"
+    assert not list(workspace.glob("chunk-*.mp4"))
+    if not motion_calls:
+        assert (workspace / "operator-notes.txt").read_text() == "preserve"
     assert "Native render start content_id=native_test renderer=native" in caplog.text
     assert "Fish start content_id=native_test" in caplog.text
     assert "Fish end elapsed=" in caplog.text
@@ -572,7 +578,8 @@ def test_native_renderer_failure_does_not_require_output_callback(tmp_path):
         def __init__(self, *args, **kwargs):
             pass
 
-        def synthesize(self, *args, **kwargs):
+        def synthesize(self, text, reference_id, destination, **kwargs):
+            (destination.parent / "chunk-0000.mp4").write_bytes(b"diagnostic fixture")
             raise RuntimeError("synthetic Fish failure")
 
         def close(self):
@@ -602,6 +609,7 @@ def test_native_renderer_failure_does_not_require_output_callback(tmp_path):
 
     with pytest.raises(RuntimeError, match="synthetic Fish failure"):
         renderer.render(definition)
+    assert (tmp_path / ".native-work" / item.id / "chunk-0000.mp4").is_file()
 
 
 def test_native_preflight_failure_happens_before_fish_and_creates_no_output(tmp_path):
