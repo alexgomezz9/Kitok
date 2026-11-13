@@ -12,7 +12,7 @@ import time
 from uuid import uuid4
 
 from ..longform.models import TimelineClip, TimelineSlot
-from ..media.ffmpeg import FFmpegNativeEngine, RenderSpec, choose_encoder, encoder_arguments
+from ..media.ffmpeg import FFmpegNativeEngine, RenderSpec, choose_encoder, encoder_arguments, mp4_movie_timescale
 from ..media.ffprobe import probe_media, stream_durations, measured_video_duration, probe_video_clock
 from ..state import write_json_atomic
 from .ass import filter_path
@@ -20,7 +20,7 @@ from .graphics import render_graphic
 from .storyboard import EditorialPlan, file_hash, project_file
 from .camera import IMAGE_EXTENSIONS, CameraMotion, camera_filters, image_plate
 
-RENDER_VERSION = 5
+RENDER_VERSION = 6
 MOVING_TRANSITIONS = {'dissolve', 'wipe', 'slide', 'fade_black', 'focus'}
 
 
@@ -184,6 +184,7 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
     encoder = choose_encoder(settings.ffmpeg_binary, requested=encoder_name, nvenc_preset="p5")
     spec = RenderSpec(width=plan.width, height=plan.height, fps=plan.fps,
                       fade_in=0, fade_out=0, chunk_size=4)
+    movie_clock = ["-movie_timescale", mp4_movie_timescale(plan.fps)]
     rendered, reused, clips, handles, transition_decisions = [], [], [], [], []
     with _plan_lock(workspace):
         for index, scene in enumerate(plan.scenes):
@@ -340,12 +341,12 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
                              f'[continuation]trim=start_frame={frames}:end_frame={render_frames},setpts=PTS-STARTPTS[h]')
                     command += ['-filter_complex_threads','1','-filter_complex',graph,
                                 '-map','[v]','-an','-frames:v',str(frames),*encoder_arguments(encoder),
-                                '-pix_fmt','yuv420p','-threads','2',str(temp),
+                                '-pix_fmt','yuv420p','-threads','2',*movie_clock,str(temp),
                                 '-map','[h]','-an','-frames:v',str(handle_frames),*encoder_arguments(encoder),
-                                '-pix_fmt','yuv420p','-threads','2',str(handle)]
+                                '-pix_fmt','yuv420p','-threads','2',*movie_clock,str(handle)]
                 else:
                     command += ["-an","-frames:v",str(frames),"-vf",",".join(filters),
-                                "-filter_threads","1",*encoder_arguments(encoder),"-pix_fmt","yuv420p","-threads","2",str(temp)]
+                                "-filter_threads","1",*encoder_arguments(encoder),"-pix_fmt","yuv420p","-threads","2",*movie_clock,str(temp)]
                 _run(command)
                 if handle is not None:
                     _require_clock(handle, handle_frames, plan.fps,
@@ -370,7 +371,7 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
                           # stream summary still reports its first frame only.
                           f'[0:v]format=yuv420p,setpts=PTS-STARTPTS,settb=AVTB[a];[1:v]format=yuv420p,setpts=PTS-STARTPTS,settb=AVTB[b];[a][b]xfade=transition={mode}:duration={blend:.9f}:offset=0{focus},format=yuv420p[v]',
                           '-map','[v]','-an','-frames:v',str(frames),*encoder_arguments(encoder),
-                          '-pix_fmt','yuv420p','-threads','2',str(transitioned)])
+                          '-pix_fmt','yuv420p','-threads','2',*movie_clock,str(transitioned)])
                     transitioned.replace(temp)
                 info = probe_media(temp,settings.ffprobe_binary)
                 _require_clock(temp, frames, plan.fps, workspace / f"{scene.id}.validation.json",
@@ -408,7 +409,7 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
                 lines.append(f"file '{escaped}'")
             concat_file.write_text('\n'.join(lines)+'\n',encoding='utf-8')
             _run([settings.ffmpeg_binary,'-nostdin','-v','error','-y','-f','concat','-safe','0',
-                  '-i',str(concat_file),'-map','0:v:0','-c:v','copy','-an',str(assembled)])
+                  '-i',str(concat_file),'-map','0:v:0','-c:v','copy','-an',*movie_clock,str(assembled)])
         else:
             engine.render(clips,audio,plan.duration,assembled,workspace/"assembly",
                           music=None,music_volume=0,loudness_target=-16,lra_target=20,true_peak_target=-1.5)
@@ -425,7 +426,7 @@ def render_editorial_plan(plan: EditorialPlan, *, root: Path, output: Path, sett
                               ["-c:a","aac","-b:a","192k"])
             _run([settings.ffmpeg_binary,"-nostdin","-v","error","-y","-i",str(assembled),
                   *seek,"-i",str(audio),"-map","0:v:0","-map","1:a:0",
-                  "-t",str(plan.duration),"-c:v","copy",*audio_encoding,"-movflags","+faststart",str(pending)])
+                  "-t",str(plan.duration),"-c:v","copy",*audio_encoding,*movie_clock,"-movflags","+faststart",str(pending)])
         else:
             if plan.audio_offset:
                 raise ValueError("An unmixed narration plan currently requires audio_offset=0")

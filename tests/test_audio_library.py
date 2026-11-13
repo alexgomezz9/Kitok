@@ -404,19 +404,23 @@ def test_real_sidechain_reduces_music_during_voice(audio_library, tmp_path):
     subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-f", "lavfi", "-i",
         "aevalsrc=0.12*sin(2*PI*180*t)*if(between(t\\,2\\,3)\\,0\\,1):s=48000:d=6",
         "-c:a", "pcm_s16le", str(narration)], check=True, capture_output=True)
-    chain = library._mix_filter(6, 1.5, 1).rsplit(";", 1)[0]
-    # Keep the production compressor and discard only the final voice/bed sum.
-    chain += ";[voice]anullsink;[bedfaded]anull[mixed]"
+    graph = library._mix_filter(6, 1.5, 1)
+    # Observe the ducked bed while the production mix still consumes both
+    # inputs. Terminating the voice at anullsink can stop the FFmpeg 8 graph early.
+    bed, mix = graph.rsplit(";", 1)
+    chain = bed.removesuffix("[bedfaded]") + "[bedout];[bedout]asplit=2[bedfaded][measure];" + mix
     output = tmp_path / "ducked-bed.wav"
     library._run(["ffmpeg", "-nostdin", "-v", "error", "-i", str(narration),
         "-i", str(library.cache / "long_note_two/music.mp3"), "-filter_complex", chain,
-        "-map", "[mixed]", "-c:a", "pcm_s16le", str(output)], "ducking fixture")
+        "-map", "[mixed]", "-f", "null", "-", "-map", "[measure]", "-c:a", "pcm_s16le",
+        str(output)], "ducking fixture")
     with wave.open(str(output)) as source:
         rate, channels = source.getframerate(), source.getnchannels()
         samples = struct.unpack("<" + "h" * source.getnframes() * channels, source.readframes(source.getnframes()))
     def rms(start, end):
         segment = samples[round(start * rate * channels):round(end * rate * channels)]
         return math.sqrt(sum(value * value for value in segment) / len(segment))
+    assert len(samples) == 6 * rate * channels
     assert rms(2.7, 2.95) > rms(1.2, 1.6) * 1.5
 
 

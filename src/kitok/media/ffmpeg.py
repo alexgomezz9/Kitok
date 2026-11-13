@@ -214,6 +214,12 @@ def encoder_arguments(settings: EncoderSettings) -> list[str]:
     return ["-c:v", "libx264", "-preset", settings.preset, "-crf", str(settings.cq)]
 
 
+def mp4_movie_timescale(fps: int) -> str:
+    # The default 1 kHz movie clock rounds B-frame edit-list boundaries.
+    # A multiple of fps represents every frame boundary exactly.
+    return str(fps * 3000)
+
+
 def build_chunk_command(
     clips: Sequence[TimelineClip],
     destination: Path,
@@ -272,6 +278,7 @@ def build_chunk_command(
         "-r", str(spec.fps),
         "-g", str(spec.fps * 2),
         "-video_track_timescale", "90000",
+        "-movie_timescale", mp4_movie_timescale(spec.fps),
         "-movflags", "+faststart",
         str(destination),
     ]
@@ -293,6 +300,7 @@ def build_audio_mux_command(
     true_peak_target: float,
     loudnorm_measurement: LoudnormMeasurement | None = None,
     loudnorm_print: bool = False,
+    fps: int = 30,
 ) -> tuple[list[str], str]:
     final_duration = narration_duration + fade_out
     command = [
@@ -343,6 +351,7 @@ def build_audio_mux_command(
         "-c:v", "copy", "-c:a", "aac", "-b:a", FINAL_AUDIO_BITRATE,
         "-ar", str(FINAL_AUDIO_SAMPLE_RATE), "-ac", "2",
         "-t", f"{final_duration:.6f}",
+        "-movie_timescale", mp4_movie_timescale(fps),
         "-movflags", "+faststart", str(temporary),
     ]
     return command, filters
@@ -651,7 +660,8 @@ class FFmpegNativeEngine:
                 [
                     self.ffmpeg, "-nostdin", "-v", "error", "-y",
                     "-f", "concat", "-safe", "0", "-i", str(concat_file),
-                    "-map", "0:v:0", "-c:v", "copy", "-an", str(visual),
+                    "-map", "0:v:0", "-c:v", "copy", "-an",
+                    "-movie_timescale", mp4_movie_timescale(self.spec.fps), str(visual),
                 ],
                 "chunk concat (stream copy)",
             )
@@ -704,6 +714,7 @@ class FFmpegNativeEngine:
             lra_target=lra_target,
             true_peak_target=true_peak_target,
             loudnorm_measurement=measurement,
+            fps=self.spec.fps,
         )
         try:
             self._run_progress(
