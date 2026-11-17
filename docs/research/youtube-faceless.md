@@ -22,6 +22,78 @@ estudiar la promesa y la estructura con métricas públicas.
 | [VAUX, 11/11/2026](https://www.youtube.com/watch?v=ChlkHIJ4ASA) | Abre Fortaleza con una bóveda aparentemente intacta. A 00:52 describe el agujero y a 1:53 introduce la tierra y la actividad de jardinería. Alrededor de 13.300 vistas en seis días al consultar. | El arranque plantea una anomalía y después explica el mecanismo. Las vistas públicas dejan sin medir el efecto de la apertura. |
 | [Lume, 16/12/2025](https://www.youtube.com/watch?v=3kY4Oo5Bmrs) | Abre Fortaleza con una furgoneta en la supuesta empresa y pasa de la escena normal al túnel y el dinero. Alrededor de 1,85 millones de vistas al consultar. | A 20:54 habla de billetes de 100 reales seriados. El expediente documenta el robo de billetes usados de 50 y que dejaron los seriados. Contrasta hechos y usa las referencias para estudiar cómo narran. [Tribunal, p. 5 y 44](https://www4.trf5.jus.br/data/2008/10/200581000145860_20081022.pdf) |
 
+## Conseguir las primeras recomendaciones
+
+El 17/11/2026 se revisaron los subtítulos de otros once vídeos, correspondientes
+a las capturas sobre alcance. El enlace abre el tramo que sustenta el hallazgo.
+Los datos que cuenta cada creador describen sus casos. Un relato de mejora,
+incluso con una gráfica, no aísla el motivo de la recomendación.
+
+| Fuente | Qué probar o verificar |
+| --- | --- |
+| [Edu Serrano, primeros recomendados, 11/11/2026](https://www.youtube.com/watch?v=uR-IFp1cXkw&t=276s) | A 4:36 compara vídeos de canales pequeños para encontrar combinaciones de tema y formato. A 11:18 plantea que el segundo y el tercero interesen a quien vio el primero. Usa ambas ideas para elegir una secuencia, con ejemplos de rendimiento ordinario además de los éxitos. |
+| [Pol Tenas, cuando falta recomendación, 20/10/2026](https://www.youtube.com/watch?v=zNOitr2pPGM&t=39s) | A 0:39 usa «Canales que ve tu audiencia». A 3:55 mira qué vídeos ya envían tráfico desde Sugeridos y propone un complemento. Sirve al tener datos. Para arrancar con una muestra escasa, busca vecinos públicos concretos como hipótesis. |
+| [Pol Tenas, desde cero, 29/09/2026](https://www.youtube.com/watch?v=RzarYgsLcYQ&t=209s) | A 3:29 busca temas que consiguen audiencia en canales pequeños. Conviene comparar largos de edad y duración similares y el rendimiento habitual del canal. Los suscriptores de hoy y las vistas acumuladas dan contexto, pero dejan sin observar el origen del tráfico. |
+| [Edu Serrano, antes de publicar, 15/09/2026](https://www.youtube.com/watch?v=3n1dJqUB8ek&t=67s) | A 1:07 deja margen para procesar y revisar. A 2:47 aclara que publicar directamente no acarrea un castigo. Usa privado u oculto para revisar el vídeo, el audio y los detalles antes de abrirlo al público. |
+| [Pol Tenas, caída de recomendaciones, 26/08/2026](https://www.youtube.com/watch?v=nLoVkP7H94U&t=226s) | A 3:46 abre la curva de Exploración desde la publicación. Útil para detectar un corte tras un periodo con alcance. Evalúa aparte un canal que apenas ha tenido primeras impresiones. |
+| [Clara Carmona, volver a conseguir alcance, 07/08/2026](https://www.youtube.com/watch?v=HdBa3rN_J78&t=559s) | A 9:19 valida el enfoque con vídeos comparables. En su caso de adiestramiento el público reconoce un síntoma (ladra al quedarse solo) antes que el término técnico. Buena forma de elegir el ángulo. Su relato no muestra resultados de ese episodio. |
+| [Edu Serrano, publicación en 2026, 04/07/2026](https://www.youtube.com/watch?v=THH3K7X3hSE&t=750s) | A 12:30 atribuye valor algorítmico a dejarlo oculto. La versión de septiembre lo presenta como revisión y la ayuda oficial explica que importa la respuesta después de hacerlo público. A 8:00–11:06 sí propone cómo enlazar vídeos afines con listas y pantallas finales. |
+| [Duodedos, auditoría de títulos y miniaturas, 19/06/2026](https://www.youtube.com/watch?v=zOJEuQ9hl-Y&t=36s) | A 0:36 transforma una referencia para fans de Homelander en un conflicto visible. A 8:42 despeja una miniatura de terror con un punto focal. Son criterios editoriales, con resultados de las variantes por verificar. |
+| [Veloz Redes, vídeos con pocas vistas, 24/03/2026](https://www.youtube.com/watch?v=K5qWQ1h_s38&t=73s) | A 1:13 describe un vídeo suyo que llegó a ocho veces las vistas de otro pese a peores métricas y lo atribuye al tema oportuno. Sirve para buscar actualidad dentro del mismo público. Sus porcentajes a 4:12 son observaciones particulares. |
+| [Duodedos, empezar con cero vistas, 09/02/2026](https://www.youtube.com/watch?v=VtTI0mW-wnA&t=144s) | A 2:24 formula quién vería el vídeo y por qué. A 4:31 trata el cero inicial como una muestra escasa y pide mantener una línea comprobable. Su paso de gameplays a tutorial de streaming a 6:55 es un caso propio. |
+| [vidIQ en Español con Todd Beaupré, octubre de 2024](https://www.youtube.com/watch?v=wvDRYWbNbec&t=200s) | A 3:20 explica que el efecto de editar título o miniatura viene de cómo reacciona el público. A 9:37 explica por qué un indicador suelto da poco contexto. Usa ejemplos recientes para escoger temas y esta entrevista para interpretar los informes. |
+
+### Prueba de distribución
+
+1. **Mide la exposición.** En Studio, abre **Cobertura → Impresiones y cómo
+   influyeron en el tiempo de visualización** y apunta el porcentaje procedente
+   de recomendaciones si aparece. En modo avanzado, recoge impresiones por
+   fuente donde estén disponibles y vistas de Exploración y Sugeridos. Inicio
+   forma parte de Exploración junto con otras superficies. Un origen ausente
+   del desglose de vistas deja las impresiones de esa fuente sin confirmar.
+   [Impresiones y recomendaciones](https://support.google.com/youtube/answer/9314486?hl=es),
+   [fuentes de tráfico](https://support.google.com/youtube/answer/9314355?hl=es).
+2. **Plantea dos largos para el mismo espectador.** Define qué dos vídeos que
+   ya existen podría ver esa persona y qué nuevo motivo tendría para seguir
+   con el nuestro. Hazlo antes del guion o al ordenar las entregas pendientes.
+   Con muestra suficiente, **Audiencia → Canales que ve tu audiencia**
+   sirve para conocer a quienes ya vieron el canal y **Cobertura → Contenido
+   que sugiere este vídeo** para identificar los vídeos de origen del
+   tráfico. Con datos escasos, busca comparables públicos por idioma,
+   tema, duración y fecha. La nueva sección de Investigación de Studio
+   ofrece filtros de rendimiento relativo, fecha y tamaño de canal cuando
+   está disponible. [Audiencia](https://support.google.com/youtube/answer/9314416?hl=es),
+   [Investigación de Studio](https://support.google.com/youtube/answer/17232321),
+   [guía de YouTube para creadores](https://www.youtube.com/creators/grow/overview/).
+3. **Da una continuación concreta.** Añade una pantalla final hacia el
+   episodio más cercano al subir el próximo largo. Mide sus clics como
+   tráfico de pantalla final. Apunta aparte los de búsqueda, enlaces externos
+   y los de recomendaciones. Mantén la publicación normal y usa la
+   programación para revisar la entrega con tiempo.
+   [Pantallas finales](https://support.google.com/youtube/answer/6388789?hl=es),
+   [publicación y rendimiento](https://support.google.com/youtube/answer/141805?hl=es).
+4. **Compara a igual edad.** Registra una lectura a 48 horas y otra a siete días.
+   Ante impresiones de recomendación, anota qué superficies y qué vídeos
+   trajeron espectadores. Si sigue habiendo poca exposición, escoge un tema
+   próximo con mejores comparables, conservando formato e idioma. Con
+   impresiones suficientes, usa CTR por fuente y retención para diagnosticar
+   los siguientes pasos. [Cómo recomienda YouTube](https://www.youtube.com/howyoutubeworks/recommendations/).
+
+### Aplicación a Trazo Maldito
+
+- **Jason → Michael.** Entre Sombras y Sangre tenía 262 suscriptores el
+  17/11/2026. Sus largos de mayo sobre Jason y Michael llevaban 20.056 y 8.450
+  vistas. [Jason](https://youtu.be/mB8mnR-qY4Y), [Michael](https://youtu.be/OETAX7xcbIc).
+- **Freddy → Chucky.** Brau Cuentista tenía 1.910 suscriptores en la misma
+  consulta. Sus largos de octubre sobre Freddy y Chucky llevaban 1.431 y 1.565
+  vistas. [Freddy](https://youtu.be/YNdzf3cfprY), [Chucky](https://youtu.be/5VpO9s5RWO4).
+
+Los pares justifican probar continuidad entre personajes en el mismo formato
+e idioma. Las vistas acumuladas y el tamaño actual de los canales no permiten
+atribuir su resultado a Inicio ni a Sugeridos. La lectura de Studio de Trazo,
+el orden propuesto de episodios y el próximo control quedan en el estado
+privado del proyecto.
+
 ## Decidir qué probar
 
 1. **Tema.** Define qué vería una misma persona después de este vídeo. Busca

@@ -5,6 +5,10 @@ Empieza por el [estado de Kitok](../../PROJECT_STATUS.md) y el
 que se reutilizan entre episodios. En el episodio conserva las fuentes de la
 historia y la evidencia de dirección visual.
 
+- Para un largo con pocas impresiones, elige el vídeo afín y sigue la
+  [prueba de primeras recomendaciones](youtube-faceless.md#conseguir-las-primeras-recomendaciones).
+  Guarda las lecturas de Studio a igual edad en el estado privado.
+
 - Para elegir tema y preparar la promesa del título usa
   [kitok-youtube](../../.agents/skills/kitok-youtube/SKILL.md) y el perfil activo
   del canal. Registra fecha, vídeos comparables y fuentes narrativas en

@@ -42,6 +42,12 @@ actualiza la nota vigente y verifica el enlace original. Este flujo adapta la
 [LLM Wiki de Karpathy](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)
 a las carpetas que ya usa Kitok.
 
+Por ejemplo, si un agente recibe «Trazo no está saliendo en Sugeridos»,
+`AGENTS.md` le indica la [nota de investigación sobre primeras recomendaciones](research/youtube-faceless.md#conseguir-las-primeras-recomendaciones).
+Ahí puede saltar al minuto indicado de cada vídeo, repetir el diagnóstico en
+Studio y recuperar los comparables. El resultado privado se añade al estado
+del proyecto. Así el siguiente análisis parte de lo que ya probamos.
+
 ## Cómo se mantiene
 
 - La guía diaria vive en GUIA.md; el frontend lee ese mismo archivo.
