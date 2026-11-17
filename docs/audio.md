@@ -7,8 +7,9 @@ una acción distinta y puede consumir Fish.
 
 ## Biblioteca musical y derechos
 
-El catálogo `presets/music_sources.json` contiene **28 pistas**: 24 de Kevin MacLeod
-y cuatro de Mixkit, de cuatro autores distintos, incorporadas el 04/11/2026.
+El catálogo `presets/music_sources.json` contiene **30 pistas**, 24 de Kevin MacLeod y seis de Mixkit. Cuatro de Mixkit se
+incorporaron para terror el 04/11/2026. Tapis y Classical 7 se añadieron para
+Loose Thread con un ambiente de investigación y de cierre, respectivamente.
 Las 16 incorporadas el 20 de octubre de 2026 se descargaron desde Incompetech y
 se comprobaron contra su catálogo oficial y su página individual de licencia.
 El 27/10 se añadieron This House, Unnatural Situation, The Dread y Dark Fog
@@ -16,7 +17,7 @@ tras descargar y validar catálogo oficial, licencia individual, MP3 y SHA256.
 Las ocho candidatas de horror están disponibles en caché local en esa fecha;
 una instalación nueva debe ejecutar `fetch` para las que necesite.
 Las 24 de Incompetech están bajo CC BY 4.0: permiten uso comercial con atribución,
-enlace a licencia e indicación de los cambios. Las cuatro de Mixkit permiten
+enlace a licencia e indicación de los cambios. Las seis de Mixkit permiten
 vídeos comerciales de YouTube sin atribución obligatoria. No se suben los MP3 a Git.
 
 Cada carpeta `cache/audio-library/ID/` conserva música, página de licencia,
@@ -35,9 +36,9 @@ de reclamaciones automáticas son cuestiones diferentes.
 
 | Uso editorial | Pistas candidatas |
 | --- | --- |
-| Investigación y misterio | Long Note Two, Echoes of Time v2, Crypto, Lightless Dawn, Mesmerize, On the Ground |
+| Investigación y misterio | Long Note Two, Echoes of Time v2, Crypto, Lightless Dawn, Mesmerize, On the Ground, Tapis |
 | Avance y revelación | Deep Haze, The Descent |
-| Reflexión y cierre | Dreams Become Real, Night Vigil, Despair and Triumph, Anguish, Immersed |
+| Reflexión y cierre | Dreams Become Real, Night Vigil, Despair and Triumph, Anguish, Immersed, Classical 7 |
 | Ambiente tranquilo | Floating Cities, Clean Soul, Deliberate Thought |
 | Horror y tensión | Darkest Child, Ghost Story, Dark Walk, Anxiety, This House, Unnatural Situation, The Dread, Dark Fog |
 | Terror y misterio sin atribución obligatoria | Piano Horror (Francisco Alvear), Echoes (Andrew Ev), Feedback Dreams (Eugenio Mininni), Dark Shadows (Ahjay Stelino) |
@@ -385,3 +386,15 @@ Desde `sample-clock-v6-quiet-horror-bed`, las mezclas nuevas identifican además
 de fondo previo al ducking y sus parámetros reales. El fondo más bajo sólo
 se aplica al canal `horror_no_attribution`; las mezclas históricas ya guardadas se
 reutilizan con su recibo y no se regeneran por cambiar el catálogo o esta revisión.
+
+## Efectos en el montaje de un largo Native
+
+El JSON del episodio admite `"sound_events": [{"kind":"card_flick","time":2.5}]`.
+`time` usa segundos desde el comienzo de la pista de voz. Aplica a los modos
+de biblioteca `auto` y `manual`. Una lista explícita sustituye los efectos
+automáticos y `[]` los omite. Deja espacio para que el efecto termine antes del
+final y escucha su relación con la voz. El mezclador atenúa la carta y registra
+su procedencia. Antes del primer uso, `.venv/bin/python scripts/audio_library.py
+fetch-card-flick` verifica la descarga y la guarda en `cache/audio-library/sfx/`.
+[Sonido de cartas](https://mixkit.co/free-sound-effects/casino/),
+[licencia del efecto](https://mixkit.co/license/modal/sfxFree/).

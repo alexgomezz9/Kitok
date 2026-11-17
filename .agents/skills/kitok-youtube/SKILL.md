@@ -12,7 +12,7 @@ Ejecuta desde la raíz el lector compacto, sin proveedores ni escrituras:
 ```bash
 .venv/bin/python .agents/skills/kitok-youtube/scripts/context.py
 # Para continuar un episodio concreto:
-.venv/bin/python .agents/skills/kitok-youtube/scripts/context.py --episode content/longform/trazo_maldito/stickman_video1
+.venv/bin/python .agents/skills/kitok-youtube/scripts/context.py --episode content/longform/trazo_maldito/012_slenderman
 ```
 
 Lee el [perfil del canal](../../../presets/youtube_historia_stickman_es.json). Antes de ideas o «siguiente», consulta el archivo local señalado por `workflow.idea_registry`; no produzcas temas reservados para después. Aplica `workflow.run_efficiency` e `images.review_scope` del perfil vigente. Consulta sólo la fase necesaria de la [guía editorial](../../../docs/youtube-editorial.md) y las investigaciones allí enlazadas. No vuelvas a pedir preferencias o recursos que ya estén registrados. El perfil no acredita propiedad de un canal ni permisos de publicación.
@@ -23,7 +23,8 @@ en modo completo seguir hasta enqueue. Cargar sólo la fase necesaria.
 ## Organización y reparto de trabajo
 
 Sigue [carpetas de episodios](../../../docs/episode-files.md): entradas y entrega
-visibles, índice `LEEME.md`, carpetas comunes; pruebas en `local/pruebas/EPISODIO/`.
+visibles, índice `LEEME.md`, carpetas comunes y episodios numerados por canal; pruebas en `local/pruebas/EPISODIO/`.
+Para empezar un tema ejecuta `.venv/bin/python -m kitok.youtube_stickman_es init TEMA --channel trazo_maldito`.
 Usa `scripts/stickman_delivery.py organize EPISODIO` para inspeccionar y `--apply`
 para limpieza autorizada tras revisar el informe. Archiva revisiones cerradas con
 `--archive-revisions`; no archivar rutas que consuman entradas vigentes.

@@ -5,7 +5,8 @@ import json
 from pathlib import Path
 import sys
 
-from ..config import PROJECT_ROOT
+from ..config import PROJECT_ROOT, Settings
+from ..longform.episodes import CHANNELS, reserve_episode
 from .pipeline import execute
 from .progress import TerminalProgress
 
@@ -14,7 +15,8 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description='Kitok youtube_stickman_es: episode preparation, resumable images and shared Native render.')
     parser.add_argument('command', choices=['init','prepare','produce','resume','render','status','request','request-next',
                                            'complete','subtitles','import-image','review-image','approve-style','reject','retry','unknown','package'])
-    parser.add_argument('episode',type=Path,help='Episode folder inside the Kitok workspace')
+    parser.add_argument('episode',type=Path,help='Episode folder, or an episode slug with init --channel')
+    parser.add_argument('--channel', choices=CHANNELS, help='init: reserve the next number in this channel')
     parser.add_argument('--subtitles', action='store_true', help='Also export a captioned video: three words, active word yellow; real word timestamps required')
     parser.add_argument('--quiet', action='store_true', help='Hide human progress on stderr; keep final JSON')
     parser.add_argument('--generate-voice',action='store_true',help='Explicitly allow configured Fish only if voz.mp3 is absent')
@@ -38,7 +40,15 @@ def main(argv=None):
         if args.get(name) is None:
             parser.error('--'+name.replace('_','-')+' is required for '+command)
     quiet = args.pop('quiet')
+    channel = args.pop('channel')
+    if channel and command != 'init':
+        parser.error('--channel only applies to init')
     try:
+        if channel:
+            episode = reserve_episode(PROJECT_ROOT, Settings(data_root=PROJECT_ROOT), channel, str(episode))
+            if (episode / 'configuracion.json').exists():
+                print(json.dumps({'status':'existing_episode','episode':str(episode.relative_to(PROJECT_ROOT))}))
+                return 0
         with TerminalProgress(enabled=not quiet) as progress:
             progress(f'Kitok · {command} · {episode.name}')
             result = execute(PROJECT_ROOT,episode,command,on_stage=progress,**args)

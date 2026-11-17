@@ -16,6 +16,7 @@ import subprocess
 import unicodedata
 
 from ..editing.manifest import clean_script
+from ..longform.episodes import resolve_episode_path
 from .files import digest, local_file, replace_state, write
 
 
@@ -241,7 +242,7 @@ def verify_voice(episode: Path, *, settings, transcribe: bool = False,
 def require_reviewed(report: dict, episode: Path) -> None:
     if report['status'] == 'matched':
         return
-    report_path = Path(report['report_path'])
+    report_path = resolve_episode_path(episode, Path(report['report_path']))
     review = local_file(episode, str(report_path.parent.relative_to(episode) / 'review.json'), exists=False)
     if review.exists():
         decision = json.loads(review.read_text())

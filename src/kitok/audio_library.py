@@ -38,6 +38,7 @@ class AudioLibraryError(RuntimeError):
 BASE = "https://incompetech.com/music/royalty-free/"
 LICENSE = "https://creativecommons.org/licenses/by/4.0/"
 MIXKIT_SOURCE = "https://mixkit.co/free-stock-music/tag/horror/"
+MIXKIT_DOCUMENTARY = "https://mixkit.co/free-stock-music/tag/documentary/"
 MIXKIT_LICENSE = "https://mixkit.co/license/#musicFree"
 MIXKIT_LICENSE_TEXT = "https://mixkit.co/license/modal/musicFree/"
 MIXKIT_FAQ = "https://mixkit.co/free-stock-music/"
@@ -47,6 +48,8 @@ MIXKIT_AUDITED = {
     "mixkit_echoes": ("188", "Echoes", "Andrew Ev"),
     "mixkit_feedback_dreams": ("588", "Feedback Dreams", "Eugenio Mininni"),
     "mixkit_dark_shadows": ("64", "Dark Shadows", "Ahjay Stelino"),
+    "mixkit_tapis": ("615", "Tapis", "Eugenio Mininni"),
+    "mixkit_classical_7": ("714", "Classical 7", "Jonny S."),
 }
 AUDITED = {
     "long_note_two": ("USUAN1100420", "Long Note Two"),
@@ -77,6 +80,16 @@ AUDITED = {
 ID = re.compile(r"[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}\Z")
 SFX_KINDS = ("soft_tick", "low_pulse", "air_swish", "paper_texture", "key_click", "ui_ping")
 MIXER_REVISION = "sample-clock-v6-quiet-horror-bed"
+MIXKIT_CARDS = "https://mixkit.co/free-sound-effects/casino/"
+MIXKIT_SFX_LICENSE = "https://mixkit.co/license/modal/sfxFree/"
+CARD_FLICK = {
+    "kind": "card_flick", "title": "Poker card flick", "author": "Mixkit",
+    "url": MIXKIT_CARDS, "license_url": MIXKIT_SFX_LICENSE,
+    "download": "https://assets.mixkit.co/active_storage/sfx/2002/2002.wav",
+    "sha256": "5d238e066c0e2031d989e978f3d9a2bc92cdabe22d84af626cd11d628a07e1a9",
+    "duration": 1.336009,
+}
+EFFECT_DURATIONS = {kind: .22 for kind in SFX_KINDS} | {"card_flick": CARD_FLICK["duration"]}
 # Editorial affinities are separate from the source/license receipt. They are
 # judgments based on the author's stored instrument/feel descriptions, not claims
 # that the author assigned a business/history genre or that Kitok auditioned them.
@@ -223,13 +236,16 @@ class MusicSource(BaseModel):
     def audited_source(self):
         if self.id in MIXKIT_AUDITED:
             asset_id, title, author = MIXKIT_AUDITED[self.id]
+            documentary = self.id in {"mixkit_tapis", "mixkit_classical_7"}
+            source = MIXKIT_DOCUMENTARY if documentary else MIXKIT_SOURCE
+            channels = ["loose_thread", "documentary"] if documentary else ["horror_no_attribution"]
             if ((self.isrc, self.provider_asset_id, self.title, self.author, self.filename)
                     != ("", asset_id, title, author, asset_id + ".mp3")
-                    or self.source_url != MIXKIT_SOURCE
+                    or self.source_url != source
                     or self.download_url != f"https://assets.mixkit.co/music/{asset_id}/{asset_id}.mp3"
                     or self.license_id != "Mixkit-Stock-Music-Free" or self.license_url != MIXKIT_LICENSE
                     or self.attribution != "" or self.content_id != "unknown"
-                    or self.channels != ["horror_no_attribution"]):
+                    or self.channels != channels):
                 raise ValueError("Unexpected Mixkit identity, URL, license or attribution policy")
             return self
         if self.id not in AUDITED or AUDITED[self.id] != (self.isrc, self.title):
@@ -251,7 +267,7 @@ class SoundEvent(BaseModel):
     """A deliberate editorial cue; timing is relative to the requested mix."""
     model_config = ConfigDict(extra="forbid", frozen=True, allow_inf_nan=False)
     time: float = Field(ge=0)
-    kind: Literal["soft_tick", "low_pulse", "air_swish", "paper_texture", "key_click", "ui_ping"] = "soft_tick"
+    kind: Literal["soft_tick", "low_pulse", "air_swish", "paper_texture", "key_click", "ui_ping", "card_flick"] = "soft_tick"
 
 
 def _hash(path: Path) -> str:
@@ -350,7 +366,7 @@ class AudioLibrary:
         return directory
 
     def _get(self, url: str, *, maximum: int) -> bytes:
-        allowed = {BASE + "pieces.json"}
+        allowed = {BASE + "pieces.json", MIXKIT_CARDS, MIXKIT_SFX_LICENSE, CARD_FLICK["download"]}
         if any(source.id in MIXKIT_AUDITED for source in self.sources.values()):
             allowed |= {MIXKIT_LICENSE_TEXT, MIXKIT_FAQ}
         allowed |= {source.source_url for source in self.sources.values()}
@@ -398,6 +414,46 @@ class AudioLibrary:
         return [self.describe(source) for source in self.sources.values()
                 if (channel is None or channel in source.channels)
                 and (mood is None or self._matches_mood(source, mood)) and self._cached(source.id)]
+
+    def card_flick(self) -> Path:
+        directory = self.cache / "sfx"
+        path = directory / "card_flick.wav"
+        if (directory.is_symlink() or path.is_symlink() or not path.is_file()
+                or _hash(path) != CARD_FLICK["sha256"]):
+            raise AudioLibraryError("Fetch the verified card_flick effect before rendering")
+        return path
+
+    def fetch_card_flick(self) -> dict:
+        with self._lock():
+            directory = self.cache / "sfx"
+            path = directory / "card_flick.wav"
+            receipt = directory / "card_flick.json"
+            if directory.is_symlink() or receipt.is_symlink():
+                raise AudioLibraryError("Unexpected card flick cache path")
+            if path.exists() or path.is_symlink():
+                self.card_flick()
+                if not receipt.exists():
+                    _atomic_json(receipt, CARD_FLICK)
+                return CARD_FLICK
+            source = self._get(MIXKIT_CARDS, maximum=2 * 1024 * 1024)
+            license_text = self._get(MIXKIT_SFX_LICENSE, maximum=512 * 1024)
+            card = re.search(rb"Poker card flick.{0,5000}?/free-sound-effects/download/2002/", source, re.DOTALL)
+            if (not card or b"Sound Effects Free License" not in license_text
+                    or b"YouTube videos" not in license_text):
+                raise AudioLibraryError("Mixkit no longer confirms the card flick identity and license")
+            data = self._get(CARD_FLICK["download"], maximum=1024 * 1024)
+            if hashlib.sha256(data).hexdigest() != CARD_FLICK["sha256"] or directory.is_symlink():
+                raise AudioLibraryError("Unexpected card flick bytes or cache path")
+            directory.mkdir(exist_ok=True)
+            with tempfile.NamedTemporaryFile(dir=directory, suffix=".wav") as temp:
+                temp.write(data)
+                temp.flush()
+                info = probe_media(Path(temp.name), self.ffprobe)
+                if not info.audio_codec or abs(info.duration - CARD_FLICK["duration"]) > .001:
+                    raise AudioLibraryError("The card flick media differs from its audited duration")
+                os.link(temp.name, path)
+            _atomic_json(receipt, CARD_FLICK)
+            return CARD_FLICK
 
     def preview(self, track_id: str) -> Path:
         """Return one verified local track for an ID-only HTTP route, without writes."""
@@ -648,7 +704,7 @@ class AudioLibrary:
             events = [SoundEvent.model_validate(event).model_dump() for event in (sfx_events or [])]
         except (ValidationError, TypeError):
             raise AudioLibraryError("Invalid sound effect event") from None
-        if len(events) > 24 or any(event["time"] + .22 > duration for event in events):
+        if len(events) > 24 or any(event["time"] + EFFECT_DURATIONS[event["kind"]] > duration for event in events):
             raise AudioLibraryError("Sound effect events must fit inside the mix; maximum 24")
         times = sorted(event["time"] for event in events)
         if any(right - left < 1.5 for left, right in zip(times, times[1:])):
@@ -680,8 +736,12 @@ class AudioLibrary:
                 inputs += ["-stream_loop", "-1", "-i", str(self._directory(track_id) / "music.mp3")]
             effect_receipts = []
             for index, event in enumerate(events):
-                path = Path(workspace) / f"sfx-{index}.wav"
-                effect_receipts.append({**synthesize_sfx(path, kind=event["kind"]), "time": event["time"]})
+                if event["kind"] == "card_flick":
+                    path = self.card_flick()
+                    effect_receipts.append({**CARD_FLICK, "time": event["time"]})
+                else:
+                    path = Path(workspace) / f"sfx-{index}.wav"
+                    effect_receipts.append({**synthesize_sfx(path, kind=event["kind"]), "time": event["time"]})
                 inputs += ["-i", str(path)]
             if transition_at is not None and len(selection["tracks"]) != 2:
                 raise AudioLibraryError("A narrative transition requires two selected tracks")
@@ -744,6 +804,8 @@ class AudioLibrary:
             source_receipts = [self._cached(track_id) for track_id in selection["tracks"]]
             if not all(source_receipts):
                 raise AudioLibraryError("A music source changed during mixing; no output was promoted")
+            if any(event["kind"] == "card_flick" for event in events):
+                self.card_flick()
             receipt = {"version": 1, "mixer_revision": MIXER_REVISION, "job_id": job_id, "selection": selection,
                        "narration_sha256": narration_sha256, "narration_offset": offset,
                        "duration": final_info.duration, "crossfade_seconds": crossfade if len(selection["tracks"]) == 2 else 0,
@@ -795,8 +857,9 @@ class AudioLibrary:
                     f"[ducked]afade=t=in:d=0.08,afade=t=out:st={duration-.4:.6f}:d=0.4[bedfaded]"]
         labels = "[voice][bedfaded]"
         for index, event in enumerate(events or []):
+            gain = 0.14 if event.get("kind") == "card_flick" else 0.65
             filters.append(f"[{count+index+1}:a]aformat=sample_rates=48000:channel_layouts=stereo,"
-                           f"volume=0.65,adelay={round(event['time']*1000)}:all=1[sfx{index}]")
+                           f"volume={gain},adelay={round(event['time']*1000)}:all=1[sfx{index}]")
             labels += f"[sfx{index}]"
         filters.append(labels + f"amix=inputs={2+len(events or [])}:duration=first:normalize=0[mixed]")
         return ";".join(filters)

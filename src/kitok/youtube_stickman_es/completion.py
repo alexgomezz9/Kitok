@@ -6,6 +6,8 @@ from pathlib import Path
 
 from PIL import Image
 
+from ..longform.episodes import moves_for_episode
+
 from .delivery import _cache_locks, _compact_delivery_locked, sha256, publication_metadata
 from .files import local_file, replace_state, write
 from .final_paths import final_video, delivery_episode
@@ -23,6 +25,9 @@ def accepted_narration(episode: Path) -> tuple[dict, Path]:
         active = json.loads(local_file(episode, '.stickman/voice-cleaning/active.json').read_text())
         receipt = local_file(episode, active['files']['narration']['path'])
     result = json.loads(receipt.read_text())
+    moves = moves_for_episode(episode)
+    if moves:
+        result = moves.data(result)
     if (result.get('audio_path') != str(audio) or result.get('srt_path') != str(srt)
             or result.get('audio_sha256') != plan.audio_sha256
             or result.get('srt_sha256') != plan.srt_sha256

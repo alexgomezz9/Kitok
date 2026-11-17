@@ -9,6 +9,8 @@ import os
 from pathlib import Path
 import tempfile
 
+from ..longform.episodes import EpisodeMoves, moves_for_episode
+
 
 def digest(data) -> str:
     if isinstance(data, Path):
@@ -33,7 +35,8 @@ def digest(data) -> str:
 
 def episode_path(root: Path, episode: Path) -> Path:
     root = root.resolve()
-    candidate = episode if episode.is_absolute() else root/episode
+    current = EpisodeMoves.load(root).path(episode)
+    candidate = current if current.is_absolute() else root/current
     # Reject links before resolve: operator media is never redirected by a link.
     if not candidate.absolute().is_relative_to(root):
         raise ValueError('Episode must remain inside the Kitok workspace')
@@ -72,8 +75,19 @@ def write(path: Path, data, *, identical_ok: bool = True):
         raise ValueError('Output cannot be a symlink')
     path.parent.mkdir(parents=True, exist_ok=True)
     if path.exists():
-        if identical_ok and path.read_text(encoding='utf-8') == content:
-            return
+        if identical_ok:
+            previous = path.read_text(encoding='utf-8')
+            if previous == content:
+                return
+            if isinstance(data, dict):
+                moves = moves_for_episode(path)
+                if moves and moves.pairs:
+                    try:
+                        stored = json.loads(previous)
+                    except ValueError:
+                        stored = None
+                    if stored != data and moves.data(stored) == data:
+                        return
         raise FileExistsError(f'Preserve {path.name}; choose a new episode or revision')
     fd, temporary = tempfile.mkstemp(prefix='.publish-', dir=path.parent)
     try:

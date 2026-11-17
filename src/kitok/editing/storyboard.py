@@ -148,6 +148,8 @@ class EditorialPlan(PlanModel):
 def project_file(root: Path, value: str) -> Path:
     """Plans are operator files; media must still remain in the project workspace."""
     path = Path(value).expanduser()
+    from ..longform.episodes import EpisodeMoves
+    path = EpisodeMoves.load(root).path(path)
     path = (root / path).resolve() if not path.is_absolute() else path.resolve()
     if not path.is_relative_to(root.resolve()) or not path.is_file():
         raise ValueError(f"Editorial media must be an existing project file: {Path(value).name}")

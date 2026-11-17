@@ -733,6 +733,56 @@
       "source_feel": "Eerie, Mysterious",
       "instruments": "Drums, Sound Effects",
       "provider_asset_id": "64"
+    },
+    {
+      "id": "mixkit_tapis",
+      "isrc": "",
+      "title": "Tapis",
+      "author": "Eugenio Mininni",
+      "filename": "615.mp3",
+      "source_url": "https://mixkit.co/free-stock-music/tag/documentary/",
+      "download_url": "https://assets.mixkit.co/music/615/615.mp3",
+      "license_id": "Mixkit-Stock-Music-Free",
+      "license_url": "https://mixkit.co/license/#musicFree",
+      "attribution": "",
+      "sha256": "db34bc5dcfa5fdf237d334035e6933408aa07519032cb395daa791ce8d132884",
+      "moods": [
+        "investigation",
+        "ambient",
+        "mystery"
+      ],
+      "channels": [
+        "loose_thread",
+        "documentary"
+      ],
+      "content_id": "unknown",
+      "verified_on": "2026-11-13",
+      "provider_asset_id": "615"
+    },
+    {
+      "id": "mixkit_classical_7",
+      "isrc": "",
+      "title": "Classical 7",
+      "author": "Jonny S.",
+      "filename": "714.mp3",
+      "source_url": "https://mixkit.co/free-stock-music/tag/documentary/",
+      "download_url": "https://assets.mixkit.co/music/714/714.mp3",
+      "license_id": "Mixkit-Stock-Music-Free",
+      "license_url": "https://mixkit.co/license/#musicFree",
+      "attribution": "",
+      "sha256": "d338235174e33571c28b3899d4af3c887720728dff1f75b7213d1a886aaff05f",
+      "moods": [
+        "reflective",
+        "resolution",
+        "history"
+      ],
+      "channels": [
+        "loose_thread",
+        "documentary"
+      ],
+      "content_id": "unknown",
+      "verified_on": "2026-11-13",
+      "provider_asset_id": "714"
     }
   ]
 }

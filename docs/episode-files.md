@@ -1,11 +1,20 @@
 # Carpetas y conservación de episodios
 
-Cada proyecto editorial de vídeo usa el mismo esquema. Los borradores del estudio
-siguen en `content/longform/studio/`; no son carpetas de episodios terminados.
-Los shorts conservan su salida por ID en `outputs/ready/`.
+Los episodios se numeran por canal en `content/longform/`. Reserva el siguiente
+número con el CLI. Repetir el mismo nombre de tema recupera la misma carpeta.
+Los borradores internos quedan en `state/longform/drafts/` y los shorts en
+`outputs/ready/`.
+
+```bash
+.venv/bin/python longform.py new loose_thread mi_tema
+.venv/bin/python -m kitok.youtube_stickman_es init mi_tema --channel trazo_maldito
+```
+
+El índice local `state/longform-episode-moves.json` mantiene las referencias de
+recibos anteriores al traslado. Conserva el archivo junto al resto del estado.
 
 ```text
-content/longform/EPISODIO/
+content/longform/CANAL/NNN_EPISODIO/
   LEEME.md                 índice de entradas, entregas y archivo histórico
   guion_final.txt          texto fuente; Fish nuevo recibe espacios únicos y [] intactos
   titulo.txt
@@ -17,7 +26,7 @@ content/longform/EPISODIO/
   planificacion_visual/    plan, prompts y manifiestos de los lotes
   miniaturas/
   editorial/               investigación y estado actual
-  entrega/                 ocho archivos listos para cargar en YouTube Studio
+  entrega/                 paquete listo para YouTube Studio
   .stickman/               recibos y cachés internos; no son entradas del operador
 ```
 
@@ -34,11 +43,11 @@ código reutilizable cuando sea un defecto; no repetir montajes artesanales por 
 ## Limpieza explícita y comprobable
 
 ```bash
-.venv/bin/python scripts/stickman_delivery.py organize content/longform/EPISODIO
-.venv/bin/python scripts/stickman_delivery.py organize content/longform/EPISODIO --apply
+.venv/bin/python scripts/stickman_delivery.py organize content/longform/CANAL/NNN_EPISODIO
+.venv/bin/python scripts/stickman_delivery.py organize content/longform/CANAL/NNN_EPISODIO --apply
 # Sólo para revisiones cerradas, revisadas como históricas:
-.venv/bin/python scripts/stickman_delivery.py organize content/longform/EPISODIO --archive-revisions
-.venv/bin/python scripts/stickman_delivery.py organize content/longform/EPISODIO --archive-revisions --apply
+.venv/bin/python scripts/stickman_delivery.py organize content/longform/CANAL/NNN_EPISODIO --archive-revisions
+.venv/bin/python scripts/stickman_delivery.py organize content/longform/CANAL/NNN_EPISODIO --archive-revisions --apply
 ```
 
 Sin `--apply` lista los candidatos. `--report local/cleanup/ID/informe.json` guarda
@@ -69,7 +78,9 @@ automáticamente una revisión archivada.
 
 ## Una entrega canónica para subir
 
-`bundle` exige ambos QA y recibos coincidentes. Reúne sólo:
+Native prepara el MP4, miniatura, SRT y textos de publicación mediante
+[`longform.py --deliver`](../GUIA.md#entrega-para-youtube-studio). Stickman usa
+`bundle`, que exige ambos QA y recibos coincidentes. Su paquete incluye:
 
 - `video_final.mp4` y `video_subtitulado.mp4`.
 - `voz.srt` del audio efectivo y `miniatura.png`.
@@ -90,10 +101,10 @@ las rutas canónicas al reanudar. Exportar cualquier edición a una versión nue
 Para migrar una entrega histórica, primero inspecciona:
 
 ```bash
-.venv/bin/python scripts/stickman_delivery.py normalize content/longform/EPISODIO --report local/cleanup/ID/antes.json
-.venv/bin/python scripts/stickman_delivery.py normalize content/longform/EPISODIO --apply --report local/cleanup/ID/despues.json
+.venv/bin/python scripts/stickman_delivery.py normalize content/longform/CANAL/NNN_EPISODIO --report local/cleanup/ID/antes.json
+.venv/bin/python scripts/stickman_delivery.py normalize content/longform/CANAL/NNN_EPISODIO --apply --report local/cleanup/ID/despues.json
 # Para una revisión activa, entrega visible en la carpeta padre:
-.venv/bin/python scripts/stickman_delivery.py normalize content/longform/EPISODIO/revisiones/ACTIVA --destination-episode content/longform/EPISODIO
+.venv/bin/python scripts/stickman_delivery.py normalize content/longform/CANAL/NNN_EPISODIO/revisiones/ACTIVA --destination-episode content/longform/CANAL/NNN_EPISODIO
 ```
 
 `normalize` valida los hashes del paquete anterior y bloquea textos editados por el

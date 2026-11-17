@@ -19,6 +19,29 @@ principal; los documentos no duplican instrucciones completas.
 | Revisar el caso de ejemplo que ya se produjo | [UltimateBet actual](episodes/ultimatebet-superuser-production.md) |
 | Entender herramientas elegidas y formatos viables | [Decisiones de investigación](research/README.md) |
 
+## Mapa de la wiki
+
+```mermaid
+flowchart TD
+    I["Índice de documentación"] --> E["Estado y siguiente paso"]
+    I --> R["Decisiones de investigación"]
+    I --> A["Audio y derechos"]
+    R --> L["Loose Thread"]
+    R --> T["Stickman y Trazo Maldito"]
+    R --> M["Análisis de referencias"]
+    R --> A
+    L --> M
+    T --> M
+    M --> A
+```
+
+Abre la página enlazada en la tabla para navegar a cada tema. Una conclusión
+reutilizable va en la nota que corresponda con su fuente. Los documentos, licencias
+y fotogramas de un caso se conservan con el episodio. Al cambiar una decisión,
+actualiza la nota vigente y verifica el enlace original. Este flujo adapta la
+[LLM Wiki de Karpathy](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)
+a las carpetas que ya usa Kitok.
+
 ## Cómo se mantiene
 
 - La guía diaria vive en GUIA.md; el frontend lee ese mismo archivo.

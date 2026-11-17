@@ -16,12 +16,15 @@ from typing import Any, Callable
 
 from pydantic import ValidationError
 
+from kitok.audio_library import SoundEvent
 from kitok.config import PROJECT_ROOT, Settings
 from kitok.editing.visual_cues import VisualPlan
 from kitok.locks import generation_lock
 from kitok.dialogue_audio import media_duration
 from kitok.models import ContentItem, MPTTask
 from kitok.mpt_client import MPTClient, TASK_STATE_COMPLETE, TASK_STATE_FAILED
+
+from .episodes import CHANNELS, EpisodeMoves, reserve_episode
 
 
 POLL_INTERVAL_SECONDS = 5
@@ -66,6 +69,7 @@ class LongformDefinition:
     visual_plan: VisualPlan | None = None
     visual_root: Path | None = None
     source_narration_id: str | None = None
+    sound_events: tuple[SoundEvent, ...] | None = None
 
     def fingerprint(self) -> str:
         """Hash settings that affect Native media, independently of publication copy."""
@@ -77,6 +81,10 @@ class LongformDefinition:
         value["visual_root"] = str(self.visual_root)
         value["visual_plan"] = self.visual_plan.model_dump(mode="json") if self.visual_plan else None
         value.pop("preserve_debug_audio")
+        if self.sound_events is None:
+            value.pop("sound_events")
+        else:
+            value["sound_events"] = [event.model_dump() for event in self.sound_events]
         return identity(value)
 
 
@@ -160,7 +168,8 @@ def load_longform_config(
     config_path: str | Path, *, project_root: Path = PROJECT_ROOT, validate_visual_assets: bool = True,
     ffprobe: str | None = None,
 ) -> LongformDefinition:
-    path = Path(config_path).expanduser()
+    moves = EpisodeMoves.load(project_root)
+    path = moves.path(Path(config_path).expanduser())
     if not path.is_absolute():
         path = project_root / path
     raw = _read_json_object(path, "Long-form config")
@@ -168,7 +177,7 @@ def load_longform_config(
     content_id = _required_text(raw, "id")
     subject = _required_text(raw, "subject")
     script_value = _required_text(raw, "script_file")
-    script_path = Path(script_value).expanduser()
+    script_path = moves.path(Path(script_value).expanduser())
     if not script_path.is_absolute():
         script_path = project_root / script_path
     if not script_path.is_file():
@@ -252,6 +261,14 @@ def load_longform_config(
         )
         raise LongformError(f"Invalid long-form content: {details}") from exc
 
+    sound_events = raw.get("sound_events")
+    if sound_events is not None:
+        if not isinstance(sound_events, list) or len(sound_events) > 24:
+            raise LongformError("sound_events must be a list of up to 24 timed cues")
+        if sound_events and music_mode not in {"auto", "manual"}:
+            raise LongformError("Sound cues use the local music mixer in auto or manual mode")
+        sound_events = tuple(SoundEvent.model_validate(event) for event in sound_events)
+
     source_narration_id = raw.get('source_narration_id')
     if source_narration_id is not None and (not isinstance(source_narration_id, str) or not source_narration_id.strip()):
         raise LongformError('source_narration_id must be a nonempty source ID')
@@ -259,7 +276,7 @@ def load_longform_config(
     visual_root = None
     if raw.get("visual_plan") is not None:
         from ..editing.visual_cues import validate_visual_plan
-        visual_root = Path(raw.get("visual_root", path.parent))
+        visual_root = moves.path(Path(raw.get("visual_root", path.parent)))
         if not visual_root.is_absolute():
             visual_root = project_root / visual_root
         visual_plan = VisualPlan.model_validate(raw["visual_plan"] or {})
@@ -285,6 +302,7 @@ def load_longform_config(
         preserve_debug_audio=preserve_debug_audio,
         music_mode=music_mode, music_track=music_track, mounting_style=mounting_style,
         visual_plan=visual_plan, visual_root=visual_root, source_narration_id=source_narration_id,
+        sound_events=sound_events,
     )
 
 
@@ -335,13 +353,18 @@ def longform_music_ready(definition: LongformDefinition, settings) -> bool:
         return True
     if definition.music_mode is None:
         return definition.background_music_file.is_file()
-    from ..audio_library import AudioLibrary
+    from ..audio_library import AudioLibrary, AudioLibraryError
     root = settings.data_root or PROJECT_ROOT
     catalog, cache = root / "presets" / "music_sources.json", root / "cache" / "audio-library"
     if not catalog.is_file() or not cache.is_dir():
         return False
     library = AudioLibrary(catalog, cache, ffmpeg=settings.ffmpeg_binary, ffprobe=settings.ffprobe_binary)
     try:
+        if any(event.kind == 'card_flick' for event in (getattr(definition, 'sound_events', None) or ())):
+            try:
+                library.card_flick()
+            except AudioLibraryError:
+                return False
         if definition.music_mode == "auto":
             return library.narrative_options(definition.item.script, channel="loose_thread")['eligible']
         return any(t["id"] == definition.music_track for t in library.available(channel="loose_thread"))
@@ -696,7 +719,7 @@ def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Render new long-form videos with experimental Native (Fish + Pexels + FFmpeg). MPT only recovers existing tasks."
     )
-    parser.add_argument("config", help="Path to the long-form JSON content definition")
+    parser.add_argument("config", help="Long-form JSON, or new CHANNEL SLUG to reserve an episode")
     parser.add_argument(
         '--dry-run', action='store_true',
         help='Validate the script and local prerequisites without generating, network calls or writes.',
@@ -737,7 +760,20 @@ def _parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
-    args = _parser().parse_args(argv)
+    arguments = list(sys.argv[1:] if argv is None else argv)
+    if arguments[:1] == ["new"]:
+        parser = argparse.ArgumentParser(prog="longform.py new", description="Reserve a numbered episode")
+        parser.add_argument("channel", choices=CHANNELS)
+        parser.add_argument("slug", help="Lowercase episode name")
+        new = parser.parse_args(arguments[1:])
+        try:
+            settings = Settings()
+            print(reserve_episode(settings.data_root or PROJECT_ROOT, settings, new.channel, new.slug))
+        except (RuntimeError, ValueError, OSError) as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 1
+        return 0
+    args = _parser().parse_args(arguments)
     lease = ExitStack()
     try:
         if args.renderer == 'mpt' and (not args.resume or not args.resume.strip() or args.start_over):

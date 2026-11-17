@@ -29,6 +29,9 @@ nueva donde sirva al siguiente episodio y enlázala a su evidencia.
 
 ## Producir con archivo
 
+Para estudiar una apertura, analiza sólo los tramos que aporten decisiones de
+ritmo, música o puesta en escena. [Flujo de referencias](reference-media.md).
+
 Prioriza los recursos que hagan visible la promesa en la apertura, identifiquen
 a una persona o lugar, o demuestren un giro. Revisa primero el archivo oficial
 y Commons con una búsqueda por persona, fecha o caso. Selecciona sólo lo que
@@ -56,7 +59,7 @@ nueva y comprueba el ritmo en la apertura real. [Licencia Pexels](https://www.pe
    entra en el tiempo de esa frase según el reloj Fish. El agente escribe el JSON
    y Kitok calcula segundos y cortes. Ajusta `occurrence` si la frase se repite.
    [Contrato](../editing.md#json-parcial-sobre-montaje-automático)
-3. Guarda los episodios en `content/longform/loose_thread/<episodio>`.
+3. Guarda los episodios en `content/longform/loose_thread/<NNN_tema>`.
    Prepara los campos de Studio y la miniatura final. Valida con
    `longform.py CONFIG --deliver --dry-run`. Cuando toque producir, ejecuta
    `--deliver` y reutiliza voz, alineación y montaje confirmado. Con un MP4

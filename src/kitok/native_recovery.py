@@ -80,6 +80,8 @@ def definition_identity(definition):
     if plan is not None:
         value['visual_plan'] = plan.model_dump(mode='json') if hasattr(plan, 'model_dump') else plan
         value['visual_root'] = str(getattr(definition, 'visual_root', None))
+    if getattr(definition, 'sound_events', None) is not None:
+        value['sound_events'] = [event.model_dump() for event in definition.sound_events]
     if getattr(definition, 'source_narration_id', None) is not None:
         value['source_narration_id'] = definition.source_narration_id
     return identity(value)

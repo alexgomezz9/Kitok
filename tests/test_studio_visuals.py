@@ -24,10 +24,15 @@ def image_data():
     return buffer.getvalue()
 
 
+def numbered_episode(root, episode_id):
+    channel, name = episode_id.split('--', 1)
+    return root / 'content' / 'longform' / channel / name
+
+
 def test_controlled_episode_upload_and_minimal_cue_preview_save(studio):
     client, _, settings = studio
     row = client.post('/api/longform/episodes').json()
-    episode = settings.data_root / 'content' / 'longform' / row['id']
+    episode = numbered_episode(settings.data_root, row['id'])
     data = image_data()
     upload = {'images': [{'filename': 'real-photo.png', 'data': base64.b64encode(data).decode()}]}
     first = client.post(f"/api/longform/episodes/{row['id']}/images", json=upload)
@@ -45,11 +50,26 @@ def test_controlled_episode_upload_and_minimal_cue_preview_save(studio):
     saved = client.post('/api/longform', json=body)
     assert saved.status_code == 201, saved.text
     config = json.loads(Path(saved.json()['config_path']).read_text())
-    assert config['visual_root'] == f"content/longform/{row['id']}"
+    assert config['visual_root'] == episode.relative_to(settings.data_root).as_posix()
     assert config['visual_plan']['visual_cues'][0]['asset'] == asset
+    assert Path(saved.json()['config_path']).parent == settings.data_root / 'state/longform/drafts'
     assert saved.json()['status'] == 'draft'
     listed = client.get('/api/longform/episodes').json()
     assert len(listed[0]['images']) == 2
+
+
+def test_same_episode_name_in_two_channels_has_distinct_ids(studio):
+    client, _, settings = studio
+    for channel in ('loose_thread', 'trazo_maldito'):
+        (settings.data_root / 'content/longform' / channel / '001_case' / 'images').mkdir(parents=True)
+    episodes = client.get('/api/longform/episodes').json()
+    assert {episode['id'] for episode in episodes} == {'loose_thread--001_case', 'trazo_maldito--001_case'}
+    image = {'filename': 'proof.png', 'data': base64.b64encode(image_data()).decode()}
+    response = client.post('/api/longform/episodes/trazo_maldito--001_case/images', json={'images': [image]})
+    assert response.status_code == 201
+    path = response.json()['images'][0]['asset']
+    assert (numbered_episode(settings.data_root, 'trazo_maldito--001_case') / path).is_file()
+    assert not (numbered_episode(settings.data_root, 'loose_thread--001_case') / path).exists()
 
 
 def test_partial_effects_do_not_require_an_optional_image_folder(studio):
@@ -75,7 +95,7 @@ def test_upload_rejects_paths_invalid_encoding_and_fake_images(studio, image):
     episode = client.post('/api/longform/episodes').json()['id']
     result = client.post(f'/api/longform/episodes/{episode}/images', json={'images': [image]})
     assert result.status_code == 422
-    assert list((settings.data_root / 'content' / 'longform' / episode / 'images').iterdir()) == []
+    assert list((numbered_episode(settings.data_root, episode) / 'images').iterdir()) == []
 
 
 def test_episode_listing_and_cues_do_not_follow_symlinks(studio):
@@ -99,7 +119,7 @@ def test_episode_listing_and_cues_do_not_follow_symlinks(studio):
 def test_minimal_cue_rejects_missing_anchor_without_creating_draft(studio):
     client, _, settings = studio
     row = client.post('/api/longform/episodes').json()
-    directory = settings.data_root / 'content' / 'longform' / row['id'] / 'images'
+    directory = numbered_episode(settings.data_root, row['id']) / 'images'
     (directory / 'photo.png').write_bytes(image_data())
     body = {**BODY, 'episode_id': row['id'], 'visual_plan': {'visual_cues': [
         {'asset': 'images/photo.png', 'anchor': {'phrase': 'this phrase is not spoken'}}]}}

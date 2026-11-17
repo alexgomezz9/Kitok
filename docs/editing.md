@@ -248,17 +248,15 @@ El plan fija el SHA del audio y de cada recurso seleccionado. Un cambio de bytes
 tras la preparación bloquea el render; si un input cambia durante el trabajo,
 se bloquea la entrega. Los planes antiguos sin SHA conservan compatibilidad.
 
-## Fotografías de stock de Pexels: investigación adicional
+## Fotografías de stock de Pexels
 
-La [API oficial](https://www.pexels.com/api/documentation/) admite fotos mediante
-`GET /v1/search` con `query`, orientación y variantes de resolución. La prueba
-read-only del 21/10/2026 respondió HTTP 200 y descargó una foto de muestra con
-ID, autor, URL y licencia conservados. Eso verifica acceso a fotos; el proveedor
-Native actual sigue buscando **vídeos**. No se presenta esta prueba como una
-opción de fotos automáticas ya integrada en el producto.
+La [API oficial](https://www.pexels.com/api/documentation/#photos-search) permite
+buscar fotos por texto, orientación y resolución. La consulta del 21/10/2026
+respondió HTTP 200 y permitió comprobar ID, autor, página y licencia de la foto.
 
-Una futura mezcla opcional puede conservar keywords y montaje, separando la
-caché por tipo y manteniendo prioridad de imágenes explícitas. Las fotos Pexels
-serían ilustrativas, sin atribuirles identidad histórica del caso. No hacen falta
-otro renderer ni un gestor de imágenes. Esta investigación no cambia el alcance
-ni retrasa el cierre del editor solicitado.
+El agente puede elegir una foto concreta, guardarla en `images/` y declararla
+en el JSON como `usage: "illustration"`. Kitok la coloca en el texto indicado
+y aplica el mismo movimiento que a otras fotos si se pide. Conserva su página,
+autor y licencia. Para los huecos Kitok busca vídeo de stock. Escoge la foto
+cuando un detalle, un lugar o un objeto se entiendan mejor en un plano fijo.
+[Licencia de Pexels](https://www.pexels.com/legal-pages/license/).

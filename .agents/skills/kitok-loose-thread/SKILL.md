@@ -7,7 +7,7 @@ description: Investiga, escribe y monta documentales en inglés de Loose Thread 
 
 Lee el estado vigente y [el método editorial](../../../docs/research/loose-thread.md).
 Usa el narrador original y el perfil `local/youtube` con ID `UCLnP8Kb1USd06TW3D1JLFvg`.
-Ejecuta desde el checkout WSL. El CLI es la entrada habitual.
+Ejecuta desde la carpeta del repositorio en Ubuntu WSL. El CLI es la entrada habitual.
 
 1. Usa `reporting-status`, Analytics o `public-search` según la pregunta. Contrasta
    demanda, referencias y disponibilidad de archivo. Propón un ángulo concreto y
@@ -19,7 +19,8 @@ Ejecuta desde el checkout WSL. El CLI es la entrada habitual.
    siglas como se han de pronunciar cuando eso ayude a Fish y sus subtítulos.
    La apertura cumple pronto la promesa del clic. Cada rehook aporta una consecuencia, pregunta o prueba nueva y recibe
    respuesta. Lee el complemento `local/editorial/skills/yt-script/SKILL.md`
-   cuando exista y aporte valor al guion en curso.
+   cuando exista y aporte valor al guion en curso. Para estudiar ritmo o sonido,
+   sigue el [flujo de referencias](../../../docs/research/reference-media.md).
 3. Busca tú los archivos reales de momentos, lugares y protagonistas. Descarga y
    verifica medios utilizables, con origen, fecha, autor y permisos. Prueba el
    archivo oficial y Commons primero. Concentra la búsqueda en la apertura, la
@@ -36,7 +37,8 @@ Ejecuta desde el checkout WSL. El CLI es la entrada habitual.
    mueve el encuadre cuando guíe la mirada y corta al cambiar el sentido de la
    narración. Usa IA para diagramas o reconstrucciones que aporten claridad.
    Reserva rótulos para información necesaria, como nombre, fecha o reconstrucción.
-5. Guarda cada episodio nuevo en `content/longform/loose_thread/<episodio>`.
+5. Reserva el episodio con `.venv/bin/python longform.py new loose_thread TEMA`.
+   El comando devuelve `content/longform/loose_thread/<NNN_tema>`.
    Si el encargo pide producir, prepara título, descripción con capítulos y
    créditos, etiquetas, ajustes de Studio y miniatura final. Ejecuta el CLI
    `longform.py CONFIG --deliver --dry-run` y luego `--deliver`.

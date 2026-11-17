@@ -38,7 +38,7 @@
     "existing_provider": "fish",
     "operator_report": "No inferir precio ni saldo de Fish a partir del nombre del modelo; reutilizar configuración vigente y consultar antes de gasto significativo.",
     "prefer_existing_audio_and_alignment": true,
-    "existing_episode_config": "content/longform/trazo_002_mychael_myers/configuracion.json",
+    "existing_episode_config": "content/longform/trazo_maldito/002_mychael_myers/configuracion.json",
     "transcript_verification": "local_asr_autocut",
     "performance_instructions": "Consultar docs/fish-voice.md. S2 usa [break], [long-break], [whispering], [emphasis], emociones; no asumir tiempos exactos ni [pausa] documentado. Guion limpio separado de dirección TTS; no añadir etiquetas a episodios ya sintetizados.",
     "fidelity_policy": "Voz cruda Fish → ASR local sin guion → recortes de inserciones con anclas y márgenes acústicos en copia → segunda ASR → tiempos/mezcla/montaje. Bloquear frases ausentes/sustituidas, inserciones ambiguas o sílabas residuales. No borrar originales ni fingir fidelidad por marcas Fish.",
@@ -77,7 +77,7 @@
     "review_scope": "Operador29/10: inspección breve de todos los recortes mediante contacto, una sola pasada por lote. Reparar únicamente contradicción narrativa, personaje equivocado, deformación clara, recorte ilegible o deriva grande del estilo. No regenerar por manos fuera de plano, mínimos cambios de ropa/pelo, matices de expresión o detalles secundarios. Revisar globalmente presencia del personaje/máscara icónicos y variedad ANTES de generar; no ocultar un desequilibrio global con revisiones de minucias.",
     "limb_colour": "Brazos/piernas finos de stickman, coherentes con la ropa y el tono de piel. En piel descubierta usar el mismo tono que cabeza/manos con contorno. Última aclaración: Jason010 gusta como base; no convertir futuros personajes en humanos normales."
   },
-  "known_episode": "content/longform/trazo_004_freddy_krueger",
+  "known_episode": "content/longform/trazo_maldito/004_freddy_krueger",
   "known_episode_caveat": "Operador28/10: feedback muy positivo del vídeo y audio; pide que futuras producciones refuercen todavía más las figuras stickman y su continuidad. No rediseñar medios ya generados sin encargo.",
   "source": "Canal confirmado por el operador y por OAuth oficial el 26/10/2026. Encargo completo y decisiones delegadas en esa fecha. No contiene credenciales. Aclaración del operador 26/10: cubrir todos los personajes y mostrar su evolución, desde pequeños cuando corresponda. Preferencias27/10: relato inmersivo, stickman más marcado, terror/sangre contextual, música baja, exploración visual y verificación independiente de voz.",
   "channel_id": "UC9h_aIbnfQUo0ylPsPNnbrg",
@@ -118,7 +118,7 @@
     },
     "guided_exercise": {
       "enabled": false,
-      "episode": "content/longform/trazo_004_freddy_krueger",
+      "episode": "content/longform/trazo_maldito/004_freddy_krueger",
       "stop_after_every_stage": false,
       "explain": "Qué decisión se toma, entradas exactas, operación Kitok/agente, salidas realmente creadas y comprobación mínima. No avanzar por silencio.",
       "resume_automatic": "Sólo si el operador pide explícitamente volver al modo automático; esta excepción prevalece sobre siguiente completo durante el ejercicio.",
@@ -186,9 +186,9 @@
     "variable": "Fondo, entorno, luz, paleta secundaria, pose, escala y composición se deciden según personaje/historia. La luna, los colores del fondo y una disposición exacta NO son plantilla obligatoria. Aclaración expresa28/10.",
     "red_policy": "Rojo como predeterminado del nombre para continuidad visual. El contraste depende del fondo; contorno/sombra y prueba160x90. Evidencia de atención contextual no prueba superioridad universal ni CTR. No cambiar un color por personaje sin razón editorial.",
     "references": [
-      "content/longform/trazo_004_freddy_krueger/miniaturas/miniatura_final.png",
-      "content/longform/trazo_005_michael_myers_historia/miniaturas/miniatura_historia_v2.png",
-      "content/longform/trazo_003_jason_voorhees/miniaturas/miniatura_historia_v2.png"
+      "content/longform/trazo_maldito/004_freddy_krueger/miniaturas/miniatura_final.png",
+      "content/longform/trazo_maldito/005_michael_myers_historia/miniaturas/miniatura_historia_v2.png",
+      "content/longform/trazo_maldito/003_jason_voorhees/miniaturas/miniatura_historia_v2.png"
     ],
     "storage": "Conservar original generado, PNG final1280x720 y revisión/procedencia en miniaturas/ de cada episodio. Versionar sustituciones; preservar voces, vídeos y fuentes. No copiar miniaturas a otros episodios como arte final.",
     "evidence": "Preferencia del operador28/10 y revisión visual del agente; sin CTR propio ni prueba A/B. Proponer alternativas cuando haya fundamento, distinguir hipótesis de mejora medida."

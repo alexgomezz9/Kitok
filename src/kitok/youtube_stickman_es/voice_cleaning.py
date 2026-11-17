@@ -14,6 +14,7 @@ import subprocess
 import wave
 
 from ..editing.manifest import clean_script
+from ..longform.episodes import moves_for_episode, resolve_episode_path
 from ..media.ffprobe import probe_media
 from .audio_autoclean import apply_autocuts, plan_autocuts
 from .files import digest, local_file, write
@@ -54,8 +55,10 @@ def _window_evidence(episode: Path, source: Path, script: str, asr: dict,
     record = folder / 'evidence.json'
     if record.exists():
         rows = json.loads(record.read_text())
-        if any(digest(local_file(episode, str(Path(row['window_audio_path']).relative_to(episode)))) != row['window_audio_sha256'] for row in rows):
-            raise ValueError('Local refinement audio changed; correction blocked')
+        for row in rows:
+            path = resolve_episode_path(episode, Path(row['window_audio_path']))
+            if digest(local_file(episode, str(path.relative_to(episode)))) != row['window_audio_sha256']:
+                raise ValueError('Local refinement audio changed; correction blocked')
         return rows
     pcm = folder / 'source.wav'
     if not pcm.exists():
@@ -263,6 +266,9 @@ def clean_narration(episode: Path, *, settings, raw: dict, require_ready: bool =
         audio, srt, alignment = cleaned_paths(episode, MODE)
         manifest = json.loads(active.read_text())
         result = json.loads(local_file(episode, manifest['files']['narration']['path']).read_text())
+        moves = moves_for_episode(episode)
+        if moves:
+            result = moves.data(result)
         if (result.get('audio_path') != str(audio) or result.get('audio_sha256') != digest(audio)
                 or result.get('srt_path') != str(srt) or result.get('srt_sha256') != digest(srt)
                 or result.get('alignment_path') != str(alignment)):

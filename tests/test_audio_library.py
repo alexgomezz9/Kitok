@@ -13,7 +13,7 @@ import httpx
 import pytest
 
 from kitok.audio_library import (AudioLibrary, AudioLibraryError, BASE, MIXKIT_FAQ, MIXKIT_LICENSE,
-                                 MIXKIT_LICENSE_TEXT, MIXKIT_SOURCE, SFX_KINDS,
+                                 MIXKIT_DOCUMENTARY, MIXKIT_LICENSE_TEXT, MIXKIT_SOURCE, SFX_KINDS,
                                  infer_audio_mood, narrative_transition, synthesize_sfx)
 from kitok.media.ffprobe import probe_media
 
@@ -61,7 +61,7 @@ def audio_library(tmp_path):
 
 def test_catalog_exact_sources_and_noncommercial_rejected(tmp_path):
     catalog = json.loads(CATALOG.read_text())
-    assert len(catalog["sources"]) == 28
+    assert len(catalog["sources"]) == 30
     horror = {"this_house", "unnatural_situation", "the_dread", "dark_fog"}
     additions = [item for item in catalog["sources"] if item["id"] in horror]
     assert {item["id"] for item in additions} == horror
@@ -94,7 +94,7 @@ def mixkit_library(tmp_path):
     def handler(request):
         calls.append(str(request.url))
         assert "authorization" not in request.headers and "cookie" not in request.headers
-        if str(request.url) == MIXKIT_SOURCE:
+        if str(request.url) in {MIXKIT_SOURCE, MIXKIT_DOCUMENTARY}:
             return httpx.Response(200, text=source_html)
         if str(request.url) == MIXKIT_LICENSE_TEXT:
             return httpx.Response(200, text="Stock Music Free License; commercial and non-commercial projects for free; YouTube videos")

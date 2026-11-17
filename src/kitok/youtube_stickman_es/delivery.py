@@ -14,6 +14,7 @@ import re
 import shutil
 import tempfile
 
+from ..longform.episodes import EpisodeMoves
 from .files import episode_lock, episode_path, local_file
 
 
@@ -267,7 +268,8 @@ def _compact_delivery_locked(root: Path, episode: Path, *, destination_episode=N
     if destination.exists() and not destination.is_dir():
         raise ValueError('Existing entrega must be a directory')
     previous = _existing_delivery(destination, allow_legacy=migrate)
-    same = previous == report and {p.name for p in destination.iterdir()} == set(report['sha256']) if previous else False
+    same = (EpisodeMoves.load(root).data(previous) == report
+            and {p.name for p in destination.iterdir()} == set(report['sha256'])) if previous else False
     if previous and not same and not migrate:
         raise ValueError('Existing entrega differs; preserve it and choose a new episode revision')
     if previous and not same:

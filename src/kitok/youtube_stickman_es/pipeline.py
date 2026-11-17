@@ -10,6 +10,7 @@ from ..config import Settings
 from ..editing.manifest import clean_script
 from ..editing.production import render_editorial_plan
 from ..editing.storyboard import EditorialAsset, EditorialPlan, EditorialScene
+from ..longform.episodes import EpisodeMoves
 from .audio import prepare_narration, prepare_mix
 from .files import digest, episode_lock, episode_path, local_file, replace_state, write
 from .final_paths import final_video
@@ -163,7 +164,15 @@ def _render(episode: Path, root: Path, settings, *, revision: str | None = None,
                'editorial_plan_sha256':digest(timeline.model_dump()),
                'output':str((episode / ('video_final'+suffix+'.mp4')).relative_to(root))}
     request_path = local_file(episode,'.stickman/render'+suffix+'.json',exists=False)
-    write(request_path,request)
+    moves = EpisodeMoves.load(root)
+    saved_request = json.loads(request_path.read_text()) if request_path.is_file() else None
+    if saved_request is not None and moves.pairs and saved_request != request:
+        legacy = moves.data(request, reverse=True)
+        legacy['editorial_plan_sha256'] = digest(moves.data(timeline.model_dump(), reverse=True))
+        if saved_request != legacy:
+            write(request_path, request)
+    else:
+        write(request_path, request)
     if output.exists():
         receipt = local_file(episode,output.stem+'.editorial.json')
         old = json.loads(receipt.read_text())
@@ -171,7 +180,7 @@ def _render(episode: Path, root: Path, settings, *, revision: str | None = None,
                 or old.get('alignment',{}).get('plan_sha256') != batch.plan_key
                 or old.get('alignment',{}).get('batch_sha256') != batch.key
                 or old.get('audio_source_sha256') != mix['audio_sha256']
-                or old.get('assets') != {key:asset.model_dump() for key,asset in assets.items()}):
+                or moves.data(old.get('assets')) != {key:asset.model_dump() for key,asset in assets.items()}):
             raise ValueError('Existing render receipt differs; preserve it and choose --revision')
         emit('Vídeo existente: recibo e identidad comprobados; se reutiliza')
         result = old

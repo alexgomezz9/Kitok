@@ -1,7 +1,7 @@
 """Assemble a local YouTube Studio handoff from a validated Native render."""
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from errno import EXDEV
 from io import BytesIO
 import json
@@ -23,6 +23,7 @@ from ..native_recovery import regular
 from ..youtube_stickman_es.audio import aligned_srt, format_srt, read_srt
 from ..youtube_stickman_es.delivery import publication_metadata
 from ..youtube_stickman_es.files import local_file
+from .episodes import EpisodeMoves
 
 
 @dataclass(frozen=True)
@@ -40,6 +41,7 @@ class Publication:
 
 
 def prepare_publication(config: Path, root: Path, script: str) -> Publication:
+    config = EpisodeMoves.load(root).path(config)
     config = config if config.is_absolute() else root / config
     relative = regular(config, root).relative_to(root)
     if (len(relative.parts) != 5 or relative.parts[:2] != ('content', 'longform')
@@ -168,11 +170,15 @@ def deliver(publication: Publication, output: Path, root: Path, definition, *, f
     if (render.get('renderer') != 'native' or render.get('content_id') != definition.item.id
             or edit.get('script_sha256') != script_hash(definition.item.script)):
         raise ValueError('The saved Native render does not match this episode ID and script')
+    moves = EpisodeMoves.load(root)
     if render.get('definition_sha256') and render['definition_sha256'] != definition.fingerprint():
-        raise ValueError('The Native render was produced with different montage or narration settings')
+        current = definition.visual_root
+        previous = moves.path(current, reverse=True) if current is not None else current
+        if previous == current or render['definition_sha256'] != replace(definition, visual_root=previous).fingerprint():
+            raise ValueError('The Native render was produced with different montage or narration settings')
     if definition.visual_plan is not None:
         sources = visual_sources(definition.visual_plan, root, definition.visual_root)
-        if sources != render.get('visual_sources'):
+        if sources != moves.data(render.get('visual_sources')):
             raise ValueError('The case media changed after rendering')
     expected = render.get('output_sha256')
     if not expected:

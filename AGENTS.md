@@ -6,7 +6,7 @@
 ## Producción
 
 - El agente investiga, escribe y decide la posición de los recursos auténticos. Kitok valida, sincroniza, mezcla y renderiza. Revisa contexto y licencia, conserva fuente y créditos, y distingue archivo real de stock ilustrativo.
-- Guarda episodios nuevos por canal en content/longform y prepara su entrega para Studio. Consulta la guía del canal antes de crear carpetas.
+- Reserva episodios con los comandos de la guía del canal en content/longform/<canal>/<NNN_tema>. Deja la subida en su subcarpeta entrega/. Lee el índice de documentación al retomar y actualiza la nota pertinente con fuente cuando una decisión se vaya a reutilizar.
 - Para Loose Thread opera por CLI. El agente busca, descarga y verifica los recursos disponibles y redacta el JSON. Cuando falte un archivo decisivo, indica el enlace, el fragmento y la carpeta exactos. Usa ilustración o IA cuando aporte claridad. Anota la procedencia y retira temporales al cerrar.
 - Comprobar, guardar y previsualizar borradores son operaciones locales. Reutiliza voz, alineación y stock confirmados. Las síntesis inciertas se investigan antes de repetir. Mantén el bloqueo por ID, la identidad de los datos y las salidas previas en reintentos y recuperaciones.
 - Native es el flujo de producción. MoneyPrinterTurbo se usa sólo para reanudar una tarea histórica conocida. El publicador Buffer cubre shorts, con preview, confirmación y reconciliación. Para YouTube comprueba el ID del canal y los permisos; publicar o modificar contenido requiere un encargo concreto.

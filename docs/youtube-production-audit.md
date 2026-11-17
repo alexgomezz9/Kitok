@@ -228,7 +228,7 @@ cero perdidos. No equivale a escuchar ni comprobar fluidez a 1× de todo el víd
 Revisión independiente de entrega sin inconsistencias materiales; no repitió
 ASR, render ni decodificación.
 
-Entrega: `content/longform/trazo_004_freddy_krueger/entrega/`, seis archivos.
+Entrega: `content/longform/trazo_maldito/004_freddy_krueger/entrega/`, seis archivos.
 Vídeo de 599.627.106 bytes. Limpieza: 869 auxiliares retirados (1457,8 MiB lógicos)
 y 266 rutas fuente con SHA intacto. No se midió liberación física con otros
 hardlinks. Se conservan la revisión activa, originales, másteres, PNG, prompts,

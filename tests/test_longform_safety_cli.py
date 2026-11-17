@@ -1,5 +1,6 @@
 """Offline CLI checks for long-form dry-run and studio exclusion."""
 import json
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -183,7 +184,7 @@ def test_cli_dry_run_rejects_documentary_legacy_music_before_settings_or_provide
 def test_documentary_accepts_explicit_music_modes_in_cli_config(studio, mode):
     client, app, settings = studio
     row = client.post('/api/longform', json=BODY).json()
-    config = app.s.data_root / 'content' / 'longform' / 'studio' / f"{row['id']}.json"
+    config = Path(row['config_path'])
     data = json.loads(config.read_text())
     data.update(mounting_style='documentary', music_mode=mode,
                 music_track='long_note_two' if mode == 'manual' else None)
@@ -200,7 +201,7 @@ def test_documentary_accepts_explicit_music_modes_in_cli_config(studio, mode):
 def test_mpt_recovery_rejects_new_native_options_before_settings_or_download(studio, monkeypatch, capsys, options):
     client, app, settings = studio
     row = client.post('/api/longform', json=BODY).json()
-    config = settings.data_root / 'content' / 'longform' / 'studio' / f"{row['id']}.json"
+    config = Path(row['config_path'])
     data = json.loads(config.read_text())
     data.update(options)
     config.write_text(json.dumps(data))

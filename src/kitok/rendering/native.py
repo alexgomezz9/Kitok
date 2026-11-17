@@ -148,6 +148,8 @@ class NativeLongformRenderer(LongformRenderer):
         if music_mode in {"auto", "manual"}:
             library = self._audio_library()
             try:
+                if any(event.kind == "card_flick" for event in (getattr(definition, "sound_events", None) or ())):
+                    library.card_flick()
                 if music_mode == "auto":
                     music_selection = library.select_narrative(content_id, definition.item.script, channel="loose_thread")
                 else:
@@ -375,6 +377,8 @@ class NativeLongformRenderer(LongformRenderer):
             if mounting_style == "documentary" and music_mode == "auto":
                 from ..editing.motion import automatic_sfx
                 sfx_events = automatic_sfx(editing, narration_duration, word_alignment=word_alignment)
+            if (explicit_sfx := getattr(definition, "sound_events", None)) is not None:
+                sfx_events = [event.model_dump() for event in explicit_sfx]
             if music_mode in {"auto", "manual"}:
                 # AudioLibrary validates a separate normalized mix and keeps the
                 # raw Fish narration untouched. Reuse only a matching receipt.
@@ -522,6 +526,10 @@ class NativeLongformRenderer(LongformRenderer):
             if music_selection:
                 text += "\n## Music\n\n" + "\n\n".join(music_selection['credits'])
                 text += "\n\n" + music_selection['changes_notice'] + "\n\nContent ID: unknown.\n"
+            if any(event["kind"] == "card_flick" for event in sfx_events):
+                from ..audio_library import CARD_FLICK
+                text += (f"\n## Sound effects\n\n- {CARD_FLICK['title']} ({CARD_FLICK['author']}). "
+                         f"[Source]({CARD_FLICK['url']}), [license]({CARD_FLICK['license_url']}).\n")
             fd, temporary = tempfile.mkstemp(prefix=".source-credits-", dir=self.output_path.parent)
             try:
                 with os.fdopen(fd, "w", encoding="utf-8") as handle:

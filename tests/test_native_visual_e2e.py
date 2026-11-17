@@ -162,6 +162,18 @@ def test_native_visual_config_reaches_shared_ffmpeg_delivery(tmp_path, mode, mon
     assert ' '.join(cue['text'] for cue in cues) == script
     assert cli.main([*argv, '--deliver-only']) == 0
 
+    from kitok.longform.episodes import MOVES_PATH
+    canonical = episode.with_name('001_fixture')
+    history = tmp_path / MOVES_PATH
+    history.parent.mkdir(exist_ok=True)
+    history.write_text(json.dumps({str(episode.relative_to(tmp_path)): str(canonical.relative_to(tmp_path))}))
+    episode.rename(canonical)
+    assert cli.main([*argv, '--deliver-only']) == 0
+    metadata = canonical / metadata.relative_to(episode)
+    episode = canonical
+    target = episode / 'entrega'
+    assert (target / 'video_final.mp4').samefile(output)
+
     publication['title'] = 'A different title'
     metadata.write_text(json.dumps(publication))
     assert cli.main([*argv, '--deliver-only']) == 1

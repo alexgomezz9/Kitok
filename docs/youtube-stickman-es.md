@@ -21,18 +21,18 @@ aprobación; no simula una generación exitosa ni cambia a una API de pago.
 
 ## Preparar un episodio
 
-Para episodios nuevos de Trazo Maldito usa `content/longform/trazo_maldito/<episodio>`.
-Las rutas de episodios ya producidos o en cola se conservan.
+`init --channel trazo_maldito` reserva el número y crea la estructura. Usa la
+ruta que devuelve para seguir, como `content/longform/trazo_maldito/013_mi_tema`.
 El [índice de investigación Stickman](research/stickman.md) enlaza decisiones reutilizables.
 
 ```bash
-.venv/bin/python -m kitok.youtube_stickman_es init content/longform/trazo_maldito/mi_episodio
+.venv/bin/python -m kitok.youtube_stickman_es init mi_tema --channel trazo_maldito
 ```
 
 Aporta estos archivos, conservando el guion original:
 
 ```text
-content/longform/trazo_maldito/mi_episodio/
+content/longform/trazo_maldito/013_mi_tema/
   guion_final.txt
   titulo.txt
   configuracion.json
@@ -50,7 +50,7 @@ estos datos a partir de las referencias; Kitok no deduce el estilo abriendo un P
 Se guardan `guia_estilo.md` y `personajes.json`.
 
 ```bash
-.venv/bin/python -m kitok.youtube_stickman_es prepare content/longform/trazo_maldito/mi_episodio
+.venv/bin/python -m kitok.youtube_stickman_es prepare content/longform/trazo_maldito/013_mi_tema
 ```
 
 Con voz existente no hay síntesis. Si falta, configura `voice.reference_id`, modelo
@@ -92,8 +92,8 @@ respetar el máximo se solicita una alineación más granular.
 ## Reutilizar imágenes y un plan anterior
 
 ```bash
-.venv/bin/python -m kitok.youtube_stickman_es prepare content/longform/trazo_maldito/mi_episodio --revision alineada --reuse-images
-.venv/bin/python -m kitok.youtube_stickman_es produce content/longform/trazo_maldito/mi_episodio --revision alineada --reuse-images
+.venv/bin/python -m kitok.youtube_stickman_es prepare content/longform/trazo_maldito/013_mi_tema --revision alineada --reuse-images
+.venv/bin/python -m kitok.youtube_stickman_es produce content/longform/trazo_maldito/013_mi_tema --revision alineada --reuse-images
 ```
 
 El primer comando no renderiza ni consume proveedores. El segundo usa el motor
@@ -133,7 +133,7 @@ referencias y cámara. Los IDs, imágenes y decisiones mecánicas los genera Kit
 el operador no necesita escribir ese plan a mano.
 
 ```bash
-.venv/bin/python -m kitok.youtube_stickman_es request-next content/longform/trazo_maldito/mi_episodio
+.venv/bin/python -m kitok.youtube_stickman_es request-next content/longform/trazo_maldito/013_mi_tema
 ```
 
 La respuesta contiene `id`, `attempt_id`, destino y los argumentos reales de
@@ -146,7 +146,7 @@ clave OpenAI ni proveedor de imágenes adicional. Guarda/importa el archivo real
 que entregue la herramienta, sin asumir su nombre o inventar una ruta de salida:
 
 ```bash
-.venv/bin/python -m kitok.youtube_stickman_es import-image content/longform/trazo_maldito/mi_episodio --image-id ID --attempt-id TOKEN --source RUTA_REAL.png --source-kind builtin_imagegen --reviewed
+.venv/bin/python -m kitok.youtube_stickman_es import-image content/longform/trazo_maldito/013_mi_tema --image-id ID --attempt-id TOKEN --source RUTA_REAL.png --source-kind builtin_imagegen --reviewed
 ```
 
 `--reviewed` registra una inspección visual realizada, no una comprobación de IA
@@ -159,7 +159,7 @@ Antes del lote sólo son elegibles las escenas primera, central y final (o las
 disponibles si hay menos de tres). Preséntalas al operador. **Tras su aprobación**:
 
 ```bash
-.venv/bin/python -m kitok.youtube_stickman_es approve-style content/longform/trazo_maldito/mi_episodio --reviewer NOMBRE
+.venv/bin/python -m kitok.youtube_stickman_es approve-style content/longform/trazo_maldito/013_mi_tema --reviewer NOMBRE
 ```
 
 La aprobación fija plan, voz/SRT, personajes, referencias, conceptos y hashes de
@@ -171,8 +171,8 @@ servicio de pago. No se promete un lote de 120 dentro de una sola cuota.
 ## Interrupciones, errores y correcciones
 
 ```bash
-.venv/bin/python -m kitok.youtube_stickman_es status content/longform/trazo_maldito/mi_episodio
-.venv/bin/python -m kitok.youtube_stickman_es resume content/longform/trazo_maldito/mi_episodio
+.venv/bin/python -m kitok.youtube_stickman_es status content/longform/trazo_maldito/013_mi_tema
+.venv/bin/python -m kitok.youtube_stickman_es resume content/longform/trazo_maldito/013_mi_tema
 ```
 
 Una solicitud reservada permanece `claimed` o `unknown`; nunca se reenvía sola.
@@ -193,8 +193,8 @@ ni se atribuye a todas las solicitudes el precio de la última imagen.
 ## Montar y volver a renderizar
 
 ```bash
-.venv/bin/python -m kitok.youtube_stickman_es produce content/longform/trazo_maldito/mi_episodio
-.venv/bin/python -m kitok.youtube_stickman_es render content/longform/trazo_maldito/mi_episodio --revision v2
+.venv/bin/python -m kitok.youtube_stickman_es produce content/longform/trazo_maldito/013_mi_tema
+.venv/bin/python -m kitok.youtube_stickman_es render content/longform/trazo_maldito/013_mi_tema --revision v2
 ```
 
 `produce` monta cuando la muestra está aprobada y todas las ilustraciones están

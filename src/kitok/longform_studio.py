@@ -14,6 +14,10 @@ from functools import lru_cache
 import json
 import logging
 from pathlib import Path
+
+from .longform.episodes import (
+    CHANNELS, EPISODE_ID, LEGACY_STUDIO_DRAFTS, STUDIO_DRAFTS, EpisodeMoves, reserve_episode,
+)
 import re
 import shutil
 from uuid import uuid4
@@ -38,8 +42,8 @@ class LongformStudio:
         self.application = application
         self.s = application.s
         self.root = self.s.data_root or PROJECT_ROOT
-        self.folder = self.root / 'content' / 'longform' / 'studio'
-        self.records = self.s.state_path.parent / 'longform'
+        self.folder = self._controlled(self.root / STUDIO_DRAFTS)
+        self.records = self._controlled(self.s.state_path.parent / 'longform')
         self.folder.mkdir(parents=True, exist_ok=True)
         self.records.mkdir(parents=True, exist_ok=True)
         # Never replay paid work after a restart. A live worker owns the flock.
@@ -66,6 +70,16 @@ class LongformStudio:
         if not isinstance(cid, str) or not re.fullmatch(r'lf_[0-9a-f]{32}', cid):
             raise ValueError('Vídeo largo no encontrado')
         return cid
+
+    def _draft_paths(self, cid):
+        cid = self._valid_id(cid)
+        current = (self.folder / f'{cid}.json', self.folder / f'{cid}.txt')
+        legacy = tuple(self.root / LEGACY_STUDIO_DRAFTS / path.name for path in current)
+        if any(path.exists() or path.is_symlink() for path in legacy):
+            if any(path.exists() or path.is_symlink() for path in current):
+                raise ValueError('El borrador existe en dos ubicaciones')
+            return tuple(self._controlled(path) for path in legacy)
+        return tuple(self._controlled(path) for path in current)
 
     def _write(self, record):
         write_json_atomic(self.records / f"{self._valid_id(record['id'])}.json", record)
@@ -109,13 +123,21 @@ class LongformStudio:
         return item, config
 
     def _episode(self, episode_id):
-        if not isinstance(episode_id, str) or not re.fullmatch(r'[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}', episode_id) or episode_id == 'studio':
+        if not isinstance(episode_id, str) or not re.fullmatch(EPISODE_ID, episode_id):
             raise ValueError('Episodio no encontrado')
-        path = self.root / 'content' / 'longform' / episode_id
-        self._controlled(path)
-        if not path.is_dir():
+        if episode_id in {*CHANNELS, 'studio', 'smoke'}:
             raise ValueError('Episodio no encontrado')
-        return path
+        parent = self.root / 'content' / 'longform'
+        channel, _, name = episode_id.partition('--')
+        if channel in CHANNELS and re.fullmatch(EPISODE_ID, name):
+            candidates = [parent / channel / name]
+        else:
+            historical = EpisodeMoves.load(self.root).path(parent / episode_id)
+            possible = (historical, *(parent / group / episode_id for group in CHANNELS))
+            candidates = list(dict.fromkeys(path for path in possible if path.exists() or path.is_symlink()))
+        if len(candidates) != 1 or not self._controlled(candidates[0]).is_dir():
+            raise ValueError('Episodio no encontrado o identificador ambiguo')
+        return candidates[0]
 
     def _controlled(self, path):
         root = self.root.absolute()
@@ -132,9 +154,18 @@ class LongformStudio:
         parent = self._controlled(self.root / 'content' / 'longform')
         if not parent.is_dir():
             return result
-        for folder in sorted(parent.iterdir()):
+        groups = [parent / channel for channel in CHANNELS]
+        folders = [p for p in parent.iterdir() if p not in groups]
+        for group in groups:
+            if not group.is_symlink() and group.is_dir():
+                folders.extend(group.iterdir())
+        for folder in sorted(folders):
             try:
-                episode = self._episode(folder.name)
+                if folder.parent in groups:
+                    episode_id = f'{folder.parent.name}--{folder.name}'
+                else:
+                    episode_id = folder.name
+                episode = self._episode(episode_id)
                 images = []
                 for name in ('images', 'real_images'):
                     directory = self._controlled(episode / name)
@@ -149,17 +180,16 @@ class LongformStudio:
                                 images.append({'asset': str(path.relative_to(episode)), 'filename': path.name})
                         except ValueError:
                             continue
-                result.append({'id': folder.name, 'images': images})
+                result.append({'id': episode_id, 'images': images})
             except ValueError:
                 continue
         return result
 
     def create_episode(self):
         episode_id = f'episode_{uuid4().hex}'
-        path = self._controlled(self.root / 'content' / 'longform' / episode_id)
-        path.mkdir(parents=True, exist_ok=False)
+        path = reserve_episode(self.root, self.s, 'loose_thread', episode_id)
         (path / 'images').mkdir()
-        return {'id': episode_id, 'images': []}
+        return {'id': f'loose_thread--{path.name}', 'images': []}
 
     def upload_images(self, episode_id, images):
         from PIL import Image, UnidentifiedImageError
@@ -279,10 +309,10 @@ class LongformStudio:
         self.preview(body)  # Bad scripts never become stored jobs. Missing keys may be fixed later.
         cid = f'lf_{uuid4().hex}'
         item, config = self._definition_values(body, cid)
-        script_path = self.folder / f'{cid}.txt'
+        config_path, script_path = self._draft_paths(cid)
         config['script_file'] = str(script_path.relative_to(self.root))
         script_path.write_text(item.script + '\n', encoding='utf-8')
-        write_json_atomic(self.folder / f'{cid}.json', config)
+        write_json_atomic(config_path, config)
         record = {'id': cid, 'subject': item.subject, 'status': 'draft',
                   'renderer': body.renderer, 'created_at': datetime.now(timezone.utc).isoformat(),
                   'stage': 'Guion guardado. Comprueba los requisitos antes de generar.', 'error': None,
@@ -294,12 +324,13 @@ class LongformStudio:
         record = self._read(cid)
         path = self.output_path(cid)
         available = record['status'] == 'succeeded' and path.is_file()
+        config, script = self._draft_paths(cid)
         return {k: v for k, v in record.items() if k != 'request'} | {
             'preview_url': f'/api/longform/{cid}/video' if available else None,
             'download_url': f'/api/longform/{cid}/download' if available else None,
             'credits_url': f'/api/longform/{cid}/credits' if available and path.with_suffix('.credits.md').is_file() else None,
-            'config_path': str(self.folder / f'{cid}.json'),
-            'script_path': str(self.folder / f'{cid}.txt'),
+            'config_path': str(config),
+            'script_path': str(script),
             'output_path': str(path),
             'script': record['request']['script'],
             'keywords': record['request']['keywords'],
@@ -352,10 +383,10 @@ class LongformStudio:
                     raise ValueError(f'Falta configurar: {missing}')
                 # Reject every outside config change, including hidden CLI
                 # options. Do this before following script_file from disk.
-                config_path = self.folder / f'{cid}.json'
+                config_path, script_path = self._draft_paths(cid)
                 expected_config = self._definition_values(body, cid)[1]
-                expected_config['script_file'] = str((self.folder / f'{cid}.txt').relative_to(self.root))
-                if json.loads(config_path.read_text(encoding='utf-8')) != expected_config:
+                expected_config['script_file'] = str(script_path.relative_to(self.root))
+                if EpisodeMoves.load(self.root).data(json.loads(config_path.read_text(encoding='utf-8'))) != expected_config:
                     raise ValueError('El guion o la configuración cambió fuera del estudio. Crea y revisa un nuevo borrador.')
                 definition = runner().load_longform_config(config_path, project_root=self.root, ffprobe=self.s.ffprobe_binary)
                 if definition.item.script != body.script:
@@ -416,11 +447,10 @@ class LongformStudio:
         body = LongformRequest.model_validate(record['request'])
         if body.source_narration_id is not None:
             raise ValueError('Este montaje reutiliza la voz de otro trabajo. Crea otro montaje desde el original conservado.')
-        config_path = regular(self.folder / f'{cid}.json', self.root)
-        script_path = regular(self.folder / f'{cid}.txt', self.root)
+        config_path, script_path = (regular(path, self.root) for path in self._draft_paths(cid))
         expected = self._definition_values(body, cid)[1]
         expected['script_file'] = str(script_path.relative_to(self.root))
-        if json.loads(config_path.read_text()) != expected:
+        if EpisodeMoves.load(self.root).data(json.loads(config_path.read_text())) != expected:
             raise ValueError('La configuración cambió; la recuperación no volverá a sintetizar voz.')
         definition = runner().load_longform_config(config_path, project_root=self.root, ffprobe=self.s.ffprobe_binary)
         if definition.item.script != body.script:
@@ -442,11 +472,10 @@ class LongformStudio:
         record = self._read(cid)
         self._native_only(record['renderer'])
         body = LongformRequest.model_validate(record['request'])
-        config = regular(self.folder / f'{cid}.json', self.root)
-        script = regular(self.folder / f'{cid}.txt', self.root)
+        config, script = (regular(path, self.root) for path in self._draft_paths(cid))
         expected = self._definition_values(body, cid)[1]
         expected['script_file'] = str(script.relative_to(self.root))
-        if json.loads(config.read_text()) != expected:
+        if EpisodeMoves.load(self.root).data(json.loads(config.read_text())) != expected:
             raise ValueError('La configuración cambió fuera del estudio; crea otro borrador.')
         definition = runner().load_longform_config(config, project_root=self.root,
                                                    validate_visual_assets=validate_visual_assets, ffprobe=self.s.ffprobe_binary)

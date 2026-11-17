@@ -6,6 +6,8 @@ no promete ingresos ni convierte una biblioteca evaluada en una dependencia inst
 
 El [método de Loose Thread](loose-thread.md) reúne decisiones de tema, archivo, guion y métricas. Las fuentes originales de cada caso van en su episodio.
 [Stickman y Trazo Maldito](stickman.md) reúne las referencias vigentes del otro flujo.
+[Análisis de referencias](reference-media.md) explica cómo estudiar un tramo con
+fotogramas, transcripción y señales de sonido para ambos canales.
 
 ## Componentes elegidos
 
@@ -17,13 +19,12 @@ El [método de Loose Thread](loose-thread.md) reúne decisiones de tema, archivo
 | Fish | Narración y alineación/caché aprovechables | Cambiar guion/voz puede consumir saldo; resultados inciertos no se repiten solos |
 | Pexels | Stock nativo y registro de clips cacheados | Ilustración, no evidencia histórica ni identidad |
 | Commons | Imágenes raster con metadatos/licencia admitida | Buscar candidatos no verifica el sujeto ni el contexto |
-| Biblioteca Incompetech auditada | Cuatro pistas con hashes/créditos, selector y mezcla | Ampliar repertorio requiere revisar contrato y fuentes |
+| [Biblioteca de audio](../audio.md) | Pistas de Incompetech y Mixkit con hashes y créditos, selector y mezcla | Ampliar repertorio requiere revisar la fuente y su licencia |
 | OAuth/Data/Analytics/Reporting oficiales | CLI YouTube, búsqueda pública y trabajos de alcance | El CTR se obtiene cuando Reporting entrega sus CSV |
 
 La selección prioriza el equipo de 4 GB VRAM/8 GB RAM y la reutilización de audio.
-No instalamos modelos grandes ni decenas de repositorios. Motion Canvas, Remotion,
-PDFium, rembg y whisper.cpp siguen siendo candidatos para necesidades concretas;
-no hay benchmark comparativo que acredite una superioridad general.
+El análisis puntual usa Faster Whisper y Earshot en CPU. Motion Canvas, Remotion,
+PDFium, rembg y whisper.cpp siguen siendo candidatos para necesidades concretas.
 
 Los tres MCP YouTube y el repo Jakes se evaluaron como referencias. La decisión y
 sus límites están en [la integración actual](../integrations/youtube-readonly.md).

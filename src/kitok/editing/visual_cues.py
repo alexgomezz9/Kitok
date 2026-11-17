@@ -97,6 +97,8 @@ class VisualPlan(CueModel):
 def visual_file(root: Path, visual_root: Path | str | None, asset: str) -> Path:
     root = Path(root).absolute()
     base = Path(visual_root) if visual_root is not None else root
+    from ..longform.episodes import EpisodeMoves
+    base = EpisodeMoves.load(root).path(base)
     base = base if base.is_absolute() else root / base
     if '..' in base.parts:
         raise ValueError('Visual root must remain inside the project workspace')

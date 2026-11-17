@@ -79,7 +79,7 @@ Los errores de fecha, cuota o publicación incierta se revisan antes de repetir 
 2. Elige narrador. Loose Thread conserva su voz original en inglés. En «Biblioteca de voces y favoritos» puedes escuchar muestras existentes, guardar favoritas y asignarlas a un canal sin sintetizar. El texto se lee tal como está escrito.
 3. Elige música: «Desactivada», «Automática» o «Elegir manualmente». Automática elige pistas locales verificadas para inicio y cierre, rota entre trabajos y mezcla dos ambientes con crossfade y ducking bajo la voz. Usa una frontera de secciones cuando la alineación es válida; si falta, declara un cambio central estimado. En Manual aparece un reproductor de la pista; en Automática puedes desplegar la biblioteca para escucharla antes de generar. Manual conserva la pista seleccionada. Si faltan recursos, la comprobación lo indica; consulta [la biblioteca de audio](docs/audio.md).
 4. Elige «Montaje básico» o «Documental enriquecido». El segundo añade preguntas, cifras, fechas, presentaciones explícitas y conceptos técnicos cuando reconoce una intención compatible. Con música automática puede añadir puntuación sonora discreta; no hay un efecto en cada corte. Antes de lanzar el vídeo completo revisa las muestras de «Montaje → Galería documental».
-5. Comprueba sin generar y guarda el borrador. Se crean automáticamente un .txt y un .json en content/longform/studio/; no necesitas escribir un JSON ni preparar cada plano.
+5. Comprueba sin generar y guarda el borrador. Se crean automáticamente un .txt y un .json en state/longform/drafts/; no necesitas escribir un JSON ni preparar cada plano.
 6. Después de revisar la calidad de las muestras, selecciona el borrador y pulsa «Generar vídeo largo». Kitok ejecuta el montaje elegido para todo el guion. Espera a «Terminado», reproduce y descarga el MP4 y sus créditos. Durante el montaje documental muestra el plano actual y el total.
 
 En generación nueva y recuperación, Kitok calcula los tramos de stock con la duración real del vídeo local, no con los segundos redondeados de Pexels. Comprueba todos los planos antes de renderizar el primero. Si un archivo completo no alcanza la duración necesaria, se detiene antes de mezclar y conserva la narración; no estira ni congela el plano.
@@ -103,7 +103,7 @@ la página no reinicia ni cancela el trabajo del servidor.
 ### Añadir fotos, documentos y clips del caso
 
 En «Vídeo largo», despliega **«Fotografías y documentos del caso · opcional»**.
-Selecciona la carpeta del episodio; `3_ultimatebet` ya encuentra las cuatro fotos
+Selecciona la carpeta del episodio; `003_ultimatebet` ya encuentra las cuatro fotos
 que has colocado en `real_images/`. Para otro episodio usa «Crear carpeta de
 episodio» y añade JPG, PNG o WebP, o colócalos manualmente en `images/`.
 
@@ -370,7 +370,9 @@ créditos de archivo aplicables en la descripción. Kitok incorpora el crédito
 obligatorio de la música de su catálogo cuando se usa.
 
 ```bash
-CONFIG=content/longform/loose_thread/ejemplo/configuracion.json
+.venv/bin/python longform.py new loose_thread mi_tema
+# Usa la carpeta que devuelve el comando en la variable CONFIG.
+CONFIG=content/longform/loose_thread/005_mi_tema/configuracion.json
 .venv/bin/python longform.py "$CONFIG" --deliver --dry-run
 .venv/bin/python longform.py "$CONFIG" --deliver
 ```
@@ -380,7 +382,7 @@ el MP4 confirmado si ya existe. Para empaquetar sólo un render existente,
 usa `--deliver-only`, que trabaja localmente y no llama a Fish ni Pexels.
 La subcarpeta `entrega/` contiene `video_final.mp4`, `miniatura.png`,
 `titulo.txt`, `descripcion.txt`, `etiquetas.txt`, `voz.srt` y
-`ajustes_youtube.txt`. La descarga completa es la carpeta de ese episodio.
+`ajustes_youtube.txt`. Para subir el vídeo, abre únicamente la carpeta `entrega/` del episodio.
 Kitok usa un enlace físico al MP4 si están en el mismo sistema de archivos.
 
 El SRT sale de la alineación real de Fish si coincide con el guion. Si falta,
@@ -480,8 +482,8 @@ membresías depende de la elegibilidad del canal.
 - main.py y longform.py: entradas CLI; la implementación está en src/kitok/.
 - scripts/dashboard.py: entrada del panel Streamlit opcional, separado del estudio diario.
 - state/state.json: intentos, rutas y publicaciones de shorts. No borrar para reintentar.
-- content/longform/studio/: guiones y configuraciones creados desde la interfaz.
-- content/longform/ID/assets/: recursos específicos aportados para un episodio; excluidos de Git.
+- state/longform/drafts/: guiones y configuraciones creados desde la interfaz.
+- content/longform/CANAL/NNN_TEMA/: episodios y su entrega, excluidos de Git.
 - state/longform/: estado de trabajos largos del estudio.
 - outputs/ready/: vídeos cortos terminados; es también el destino READY_DIR predeterminado, sin copia a Google Drive.
 - outputs/longform/: vídeos largos terminados.
@@ -527,7 +529,7 @@ como desconocido: la licencia no garantiza ausencia de reclamaciones automática
 ## Música y efectos locales
 
 La biblioteca incluye 24 pistas de Kevin MacLeod (CC BY4.0, atribución obligatoria)
-y cuatro pistas de terror de Mixkit de cuatro autores (licencia comercial,
+y seis pistas de Mixkit, cuatro para terror y dos para Loose Thread (licencia comercial,
 atribución opcional), con fuente oficial, autor, licencia y hash por archivo. Las búsquedas y las
 mezclas no generan voz. El catálogo, licencias y voces se explican en [docs/audio.md](docs/audio.md). La primera descarga usa Internet; las siguientes reutilizan
 la caché verificada. No es una suscripción ni un servicio de generación de pago.
