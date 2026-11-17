@@ -55,8 +55,10 @@ No incluye publicar, programar ni cambiar el canal.
 
 Consulta identidad y datos mediante la [conexión oficial de lectura](integrations/youtube-readonly.md)
 en `local/youtube-trazo-maldito`, comprobando el ID remoto. No uses la conexión
-de Loose Thread. El 26/10 se verificó acceso real y cero vídeos; esa fecha no prueba
-acceso futuro y no hay todavía métricas propias con las que ordenar personajes.
+de Loose Thread para métricas privadas de Trazo. Si la credencial de Trazo
+caduca, usa su informe directo en Studio cuando la sesión ya tenga acceso.
+Consulta la [investigación faceless](research/youtube-faceless.md) para contrastar
+alcance, clic y apertura con sus recuentos.
 
 La secuencia de trabajo es investigación/paquete → guion fijado → voz cruda, recortes de inserciones y segunda comprobación
 independiente local → storyboard → comparación inicial de enfoques si el estilo

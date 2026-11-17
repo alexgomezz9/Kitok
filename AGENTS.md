@@ -5,6 +5,8 @@
 
 ## Producción
 
+- Para ideas, alcance, títulos, miniaturas y guiones de YouTube, lee la [investigación faceless](docs/research/youtube-faceless.md) y la nota del canal. Actualiza la evidencia al revisar nuevas referencias y conserva las cifras privadas en el estado local.
+
 - El agente investiga, escribe y decide la posición de los recursos auténticos. Kitok valida, sincroniza, mezcla y renderiza. Revisa contexto y licencia, conserva fuente y créditos, y distingue archivo real de stock ilustrativo.
 - Reserva episodios con los comandos de la guía del canal en content/longform/<canal>/<NNN_tema>. Deja la subida en su subcarpeta entrega/. Lee el índice de documentación al retomar y actualiza la nota pertinente con fuente cuando una decisión se vaya a reutilizar.
 - Para Loose Thread opera por CLI. El agente busca, descarga y verifica los recursos disponibles y redacta el JSON. Cuando falte un archivo decisivo, indica el enlace, el fragmento y la carpeta exactos. Usa ilustración o IA cuando aporte claridad. Anota la procedencia y retira temporales al cerrar.

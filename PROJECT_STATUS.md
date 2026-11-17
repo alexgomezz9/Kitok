@@ -29,10 +29,12 @@ decodificación y el nivel de audio. Sobre el mismo ejemplo, el análisis de
 referencias recuperó fotogramas, un posible corte, texto temporizado y eventos
 de sonido. [Cómo analizar una referencia](docs/research/reference-media.md).
 
-La comparación pública del 13/11 favorece el caso de Phil Ivey y Cheung Yin Sun
-en Crockfords. El borrador de Black Friday está en
-`content/longform/loose_thread/004_black_friday`. El siguiente episodio espera
-la elección del operador.
+La comparación del 17/11 favorece el atraco de Fortaleza desde la tapadera de
+césped artificial. Se contrastaron dos transcripciones y el expediente. El
+borrador de Black Friday conserva su carpeta 004. Consulta la
+[investigación faceless](docs/research/youtube-faceless.md) antes de elegir el
+siguiente tema con el operador. La auditoría de Trazo se basó en Studio y
+comparó el paquete publicado con los tiempos de apertura.
 
 ## YouTube
 
