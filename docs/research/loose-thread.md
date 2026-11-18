@@ -61,7 +61,7 @@ Si necesitas mostrar dos sucesos a la vez, compón ambos en el mismo plano con
 una jerarquía clara. Prueba dos fotogramas a tamaño pequeño antes de exportar.
 Para planos específicos puedes usar [HyperFrames o Remotion](../integrations/agent-tools.md).
 Renderiza sólo los planos cuya explicación mejore con un compuesto a medida.
-Las fotos reales y las de stock admiten panes, recortes y rótulos del motor nativo.
+Las fotos reales y las de stock admiten paneos, recortes y rótulos del motor nativo.
 Usa la colección habitual de stock entre puntos explícitos. Un sonido ligado a
 una acción o a la aparición de una prueba puede usar el mismo ancla de guion.
 [Edición y previsualización por escena](../editing.md#preparar-un-montaje),

@@ -43,6 +43,11 @@ Ejecuta desde la carpeta del repositorio en Ubuntu WSL. El CLI es la entrada hab
    créditos, etiquetas, ajustes de Studio y miniatura final. Ejecuta el CLI
    `longform.py CONFIG --deliver --dry-run` y luego `--deliver`.
    Usa `--deliver-only` para un MP4 confirmado y reutiliza voz y alineación.
+   Mientras un montaje esté en revisión, usa `--keep-native-workspace` para
+   conservar los planos y la mezcla. Si el operador señala un minuto, localiza
+   el plano en el plan resuelto y usa [`--preview-scenes`](../../../docs/editing.md#preparar-un-montaje)
+   para enseñar la variante de ese tramo. Conserva la duración si el ajuste es
+   sólo visual para poder reutilizar la voz y los planos vecinos.
    Valida el comienzo, las pruebas visuales decisivas y los avisos técnicos.
    Kitok elige y monta el stock de relleno. Entrega la carpeta `entrega/`
    para que el operador suba y programe en Studio. Conserva guion, fuentes,
