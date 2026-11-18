@@ -52,3 +52,36 @@ CTR, portada histórica y respuesta de espectadores a cada variante.
   [Pruebas A/B](https://support.google.com/youtube/answer/16391400),
   [Embudo de impresiones](https://support.google.com/youtube/answer/9314486),
   [Uso de IA en miniaturas](https://support.google.com/youtube/answer/14328491).
+
+## Texto, señalización y contraste editorial · 18/11/2026
+
+- Aprilynne Alter, 27/08/2026. YouTube no ofreció la transcripción al intentar
+  exportarla desde el navegador. Se leyó el texto del vídeo en un espejo y su
+  chuleta original. Propone comparar variantes de texto y comprobar que el sujeto
+  se entiende en pequeño. Su guía usa flechas y líneas para dirigir la mirada.
+  [Vídeo](https://www.youtube.com/watch?v=KE4zqD0ONDI), [texto](https://pickscribe.com/v/KE4zqD0ONDI),
+  [guía de la autora](https://s3.amazonaws.com/kajabi-storefronts-production/file-uploads/sites/2147639332/themes/2155904121/downloads/17fd530-115-54b4-2a32-8183e871fe5_Thumbnail.pdf).
+- David Altizer, 18/11/2025, transcripción original 15:00 a 18:17 y 22:05 a 25:52.
+  Texto sencillo y breve si concreta la promesa. Se reemitió en 2026.
+  [Transcripción del programa](https://creatorscience.com/podcast/david-altizer/).
+- Paddy Galloway con Creator Insider, 30/09/2026. Capítulos 05:07, 08:24 y 16:44
+  y síntesis oficial del 16/11/2026. El primer tramo del vídeo entrega la
+  promesa del empaquetado. Los ejemplos de estas entrevistas incluyen texto.
+  Falta transcripción completa para esa conversación.
+  [Vídeo](https://www.youtube.com/watch?v=j7GtybYc6gk), [artículo oficial](https://blog.youtube/creator-and-artist-stories/creator-insider-paddy-galloway-youtube-ab-testing-ask-studio/).
+- En X, la publicación de Paddy sobre contraste y acción suspendida devolvió 403.
+  Las copias públicas sirvieron para localizar la hipótesis, no para atribuir
+  rendimiento. El repo ravsau/youtuber-skills ofrece un control de claridad y
+  veracidad similar al que ya tenemos. Sus giros a minutos fijos no encajan
+  como obligación en relatos documentales. [Publicación](https://x.com/PaddyG96/status/2053549151586066907),
+  [skill de empaquetado](https://github.com/ravsau/youtuber-skills/tree/main/skills/youtube-packaging),
+  [skill de guion](https://github.com/ravsau/youtuber-skills/tree/main/skills/youtube-script).
+
+Para cada tema, comparar dos conceptos con distinta tensión visual, incluyendo
+una variante con texto. Si la pista se pierde en el fondo, probar una flecha o
+un círculo sobre ese detalle. Revisar una versión de unos 160 × 90 con el título,
+y después tapar el título para ver qué se pierde. Texto, flecha y recorte son
+variables que se prueban. En Västberga, comparar una historia de dinero perdido
+(`39M SEK MISSING`) con una historia sobre el momento de entrada (`05:18 AM`,
+flecha hacia el punto del tejado al que importa mirar). Son conceptos. La
+revisión anterior que sólo mostraba el helicóptero no satisfizo al operador.

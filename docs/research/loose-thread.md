@@ -114,3 +114,28 @@ La muestra usa una página de búsqueda y recuentos publicados. Se mantienen los
 suscriptores ocultos como dato ausente. Las comparaciones históricas y métricas
 derivadas para un producto de análisis tienen condiciones específicas.
 [Políticas de métricas derivadas](https://developers.google.com/youtube/terms/derived-metrics-policy)
+
+## Guion y montaje · contraste editorial del 18/11/2026
+
+- George Blackman en Creator Science, vídeo del 12/10/2026. La transcripción
+  del programa del día siguiente, 09:53 a 12:16, 18:06 a 19:33 y 22:34 a 26:20,
+  desarrolla la secuencia de contexto, tensión y resolución de cada bloque.
+  Reparte descubrimientos verificables durante el relato y usa cada resultado
+  para abrir la siguiente cuestión. [Vídeo](https://www.youtube.com/watch?v=So77eF3rCao),
+  [transcripción](https://creatorscience.com/podcast/george-blackman-ai/).
+- Kallaway en Creator Science, vídeo del 30/08/2026. La transcripción del
+  01/09, 14:38 a 20:05 y 24:59 a 28:39, separa referencias de tema y de forma.
+  Contrasta demanda en canales de audiencia parecida y toma recursos visuales
+  de otros formatos cuando resuelvan una dificultad de comprensión. Su
+  audiencia incluye marketing y Shorts, así que no extrapoles métricas al canal.
+  [Vídeo](https://www.youtube.com/watch?v=GmIn1W9V8Rs),
+  [transcripción](https://creatorscience.com/podcast/kallaway/).
+- Cada guion de producción de Loose Thread desarrolla historia para 9 a 12 min.
+  Västberga 005 midió 282,6 s con 848 palabras. Cerca de 180 palabras/min,
+  la franja equivale aproximadamente a 1620 a 2160 palabras. Úsala para estimar
+  y confirma el reloj real después de voz. Si sólo hay materia para seis
+  minutos, profundiza en fuentes, consecuencias o puntos de vista documentados,
+  o cambia el enfoque. [Contrato de producción](../../GUIA.md#entrega-para-youtube-studio).
+
+Consulta [las composiciones de referencia](reference-media.md) y [el estudio de
+miniaturas](youtube-thumbnails.md). La síntesis actualiza el método del canal.

@@ -1,6 +1,6 @@
 # Estado vigente de Kitok
 
-Actualizado el **17/11/2026**. La carpeta de producción local está en Ubuntu WSL.
+Actualizado el **19/11/2026**. La carpeta de producción local está en Ubuntu WSL.
 La integración local usa `main`.
 Consulta [GUIA.md](GUIA.md) y el diff vigente.
 
@@ -18,7 +18,7 @@ regenerables, y guarda voz y recibos. El fallo conserva el diagnóstico.
 La entrega de largos Native se genera desde el CLI en
 `content/longform/<canal>/<NNN_tema>/entrega`. Incluye MP4, miniatura,
 subtítulos con reloj real y campos para subir manualmente desde Studio.
-Los 16 episodios se agrupan por canal y número. Los recibos históricos resuelven las rutas modernas.
+Los episodios se agrupan por canal y número. Los recibos históricos resuelven las rutas modernas.
 [Guía de entrega](GUIA.md#entrega-para-youtube-studio)
 
 La muestra de UltimateBet dura 12,9 s y tiene 387 fotogramas. Combina dos
@@ -31,8 +31,10 @@ de sonido. [Cómo analizar una referencia](docs/research/reference-media.md).
 
 La comparación del 18/11 favorece Västberga para el siguiente largo de Loose
 Thread. Se comprobaron comparables, el expediente y dos fotos del caso. El
-borrador de Black Friday conserva su carpeta 004. El siguiente paso es
-acordar el tema con el operador y preparar el guion con las pruebas visuales.
+borrador de Black Friday conserva su carpeta 004. Västberga 005 quedó como
+primera versión corta de prueba. Preparar un guion de 9–12 min y evaluar dos
+conceptos de portada antes de encargar otra producción. El CLI bloquea nuevas
+entregas Loose Thread de 480 s o menos y exporta los planos de revisión.
 [Selección del 18/11](docs/research/youtube-faceless.md#selección-para-loose-thread-del-18112026).
 La auditoría de Trazo se basó en Studio y comparó el paquete publicado con
 los tiempos de apertura.

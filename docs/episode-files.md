@@ -145,3 +145,16 @@ leer el log del trabajo y reanudar conservando fuentes y cachés útiles.
 `local/stickman_jobs/ESTADO.md` resume todos los trabajos nuevos; no modifica ni
 importa automáticamente episodios históricos. No existe una carpeta cuyo borrado
 completo sustituya esta limpieza por lista de archivos comprobados.
+
+## Lo que necesitas abrir a diario
+
+- `content/longform/loose_thread/` y `content/longform/trazo_maldito/` contienen
+  los episodios ordenados. Abre `entrega/` para subir y `clips_revision/INDICE.md`
+  para revisar planos editoriales de Loose Thread.
+- [Método y biblioteca de referencias](research/README.md) recoge miniaturas,
+  guion y montaje. Las muestras propias se consultan en
+  `outputs/motion-gallery/`; los enlaces a vídeos ajenos apuntan a su minuto.
+- El estado de producción está en `local/loose_thread_jobs/ESTADO.md` o
+  `local/stickman_jobs/ESTADO.md`. `state/`, `cache/`, dependencias y logs son
+  archivos del motor. Los originales en `images/`, `clips/` y `motion/` permiten
+  reconstruir previews puntuales después de retirar una caché cerrada.
