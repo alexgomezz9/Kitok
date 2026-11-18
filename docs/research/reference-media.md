@@ -29,6 +29,25 @@ un tramo localmente. Confirma lo que parezca un corte, comprueba el sonido
 si es determinante y explica en una frase qué decisión cambia para el episodio.
 Los cortes suaves y el tipo de música pueden requerir comprobación a oído.
 
+## Referencias de apertura para Loose Thread
+
+Fotogramas muestreados en YouTube el 18/11/2026. La muestra permite estudiar
+encuadres, continuidad, rótulos y tipos de recurso. Los tiempos de corte y la
+mezcla sonora requieren ver y escuchar el intervalo continuo.
+
+| Referencia | Observación y aplicación |
+| --- | --- |
+| [fern, Västberga](https://www.youtube.com/watch?v=PSHQ_MuxxNw&t=15s) | A 0:05 y 0:15 muestra a la misma trabajadora con auriculares desde distintos encuadres. A 0:35 cambia de perspectiva y aparece un policía en el coche. Para un episodio propio, vuelve al mismo lugar u objeto desde otra escala antes de cambiar de tema. |
+| [VAUX, Fortaleza](https://www.youtube.com/watch?v=ChlkHIJ4ASA&t=50s) | A 0:10 sitúa el lugar con imagen aérea y a 0:50 reduce el interior a líneas y un dato legible. Guarda el compuesto para explicar algo que la foto exterior no puede enseñar. |
+| [Lume, Fortaleza](https://www.youtube.com/watch?v=3kY4Oo5Bmrs&t=25s) | A 0:10 muestra un detalle junto a la furgoneta y a 0:25 se entiende el papel de la furgoneta gracias al rótulo de la empresa. El texto puede trabajar sobre un objeto en escena, sujeto a la legibilidad. |
+| [Lume, Don Johnson](https://www.youtube.com/watch?v=gy3kbrmm4R0&t=60s) | Se vieron exterior, mesa y monitor de vigilancia en las muestras de 0:00 a 0:20. En 1:00 aparece una foto real del protagonista con la cifra de resultado. Al identificar a alguien, reserva una prueba visual que pague esa parte de la promesa. |
+
+Para una muestra de Västberga se probó exterior a tejado, una foto del aparato
+con rótulo nativo y una composición de la cifra del expediente. Se usó música
+de la biblioteca, un soplo discreto en el cambio de plano y efectos al aparecer
+rótulo y cifra. Son decisiones propias de montaje. Para un largo con voz,
+comprueba los efectos a su nivel final y deja respirar los cortes ordinarios.
+
 Aplica la decisión en el [plan visual](../editing.md), la
 [biblioteca de audio](../audio.md) o el guion. Por ejemplo, colocar un sonido
 de carta en el momento en que se demuestra el giro y reservar el resto de la

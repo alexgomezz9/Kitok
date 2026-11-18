@@ -263,11 +263,14 @@ class MusicSource(BaseModel):
         return self
 
 
+SoundKind = Literal["soft_tick", "low_pulse", "air_swish", "paper_texture", "key_click", "ui_ping", "card_flick"]
+
+
 class SoundEvent(BaseModel):
     """A deliberate editorial cue; timing is relative to the requested mix."""
     model_config = ConfigDict(extra="forbid", frozen=True, allow_inf_nan=False)
     time: float = Field(ge=0)
-    kind: Literal["soft_tick", "low_pulse", "air_swish", "paper_texture", "key_click", "ui_ping", "card_flick"] = "soft_tick"
+    kind: SoundKind = "soft_tick"
 
 
 def _hash(path: Path) -> str:

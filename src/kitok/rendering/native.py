@@ -252,6 +252,11 @@ class NativeLongformRenderer(LongformRenderer):
                     maximum_clip=definition.video_clip_duration_max,
                     seed=timeline_seed,
                 )
+            explicit_sfx = getattr(definition, "sound_events", None)
+            if explicit_sfx is not None:
+                from ..editing.sound_cues import resolve_sound_events
+                explicit_sfx = resolve_sound_events(explicit_sfx, editing=editing,
+                                                    word_alignment=word_alignment, duration=narration_duration)
             timeline_seconds = time.monotonic() - stage
 
             stock_slots = slots
@@ -377,8 +382,8 @@ class NativeLongformRenderer(LongformRenderer):
             if mounting_style == "documentary" and music_mode == "auto":
                 from ..editing.motion import automatic_sfx
                 sfx_events = automatic_sfx(editing, narration_duration, word_alignment=word_alignment)
-            if (explicit_sfx := getattr(definition, "sound_events", None)) is not None:
-                sfx_events = [event.model_dump() for event in explicit_sfx]
+            if explicit_sfx is not None:
+                sfx_events = explicit_sfx
             if music_mode in {"auto", "manual"}:
                 # AudioLibrary validates a separate normalized mix and keeps the
                 # raw Fish narration untouched. Reuse only a matching receipt.

@@ -381,9 +381,17 @@ def test_longform_cli_defaults_to_native_and_preserves_explicit_mpt_recovery():
     assert historical.renderer == "mpt" and historical.resume == "known-task"
 
 
-@pytest.mark.parametrize("mounting,music_mode,aligned", [("basic", None, False), ("documentary", "off", False), ("basic", "auto", False), ("documentary", "manual", False), ("documentary", "auto", False), ("documentary", "auto", True)])
+@pytest.mark.parametrize("mounting,music_mode,aligned,anchored", [
+    ("basic", None, False, False),
+    ("documentary", "off", False, False),
+    ("basic", "auto", False, False),
+    ("documentary", "manual", False, False),
+    ("documentary", "auto", False, False),
+    ("documentary", "auto", True, False),
+    ("documentary", "auto", True, True),
+])
 def test_native_renderer_isolated_flow_reuses_fish_and_preserves_tags(
-    tmp_path, monkeypatch, caplog, mounting, music_mode, aligned
+    tmp_path, monkeypatch, caplog, mounting, music_mode, aligned, anchored
 ):
     source = tmp_path / "cached.mp4"
     source.write_bytes(b"stock")
@@ -459,6 +467,12 @@ def test_native_renderer_isolated_flow_reuses_fish_and_preserves_tags(
     definition.music_mode = music_mode
     definition.music_track = "long_note_two" if music_mode == "manual" else None
     audio_calls = []
+    if anchored:
+        from kitok.editing.sound_cues import parse_sound_event
+
+        definition.sound_events = [parse_sound_event(
+            {"anchor": {"phrase": "narration keeps"}, "kind": "paper_texture"}, item.script,
+        )]
     if aligned:
         # Fish may emit a zero-length first token: legacy manifest projection
         # falls back, while provider_sections validates the expanded transcript.
@@ -477,7 +491,10 @@ def test_native_renderer_isolated_flow_reuses_fish_and_preserves_tags(
             return {"credits": ["Test attribution CC BY 4.0"], "changes_notice": "Mixed and ducked."}
         def mix(self, job_id, narration, output, **kwargs):
             audio_calls.append(("mix", job_id, narration.read_bytes()))
-            assert kwargs['sfx_events'] == ([{'time': 1.0, 'kind': 'soft_tick'}] if mounting == 'documentary' and music_mode == 'auto' else [])
+            if anchored:
+                assert kwargs['sfx_events'] == [{"time": 10.0, "kind": "paper_texture"}]
+            else:
+                assert kwargs['sfx_events'] == ([{'time': 1.0, 'kind': 'soft_tick'}] if mounting == 'documentary' and music_mode == 'auto' else [])
             assert kwargs['transition_at'] == (25.0 if music_mode == 'auto' else None)
             output.write_bytes(b"final mix")
         def close(self):
@@ -671,3 +688,21 @@ def test_basic_start_over_cannot_overwrite_previous_editorial_result(tmp_path, m
         renderer.render(SimpleNamespace(mounting_style='basic', music_mode=music_mode), start_over=True)
     assert destination.read_bytes() == b'approved documentary'
     assert receipt.read_bytes() == b'approved editorial receipt'
+
+def test_sound_anchor_rejects_unknown_phrase_and_incomplete_timing():
+    from kitok.editing.sound_cues import parse_sound_event, resolve_sound_events
+
+    script = "The helicopter landed on the roof."
+    with pytest.raises(ValueError, match="Sound anchor not found"):
+        parse_sound_event({"anchor": {"phrase": "wrong phrase"}}, script)
+    with pytest.raises(ValueError, match="Extra inputs"):
+        parse_sound_event({"anchor": {"phrase": "on the roof"}, "time": 1}, script)
+    anchored = parse_sound_event({"anchor": {"phrase": "on the roof"}}, script)
+    editing = SimpleNamespace(sections=[SimpleNamespace(section=script)])
+    incomplete = {"words": [{"word": "roof", "start": 1, "end": 1.2}]}
+    with pytest.raises(ValueError, match="word timing that matches"):
+        resolve_sound_events([anchored], editing=editing, word_alignment=incomplete, duration=3)
+    legacy = parse_sound_event({"time": 1}, script)
+    assert resolve_sound_events([legacy], editing=None, word_alignment=None, duration=3) == [
+        {"time": 1.0, "kind": "soft_tick"}
+    ]

@@ -389,8 +389,22 @@ reutilizan con su recibo y no se regeneran por cambiar el catálogo o esta revis
 
 ## Efectos en el montaje de un largo Native
 
-El JSON del episodio admite `"sound_events": [{"kind":"card_flick","time":2.5}]`.
-`time` usa segundos desde el comienzo de la pista de voz. Aplica a los modos
+El JSON del episodio admite un instante en segundos o una frase de la narración:
+
+```json
+{
+  "sound_events": [
+    {"kind": "soft_tick", "time": 2.5},
+    {"kind": "paper_texture", "anchor": {"phrase": "The court record shows"}}
+  ]
+}
+```
+
+Elige `time` o `anchor` por evento. El ancla usa el comienzo de la frase en la
+alineación por palabra y admite `occurrence` desde cero si se repite. El CLI
+comprueba que la frase esté en el guion. Si los tiempos del proveedor faltan o
+no corresponden al guion, usa segundos verificados para ese efecto.
+`time` se mide desde el comienzo de la pista de voz. Aplica a los modos
 de biblioteca `auto` y `manual`. Una lista explícita sustituye los efectos
 automáticos y `[]` los omite. Deja espacio para que el efecto termine antes del
 final y escucha su relación con la voz. El mezclador atenúa la carta y registra

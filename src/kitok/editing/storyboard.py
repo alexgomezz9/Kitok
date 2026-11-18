@@ -95,7 +95,7 @@ class EditorialPlan(PlanModel):
     audio_offset: float = Field(default=0, ge=0, allow_inf_nan=False)
     # True means copy the exact approved mix; never normalize it a second time.
     audio_is_final_mix: bool = True
-    duration: float = Field(gt=.4, le=7200, allow_inf_nan=False)
+    duration: float = Field(ge=.4, le=7200, allow_inf_nan=False)
     width: int = Field(default=1920, ge=320, le=3840)
     height: int = Field(default=1080, ge=180, le=2160)
     fps: int = Field(default=30, ge=24, le=60)
@@ -133,6 +133,47 @@ class EditorialPlan(PlanModel):
         if abs(self.duration * self.fps - round(self.duration * self.fps)) > 1e-4:
             raise ValueError("Duration must use the global frame grid")
         return self
+
+    def preview_scenes(self, first: int, last: int) -> "EditorialPlan":
+        """Make a local preview of consecutive, one-based scenes with approved audio."""
+        if not 1 <= first <= last <= len(self.scenes):
+            raise ValueError(f"Choose a scene range within 1–{len(self.scenes)}")
+        if not self.audio_is_final_mix:
+            raise ValueError("Scene preview requires an approved final audio mix")
+
+        scenes = self.scenes[first - 1:last]
+        start_frame = round(scenes[0].start * self.fps)
+        end_frame = round(scenes[-1].end * self.fps)
+        start = start_frame / self.fps
+        rebased = [
+            scene.model_copy(update={
+                "start": (round(scene.start * self.fps) - start_frame) / self.fps,
+                "end": (round(scene.end * self.fps) - start_frame) / self.fps,
+            })
+            for scene in scenes
+        ]
+        selected_assets = {scene.asset for scene in scenes if scene.asset is not None}
+        alignment = {
+            "method": "preview-of-editorial-plan",
+            "source_episode_id": self.episode_id,
+            "source_start": start,
+            "source_end": end_frame / self.fps,
+            "source_scenes": [first, last],
+        }
+        if "audio_sha256" in self.alignment:
+            alignment["audio_sha256"] = self.alignment["audio_sha256"]
+        preview_id = hashlib.sha256(self.episode_id.encode()).hexdigest()[:16]
+        return self.model_validate({
+            **self.model_dump(),
+            "episode_id": f"preview-{preview_id}-{first}-{last}",
+            "audio_offset": self.audio_offset + start,
+            "duration": (end_frame - start_frame) / self.fps,
+            "fade_in": self.fade_in if first == 1 else 0,
+            "fade_out": self.fade_out if last == len(self.scenes) else 0,
+            "assets": {key: self.assets[key] for key in self.assets if key in selected_assets},
+            "scenes": rebased,
+            "alignment": alignment,
+        })
 
     @classmethod
     def load(cls, path: Path) -> "EditorialPlan":

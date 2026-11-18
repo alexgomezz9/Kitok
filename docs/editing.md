@@ -117,6 +117,20 @@ final AAC se copia sin volver a normalizarlo. Un máster PCM se codifica una vez
 a AAC para entregar un MP4 compatible, conservando el original y su nivel. El CLI también admite narración sin
 mezclar con `audio_is_final_mix=false`, actualmente con offset cero.
 
+Para revisar sólo un tramo del plan con audio final, selecciona los números de
+escena, incluidos los extremos. Por ejemplo, `4 4` renderiza el cuarto plano:
+
+```bash
+.venv/bin/python scripts/render_edit.py PLAN.json --preview-scenes 4 4 \
+  --output outputs/evaluation/MI_ID/escena-4-r2.mp4
+```
+
+El archivo empieza en cero y el recibo conserva el intervalo original. Si una
+transición utiliza el plano anterior, inclúyelo en la selección para juzgar ese
+corte. El recorte tiene su propia caché. Tras revisar, renderiza el plan completo
+con el mismo ID y en la misma carpeta de trabajo para reutilizar sus planos
+válidos. El ensamblado final une los planos y el audio existente.
+
 ## Opciones del plan
 
 Cada escena elige un recurso existente (`asset`), una plantilla (`graphic`) o

@@ -18,6 +18,7 @@ from pydantic import ValidationError
 
 from kitok.audio_library import SoundEvent
 from kitok.config import PROJECT_ROOT, Settings
+from kitok.editing.sound_cues import AnchoredSoundEvent, parse_sound_event
 from kitok.editing.visual_cues import VisualPlan
 from kitok.locks import generation_lock
 from kitok.dialogue_audio import media_duration
@@ -69,7 +70,7 @@ class LongformDefinition:
     visual_plan: VisualPlan | None = None
     visual_root: Path | None = None
     source_narration_id: str | None = None
-    sound_events: tuple[SoundEvent, ...] | None = None
+    sound_events: tuple[SoundEvent | AnchoredSoundEvent, ...] | None = None
 
     def fingerprint(self) -> str:
         """Hash settings that affect Native media, independently of publication copy."""
@@ -267,7 +268,7 @@ def load_longform_config(
             raise LongformError("sound_events must be a list of up to 24 timed cues")
         if sound_events and music_mode not in {"auto", "manual"}:
             raise LongformError("Sound cues use the local music mixer in auto or manual mode")
-        sound_events = tuple(SoundEvent.model_validate(event) for event in sound_events)
+        sound_events = tuple(parse_sound_event(event, script) for event in sound_events)
 
     source_narration_id = raw.get('source_narration_id')
     if source_narration_id is not None and (not isinstance(source_narration_id, str) or not source_narration_id.strip()):

@@ -234,3 +234,26 @@ def test_approved_audio_has_browser_aac_delivery_without_changing_master(tmp_pat
         assert result['audio_delivery']=='copied-aac'
     else:
         assert result['audio_delivery']=='encoded-aac-without-normalization'
+
+def test_scene_preview_preserves_source_window_and_filters_unused_inputs():
+    data = payload()
+    data["alignment"] = {"audio_sha256": "a" * 64}
+    data["audio_offset"] = 3
+    data["fade_in"] = .5
+    data["fade_out"] = .5
+    plan = EditorialPlan.model_validate(data)
+    preview = plan.preview_scenes(2, 2)
+
+    assert [scene.id for scene in preview.scenes] == ["two"]
+    assert preview.scenes[0].start == 0
+    assert preview.duration == 1
+    assert preview.audio_offset == 4
+    assert preview.fade_in == 0 and preview.fade_out == .5
+    assert preview.alignment["audio_sha256"] == "a" * 64
+    assert preview.alignment["source_start"] == 1
+    assert plan.preview_scenes(1, 1).assets == {}
+    assert plan.scenes[1].start == 1
+    with pytest.raises(ValueError, match="scene range"):
+        plan.preview_scenes(2, 3)
+    with pytest.raises(ValueError, match="approved final audio"):
+        plan.model_copy(update={"audio_is_final_mix": False}).preview_scenes(1, 1)

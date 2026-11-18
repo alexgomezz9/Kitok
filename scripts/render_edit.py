@@ -20,11 +20,15 @@ def main(argv=None):
     parser.add_argument("--output", type=Path)
     parser.add_argument("--encoder", choices=["auto","libx264","h264_nvenc"], default="auto")
     parser.add_argument("--compare-to", type=Path, help="Assert decoded audio is identical to this A/B reference")
+    parser.add_argument("--preview-scenes", type=int, nargs=2, metavar=("FIRST", "LAST"),
+                        help="Render only these consecutive one-based scenes with approved audio")
     args=parser.parse_args(argv)
     settings=Settings()
-    plan=EditorialPlan.load(args.plan)
-    output=args.output or ROOT/"outputs/longform"/f"{plan.episode_id}_edit.mp4"
     try:
+        plan=EditorialPlan.load(args.plan)
+        if args.preview_scenes:
+            plan=plan.preview_scenes(*args.preview_scenes)
+        output=args.output or ROOT/"outputs/longform"/f"{plan.episode_id}_edit.mp4"
         result=render_editorial_plan(plan,root=ROOT,output=output,settings=settings,
                                      encoder_name=args.encoder,on_stage=lambda s: print(s,flush=True))
         qa=inspect_video(output,output.with_suffix(".qa.json"),settings=settings,comparison=args.compare_to,
