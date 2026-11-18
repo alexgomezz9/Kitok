@@ -397,6 +397,28 @@ de escena y chunks regenerables se retiran tras cerrar el render correctamente.
 Con `--keep-native-workspace` se conservan para depuración. Ante un fallo
 Kitok mantiene el diagnóstico y los materiales de reintento.
 
+Para un Loose Thread que ya se haya lanzado en segundo plano con systemd,
+el agente registra su servicio existente para mantener un resumen legible:
+
+```bash
+.venv/bin/python scripts/loose_thread_jobs.py observe content/longform/loose_thread/005_mi_tema --unit kitok-loose-thread-005
+.venv/bin/python scripts/loose_thread_jobs.py status
+```
+
+`local/loose_thread_jobs/ESTADO.md` se actualiza cada diez segundos mientras
+hay un trabajo activo o falta señal. Muestra el estado de systemd, la última
+fase registrada, errores y acceso al journal. `ENTREGA GENERADA` requiere los
+siete archivos no vacíos y salida correcta del proceso. Si systemd ya retiró la
+unidad, comprueba el registro final de entrega del mismo `InvocationID` y descarta
+los fallos registrados antes de confirmar la entrega. Queda la revisión audiovisual.
+Con todos los trabajos terminados o fallidos guarda la última lectura y detiene
+el temporizador. El observador no arranca ni reintenta el render.
+Tras reanudar manualmente el servicio, repite `observe` con su mismo episodio
+y unidad para reconocer la nueva ejecución y reactivar el resumen. Windows y WSL
+deben seguir activos. Tras reiniciar WSL, registra otra vez el servicio que se haya
+lanzado; los datos privados anteriores se conservan. Para detener sólo la
+actualización: `systemctl --user stop kitok-loose-thread-status.timer`.
+
 Omitir --renderer selecciona native. Para recuperar una tarea MPT **ya enviada**,
 se conserva únicamente este recorrido histórico, que requiere su API:
 

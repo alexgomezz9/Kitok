@@ -48,6 +48,14 @@ Ejecuta desde la carpeta del repositorio en Ubuntu WSL. El CLI es la entrada hab
    el plano en el plan resuelto y usa [`--preview-scenes`](../../../docs/editing.md#preparar-un-montaje)
    para enseñar la variante de ese tramo. Conserva la duración si el ajuste es
    sólo visual para poder reutilizar la voz y los planos vecinos.
+   Si dejas un servicio systemd produciendo fuera del chat, regístralo con
+   `scripts/loose_thread_jobs.py observe EPISODIO --unit UNIDAD` y comprueba
+   `local/loose_thread_jobs/ESTADO.md`. El observador actualiza fases, fallo y
+   entrega automáticamente. Al retomar, usa `scripts/loose_thread_jobs.py status`
+   y lee el journal antes de decidir un reintento. El temporizador se detiene
+   cuando todos terminan o fallan; tras reanudar manualmente, repite `observe`
+   con el mismo episodio y unidad. No marca revisión audiovisual ni publicación
+   como completadas.
    Valida el comienzo, las pruebas visuales decisivas y los avisos técnicos.
    Kitok elige y monta el stock de relleno. Entrega la carpeta `entrega/`
    para que el operador suba y programe en Studio. Conserva guion, fuentes,
