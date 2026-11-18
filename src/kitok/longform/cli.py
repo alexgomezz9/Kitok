@@ -883,6 +883,7 @@ def main(argv: list[str] | None = None) -> int:
                     output_path=(longform_output_path(definition.item.id, project_root=root)
                                  if publication is not None else longform_output_path(definition.item.id)),
                     keep_workspace=args.keep_native_workspace,
+                    output=lambda message: print(message, flush=True),
                 ).render(definition, start_over=args.start_over)
                 print(f"Final DONE: {datetime.now(timezone.utc).isoformat()} {result.output.resolve()}")
             finally:

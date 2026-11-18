@@ -57,6 +57,9 @@ Para un fragmento real, guarda un MP4 local dentro del episodio. El JSON indica
 su duración explícita en segundos y, opcionalmente, el inicio dentro del archivo.
 Kitok mide la pista de vídeo antes de Fish y vuelve a validar la ventana compilada
 antes de codificar. Deja margen en el clip para los cortes y las transiciones.
+Para insertos animados, exporta aproximadamente un segundo extra de imagen útil.
+La compilación puede absorber huecos pequeños de stock junto al inserto y
+exigir más fotogramas que la duración declarada en el JSON.
 Por defecto el plano es estático, conserva el encuadre (`contain`) y descarta
 el audio del clip. `image_fit: "cover"` permite llenar el cuadro al recortar.
 

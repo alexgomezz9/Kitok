@@ -150,7 +150,7 @@ def _diagnostic(text):
     markers = ('Fish start', 'Fish end', 'Confirmed narration reused', 'Narration duration=',
                'Pexels search', 'Timeline end', 'Asset download/cache', 'FFmpeg',
                'Validation', 'Native final output', 'Final DONE:', 'Entrega:',
-               'Plano ', 'Scene ', 'Chunk ', 'Audio ')
+               'Plano ', 'Scene ', 'Chunk ', 'Audio ', 'Ensamblaje:', 'Validación del montaje:')
     for line in text.splitlines():
         line = re.sub(r'\x1b\[[0-9;]*m', '', line).strip()
         if any(marker in line for marker in markers) and 'HTTP Request:' not in line:
