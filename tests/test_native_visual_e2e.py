@@ -185,3 +185,129 @@ def test_native_visual_config_reaches_shared_ffmpeg_delivery(tmp_path, mode, mon
     (episode / 'config.json').write_text(json.dumps(config))
     assert cli.main([*argv, '--deliver-only']) == 1
     assert 'different montage or narration settings' in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("provider_duration, has_replacement", [
+    (7.0, True),
+    (7.1, True),
+    (7.1, False),
+])
+def test_native_reselects_short_stock_without_changing_frame_clock(
+    tmp_path, monkeypatch, caplog, provider_duration, has_replacement
+):
+    from kitok.longform.models import TimelineSlot
+    from kitok.rendering.native import NativeRenderError
+    from kitok.stock.selector import StockSelector
+
+    if not shutil.which("ffmpeg"):
+        pytest.skip("FFmpeg is required for the real media integration")
+
+    def ffmpeg(*args):
+        subprocess.run(
+            ["ffmpeg", "-nostdin", "-v", "error", "-y", *args],
+            check=True, capture_output=True,
+        )
+
+    short_stock = tmp_path / "short.mp4"
+    usable_stock = tmp_path / "usable.mp4"
+    voice = tmp_path / "voice.wav"
+    # These frame boundaries reproduce 7.010167 s of required source coverage.
+    first_duration = 6.023166666666667
+    duration = first_duration + 7.0
+    ffmpeg("-f", "lavfi", "-i", "testsrc2=size=320x180:rate=30",
+           "-frames:v", "208", "-c:v", "libx264", "-preset", "ultrafast", str(short_stock))
+    ffmpeg("-f", "lavfi", "-i", "testsrc2=size=320x180:rate=30",
+           "-frames:v", "240", "-c:v", "libx264", "-preset", "ultrafast", str(usable_stock))
+    ffmpeg("-f", "lavfi", "-i", "sine=frequency=230:sample_rate=48000",
+           "-t", str(duration), str(voice))
+    script = "The city appears. The road shows the next part of the story."
+    (tmp_path / "script.txt").write_text(script)
+    config = {
+        "id": "native_stock_duration",
+        "subject": "Measured stock coverage",
+        "script_file": "script.txt",
+        "keywords": ["city", "road"],
+        "narrator_voice": "fish_audio:test:Narrator",
+        "music_enabled": False,
+        "music_mode": "off",
+        "mounting_style": "documentary",
+    }
+    (tmp_path / "config.json").write_text(json.dumps(config))
+    definition = load_longform_config(tmp_path / "config.json", project_root=tmp_path)
+    slots = [
+        TimelineSlot(0, "city", 0.0, first_duration),
+        TimelineSlot(1, "road", first_duration, 7.0),
+    ]
+    monkeypatch.setattr("kitok.rendering.native.build_semantic_timeline", lambda *a, **kw: slots)
+
+    class Fish:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def synthesize(self, text, reference, output, **kwargs):
+            shutil.copyfile(voice, output)
+            words = script.split()
+            output.with_suffix(".alignment.json").write_text(json.dumps({
+                "words": [
+                    {"word": word, "start": i * duration / len(words),
+                     "end": (i + 1) * duration / len(words)}
+                    for i, word in enumerate(words)
+                ],
+            }))
+
+        def close(self):
+            pass
+
+    variant = StockVariant("https://unused.invalid/stock.mp4", 320, 180, 30)
+    first = StockAsset(1, "city", 8.0, (variant,))
+    short = StockAsset(6124789, "road", provider_duration, (variant,))
+    replacement = StockAsset(3, "road", 8.0, (variant,))
+    downloads = []
+
+    class Stock:
+        def search_videos(self, query, **kwargs):
+            if query == "city":
+                return [first]
+            return [short, replacement] if has_replacement else [short]
+
+        def select_candidate(self, assets, **kwargs):
+            return StockSelector().select_candidate(assets, **kwargs)
+
+        def download_asset(self, selection):
+            downloads.append(selection.asset.asset_id)
+            return short_stock if selection.asset.asset_id == 6124789 else usable_stock
+
+    output = tmp_path / "outputs" / "longform" / "native_stock_duration.mp4"
+    settings = Settings(_env_file=None, data_root=tmp_path)
+    engine = FFmpegNativeEngine(
+        encoder=EncoderSettings("libx264", "ultrafast"),
+        spec=RenderSpec(width=320, height=180),
+    )
+    renderer = NativeLongformRenderer(
+        settings, Stock(), engine, output_path=output,
+        fish_factory=Fish, keep_workspace=True,
+    )
+    if not has_replacement:
+        with pytest.raises(NativeRenderError, match="asset=6124789.*slot=2"):
+            renderer.render(definition)
+        assert downloads == [1, 6124789]
+        assert not output.exists()
+        assert not output.with_suffix(".native.json").exists()
+        assert not list(tmp_path.rglob("motion-plan.json"))
+        return
+
+    renderer.render(definition)
+    assert downloads == ([1, 3] if provider_duration == 7.0 else [1, 6124789, 3])
+    clock = probe_video_clock(output)
+    assert clock.frames == round(duration * 30) == 391
+    assert clock.start_time == 0
+    assert clock.duration == pytest.approx(391 / 30)
+    manifest = json.loads(output.with_suffix(".native.json").read_text())
+    assert [clip["asset_id"] for clip in manifest["timeline"]] == [1, 3]
+    assert manifest["timeline"][1]["timeline_start"] == first_duration
+    assert manifest["timeline"][1]["duration"] == 7.0
+    assert {row["asset_id"] for row in manifest["stock_sources"]} == {1, 3}
+    work = output.parent / ".native-work" / definition.item.id
+    assert (work / "narration.mp3").read_bytes() == voice.read_bytes()
+    if provider_duration > 7.0:
+        assert "6124789" in caplog.text and "replacement" in caplog.text

@@ -17,7 +17,7 @@ from ..editing.manifest import load_or_create_manifest, script_hash
 from ..editing.storyboard import file_hash
 from ..media.ffmpeg import FFmpegNativeEngine, write_render_manifest
 from ..media.ffprobe import probe_media, measured_video_duration
-from ..stock.selector import OutputGeometry
+from ..stock.selector import OutputGeometry, StockSelectionError
 from .base import LongformRenderer, RenderResult, RenderTimings
 
 log = logging.getLogger("kitok.rendering.native")
@@ -298,7 +298,8 @@ class NativeLongformRenderer(LongformRenderer):
                 choice = self.pexels.select_candidate(
                     searches[slot.query],
                     target=target,
-                    minimum_duration=slot.duration,
+                    minimum_duration=source_window_duration(
+                        slot, fps=self.engine.spec.fps, motion=uses_motion),
                     used_ids=used_ids,
                 )
                 selected.append(choice)
@@ -328,11 +329,43 @@ class NativeLongformRenderer(LongformRenderer):
             log.info("Asset download/cache start unique_assets=%d", len(used_ids))
             local_by_id = {}
             video_durations = {}
-            for choice in selected:
-                if choice.asset.asset_id not in local_by_id:
-                    local_by_id[choice.asset.asset_id] = self.pexels.download_asset(choice)
-                    video_durations[choice.asset.asset_id] = measured_video_duration(
-                        local_by_id[choice.asset.asset_id], self.settings.ffprobe_binary)
+            for index, (slot, choice) in enumerate(zip(stock_slots, selected, strict=True)):
+                required = source_window_duration(slot, fps=self.engine.spec.fps, motion=uses_motion)
+                while True:
+                    asset_id = choice.asset.asset_id
+                    if asset_id not in local_by_id:
+                        local_by_id[asset_id] = self.pexels.download_asset(choice)
+                        video_durations[asset_id] = measured_video_duration(
+                            local_by_id[asset_id], self.settings.ffprobe_binary)
+                    actual_duration = video_durations[asset_id]
+                    if actual_duration + 1e-6 >= required:
+                        break
+                    # Provider lengths may be rounded. Keep the timeline intact and
+                    # reject measured short files before selecting from this search again.
+                    candidates = [
+                        asset for asset in searches[slot.query]
+                        if video_durations.get(asset.asset_id, asset.duration) + 1e-6 >= required
+                    ]
+                    try:
+                        replacement = self.pexels.select_candidate(
+                            candidates, target=target, minimum_duration=required, used_ids=used_ids,
+                        )
+                    except StockSelectionError:
+                        raise NativeRenderError(
+                            f"Stock video is too short: asset={asset_id} slot={slot.index + 1} "
+                            f"video_duration={actual_duration:.6f}s required={required:.6f}s "
+                            f"provider_duration={choice.asset.duration:.6f}s; "
+                            "no adequate replacement in this search; stopped before audio mixing"
+                        ) from None
+                    log.warning(
+                        "Stock duration mismatch asset=%s slot=%s video_duration=%.6fs "
+                        "required=%.6fs provider_duration=%.6fs replacement_asset=%s",
+                        asset_id, slot.index + 1, actual_duration, required,
+                        choice.asset.duration, replacement.asset.asset_id,
+                    )
+                    choice = replacement
+                    used_ids.add(choice.asset.asset_id)
+                selected[index] = choice
             download_seconds = time.monotonic() - stage
             self._stage("Asset download/cache", download_seconds)
 
