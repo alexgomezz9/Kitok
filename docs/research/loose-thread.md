@@ -55,6 +55,12 @@ promesa si no puedes sostenerla visualmente. Comprueba esa secuencia con el
 texto y las imágenes elegidas. El JSON parcial fija esos recursos y Kitok
 resuelve el montaje entre ellos.
 
+Para una cronología breve, superpón un momento verificable a la foto o plano
+que lo sitúa. Revela la siguiente hora o fecha cuando cambia algo en el relato.
+Si necesitas mostrar dos sucesos a la vez, compón ambos en el mismo plano con
+una jerarquía clara. Prueba dos fotogramas a tamaño pequeño antes de exportar.
+Para planos específicos puedes usar [HyperFrames o Remotion](../integrations/agent-tools.md).
+
 1. Busca y descarga el documento, foto o clip verificable antes de pedir trabajo al
    operador. Registra fuente original, identidad, fecha, derechos y cambios. Usa
    stock para ambiente. Para un mecanismo sin imagen directa, considera un gráfico

@@ -40,6 +40,27 @@ bash /home/prueba/.codex/maintenance/hyperframes/hyperframes.sh snapshot --at 1 
 bash /home/prueba/.codex/maintenance/hyperframes/hyperframes.sh render --workers 1 --low-memory-mode --quality draft --output prueba.mp4
 ```
 
+## Composiciones opcionales con Remotion
+
+El 18/11/2026 se instaló Remotion 4.0.537 en WSL, con las versiones del
+[ejemplo del repositorio](../../examples/remotion/README.md). El lanzador local es
+`bash ~/.codex/maintenance/remotion/remotion.sh`. Node y FFmpeg son los que usa
+el equipo. La prueba ejecutó la composición `Portrait` y produjo un PNG de
+1280 × 720 reutilizando el Chrome Headless Shell que ya usa HyperFrames.
+Las skills oficiales de Remotion están disponibles en Codex WSL
+(revisión `6f55706d1069e512430582ad86e4e57dc07afe1b`). Para una API nueva,
+comprueba que existe en la versión del CLI instalada.
+[Skills oficiales](https://github.com/remotion-dev/skills),
+[licencia de Remotion](https://www.remotion.dev/docs/license).
+
+Elige HyperFrames para una escena HTML/CSS breve y Remotion para una
+composición React parametrizada o gráficos y captions que se reutilicen.
+En ambos casos, exporta el plano como recurso y usa el
+[JSON parcial](../editing.md#json-parcial-sobre-montaje-automático) para
+colocarlo en Kitok. Para un rótulo sencillo sobre una foto sirve Native.
+Las instalaciones son de autoría opcional. Kitok sigue controlando
+alineación, montaje, música y exportación de la entrega.
+
 ## Actualización y recuperación
 
 Abrir un chat nuevo para descubrir las skills y el MCP. No cambiar permisos/hook trust hashes. Paquetes fijados y lockfiles en `~/.codex/maintenance/browser` y `hyperframes`.
