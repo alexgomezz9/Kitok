@@ -13,13 +13,19 @@ Ejecuta desde la carpeta del repositorio en Ubuntu WSL. El CLI es la entrada hab
    demanda, referencias y disponibilidad de archivo. Propón un ángulo concreto y
    decide con evidencia cuando el encargo lo delegue. El título y la miniatura
    deben prometer algo demostrable en el guion. Si ya hay trabajo compatible, retómalo.
+   Para empaquetar, abre `local/editorial/skills/yt-package/SKILL.md` y
+   `local/editorial/skills/yt-thumbnail/SKILL.md`. Compara dos premisas visuales,
+   incluida una con texto. Usa una flecha si el detalle necesita señalización.
    Para un vídeo publicado, consulta primero los datos propios. Abre el complemento
    `local/editorial/skills/yt-retention/SKILL.md` cuando aporte valor a la revisión.
 2. Escribe en inglés, con hechos y fuentes. Escribe en el guion las cifras y
    siglas como se han de pronunciar cuando eso ayude a Fish y sus subtítulos.
    La apertura cumple pronto la promesa del clic. Cada rehook aporta una consecuencia, pregunta o prueba nueva y recibe
    respuesta. Lee el complemento `local/editorial/skills/yt-script/SKILL.md`
-   cuando exista y aporte valor al guion en curso. Para estudiar ritmo o sonido,
+   y sus referencias de retención antes de escribir. Desarrolla historia para
+   9–12 minutos. Como estimación inicial, 1620–2160 palabras a unas 180 palabras
+   por minuto. La voz y la pista de vídeo deben superar 480 segundos reales.
+   Para estudiar ritmo o sonido,
    sigue el [flujo de referencias](../../../docs/research/reference-media.md).
 3. Busca tú los archivos reales de momentos, lugares y protagonistas. Descarga y
    verifica medios utilizables, con origen, fecha, autor y permisos. Prueba el
@@ -37,6 +43,9 @@ Ejecuta desde la carpeta del repositorio en Ubuntu WSL. El CLI es la entrada hab
    mueve el encuadre cuando guíe la mirada y corta al cambiar el sentido de la
    narración. Usa IA para diagramas o reconstrucciones que aporten claridad.
    Reserva rótulos para información necesaria, como nombre, fecha o reconstrucción.
+   Si sólo orienta, pon la fecha sobre el lugar. Usa la línea temporal cuando
+   relacione etapas y un inserto propio cuando la evidencia lo pida. Fija los
+   efectos deliberados en el JSON y conserva el ritmo entre ellos.
 5. Reserva el episodio con `.venv/bin/python longform.py new loose_thread TEMA`.
    El comando devuelve `content/longform/loose_thread/<NNN_tema>`.
    Si el encargo pide producir, prepara título, descripción con capítulos y
@@ -58,5 +67,6 @@ Ejecuta desde la carpeta del repositorio en Ubuntu WSL. El CLI es la entrada hab
    como completadas.
    Valida el comienzo, las pruebas visuales decisivas y los avisos técnicos.
    Kitok elige y monta el stock de relleno. Entrega la carpeta `entrega/`
-   para que el operador suba y programe en Studio. Conserva guion, fuentes,
+   para que el operador suba y programe en Studio. Consulta los planos elegidos
+   en `clips_revision/INDICE.md`, junto a la entrega. Conserva guion, fuentes,
    voz y recibos. Retira temporales que ya cumplieron su función.

@@ -269,7 +269,8 @@ se bloquea la entrega. Los planes antiguos sin SHA conservan compatibilidad.
 
 La [API oficial](https://www.pexels.com/api/documentation/#photos-search) permite
 buscar fotos por texto, orientación y resolución. La consulta del 21/10/2026
-respondió HTTP 200 y permitió comprobar ID, autor, página y licencia de la foto.
+respondió HTTP 200 y permitió comprobar ID, autor, página y licencia de la foto. Kitok también verificó
+el endpoint vigente `/v1/videos/search` y lo usa para stock automático.
 
 El agente puede elegir una foto concreta, guardarla en `images/` y declararla
 en el JSON como `usage: "illustration"`. Kitok la coloca en el texto indicado

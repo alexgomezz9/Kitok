@@ -211,3 +211,122 @@ def test_mpt_recovery_rejects_new_native_options_before_settings_or_download(stu
     monkeypatch.setattr(r, 'Settings', lambda: pytest.fail('New Native options must fail before any MPT work'))
     assert r.main([str(config), '--renderer', 'mpt', '--resume', 'historical-task']) == 1
     assert 'Native-only' in capsys.readouterr().err
+
+
+@pytest.fixture
+def numbered_longform(tmp_path, monkeypatch):
+    from kitok.config import Settings
+
+    r = runner()
+    load = r.load_longform_config
+    settings = Settings(_env_file=None, data_root=tmp_path, fish_api_key='test', pexels_api_key='test')
+    monkeypatch.setattr(r, 'Settings', lambda: settings)
+    monkeypatch.setattr(r, 'load_longform_config', lambda path: load(path, project_root=tmp_path))
+    episode = tmp_path / 'content/longform/loose_thread/042_production'
+    episode.mkdir(parents=True)
+    script = episode / 'script.txt'
+    script.write_text('A very short script.')
+    config = episode / 'configuracion.json'
+    config.write_text(json.dumps({
+        'id': 'lt_production_fixture', 'subject': 'Offline runtime fixture',
+        'script_file': str(script), 'keywords': ['city'], 'music_mode': 'off',
+    }))
+    return r, script, config
+
+
+def test_loose_thread_preflight_blocks_obviously_short_script_and_leaves_previews_available(
+    numbered_longform, monkeypatch, capsys,
+):
+    r, script, config = numbered_longform
+
+    def forbidden(*args, **kwargs):
+        pytest.fail('Dry-run must not start production or contact a provider')
+
+    monkeypatch.setattr(r, 'generation_lock', forbidden)
+    monkeypatch.setattr('kitok.providers.pexels.PexelsProvider', forbidden)
+    monkeypatch.setattr('kitok.rendering.native.FishVoiceClient', forbidden)
+    assert r.main([str(config), '--dry-run']) == 1
+    captured = capsys.readouterr()
+    report = json.loads(captured.out)
+    assert 'script is too short' in captured.err
+    assert report['checks']['script_duration'] is False
+    assert report['script_duration']['target_seconds'] == [540, 720]
+    assert report['script_duration']['minimum_seconds_exclusive'] == 480
+
+    preview = config.with_name('opening.json')
+    preview.write_bytes(config.read_bytes())
+    assert r.main([str(preview), '--dry-run']) == 0
+    assert 'script_duration' not in json.loads(capsys.readouterr().out)
+
+    script.write_text('word ' * 1619 + 'word.')
+    assert r.main([str(config), '--dry-run']) == 0
+    report = json.loads(capsys.readouterr().out)
+    assert report['checks']['script_duration'] is True
+    assert report['script_duration']['estimated_seconds'] == 540.0
+
+
+def test_short_numbered_production_never_constructs_providers(numbered_longform, monkeypatch, capsys):
+    r, _, config = numbered_longform
+
+    def forbidden(*args, **kwargs):
+        pytest.fail('Short production must not begin stock or voice work')
+
+    monkeypatch.setattr('kitok.providers.pexels.PexelsProvider', forbidden)
+    monkeypatch.setattr('kitok.rendering.native.FishVoiceClient', forbidden)
+    assert r.main([str(config)]) == 1
+    assert 'script is too short' in capsys.readouterr().err
+
+
+def test_numbered_production_measures_voice_before_stock_or_render(numbered_longform, monkeypatch, capsys):
+    from kitok.rendering import native
+
+    r, script, config = numbered_longform
+    script.write_text('word ' * 1619 + 'word.')
+    real_renderer = native.NativeLongformRenderer
+    calls = []
+
+    class Fish:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def synthesize(self, script, reference, destination, **kwargs):
+            destination.write_bytes(b'validated narration fixture')
+            calls.append(destination)
+
+        def close(self):
+            pass
+
+    class Stock:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def search_videos(self, *args, **kwargs):
+            pytest.fail('The measured short voice must stop before stock searches')
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr('kitok.logging_setup.configure_logging', lambda *args: None)
+    monkeypatch.setattr('kitok.providers.pexels.PexelsProvider', Stock)
+    monkeypatch.setattr('kitok.media.ffmpeg.choose_encoder', lambda *a, **kw: object())
+    monkeypatch.setattr('kitok.media.ffmpeg.FFmpegNativeEngine', lambda **kw: object())
+    monkeypatch.setattr(native, 'probe_media', lambda *a, **kw: SimpleNamespace(duration=480.0))
+    monkeypatch.setattr(native, 'NativeLongformRenderer',
+                        lambda *a, **kw: real_renderer(*a, fish_factory=Fish, **kw))
+    assert r.main([str(config)]) == 1
+    assert 'narration must exceed 480 s; measured 480.000 s' in capsys.readouterr().err
+    assert len(calls) == 1 and calls[0].read_bytes() == b'validated narration fixture'
+    assert not (config.parent / 'entrega').exists()
+
+
+def test_publish_checks_video_track_independently_of_audio_tail(tmp_path, monkeypatch):
+    from kitok.longform import delivery
+
+    target = tmp_path / 'entrega'
+    output = tmp_path / 'long.mp4'
+    output.write_bytes(b'media fixture')
+    monkeypatch.setattr(delivery, 'stream_durations', lambda *args: (480, 503))
+    with pytest.raises(ValueError, match='final video track must exceed 480 s'):
+        delivery._publish(target, output, {}, 'unused', ffprobe='ffprobe',
+                          loose_thread_narration_duration=503.0)
+    assert not target.exists()

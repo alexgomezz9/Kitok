@@ -19,7 +19,7 @@ class PexelsError(RuntimeError):
 
 
 class PexelsProvider:
-    API_URL = "https://api.pexels.com/videos/search"
+    API_URL = "https://api.pexels.com/v1/videos/search"
 
     def __init__(
         self,

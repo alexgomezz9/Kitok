@@ -174,6 +174,15 @@ def test_native_visual_config_reaches_shared_ffmpeg_delivery(tmp_path, mode, mon
     target = episode / 'entrega'
     assert (target / 'video_final.mp4').samefile(output)
 
+    # An existing matching historical package can be revalidated. The same
+    # short render in a newly numbered handoff must not create a fresh package.
+    original = episode / 'preserved-delivery'
+    target.rename(original)
+    assert cli.main([*argv, '--deliver-only']) == 1
+    assert 'narration must exceed 480 s' in capsys.readouterr().err
+    assert not target.exists()
+    original.rename(target)
+
     publication['title'] = 'A different title'
     metadata.write_text(json.dumps(publication))
     assert cli.main([*argv, '--deliver-only']) == 1

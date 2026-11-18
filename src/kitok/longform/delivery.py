@@ -5,6 +5,7 @@ from dataclasses import dataclass, replace
 from errno import EXDEV
 from io import BytesIO
 import json
+import subprocess
 import math
 import os
 from pathlib import Path
@@ -17,12 +18,13 @@ from PIL import Image
 from ..editing.manifest import script_hash
 from ..editing.storyboard import file_hash
 from ..editing.visual_cues import script_words, visual_sources
-from ..media.ffprobe import probe_media
+from ..media.ffprobe import probe_media, stream_durations
 from ..models import ID_RE
 from ..native_recovery import regular
 from ..youtube_stickman_es.audio import aligned_srt, format_srt, read_srt
 from ..youtube_stickman_es.delivery import publication_metadata
 from ..youtube_stickman_es.files import local_file
+from .duration import is_numbered_loose_thread_episode, require_loose_thread_runtime
 from .episodes import EpisodeMoves
 
 
@@ -159,7 +161,8 @@ def _subtitles(publication: Publication, output: Path, root: Path, definition,
         ) from exc
 
 
-def deliver(publication: Publication, output: Path, root: Path, definition, *, ffprobe: str) -> Path:
+def deliver(publication: Publication, output: Path, root: Path, definition, *,
+            ffprobe: str, ffmpeg: str = "ffmpeg") -> Path:
     """Validate, stage and atomically expose the package under the caller's locks."""
     output = regular(output, root)
     native = regular(output.with_suffix('.native.json'), root)
@@ -207,7 +210,29 @@ def deliver(publication: Publication, output: Path, root: Path, definition, *, f
     }
     files = {name: (content + '\n').encode('utf-8') for name, content in texts.items()}
     files['miniatura.png'] = publication.thumbnail
-    return _publish(publication.destination, output, files, expected)
+    destination = _publish(
+        publication.destination, output, files, expected, ffprobe=ffprobe,
+        loose_thread_narration_duration=(narration_duration
+                                        if is_numbered_loose_thread_episode(publication.episode, root)
+                                        else None),
+    )
+    if is_numbered_loose_thread_episode(publication.episode, root):
+        _review_clips(publication.episode, output, expected, root, ffmpeg, ffprobe)
+    return destination
+
+
+def _review_clips(episode, output, expected, root, ffmpeg, ffprobe):
+    receipt_path = output.with_suffix('.editorial.json')
+    if not receipt_path.exists():
+        return
+    receipt = _read_receipt(regular(receipt_path, root))
+    if receipt.get('output_sha256') != expected:
+        raise ValueError('The editorial receipt does not match the final MP4')
+    from .review_clips import export_review_clips
+    try:
+        export_review_clips(episode, output, receipt, ffmpeg=ffmpeg, ffprobe=ffprobe)
+    except subprocess.SubprocessError as exc:
+        raise ValueError(f'Review clip export failed: {exc.stderr or exc}') from exc
 
 
 def _read_receipt(path: Path) -> dict:
@@ -217,13 +242,20 @@ def _read_receipt(path: Path) -> dict:
     return receipt
 
 
-def _publish(destination: Path, output: Path, files: dict[str, bytes], expected: str) -> Path:
+def _publish(
+    destination: Path, output: Path, files: dict[str, bytes], expected: str, *,
+    ffprobe: str, loose_thread_narration_duration: float | None,
+) -> Path:
     if destination.is_symlink():
         raise ValueError('Delivery folder cannot be a symlink')
     if destination.exists():
         if destination.is_dir() and _same_delivery(destination, files, output, expected):
             return destination
         raise ValueError('Existing entrega was preserved; use another episode or revision')
+    if loose_thread_narration_duration is not None:
+        require_loose_thread_runtime(loose_thread_narration_duration, "narration")
+        video_duration, _ = stream_durations(output, ffprobe)
+        require_loose_thread_runtime(video_duration, "final video track")
     with TemporaryDirectory(prefix='.entrega-', dir=destination.parent) as folder:
         staged = Path(folder) / 'package'
         staged.mkdir()

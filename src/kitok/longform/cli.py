@@ -25,6 +25,10 @@ from kitok.dialogue_audio import media_duration
 from kitok.models import ContentItem, MPTTask
 from kitok.mpt_client import MPTClient, TASK_STATE_COMPLETE, TASK_STATE_FAILED
 
+from .duration import (
+    LOOSE_THREAD_MIN_SECONDS, LOOSE_THREAD_TARGET_SECONDS,
+    is_numbered_loose_thread_episode, loose_thread_estimate,
+)
 from .episodes import CHANNELS, EpisodeMoves, reserve_episode
 
 
@@ -785,14 +789,39 @@ def main(argv: list[str] | None = None) -> int:
         if args.renderer == 'mpt' and (definition.mounting_style != 'basic' or definition.music_mode is not None or definition.visual_plan is not None):
             raise LongformError('mounting_style and music_mode options are Native-only; historical MPT recovery requires basic mounting and legacy music configuration')
         settings = Settings()
+        root = (settings.data_root or PROJECT_ROOT).resolve()
+        config_path = Path(args.config).expanduser()
         publication = None
         if args.deliver or args.deliver_only:
             if args.renderer != "native" or args.start_over or (args.dry_run and args.deliver_only):
                 raise LongformError("Delivery uses Native, without --start-over. Use --deliver --dry-run to check inputs.")
             from .delivery import deliver, prepare_publication
 
-            root = settings.data_root or PROJECT_ROOT
-            publication = prepare_publication(Path(args.config).expanduser(), root, definition.item.script)
+            publication = prepare_publication(config_path, root, definition.item.script)
+        enforce_duration = False
+        if args.renderer == 'native' and (publication is not None or config_path.name == 'configuracion.json'):
+            episode = (publication.episode if publication is not None else
+                       (root / EpisodeMoves.load(root).path(config_path)).resolve().parent)
+            enforce_duration = is_numbered_loose_thread_episode(episode, root)
+        output = (longform_output_path(definition.item.id, project_root=root)
+                  if publication is not None or enforce_duration else longform_output_path(definition.item.id))
+        runtime_estimate = None
+        duration_error = None
+        if enforce_duration and not args.deliver_only:
+            spoken_words, estimate, slow_estimate = loose_thread_estimate(
+                definition.item.script, definition.voice_rate,
+            )
+            runtime_estimate = {
+                'spoken_words': spoken_words,
+                'estimated_seconds': round(estimate, 2),
+                'slow_estimate_seconds': round(slow_estimate, 2),
+                'minimum_seconds_exclusive': LOOSE_THREAD_MIN_SECONDS,
+                'target_seconds': LOOSE_THREAD_TARGET_SECONDS,
+            }
+            if slow_estimate <= LOOSE_THREAD_MIN_SECONDS:
+                duration_error = (f'Loose Thread script is too short: {spoken_words} spoken words, '
+                                  f'about {estimate:.0f} s at the reference pace. Plan for 9–12 minutes. '
+                                  f'The spoken narration and final video must exceed {LOOSE_THREAD_MIN_SECONDS} s.')
         if args.dry_run:
             renderer = args.renderer
             validate_tts_script(definition.item.script)
@@ -808,10 +837,15 @@ def main(argv: list[str] | None = None) -> int:
                               pexels_configured=bool(settings.pexels_api_key.get_secret_value()))
             if publication is not None:
                 checks["publication"] = True
-            print(json.dumps({'dry_run': True, 'renderer': renderer,
-                              'words': len(definition.item.script.split()), 'checks': checks,
-                              'note': 'Local checks only; no network, rendering, uploads or scheduling.'},
-                             ensure_ascii=False, indent=2))
+            report = {'dry_run': True, 'renderer': renderer,
+                      'words': len(definition.item.script.split()), 'checks': checks,
+                      'note': 'Local checks only; no network, rendering, uploads or scheduling.'}
+            if runtime_estimate is not None:
+                checks['script_duration'] = duration_error is None
+                report['script_duration'] = runtime_estimate
+                if duration_error:
+                    print(f'ERROR: {duration_error}', file=sys.stderr)
+            print(json.dumps(report, ensure_ascii=False, indent=2))
             return 0 if all(checks.values()) else 1
         if definition.source_narration_id is not None and not args.deliver_only:
             raise LongformError('This montage reuses an existing narration. Use the studio narration audit and confirmed remount; ordinary CLI generation is disabled for this draft.')
@@ -819,13 +853,15 @@ def main(argv: list[str] | None = None) -> int:
         if publication is not None:
             key = hashlib.sha256(str(publication.episode.relative_to(root)).encode()).hexdigest()
             lease.enter_context(generation_lock(settings, f"longform-delivery-{key}"))
-            output = longform_output_path(definition.item.id, project_root=root)
             if args.deliver_only or output.exists() or output.is_symlink():
-                path = deliver(publication, output, root, definition, ffprobe=settings.ffprobe_binary)
+                path = deliver(publication, output, root, definition,
+                               ffprobe=settings.ffprobe_binary, ffmpeg=settings.ffmpeg_binary)
                 print(f"Entrega: {path}")
                 return 0
             if publication.destination.exists() or publication.destination.is_symlink():
                 raise LongformError("Existing entrega was preserved; use --deliver-only or another episode")
+        if duration_error:
+            raise LongformError(duration_error)
         if args.renderer == 'native':
             historical_task = longform_task_path(definition.item.id, project_root=settings.data_root or PROJECT_ROOT)
             if historical_task.exists():
@@ -880,16 +916,17 @@ def main(argv: list[str] | None = None) -> int:
                     settings,
                     provider,
                     engine,
-                    output_path=(longform_output_path(definition.item.id, project_root=root)
-                                 if publication is not None else longform_output_path(definition.item.id)),
+                    output_path=output,
                     keep_workspace=args.keep_native_workspace,
                     output=lambda message: print(message, flush=True),
+                    enforce_loose_thread_duration=enforce_duration,
                 ).render(definition, start_over=args.start_over)
                 print(f"Final DONE: {datetime.now(timezone.utc).isoformat()} {result.output.resolve()}")
             finally:
                 provider.close()
             if publication is not None:
-                path = deliver(publication, result.output, root, definition, ffprobe=settings.ffprobe_binary)
+                path = deliver(publication, result.output, root, definition,
+                               ffprobe=settings.ffprobe_binary, ffmpeg=settings.ffmpeg_binary)
                 print(f"Entrega: {path}")
     except (RuntimeError, ValueError, OSError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)

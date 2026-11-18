@@ -360,6 +360,14 @@ con clips de Pexels elegidos por el sentido de cada tramo.
 
 ### Entrega para YouTube Studio
 
+Loose Thread planifica 9–12 minutos. Usa unas 180 palabras/minuto como
+referencia de la voz, alrededor de 1620–2160 palabras. El preflight de producción
+rechaza guiones manifiestamente cortos sin pedir voz. Native mide la narración
+antes de seleccionar stock, y una nueva entrega exige que tanto la narración
+como la pista de vídeo superen 480 segundos. Usa un JSON de prueba separado para
+previsualizaciones breves. `--deliver-only` puede revalidar un paquete histórico
+corto cuando coincide byte a byte. [Anuncios intermedios](https://support.google.com/youtube/answer/6175006?hl=es).
+
 Antes de producir, guarda `miniaturas/miniatura_final.png` y
 `editorial/publicacion_youtube.json` dentro del episodio. El archivo JSON
 usa `title`, `description` y `tags` (lista). En `settings` indica
@@ -384,6 +392,11 @@ La subcarpeta `entrega/` contiene `video_final.mp4`, `miniatura.png`,
 `titulo.txt`, `descripcion.txt`, `etiquetas.txt`, `voz.srt` y
 `ajustes_youtube.txt`. Para subir el vídeo, abre únicamente la carpeta `entrega/` del episodio.
 Kitok usa un enlace físico al MP4 si están en el mismo sistema de archivos.
+Los largos editoriales de Loose Thread guardan un índice de extractos visuales
+en `clips_revision/`: `manuales/` para insertos indicados por el editor y
+`kitok/` para rótulos, fotos animadas y otras composiciones aplicadas por el motor.
+El índice enlaza cada plano a su tiempo en la versión final. El stock de relleno
+queda en el MP4, y estos extractos se generan localmente a partir de esa versión.
 
 El SRT sale de la alineación real de Fish si coincide con el guion. Si falta,
 el agente puede aportar `voz.srt` alineado dentro del episodio y cerrar

@@ -721,7 +721,9 @@ def test_new_documentary_from_scratch_uses_real_stock_lengths_and_auto_music(aud
         def close(self): pass
     class Stock:
         def preflight_searches(self, queries, **kw): assert queries == ['city']
-        def search_videos(self, query, **kw): return [row[1] for row in stocks]
+        def search_videos(self, query, **kw):
+            # The negative case must exhaust the available stock after probing.
+            return [row[1] for row in (stocks[:1] if too_short else stocks)]
         def select_candidate(self, assets, **kw): return StockSelector().select_candidate(assets, **kw)
         def download_asset(self, choice): return stocks[choice.asset.asset_id-1][0]
     item = SimpleNamespace(id='cold_coverage', script='Why did the city change? These recorded images illustrate the discussion.', keywords=['city'])

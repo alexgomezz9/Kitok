@@ -10,6 +10,7 @@ import tempfile
 from pathlib import Path
 
 from ..fish_voice import FishVoiceClient
+from ..longform.duration import require_loose_thread_runtime
 from ..longform.models import TimelineClip
 from ..longform.timeline import build_timeline, build_semantic_timeline
 from ..editing.alignment import detect_pauses, read_word_alignment
@@ -76,6 +77,7 @@ class NativeLongformRenderer(LongformRenderer):
         keep_workspace: bool = False,
         output=None,
         confirmed_narration=None,
+        enforce_loose_thread_duration: bool = False,
     ):
         self.settings = settings
         self.pexels = pexels
@@ -86,6 +88,7 @@ class NativeLongformRenderer(LongformRenderer):
         self.keep_workspace = keep_workspace
         self.output = output
         self.confirmed_narration = confirmed_narration
+        self.enforce_loose_thread_duration = enforce_loose_thread_duration
 
     def _audio_library(self):
         from ..audio_library import AudioLibrary
@@ -206,6 +209,8 @@ class NativeLongformRenderer(LongformRenderer):
                 self._stage("Fish", fish_seconds)
             narration_duration = probe_media(narration, self.settings.ffprobe_binary).duration
             log.info("Narration duration=%.3fs", narration_duration)
+            if self.enforce_loose_thread_duration:
+                require_loose_thread_runtime(narration_duration, "narration")
 
             stage = time.monotonic()
             timeline_seed = self.seed or definition.item.id
