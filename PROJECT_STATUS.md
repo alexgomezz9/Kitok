@@ -29,12 +29,13 @@ decodificación y el nivel de audio. Sobre el mismo ejemplo, el análisis de
 referencias recuperó fotogramas, un posible corte, texto temporizado y eventos
 de sonido. [Cómo analizar una referencia](docs/research/reference-media.md).
 
-La comparación del 17/11 favorece el atraco de Fortaleza desde la tapadera de
-césped artificial. Se contrastaron dos transcripciones y el expediente. El
-borrador de Black Friday conserva su carpeta 004. Consulta la
-[investigación faceless](docs/research/youtube-faceless.md) antes de elegir el
-siguiente tema con el operador. La auditoría de Trazo se basó en Studio y
-comparó el paquete publicado con los tiempos de apertura.
+La comparación del 18/11 favorece Västberga para el siguiente largo de Loose
+Thread. Se comprobaron comparables, el expediente y dos fotos del caso. El
+borrador de Black Friday conserva su carpeta 004. El siguiente paso es
+acordar el tema con el operador y preparar el guion con las pruebas visuales.
+[Selección del 18/11](docs/research/youtube-faceless.md#selección-para-loose-thread-del-18112026).
+La auditoría de Trazo se basó en Studio y comparó el paquete publicado con
+los tiempos de apertura.
 
 ## YouTube
 

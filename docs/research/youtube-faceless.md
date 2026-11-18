@@ -151,3 +151,31 @@ privado del proyecto.
   documenta la falsa parada de Securitas. El [Gobierno de Hong Kong](https://www.info.gov.hk/gia/general/202406/26/P2024062600192p.htm)
   documenta la estafa con una videollamada pregrabada. [Europol](https://www.europol.europa.eu/cms/sites/default/files/documents/Transcript_Europol_Podcast%232_Operation_Greenlight_part_one.pdf)
   describe el acceso a ANOM por una calculadora. Consulta nuevas cifras antes de elegir.
+
+## Selección para Loose Thread del 18/11/2026
+
+Se compararon largos públicos en inglés. Las cifras son vistas acumuladas de
+YouTube Data API en la fecha de consulta. La edad del vídeo y el alcance previo
+del canal condicionan la comparación. Se conservaron también ejemplos con
+pocas vistas para calibrar la demanda.
+
+| Candidato | Evidencia y decisión editorial |
+| --- | --- |
+| **Västberga, el atraco del helicóptero** | [fern](https://youtu.be/PSHQ_MuxxNw) 6.233.208 vistas, [PAPERKUT](https://youtu.be/pVrdGo__4G0) 262.527 y [MaxxZen](https://youtu.be/51vogG5CxKc) 9.131 con 119 suscriptores en la consulta. [Reconstructed](https://youtu.be/4qRpf-e9AHA) tenía 38 en un largo de octubre. Primera opción por la escena reconocible, las fuentes y el archivo con licencia identificada. El título de trabajo es *A Helicopter Landed on the Roof. Then Millions Vanished.* |
+| **Fortaleza, la falsa empresa de césped** | [VAUX](https://youtu.be/ChlkHIJ4ASA) 16.668 en unos siete días y [Lume](https://youtu.be/3kY4Oo5Bmrs) 1.848.807. Tres largos que ya usan el gancho de la tienda quedaron en 42–75 vistas. El ángulo alternativo es qué ocurrió con toda la tierra, algo que el tribunal documenta. [Ejemplo de 42 vistas](https://youtu.be/wTXNlxnGmiE), [expediente, p. 5 y 44](https://www4.trf5.jus.br/data/2008/10/200581000145860_20081022.pdf). |
+| **La videollamada falsa de Hong Kong** | [tally](https://youtu.be/YQHwNA3jaIg) 1.572 vistas y 45 suscriptores. [CASE404](https://youtu.be/YXSnwJwWWcw) 413 y 136. El ángulo verificable es una reunión pregrabada seguida de instrucciones por mensajería. Los archivos disponibles para el momento decisivo son más escasos. Una videollamada recreada tendría que identificarse como tal. [Respuesta oficial de Hong Kong](https://www.info.gov.hk/gia/general/202406/26/P2024062600192p.htm). |
+| **Niza, el robo de las cajas de seguridad** | [Lume](https://youtu.be/zQfOUUxJvJM) 4.506.996 y [Primal Space](https://youtu.be/P0BUbWXvySE) 1.264.286. El catálogo INA identifica testimonios de empleados, policías y un juez. La disponibilidad y el permiso de su material de época quedan por comprobar. [Ficha INA](https://catalogue.ina.fr/doc/TV-RADIO/TV_2633370.001/albert-spaggiari-le-casse-du-siecle). |
+
+La propuesta de Västberga abre con el depósito real y la llegada del
+helicóptero. Tras fijar lugar y fecha, sigue lo que vieron los trabajadores
+y cierra con lo que documentaron la investigación y la revisión policial.
+El juicio registra más de 39 millones de coronas suecas robadas. Dos fotos
+de Commons identifican el edificio de 2009 y el mismo Bell 206 fotografiado
+en 2012. Ambas son CC BY-SA 3.0. Acreditar las imágenes, indicar cambios
+cuando los haya y respetar su licencia. Los vídeos de vigilancia son
+referencias de investigación mientras su permiso de reutilización siga sin
+confirmarse. Para la llegada sirve una recreación gráfica original
+identificada en pantalla. [Sentencia, apartados 2 y 3.1 de primera instancia](https://fup.link/d/hr/svea/b-8147-10/Svea_HR_B_8147-10_DOM_2011-02-16.pdf),
+[informe de revisión policial](https://mb.cision.com/Public/MigratedWpy/77195/9179362/9b8a5a216635d15a.pdf),
+[depósito](https://commons.wikimedia.org/wiki/File:G4S_V%C3%A4stberga_2009.jpg),
+[helicóptero SE-HON](https://commons.wikimedia.org/wiki/File:Bell_206_Jet_Ranger_SE-HON.jpg).

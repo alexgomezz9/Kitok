@@ -47,6 +47,14 @@ permite orientar el resultado a horizontal. Guarda sólo los recursos elegidos.
 El resto puede seguir como stock de vídeo de Kitok. Corta al aparecer información
 nueva y comprueba el ritmo en la apertura real. [Licencia Pexels](https://www.pexels.com/legal-pages/license/)
 
+Antes de sintetizar la voz larga, traduce la promesa del título en una imagen
+de apertura, una prueba que cambie la historia y una imagen para el cierre.
+Para cada momento, apunta en el brief qué afirmación respalda el recurso y qué
+permite su licencia. Resuelve los huecos con un gráfico propio o cambia la
+promesa si no puedes sostenerla visualmente. Comprueba esa secuencia con el
+texto y las imágenes elegidas. El JSON parcial fija esos recursos y Kitok
+resuelve el montaje entre ellos.
+
 1. Busca y descarga el documento, foto o clip verificable antes de pedir trabajo al
    operador. Registra fuente original, identidad, fecha, derechos y cambios. Usa
    stock para ambiente. Para un mecanismo sin imagen directa, considera un gráfico
