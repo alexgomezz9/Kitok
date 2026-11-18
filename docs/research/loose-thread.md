@@ -1,5 +1,7 @@
 # Documentales de Loose Thread
 
+Antes de producir una miniatura, usa la skill local `yt-thumbnail` y la [nota de miniaturas documentales](youtube-thumbnails.md). Actualízala con las referencias nuevas y el motivo de la elección.
+
 Este índice recoge decisiones reutilizables. Las fuentes originales, créditos y
 artefactos de un caso viven en su carpeta de episodio. Al retomar, lee el estado,
 el guion y la fuente completa de cada dato relevante. Registra una conclusión

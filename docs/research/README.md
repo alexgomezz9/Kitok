@@ -9,6 +9,8 @@ El [método de Loose Thread](loose-thread.md) reúne decisiones de tema, archivo
 [Análisis de referencias](reference-media.md) explica cómo estudiar un tramo con
 fotogramas, transcripción y señales de sonido para ambos canales.
 
+[Miniaturas documentales](youtube-thumbnails.md) reúne ejemplos vistos, pares de rendimiento y el control visual a tamaño móvil.
+
 [Investigación sobre YouTube faceless](youtube-faceless.md) reúne las transcripciones,
 la evidencia y las decisiones para validar tema, paquete, apertura y distribución.
 

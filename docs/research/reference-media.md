@@ -55,3 +55,27 @@ frase para la voz. El agente prepara esos datos. Kitok temporiza imágenes y
 clips, aplica movimientos, mezcla y entrega el vídeo. Guarda en el episodio la
 fuente, el intervalo y la lección aplicable. Retira la hoja de fotogramas al cerrar
 si ya cumplió su función.
+
+## Visor de montaje y editor Concat
+
+El concat de FFmpeg de Kitok ensambla fragmentos normalizados por copia de
+stream. El historial de main registra el ensamblado Native desde f1dbc90
+(15/10/2026) y el editorial desde 631ba3b (20/10/2026). El modo
+`--preview-scenes` del render editorial ya usa la mezcla y los planos cacheados
+para rehacer una selección. Consultar [montaje](../editing.md#preparar-un-montaje).
+
+El editor de escritorio [Concat](https://github.com/jub0t/Concat) sí aporta
+línea de tiempo multipista, reproducción y cortes manuales. Su
+[API y MCP](https://github.com/jub0t/Concat/blob/main/docs/MCP.md) permiten crear
+un proyecto e importar archivos locales. La sincronización en vivo con el
+proyecto abierto en pantalla sigue descrita en la
+[incidencia 337](https://github.com/jub0t/Concat/issues/337).
+
+Un piloto útil importaría, por orden y sin copias, los planos ya normalizados
+y la mezcla del episodio usando un reloj común. Habría que verificar duración
+por frame, alineación, medios accesibles desde Windows y que se pueda editar y
+exportar una revisión conservando el plan de Kitok como fuente. Abrir el MP4
+final sirve para verlo de forma inmediata. Editar el MP4 no recupera las capas
+ni conserva la reutilización de los planos al devolver cambios. Mantener el
+editor como opción de revisión hasta validar esas cuatro condiciones. Fuente
+consultada el 18/11/2026. Integración y compilación no probadas.
